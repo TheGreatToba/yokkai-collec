@@ -1,26 +1,32 @@
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: Arial, Helvetica, sans-serif;
-  --font-mono: Consolas, monospace;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
+@theme inline { --font-sans: Arial, Helvetica, sans-serif; --font-mono: Consolas, monospace; }
+body { background: #101419; color: #f4f4f0; font-family: Arial, Helvetica, sans-serif; }
+button:not(:disabled), select { cursor: pointer; }
+button:focus-visible, a:focus-visible, select:focus-visible { outline: 2px solid #bef264; outline-offset: 5px; }
+a[aria-current="page"] { color: #bef264; }
+.eyebrow { color: #bef264; text-transform: uppercase; font-size: 10px; letter-spacing: .18em; font-weight: 700; }
+.primary { background: #bef264; color: #16200d; border-radius: 8px; padding: 16px 20px; font-size: 14px; font-weight: 700; }
+.primary:hover:not(:disabled) { background: #d9ffa3; }.primary:disabled { opacity: .45; cursor: not-allowed; }
+.pack-stage { background: radial-gradient(ellipse at center, #354137, #1d2726 45%, #192024 75%); }
+.pack-art { display: flex; flex-direction: column; align-items: center; width: 220px; padding: 30px 20px; text-align: center; background: linear-gradient(140deg, #dcf49a, #9bbf59); color: #233020; border-top: 8px double #566b31; border-bottom: 8px double #566b31; box-shadow: 15px 20px 35px #0005; transform: rotate(-8deg); }
+.card-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 16px; }
+@media (min-width: 640px) { .card-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .card-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.card-face { height: 100%; padding: 10px; border: 1px solid #ffffff20; border-radius: 12px; background: #1c222b; }
+.rarity-R { border-color: #60a5fa70; }.rarity-SR { border-color: #c084fc90; }.rarity-SSR { border-color: #facc15b0; }
+.rarity-badge { position: absolute; top: 8px; right: 8px; padding: 4px 7px; background: #111b; border-radius: 4px; font-size: 11px; font-weight: bold; }
+.collection-card { border-radius: 12px; transition: transform .2s; }.collection-card:hover { transform: translateY(-4px); }
+.flip-card { perspective: 1000px; height: clamp(290px, 32vw, 380px); min-width: 0; text-align: left; border-radius: 12px; }
+.flip-inner { display: grid; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .55s ease; }
+.is-revealed .flip-inner { transform: rotateY(180deg); }
+.card-back, .card-front { grid-area: 1 / 1; width: 100%; backface-visibility: hidden; border-radius: 12px; }
+.card-back { display: flex; flex-direction: column; align-items: center; justify-content: space-around; border: 1px solid #ffffff20; padding: 25px 8px; background: repeating-linear-gradient(45deg, #202b29, #202b29 12px, #24302d 12px, #24302d 13px); }
+.card-front { transform: rotateY(180deg); min-height: 0; }.is-next .card-back { border-color: #bef264; }
+.flip-card .card-face { display: flex; flex-direction: column; }
+.flip-card .card-face > div { flex: 1; min-height: 0; }
+.flip-card .card-face img { height: 100%; object-fit: cover; }
+.flip-card .card-face h3 { min-height: 2.5rem; }
+select { display: block; margin-top: 8px; min-width: 175px; padding: 12px; border: 1px solid #ffffff20; border-radius: 8px; color: #f4f4f0; background: #1c222b; font-size: 13px; }
+.card-dialog { margin: auto; width: min(380px, calc(100% - 32px)); max-height: 90dvh; overflow: auto; padding: 24px; color: #f4f4f0; background: #191e24; border: 1px solid #ffffff30; border-radius: 16px; }
+.card-dialog::backdrop { background: #000b; backdrop-filter: blur(5px); }.card-dialog .card-face { max-width: 220px; margin: auto; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
