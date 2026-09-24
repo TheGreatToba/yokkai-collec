@@ -34,7 +34,7 @@ export function Modal({ open, onClose, title, children, className = "" }: { open
     document.body.style.overflow = "hidden";
     return () => { dialog.close(); document.body.style.overflow = overflow; trigger?.focus({ preventScroll: true }); };
   }, [open]);
-  return <dialog ref={ref} aria-labelledby={titleId} className={`yk-modal ${className}`} onCancel={onClose} onClose={onClose} onClick={e => {
+  return <dialog ref={ref} aria-labelledby={titleId} className={`yk-modal ${className}`} onCancel={e => { e.preventDefault(); onClose(); }} onClose={onClose} onClick={e => {
     if (e.target !== e.currentTarget) return;
     const r = e.currentTarget.getBoundingClientRect();
     if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) onClose();

@@ -1,5 +1,4 @@
-@config "../tailwind.config.ts";
-@theme inline {
+:root {
   --font-sans: var(--font-sora), system-ui, sans-serif;
   --font-display: var(--font-cinzel), Georgia, serif;
   --font-jp: var(--font-noto-jp), serif;

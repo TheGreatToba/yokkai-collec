@@ -1,5 +1,6 @@
 // Tailwind 4 compatibility config. Values transcribed from the supplied handoff
 // README; the referenced tokens/tailwind.preset.js is absent from this checkout.
+import plugin from 'tailwindcss/plugin';
 const config = {
   theme: {
     extend: {
@@ -16,5 +17,13 @@ const config = {
       transitionTimingFunction: { yokkai: 'cubic-bezier(.2,.8,.2,1)' },
     },
   },
+  plugins: [plugin(({ addBase }) => {
+    // Compatibility configs generate literal utilities. Export the same values
+    // for component CSS instead of maintaining a second palette by hand.
+    addBase({ ':root': Object.fromEntries([
+      ...Object.entries(config.theme.extend.colors).map(([name, value]) => [`--color-${name}`, value]),
+      ...Object.entries(config.theme.extend.boxShadow).map(([name, value]) => [`--shadow-${name}`, value]),
+    ]) });
+  })],
 };
 export default config;
