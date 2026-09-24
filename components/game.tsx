@@ -1,14 +1,13 @@
 "use client";
 import Link from "next/link";
+import { YokaiCard } from "@/components/yokai-card";
 import { useEffect, useRef, useState } from "react";
 import { getGameInfo, getPackStatus, getUserCollection, openBooster, type Card, type CollectedCard, type PackStatus } from "@/lib/data/cards";
 
 type Info = Awaited<ReturnType<typeof getGameInfo>>;
 const date = (value: string) => new Date(value).toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" });
 function CardFace({ card }: { card: Card }) {
-  return <div className={`card-face rarity-${card.rarity}`}><div className="relative overflow-hidden rounded-lg">
-    {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img src={card.image} alt={`Illustration temporaire : ${card.name}`} width={300} height={360} className="w-full" /><span className="rarity-badge">{card.rarity}</span></div><p className="mt-3 text-[10px] uppercase tracking-widest text-white/50">{card.category}</p><h3 className="mt-1 text-sm font-semibold">{card.name}</h3></div>;
+  return <YokaiCard rarity={card.rarity} name={card.name} image={card.image} category={card.category} />;
 }
 export function Game({ view }: { view: "packs" | "collection" }) {
   const [info, setInfo] = useState<Info | null>(null);
