@@ -1,8 +1,9 @@
 "use client";
 import Link from "next/link";
+import { Boosters } from "@/components/boosters";
 import { Topbar } from "@/components/topbar";
 import { YokaiCard } from "@/components/yokai-card";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getGameInfo, getPackStatus, getUserCollection, openBooster, type Card, type CollectedCard, type PackStatus } from "@/lib/data/cards";
 
 type Info = Awaited<ReturnType<typeof getGameInfo>>;
@@ -25,8 +26,6 @@ export function Game({ view }: { view: "packs" | "collection" }) {
   const opening = useRef(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const selectedTrigger = useRef<HTMLButtonElement>(null);
-  const nextCard = useRef<HTMLButtonElement>(null);
-  const collectionLink = useRef<HTMLAnchorElement>(null);
   useEffect(() => {
     let active = true;
     async function refresh() {
@@ -47,11 +46,6 @@ export function Game({ view }: { view: "packs" | "collection" }) {
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = previousOverflow; };
   }, [selected]);
-  useEffect(() => {
-    if (draw.length === 0) return;
-    if (revealed < draw.length) nextCard.current?.focus({ preventScroll: true });
-    else collectionLink.current?.focus({ preventScroll: true });
-  }, [draw, revealed]);
   async function open() {
     if (opening.current || (draw.length > 0 && revealed < draw.length)) return;
     opening.current = true; setBusy(true); setError("");
@@ -61,51 +55,16 @@ export function Game({ view }: { view: "packs" | "collection" }) {
     } catch (e) { setError(e instanceof Error ? e.message : "Impossible d’ouvrir le pack."); }
     finally { opening.current = false; setBusy(false); }
   }
+  const revealCard = useCallback((index: number) => setRevealed(current => current === index ? current + 1 : current), []);
+  const revealAll = useCallback(() => setRevealed(draw.length), [draw.length]);
   const seconds = status?.nextPackAt ? Math.max(0, Math.ceil((status.nextPackAt - now) / 1000)) : 0;
   const countdown = `${Math.floor(seconds / 60).toString().padStart(2, "0")}:${(seconds % 60).toString().padStart(2, "0")}`;
   const filtered = collection.filter(c => (!category || c.category === category) && (!rarity || c.rarity === rarity));
   return <div className="w-full">
     <Topbar view={view} name={info?.user.name} collection={collection} />
-    <main id="main-content" className="mx-auto max-w-6xl px-6 py-10"><p className="eyebrow">{view === "packs" ? "Une ouverture. Dix découvertes." : "Chaque carte a son histoire."}</p><h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">{view === "packs" ? "Votre prochaine trouvaille." : "Ma collection"}</h1><p className="mt-4 max-w-xl text-sm leading-6 text-white/50">{view === "packs" ? "Anime, sport ou cinéma : ouvrez votre pack et découvrez les cartes qui rejoindront votre collection." : `${collection.length} cartes obtenues · Les plus rares en premier · Les doublons sont conservés.`}</p>
+    <main id="main-content" className="mx-auto max-w-6xl px-6 py-10"><p className="eyebrow">{view === "packs" ? "Une ouverture. Dix découvertes." : "Chaque carte a son histoire."}</p><h1 className="yk-title mt-3">{view === "packs" ? "Invoquez votre destin." : "Ma collection"}</h1><p className="mt-4 max-w-xl text-sm leading-6 text-white/50">{view === "packs" ? "Anime, sport ou cinéma : ouvrez votre pack et découvrez les cartes qui rejoindront votre collection." : `${collection.length} cartes obtenues · Les plus rares en premier · Les doublons sont conservés.`}</p>
     {error && <p role="alert" className="my-6 rounded-lg border border-red-400/40 bg-red-400/10 p-4 text-sm text-red-200">{error}</p>}{!status && !error && <p role="status" className="mt-10">Chargement…</p>}
-    {view === "packs" && <><section className="mt-10 grid overflow-hidden rounded-2xl border border-white/10 bg-[#191e24] md:grid-cols-2"><div className="pack-stage flex min-h-80 items-center justify-center p-10"><div className="pack-art"><span className="text-xs tracking-[.3em]">YOKKAI COLLEC’</span><span className="my-7 text-7xl">✦</span><strong className="text-3xl leading-none">REGULAR<br />PACK</strong><span className="mt-5 text-[10px] tracking-[.3em]">10 CARTES · 4 RARETÉS</span></div></div><div className="flex flex-col justify-center p-8 sm:p-12"><p className="eyebrow">Le rendez-vous des collectionneurs</p><h2 className="mt-3 text-3xl font-semibold">Regular Pack</h2><p className="mt-4 text-sm leading-6 text-white/50">10 cartes à découvrir, une par une.<br />Un nouveau pack toutes les 30 minutes.</p><div className="my-7 flex flex-wrap justify-between gap-3 border-y border-white/10 py-5 text-sm"><span>Packs disponibles <strong className="ml-2 text-lime-300">{status ? `${status.available} / ${status.maximum}` : "—"}</strong></span><span className="text-white/50">{status ? status.nextPackAt === null ? "Stock plein" : `Prochain : ${countdown}` : "Chargement…"}</span></div><button className="primary" disabled={!status || status.available === 0 || busy || (draw.length > 0 && revealed < 10)} onClick={open}>{busy ? "Ouverture…" : draw.length > 0 && revealed < 10 ? "Révélez vos 10 cartes ci-dessous" : status?.available === 0 ? "Le prochain pack arrive bientôt" : "Ouvrir un pack ↗"}</button><div className="mt-5 flex justify-between text-xs text-white/50">{info?.dropRates.map(r => <span key={r.rarity}><strong className="text-white/80">{r.rarity}</strong> {r.percent}%</span>)}</div></div></section>
-    {draw.length > 0 && <section className="mt-12" aria-label="Cartes du pack">
-      <div className="mb-6 flex justify-between gap-4">
-        <h2 className="text-xl font-semibold">Le moment de la découverte</h2>
-        <p role="status" aria-atomic="true" className="text-sm text-white/50">{revealed} / {draw.length} révélées</p>
-      </div>
-      <p id="reveal-help" className="mb-6 text-sm text-white/50">Cliquez sur la carte indiquée ou utilisez Entrée / Espace. Les plus rares se dévoilent en dernier.</p>
-      <div className="card-grid">
-        {draw.map((card, i) => {
-          const isRevealed = i < revealed;
-          const isNext = i === revealed;
-          return <button
-            type="button"
-            ref={isNext ? nextCard : undefined}
-            key={card.instanceId}
-            disabled={!isNext}
-            onClick={() => setRevealed(current => current === i ? current + 1 : current)}
-            aria-label={isRevealed ? `${card.name}, ${card.rarity}` : `Révéler la carte ${i + 1} sur ${draw.length}`}
-            aria-describedby={isNext ? "reveal-help" : undefined}
-            className={`flip-card ${isRevealed ? "is-revealed" : ""} ${isNext ? "is-next" : ""}`}
-          >
-            <span className="flip-inner">
-              <span className="card-back" aria-hidden="true">
-                <span className="text-[10px] tracking-[.25em]">YOKKAI</span>
-                <span className="text-5xl text-lime-300">✦</span>
-                <span className="text-xs text-white/50">{isNext ? "Cliquez pour révéler" : String(i + 1).padStart(2, "0")}</span>
-              </span>
-              <span className="card-front" aria-hidden={!isRevealed}>
-                {isRevealed && <CardFace card={card} />}
-              </span>
-            </span>
-          </button>;
-        })}
-      </div>
-      {revealed === draw.length && <p className="mt-6 text-sm text-lime-300">
-        Vos {draw.length} cartes ont rejoint votre collection. <Link ref={collectionLink} href="/collection" className="underline">Les retrouver →</Link>
-      </p>}
-    </section>}</>}
+    {view === "packs" && <Boosters status={status} countdown={countdown} rates={info?.dropRates} busy={busy} draw={draw} revealed={revealed} onOpen={open} onReveal={revealCard} onRevealAll={revealAll} />}
 
     {view === "collection" && status && <section aria-label="Collection de cartes">
       <div className="my-8 flex flex-wrap items-end gap-4">
