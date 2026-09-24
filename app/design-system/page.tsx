@@ -1,0 +1,7 @@
+import { Topbar } from "@/components/topbar";
+import { Button, Chip, StatusPill, Karas, Avatar } from "@/components/ui";
+import { YokaiCard, CardBack } from "@/components/yokai-card";
+
+export default function DesignSystem() {
+  return <><Topbar view="design" /><main id="main-content" className="mx-auto w-full max-w-6xl space-y-10 px-6 py-12"><div><p className="eyebrow">Yokkai Collec’ · UI</p><h1 className="yk-title mt-3">Design system</h1><p className="mt-4 text-sm text-ink-2">Exemples visuels des composants. Les montants et cartes ci-dessous sont des exemples de présentation.</p></div><section className="flex flex-wrap items-center gap-4" aria-label="Boutons"><Button>Ouvrir un pack</Button><Button variant="secondary">Revoir mon choix</Button><Button variant="danger">Détruire</Button><Button disabled>Indisponible</Button></section><section className="flex flex-wrap items-center gap-4" aria-label="Pastilles"><Chip active>Toutes</Chip><Chip>Shiny uniquement</Chip><StatusPill tone="success">En tête</StatusPill><StatusPill tone="danger">Surenchéri</StatusPill><Karas amount={1240} /><Avatar name="Yokkai" online /></section><section className="grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-5" aria-label="Raretés">{(["C","R","SR","SSR","LR"] as const).map(r => <YokaiCard key={r} rarity={r} name="Yokkai" category="Exemple" number={1} />)}<YokaiCard rarity="SSR" shiny name="Yokkai" category="Shiny SSR" number={1} /><YokaiCard rarity="LR" shiny name="Yokkai" category="Shiny LR" number={1} /><CardBack /></section></main></>;
+}
