@@ -7,6 +7,9 @@ const eslintConfig = defineConfig([
   ...nextTs,
   // Override default ignores of eslint-config-next.
   globalIgnores([
+    // Supplied prototype runtime is reference material, not application code.
+    "Yokkai Collec' UI design/**",
+    "design_handoff_yokkai_collec/**",
     // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
