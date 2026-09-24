@@ -1,0 +1,78 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import path from "node:path";
+import vm from "node:vm";
+import test from "node:test";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import ts from "typescript";
+
+const require = createRequire(import.meta.url);
+const root = path.resolve(import.meta.dirname, "..");
+const modules = new Map();
+function load(relative) {
+  const filename = path.join(root, relative);
+  if (modules.has(filename)) return modules.get(filename);
+  const exports = {};
+  modules.set(filename, exports);
+  const code = ts.transpileModule(readFileSync(filename, "utf8"), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
+  }).outputText;
+  vm.runInNewContext(code, {
+    exports,
+    require: name => {
+      if (name.endsWith(".css")) return {};
+      if (name === "@/lib/data/cards") return {
+        getAllCards() { assert.fail("Presentational server render must not load the API"); },
+        getUserCollection() { assert.fail("Presentational server render must not load the API"); },
+      };
+      if (name === "@/components/ui") return load("components/ui/index.tsx");
+      if (name.startsWith("@/")) return load(`${name.slice(2)}.${name.includes("/hooks/") ? "ts" : "tsx"}`);
+      return require(name);
+    },
+  }, { filename });
+  return exports;
+}
+const render = (component, props) => renderToStaticMarkup(React.createElement(component, props));
+const card = { id: "card-a", instanceId: "copy-a", name: "Carte de test", category: "Test", rarity: "SSR", image: "/test-image.png", obtainedAt: "2026-09-24T10:00:00Z" };
+
+test("Shiny reste une surcouche SSR/LR et ne s'applique pas aux autres raretés", () => {
+  const { YokaiCard } = load("components/yokai-card.tsx");
+  for (const rarity of ["C", "R", "SR"]) {
+    const html = render(YokaiCard, { ...card, rarity, shiny: true });
+    assert.doesNotMatch(html, /yk-shiny-frame/);
+  }
+  for (const rarity of ["SSR", "LR"]) {
+    const html = render(YokaiCard, { ...card, rarity, shiny: true, animated: false });
+    assert.match(html, new RegExp(`yk-rarity-${rarity}`));
+    assert.match(html, /yk-shiny-frame/);
+    assert.doesNotMatch(html, /yk-animated|yk-sparkle/);
+    assert.match(html, /test-image\.png/);
+  }
+});
+
+test("un solde absent reste inconnu, un solde connu utilise fr-FR", () => {
+  const { Karas } = load("components/ui/index.tsx");
+  assert.match(render(Karas, {}), /Solde karas indisponible/);
+  assert.match(render(Karas, {}), /—/);
+  assert.match(render(Karas, { amount: 1240 }), /1[\s\u202f\u00a0]240/);
+});
+
+test("la collection d'un autre joueur ne propose pas de sélection ou d'édition", () => {
+  const { CollectionView } = load("components/collection.tsx");
+  const html = render(CollectionView, { cards: [card], categories: ["Test"], readOnly: true });
+  assert.match(html, /Carte de test/);
+  assert.doesNotMatch(html, /Sélection multiple|Détruire la sélection|Modifier le profil/);
+});
+
+test("le Decision Pack confirmé affiche une carte gardée et neuf perdues", () => {
+  const { BoosterReveal } = load("components/boosters.tsx");
+  const cards = Array.from({ length: 10 }, (_, i) => ({ ...card, instanceId: `copy-${i}` }));
+  const html = render(BoosterReveal, {
+    cards, revealed: 10, onReveal() {}, onRevealAll() {}, onReturn() {},
+    decision: { keptId: "copy-3", async onKeep() { assert.fail("Rendering must not confirm a choice"); } },
+  });
+  assert.equal((html.match(/yk-lost-stamp/g) || []).length, 9);
+  assert.equal((html.match(/GARDÉE/g) || []).length, 1);
+});

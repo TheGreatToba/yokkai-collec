@@ -8,5 +8,5 @@ export async function CommunityPage({screen,playerId}: {screen:CommunityScreen;p
   if(!user)redirect("/connexion");
   const isMe=!playerId||playerId===user.id;
   const name=isMe?await getCurrentPseudo(user.id):undefined;
-  return <CommunityView screen={screen} account={<AccountMenu/>} name={name??undefined} joined={isMe?user.created_at:undefined} isMe={isMe}/>;
+  return <CommunityView key={`${screen}:${playerId ?? user.id}`} screen={screen} account={<AccountMenu/>} name={name??undefined} joined={isMe?user.created_at:undefined} isMe={isMe}/>;
 }

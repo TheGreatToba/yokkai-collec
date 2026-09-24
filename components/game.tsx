@@ -46,7 +46,7 @@ export function Game({ view }: { view: "packs" | "collection" }) {
     <Topbar view={view} name={info?.user.name} collection={collection} />
     <main id="main-content" className="mx-auto max-w-6xl px-6 py-10"><p className="eyebrow">{view === "packs" ? "Une ouverture. Dix découvertes." : "Grimoire"}</p><h1 className="yk-title mt-3">{view === "packs" ? "Invoquez votre destin." : "Ma collection"}</h1><p className="mt-4 max-w-xl text-sm leading-6 text-ink-2">{view === "packs" ? "Anime, sport ou cinéma : ouvrez votre pack et découvrez les cartes qui rejoindront votre collection." : `${collection.length} cartes obtenues · Les plus rares en premier · Les doublons sont conservés.`}</p>
     {error && <p role="alert" className="my-6 rounded-lg border border-danger/40 bg-danger/10 p-4 text-sm text-danger-ink">{error}</p>}{!status && !error && <p role="status" className="mt-10">Chargement…</p>}
-    {view === "packs" && <Boosters status={status} countdown={countdown} rates={info?.dropRates} busy={busy} draw={draw} revealed={revealed} onOpen={open} onReveal={revealCard} onRevealAll={revealAll} />}
+    {view === "packs" && <Boosters status={status} countdown={countdown} rates={info?.dropRates} busy={busy} draw={draw} collection={collection} revealed={revealed} onOpen={open} onReveal={revealCard} onRevealAll={revealAll} />}
 
     {view === "collection" && status && <CollectionView cards={collection} categories={info?.categories || []} />}
 

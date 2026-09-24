@@ -5,10 +5,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Card, CollectedCard, PackStatus } from "@/lib/data/cards";
 import { Button, Modal, StatusPill } from "@/components/ui";
 import { CardBack, YokaiCard } from "@/components/yokai-card";
+import { useSfx, type SfxName } from "@/hooks/use-sfx";
 import "@/styles/boosters.css";
 
 export type RevealCard = Card & { instanceId: string; shiny?: boolean; isNew?: boolean; copies?: number };
-type Sound = "rumble" | "tear" | "flip" | "slide" | "sr" | "ssr" | "lr" | "shiny" | "flutter";
+type Sound = SfxName;
 type Decision = { onKeep: (instanceId: string) => Promise<void>; keptId?: string; busy?: boolean };
 
 export function BoosterReveal({ cards, revealed, onReveal, onRevealAll, onReturn, decision, onSound }: {
@@ -78,24 +79,37 @@ export function BoosterReveal({ cards, revealed, onReveal, onRevealAll, onReturn
   </section>;
 }
 
-export function Boosters({ status, countdown, rates, busy, draw, revealed, onOpen, onReveal, onRevealAll, onSound }: {
+export function Boosters({ status, countdown, rates, busy, draw, collection, revealed, onOpen, onReveal, onRevealAll, onSound }: {
   status: PackStatus | null; countdown: string; rates?: {rarity: Card["rarity"]; percent: number}[];
-  busy: boolean; draw: CollectedCard[]; revealed: number; onOpen: () => Promise<void>;
+  busy: boolean; draw: CollectedCard[]; collection: CollectedCard[]; revealed: number; onOpen: () => Promise<void>;
   onReveal: (index: number) => void; onRevealAll: () => void; onSound?: (sound: Sound) => void;
 }) {
   const [tearing, setTearing] = useState(false);
   const [showDraw, setShowDraw] = useState(false);
+  const [priorCopies, setPriorCopies] = useState<Record<string,number>>({});
+  const sound = useSfx();
+  const playSound = onSound ?? sound.play;
   useEffect(() => {
     if (!tearing) return;
-    const timer = window.setTimeout(() => { setTearing(false); onSound?.("tear"); }, 900);
+    const timer = window.setTimeout(() => { setTearing(false); playSound("tear"); }, 900);
     return () => clearTimeout(timer);
-  }, [tearing, onSound]);
-  function start() { setShowDraw(true); setTearing(true); onSound?.("rumble"); void onOpen(); }
+  }, [tearing, playSound]);
+  function start() {
+    setPriorCopies(collection.reduce<Record<string,number>>((counts,card) => { counts[card.id] = (counts[card.id] || 0) + 1; return counts; }, {}));
+    setShowDraw(true); setTearing(true); playSound("rumble"); void onOpen();
+  }
+  const counts = { ...priorCopies };
+  const revealCards = draw.map(card => {
+    const previous = counts[card.id] || 0;
+    counts[card.id] = previous + 1;
+    return { ...card, isNew: previous === 0, copies: previous + 1 };
+  });
   const revealing = showDraw && draw.length > 0 && !tearing && !busy;
   return <>
+    <div className="mt-6 flex justify-end"><button type="button" onClick={sound.toggle} aria-pressed={sound.enabled} aria-label={sound.enabled ? "Désactiver les sons" : "Activer les sons"} className="inline-flex items-center gap-2 rounded-full border border-veil px-4 py-2 text-xs text-ink-2"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M4 9h4l5-4v14l-5-4H4z"/>{sound.enabled ? <path d="M17 8a6 6 0 0 1 0 8M20 5a10 10 0 0 1 0 14"/> : <path d="m17 9 5 6m0-6-5 6"/>}</svg>{sound.enabled ? "Son activé" : "Son coupé"}</button></div>
     {tearing || busy ? <div className="yk-tearing-stage" role="status"><div className="yk-tearing-pack">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/assets/booster-pack.png" alt="" width={240} height={360} /></div><p className="mt-8 text-sm text-ink-2">Le sceau se brise…</p></div> : revealing ? <BoosterReveal key={draw[0].instanceId} cards={draw} revealed={revealed} onReveal={onReveal} onRevealAll={onRevealAll} onReturn={() => setShowDraw(false)} onSound={onSound} /> : <div className="yk-pack-grid">
+      <img src="/assets/booster-pack.png" alt="" width={240} height={360} /></div><p className="mt-8 text-sm text-ink-2">Le sceau se brise…</p></div> : revealing ? <BoosterReveal key={draw[0].instanceId} cards={revealCards} revealed={revealed} onReveal={onReveal} onRevealAll={onRevealAll} onReturn={() => setShowDraw(false)} onSound={playSound} /> : <div className="yk-pack-grid">
       <article className="yk-pack-panel"><div className="yk-pack-art-stage"><span className="yk-pack-orbit" />
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/assets/booster-pack.png" alt="Regular Pack Yokkai Collec’" width={220} height={330} className="yk-pack-image" /></div><div className="p-7 pt-0"><div className="flex items-center justify-between gap-2"><h2 className="font-display text-[26px] font-semibold">Regular Pack</h2><StatusPill>10 cartes</StatusPill></div><p className="mt-3 text-sm leading-6 text-ink-2">Dix cartes, dix rencontres. Découvrez ce que le destin vous réserve.</p><div className="mt-6 flex justify-between gap-3 text-xs"><span className="text-ink-2">Packs disponibles</span><strong className="text-karas">{status ? `${status.available} / ${status.maximum}` : "—"}</strong></div><div className="my-3 h-1 overflow-hidden rounded-full bg-void"><div className="h-full rounded-full bg-accent-gold" style={{width:status && status.maximum ? `${status.available/status.maximum*100}%` : "0%"}} /></div><p className="mb-6 text-xs text-ink-3">{status ? status.nextPackAt === null ? "Votre réserve est pleine" : `Prochain pack dans ${countdown}` : "Chargement des packs…"}</p><Button className="w-full" disabled={!status || status.available === 0 || busy} onClick={start}>{status?.available === 0 ? `Disponible dans ${countdown}` : "Ouvrir le pack ✦"}</Button><div className="mt-5 flex flex-wrap justify-center gap-2">{rates?.map(r => <span className={`yk-rate yk-rate-${r.rarity}`} key={r.rarity}><b>{r.rarity}</b> {r.percent.toLocaleString("fr-FR")}%</span>)}</div></div></article>

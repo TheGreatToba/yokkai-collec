@@ -8,6 +8,7 @@
 .yk-rate { border: 1px solid var(--color-veil); border-radius: 999px; padding: 5px 9px; font-size: 10px; color: var(--color-ink-2); }
 .yk-rate b { margin-right: 3px; }.yk-rate-C b { color: var(--color-rarity-c); }.yk-rate-R b { color: var(--color-rarity-r); }.yk-rate-SR b { color: var(--color-rarity-sr); }.yk-rate-SSR b { color: var(--color-rarity-ssr); }.yk-rate-LR b { color: var(--color-rarity-lr); }
 .yk-tearing-stage { min-height: 540px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.yk-tearing-stage::after { content: ''; position: fixed; inset: 0; z-index: 40; pointer-events: none; opacity: 0; background: linear-gradient(var(--holo-spark),var(--color-accent-neon)); animation: yk-flash .7s .3s both; }
 .yk-tearing-pack { animation: yk-rumble .6s ease-in-out,yk-vanish .3s .6s forwards; }
 .yk-reveal-stage { position: relative; display: flex; flex-direction: column; align-items: center; padding: 65px 0 36px; }
 .yk-deck { position: relative; width: 190px; aspect-ratio: 5 / 7; perspective: 1000px; }
@@ -29,7 +30,7 @@
 .yk-burst::before,.yk-burst::after { content: ''; position: absolute; inset: 5%; border: 2px solid var(--color-rarity-ssr); border-radius: 50%; animation: yk-burst .9s ease-out; }.yk-burst::after { inset: 15%; animation-delay: .15s; }
 .yk-reveal-sr .yk-burst { background: radial-gradient(circle,var(--color-rarity-sr),transparent 65%); }.yk-reveal-sr .yk-burst::before,.yk-reveal-sr .yk-burst::after { border-color: var(--color-rarity-sr); }
 .yk-invocation { width: 100vw; max-width: none; height: 100dvh; max-height: none; border: none; border-radius: 0; background: radial-gradient(ellipse at center,color-mix(in srgb,var(--color-accent-gold) 20%,var(--color-void)),var(--color-void)); text-align: center; }
-.yk-invocation::before { content: ''; position: absolute; inset: -100%; background: repeating-conic-gradient(from 0deg,transparent 0deg 14deg,color-mix(in srgb,var(--color-accent-gold) 7%,transparent) 15deg 18deg); animation: yk-spin 40s linear infinite; pointer-events: none; }
+.yk-invocation::before { content: ''; position: fixed; inset: 0; border-radius: 50%; clip-path: circle(closest-side); background: repeating-conic-gradient(from 0deg,transparent 0deg 14deg,color-mix(in srgb,var(--color-accent-gold) 7%,transparent) 15deg 18deg); animation: yk-spin 40s linear infinite; pointer-events: none; }
 .yk-invocation > div:first-child { position: relative; z-index: 1; }
 .yk-invocation-shiny { background: radial-gradient(ellipse at center,var(--color-veil),var(--color-void)); }
 .yk-invocation-shiny::after { content: ''; position: absolute; width: 75vmin; aspect-ratio: 1; left: calc(50% - 37.5vmin); top: 10%; background: var(--holo-frame); filter: blur(70px); opacity: .2; border-radius: 50%; mix-blend-mode: screen; animation: yk-spin 12s linear infinite reverse; pointer-events: none; }
@@ -40,5 +41,6 @@
 @keyframes yk-drop { from { transform: translateY(-160px) scale(1.2); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes yk-rise { from { transform: translateY(40px) scale(.7); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes yk-burst { from { transform: scale(.4); opacity: 1; } to { transform: scale(1.6); opacity: 0; } }
+@keyframes yk-flash { 0%,100% { opacity: 0; } 25% { opacity: .85; } }
 @media (max-width: 540px) { .yk-reveal-grid { gap: 18px 7px; } .yk-pack-art-stage { height: 290px; } .yk-callout { font-size: 18px; } }
-@media (prefers-reduced-motion: reduce) { .yk-tearing-pack,.yk-face-up,.yk-stacked-back { transform: none !important; } .yk-burst,.yk-invocation::before,.yk-invocation::after { display: none; } }
+@media (prefers-reduced-motion: reduce) { .yk-tearing-pack,.yk-face-up,.yk-stacked-back { transform: none !important; } .yk-burst,.yk-tearing-stage::after,.yk-invocation::before,.yk-invocation::after { display: none; } }
