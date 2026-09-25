@@ -16,7 +16,7 @@ const notificationStyle = {
   friend: ["+", "text-accent-neon bg-accent-neon/14"], mission: ["✦", "text-success bg-success/14"],
 };
 export function Topbar({ view, account, name, karas, notifications, onReadAll, onOpenNotification }: {
-  view: "packs" | "collection" | "design" | "profile" | "market" | "auction" | "trades" | "search" | "wishlist" | "achievements"; account?: ReactNode; name?: string; collection?: CollectedCard[];
+  view: "packs" | "collection" | "profile" | "market" | "auction" | "trades" | "search" | "wishlist" | "achievements"; account?: ReactNode; name?: string; collection?: CollectedCard[];
   karas?: number; notifications?: NotificationItem[]; onReadAll?: () => void; onOpenNotification?: (id:string,href:string)=>Promise<void>;
 }) {
   const sound = useSfx();
@@ -40,7 +40,6 @@ export function Topbar({ view, account, name, karas, notifications, onReadAll, o
       </nav>
       <div className="yk-topbar-actions">
         <button type="button" onClick={sound.toggle} aria-pressed={sound.enabled} aria-label={sound.enabled ? "Désactiver les sons" : "Activer les sons"} title={sound.enabled ? "Son activé" : "Son coupé"} className="yk-icon-button"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M4 9h4l5-4v14l-5-4H4z"/>{sound.enabled ? <path d="M17 8a6 6 0 0 1 0 8M20 5a10 10 0 0 1 0 14"/> : <path d="m17 9 5 6m0-6-5 6"/>}</svg></button>
-        <Link href="/design-system" className="yk-design-link" aria-current={view === "design" ? "page" : undefined}>Design system</Link>
         <Link href="/recherche" className="yk-icon-button" aria-label="Rechercher dans le catalogue"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="10" cy="10" r="6" /><path d="m15 15 6 6" /></svg></Link>
         <div className="relative">
           <button type="button" className="yk-icon-button" aria-label={`Notifications${unread ? `, ${unread} non lues` : ""}`} aria-expanded={panel === "notifications"} aria-controls="notifications-panel" onClick={() => setPanel(panel === "notifications" ? null : "notifications")}><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg>{!!unread && <span className="absolute -top-1 -right-1 min-w-4 rounded-full bg-danger px-1 text-[10px] text-void">{unread}</span>}</button>
