@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { CollectedCard } from "@/lib/data/cards";
 import { Avatar, Karas, Modal } from "@/components/ui";
 import "@/styles/topbar.css";
+import { getNotifications, markNotificationRead } from "@/lib/data/notifications";
+import { useSfx } from "@/hooks/use-sfx";
 
 export type NotificationItem = { id: string; title: string; text: string; time: string; read: boolean; href?: string; kind: "wishlist" | "outbid" | "trade" | "pack" | "won" | "sold" | "friend" | "mission" };
 const notificationStyle = {
@@ -13,33 +15,40 @@ const notificationStyle = {
   won: ["✓", "text-success bg-success/14"], sold: ["◆", "text-accent-gold bg-accent-gold/14"],
   friend: ["+", "text-accent-neon bg-accent-neon/14"], mission: ["✦", "text-success bg-success/14"],
 };
-export function Topbar({ view, account, name, karas, notifications, onReadAll }: {
-  view: "packs" | "collection" | "design" | "profile" | "market" | "auction" | "trades" | "search" | "wishlist"; account?: ReactNode; name?: string; collection?: CollectedCard[];
-  karas?: number; notifications?: NotificationItem[]; onReadAll?: () => void;
+export function Topbar({ view, account, name, karas, notifications, onReadAll, onOpenNotification }: {
+  view: "packs" | "collection" | "design" | "profile" | "market" | "auction" | "trades" | "search" | "wishlist" | "achievements"; account?: ReactNode; name?: string; collection?: CollectedCard[];
+  karas?: number; notifications?: NotificationItem[]; onReadAll?: () => void; onOpenNotification?: (id:string,href:string)=>Promise<void>;
 }) {
+  const sound = useSfx();
   const [panel, setPanel] = useState<"notifications" | "account" | null>(null);
-  const unread = notifications?.filter(n => !n.read).length;
+  const [loaded,setLoaded]=useState<NotificationItem[]>();
+  useEffect(()=>{if(notifications)return;let active=true;const load=()=>void getNotifications().then(items=>{if(active)setLoaded(items.map(n=>({id:n.id,title:"Carte en wishlist aux enchères",text:`${n.cardName} est maintenant disponible.`,time:new Date(n.createdAt).toLocaleString("fr-FR"),read:!!n.readAt,href:`/marche/${n.referenceId}`,kind:"wishlist"})));},()=>{});load();const timer=window.setInterval(load,60000);return()=>{active=false;window.clearInterval(timer);};},[notifications]);
+  const shown=notifications??loaded;
+  const unread = shown?.filter(n => !n.read).length;
+  async function readAll(){if(onReadAll)await onReadAll();else{await markNotificationRead();setLoaded(current=>current?.map(n=>({...n,read:true})));}}
   return <>
     <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-full focus:bg-accent-gold focus:p-3 focus:text-void">Aller au contenu</a>
     <header className="yk-topbar">
       <Link href="/" className="yk-brand" aria-label="Yokkai Collec’, accueil"><span className="yk-logo">Y</span><span>Yokkai<br />Collec’</span></Link>
       <nav aria-label="Navigation principale" className="yk-tabs">
-        <Link href="/" aria-current={view === "packs" ? "page" : undefined}>Boosters</Link>
+        <Link href="/boosters" aria-current={view === "packs" ? "page" : undefined}>Boosters</Link>
         <Link href="/collection" aria-current={view === "collection" ? "page" : undefined}>Collection</Link>
         <Link href="/marche" aria-current={view === "market" || view === "auction" ? "page" : undefined}>Marché</Link>
         <Link href="/echanges" aria-current={view === "trades" ? "page" : undefined}>Échanges</Link>
         <Link href="/wishlist" aria-current={view === "wishlist" ? "page" : undefined}>Wishlist</Link>
+        <Link href="/succes" aria-current={view === "achievements" ? "page" : undefined}>Succès</Link>
       </nav>
       <div className="yk-topbar-actions">
+        <button type="button" onClick={sound.toggle} aria-pressed={sound.enabled} aria-label={sound.enabled ? "Désactiver les sons" : "Activer les sons"} title={sound.enabled ? "Son activé" : "Son coupé"} className="yk-icon-button"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M4 9h4l5-4v14l-5-4H4z"/>{sound.enabled ? <path d="M17 8a6 6 0 0 1 0 8M20 5a10 10 0 0 1 0 14"/> : <path d="m17 9 5 6m0-6-5 6"/>}</svg></button>
         <Link href="/design-system" className="yk-design-link" aria-current={view === "design" ? "page" : undefined}>Design system</Link>
         <Link href="/recherche" className="yk-icon-button" aria-label="Rechercher dans le catalogue"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="10" cy="10" r="6" /><path d="m15 15 6 6" /></svg></Link>
         <div className="relative">
           <button type="button" className="yk-icon-button" aria-label={`Notifications${unread ? `, ${unread} non lues` : ""}`} aria-expanded={panel === "notifications"} aria-controls="notifications-panel" onClick={() => setPanel(panel === "notifications" ? null : "notifications")}><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg>{!!unread && <span className="absolute -top-1 -right-1 min-w-4 rounded-full bg-danger px-1 text-[10px] text-void">{unread}</span>}</button>
-          {panel === "notifications" && <><button type="button" tabIndex={-1} aria-label="Fermer les notifications" className="fixed inset-0 cursor-default" onClick={() => setPanel(null)} /><section id="notifications-panel" aria-label="Notifications" className="yk-notifications" onKeyDown={e => { if (e.key === "Escape") setPanel(null); }}><div className="flex items-center justify-between gap-4 border-b border-veil p-5"><h2 className="font-display font-semibold">Notifications</h2>{onReadAll && <button className="text-xs text-accent-gold" onClick={onReadAll}>Tout marquer comme lu</button>}</div>
-            {!notifications ? <p className="p-6 text-sm text-ink-2">Les notifications seront bientôt disponibles.</p> : notifications.length === 0 ? <p className="p-6 text-sm text-ink-2">Vous êtes à jour.</p> : <ul className="max-h-96 overflow-auto">{notifications.map(n => {
+          {panel === "notifications" && <><button type="button" tabIndex={-1} aria-label="Fermer les notifications" className="fixed inset-0 cursor-default" onClick={() => setPanel(null)} /><section id="notifications-panel" aria-label="Notifications" className="yk-notifications" onKeyDown={e => { if (e.key === "Escape") setPanel(null); }}><div className="flex items-center justify-between gap-4 border-b border-veil p-5"><h2 className="font-display font-semibold">Notifications</h2>{!!unread&&<button className="text-xs text-accent-gold" onClick={()=>void readAll()}>Tout marquer comme lu</button>}</div>
+            {!shown ? <p className="p-6 text-sm text-ink-2">Chargement…</p> : shown.length === 0 ? <p className="p-6 text-sm text-ink-2">Aucune notification pour l’instant.</p> : <ul className="max-h-96 overflow-auto">{shown.map(n => {
               const [glyph, color] = notificationStyle[n.kind];
               const content = <><span className={`flex size-9 shrink-0 items-center justify-center rounded-input ${color}`}>{glyph}</span><span className="min-w-0 flex-1 text-xs leading-5"><strong className="font-semibold text-ink">{n.title}</strong><span className="block text-ink-2">{n.text}</span><span className="text-ink-3">{n.time}</span></span>{!n.read && <span aria-label="Non lue" className="mt-2 size-1.5 shrink-0 rounded-full bg-accent-gold" />}</>;
-              return <li key={n.id} className={n.read ? "" : "bg-veil/45"}>{n.href ? <Link href={n.href} className="flex gap-3 p-4 hover:bg-veil">{content}</Link> : <div className="flex gap-3 p-4">{content}</div>}</li>;
+              return <li key={n.id} className={n.read ? "" : "bg-veil/45"}>{n.href ? <Link href={n.href} onClick={e=>{e.preventDefault();void (onOpenNotification?onOpenNotification(n.id,n.href!):markNotificationRead(n.id).then(()=>window.location.assign(n.href!)));}} className="flex gap-3 p-4 hover:bg-veil">{content}</Link> : <div className="flex gap-3 p-4">{content}</div>}</li>;
             })}</ul>}
           </section></>}
         </div>

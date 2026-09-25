@@ -19,6 +19,7 @@ a[aria-current="page"] { color: var(--color-ink); }
 .yk-button-secondary:hover:not(:disabled) { background: var(--color-veil); }
 .yk-button-danger { border-color: color-mix(in srgb,var(--color-danger) 60%,transparent); background: color-mix(in srgb,var(--color-danger) 14%,transparent); color: var(--color-danger-ink); }
 .yk-button:disabled, .primary:disabled { background: var(--color-night); color: var(--color-ink-3); border-color: var(--color-veil); box-shadow: none; opacity: 1; }
+.yk-karas-gem { width: 10px; height: 10px; flex: 0 0 auto; transform: rotate(45deg); border-radius: 2px; background: linear-gradient(135deg,#fff3c4,#e8c26a 55%,#9a7420); box-shadow: 0 0 10px color-mix(in srgb,var(--color-accent-gold) 32%,transparent); }
 .yk-modal { margin: auto; width: min(820px,calc(100% - 32px)); max-height: 90dvh; padding: 28px; overflow: auto; border: 1px solid var(--color-veil); border-radius: 20px; background: var(--color-surface); color: var(--color-ink); box-shadow: var(--shadow-modal); }
 .yk-modal::backdrop { background: color-mix(in srgb,var(--color-void) 86%,transparent); backdrop-filter: blur(6px); }
 .auth-label { color: var(--color-ink-2); }

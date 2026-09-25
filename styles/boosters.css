@@ -29,6 +29,10 @@
 .yk-burst { position: absolute; top: 15%; width: 350px; aspect-ratio: 1; background: radial-gradient(circle,var(--color-rarity-ssr),transparent 65%); opacity: .3; animation: yk-burst .9s ease-out; }
 .yk-burst::before,.yk-burst::after { content: ''; position: absolute; inset: 5%; border: 2px solid var(--color-rarity-ssr); border-radius: 50%; animation: yk-burst .9s ease-out; }.yk-burst::after { inset: 15%; animation-delay: .15s; }
 .yk-reveal-sr .yk-burst { background: radial-gradient(circle,var(--color-rarity-sr),transparent 65%); }.yk-reveal-sr .yk-burst::before,.yk-reveal-sr .yk-burst::after { border-color: var(--color-rarity-sr); }
+.yk-reveal-lr .yk-callout { color: var(--color-rarity-lr); text-shadow: 0 0 30px var(--color-rarity-lr); }
+.yk-reveal-lr .yk-burst { background: radial-gradient(circle,var(--color-rarity-lr),transparent 65%); }.yk-reveal-lr .yk-burst::before,.yk-reveal-lr .yk-burst::after { border-color: var(--color-rarity-lr); }
+.yk-shiny-callout { position: absolute; top: 45px; z-index: 2; color: var(--holo-spark); font-family: var(--font-display); font-size: 17px; letter-spacing: .16em; text-shadow: 0 0 24px var(--holo-glow); animation: yk-rise .7s var(--ease-yokkai); }
+.yk-reveal-shiny::after { content: ''; position: absolute; width: 420px; max-width: 90vw; aspect-ratio: 1; top: 8%; background: var(--holo-frame); border-radius: 50%; filter: blur(55px); opacity: .18; mix-blend-mode: screen; animation: yk-spin 5s linear infinite; pointer-events: none; }
 .yk-invocation { width: 100vw; max-width: none; height: 100dvh; max-height: none; border: none; border-radius: 0; background: radial-gradient(ellipse at center,color-mix(in srgb,var(--color-accent-gold) 20%,var(--color-void)),var(--color-void)); text-align: center; }
 .yk-invocation::before { content: ''; position: fixed; inset: 0; border-radius: 50%; clip-path: circle(closest-side); background: repeating-conic-gradient(from 0deg,transparent 0deg 14deg,color-mix(in srgb,var(--color-accent-gold) 7%,transparent) 15deg 18deg); animation: yk-spin 40s linear infinite; pointer-events: none; }
 .yk-invocation > div:first-child { position: relative; z-index: 1; }
@@ -43,4 +47,4 @@
 @keyframes yk-burst { from { transform: scale(.4); opacity: 1; } to { transform: scale(1.6); opacity: 0; } }
 @keyframes yk-flash { 0%,100% { opacity: 0; } 25% { opacity: .85; } }
 @media (max-width: 540px) { .yk-reveal-grid { gap: 18px 7px; } .yk-pack-art-stage { height: 290px; } .yk-callout { font-size: 18px; } }
-@media (prefers-reduced-motion: reduce) { .yk-tearing-pack,.yk-face-up,.yk-stacked-back { transform: none !important; } .yk-burst,.yk-tearing-stage::after,.yk-invocation::before,.yk-invocation::after { display: none; } }
+@media (prefers-reduced-motion: reduce) { .yk-tearing-pack,.yk-face-up,.yk-stacked-back { transform: none !important; } .yk-burst,.yk-tearing-stage::after,.yk-invocation::before,.yk-invocation::after,.yk-reveal-shiny::after { display: none; } }

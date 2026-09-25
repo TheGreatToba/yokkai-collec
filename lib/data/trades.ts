@@ -1,0 +1,11 @@
+import {createClient} from "@/utils/supabase/client";
+import type {CollectedCard} from "@/lib/data/cards";
+
+export type TradeContext={friend:{id:string;pseudo:string};balance:number;ownCards:CollectedCard[];friendCards:CollectedCard[]};
+export type TradeOffer={id:string;fromUser:string;toUser:string;fromPseudo:string;toPseudo:string;incoming:boolean;offeredCards:CollectedCard[];offeredKaras:number;requestedCards:CollectedCard[];requestedKaras:number;status:"pending"|"accepted"|"declined"|"countered";parentOfferId:string|null;createdAt:string};
+let client:ReturnType<typeof createClient>|undefined;const db=()=>client??=createClient();
+async function call<T>(name:string,args?:Record<string,unknown>):Promise<T>{const {data,error}=await db().rpc(name,args);if(error){const messages:Record<string,string>={FRIENDS_ONLY:"Les échanges sont réservés aux amis.",INVALID_TRADE_KARAS:"Le montant de Karas est invalide.",EMPTY_TRADE:"Ajoutez au moins une carte ou des Karas.",DUPLICATE_TRADE_CARD:"Une même carte ne peut apparaître qu’une fois.",TRADE_CARD_UNAVAILABLE:"Une carte de l’offre n’est plus disponible.",TRADE_CARD_FROZEN:"Une carte de l’offre est actuellement aux enchères.",TRADE_NOT_COUNTERABLE:"Cette offre ne peut plus recevoir de contre-offre.",TRADE_NOT_PENDING:"Cette offre n’est plus en attente.",TRADE_INSUFFICIENT_KARAS:"L’un des joueurs ne possède plus assez de Karas."};throw new Error(messages[error.message]??"Impossible de traiter cet échange.");}return data as T;}
+export const getTradeContext=(friendId:string)=>call<TradeContext>("get_trade_context",{p_friend_id:friendId});
+export const listTradeOffers=()=>call<TradeOffer[]>("list_trade_offers");
+export const createTradeOffer=(input:{toUser:string;offeredCardIds:string[];offeredKaras:number;requestedCardIds:string[];requestedKaras:number;parentOfferId?:string|null})=>call<string>("create_trade_offer",{p_to_user:input.toUser,p_offered_card_ids:input.offeredCardIds,p_offered_karas:input.offeredKaras,p_requested_card_ids:input.requestedCardIds,p_requested_karas:input.requestedKaras,p_parent_offer_id:input.parentOfferId??null});
+export const respondTradeOffer=(id:string,action:"accept"|"decline")=>call<boolean>("respond_trade_offer",{p_offer_id:id,p_action:action});

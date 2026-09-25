@@ -12,8 +12,9 @@ Anime/Manga, Sport, Kpop, Cinéma, Série/Kdrama, Musique, Comics/Super-héros,
 Streamer/Youtubeur, Influenceur, Politicien, Écrivain, Philosophe
 
 ## Raretés
-`C → R → SR → SSR → LR → Shiny LR`
-- SSR → LR : possible en possédant 3 exemplaires de la même carte SSR (cartes éligibles à définir)
+`C → R → SR → SSR → LR`, avec variantes Shiny
+- SSR → Shiny SSR : possible en consommant 3 exemplaires SSR non-Shiny identiques
+- LR : uniquement en tirage direct, avec un jet Shiny propre aux LR
 - Animation spéciale et différente à l'ouverture pour Shiny LR, LR et SSR
 
 ## Boosters

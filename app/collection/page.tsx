@@ -1,2 +1,10 @@
 import { Game } from "@/components/game";
-export default function Collection() { return <Game view="collection" />; }
+import { AccountMenu } from "@/components/account-menu";
+import { getCurrentUser } from "@/lib/auth/session";
+import { redirect } from "next/navigation";
+
+export default async function Collection() {
+  const user = await getCurrentUser();
+  if (!user) redirect("/connexion");
+  return <Game key={user.id} view="collection" account={<AccountMenu />} />;
+}

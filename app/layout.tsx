@@ -9,13 +9,13 @@ const noto = Noto_Serif_JP({ subsets: ["latin"], weight: ["500", "700"], variabl
 
 export const metadata: Metadata = {
   title: "Yokkai Collec'",
-  description: "Jeu de collection de cartes — prototype v0.1.",
+  description: "Collectionnez vos personnages et découvrez cinq cartes dans chaque Regular Pack.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr" className={`h-full antialiased ${cinzel.variable} ${sora.variable} ${noto.variable}`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body suppressHydrationWarning className="min-h-full flex flex-col">{children}</body>
     </html>
   );
 }

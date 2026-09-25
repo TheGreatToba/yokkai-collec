@@ -1,2 +1,2 @@
 import { CommunityPage } from "@/components/community-page";
-export default function Page() { return <CommunityPage screen="auction"/>; }
+export default async function Page({params}:{params:Promise<{id:string}>}) { const {id}=await params;return <CommunityPage screen="auction" auctionId={id}/>; }

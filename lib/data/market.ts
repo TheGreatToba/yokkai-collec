@@ -1,0 +1,13 @@
+import { createClient } from "@/utils/supabase/client";
+import type { Card } from "@/lib/data/cards";
+
+export type AuctionData = { id:string; card:Card & {shiny?:boolean;catalogueImage?:string}; amount:number; endsAt:string; status:"active"|"sold"|"expired"; seller:string; sellerId:string; buyerId?:string|null; bids:number; watched:boolean };
+export type AuctionDetail = AuctionData & { winner?:string|null; balance:number; history:{id:string;name:string;amount:number;createdAt:string;mine:boolean}[] };
+let client: ReturnType<typeof createClient> | undefined;
+const db=()=>client??=createClient();
+async function call<T>(name:string,args?:Record<string,unknown>):Promise<T>{const {data,error}=await db().rpc(name,args);if(error){const messages:Record<string,string>={AUCTION_CLOSED:"Cette enchère est terminée.",SELLER_CANNOT_BID:"Vous ne pouvez pas miser sur votre propre vente.",BID_TOO_LOW:"La mise doit dépasser l’offre actuelle d’au moins 10 karas.",INSUFFICIENT_KARAS:"Votre solde de karas est insuffisant.",CARD_FROZEN:"Cette carte est déjà engagée dans une enchère.",CARD_NOT_OWNED:"Cette carte n’est plus dans votre collection.",AUCTION_NOT_FOUND:"Cette enchère est introuvable."};throw new Error(messages[error.message]??"Impossible de joindre le marché. Réessayez.");}return data as T;}
+export const getAuctions=()=>call<AuctionData[]>("list_auctions");
+export const getAuction=(id:string)=>call<AuctionDetail>("get_auction",{p_auction_id:id});
+export const createAuction=(instanceId:string,startingPrice:number,durationMinutes:number)=>call<string>("create_auction",{p_card_instance_id:instanceId,p_starting_price:startingPrice,p_duration_minutes:durationMinutes});
+export const placeBid=(id:string,amount:number)=>call<{currentPrice:number;endsAt:string;balance:number}>("place_bid",{p_auction_id:id,p_amount:amount});
+export const toggleWatch=(id:string)=>call<boolean>("toggle_auction_watch",{p_auction_id:id});

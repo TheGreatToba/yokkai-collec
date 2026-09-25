@@ -3,19 +3,21 @@
 .yk-card-clip { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; }
 .yk-card-frame,.yk-shiny-frame { position: absolute; inset: -50%; background: var(--card-frame); }
 .yk-card-interior { position: absolute; inset: var(--card-inset); border-radius: 10px; overflow: hidden; background: var(--card-bg); }
+.yk-card-interior::after { content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none; background: linear-gradient(to bottom,rgba(0,0,0,.78) 0%,rgba(0,0,0,.34) 14%,transparent 30%,transparent 58%,rgba(0,0,0,.48) 76%,rgba(0,0,0,.94) 100%); }
 .yk-card-ring { position: absolute; left: 15%; right: 15%; top: 22%; aspect-ratio: 1; border: 1px solid var(--card-ring); border-radius: 50%; }
 .yk-card-line { position: absolute; inset: 4cqw; border: 1px solid var(--card-line); border-radius: 7px; z-index: 2; pointer-events: none; }
-.yk-card-art { position: absolute; inset: 15% 7% 18%; overflow: hidden; border-radius: 4px; mask-image: linear-gradient(transparent, black 8%,black 85%,transparent); }
+.yk-card-art { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; mask-image: linear-gradient(to bottom,transparent 0%,black 10%,black 84%,transparent 100%); }
 .yk-card-art img { width: 100%; height: 100%; object-fit: cover; }
 .yk-card-foil,.yk-holo { position: absolute; inset: 0; pointer-events: none; background: var(--card-foil); background-size: var(--card-foil-size,100% 100%); }
-.yk-card-content { position: absolute; inset: 0; padding: 7cqw; display: flex; flex-direction: column; justify-content: space-between; }
+.yk-card-content { position: absolute; inset: 0; z-index: 3; padding: 6cqw; display: flex; flex-direction: column; justify-content: space-between; }
 .yk-card-top { display: flex; justify-content: space-between; align-items: center; gap: 4px; }
-.yk-card-number { font-size: clamp(8px,6cqw,13px); font-variant-numeric: tabular-nums; letter-spacing: .06em; color: var(--card-number,var(--color-ink-2)); }
 .yk-card-badges { display: flex; align-items: center; gap: 2cqw; }
 .yk-card-badge,.yk-shiny-badge { font-size: clamp(8px,6.5cqw,13px); font-weight: 700; letter-spacing: .06em; padding: 1px 6px; border-radius: 4px; white-space: nowrap; background: var(--card-badge); color: var(--card-badge-ink); border: 1px solid var(--card-badge-border); }
 .yk-card-bottom { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; }
-.yk-card-name { max-width: 100%; font-family: var(--font-display); font-weight: 600; font-size: clamp(10px,8.5cqw,20px); letter-spacing: .04em; color: var(--color-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.yk-card-category { max-width: 100%; font-size: clamp(7px,5.5cqw,12px); letter-spacing: .16em; text-transform: uppercase; color: var(--color-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.yk-card-name { max-width: 100%; font-family: var(--font-display); font-weight: 700; font-size: clamp(10px,8.5cqw,20px); letter-spacing: .04em; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.yk-card-category { min-width: 0; max-width: calc(100% - 11cqw); font-size: clamp(7px,5.5cqw,12px); font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--color-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.yk-card-anime { max-width: 100%; font-size: clamp(7px,5.5cqw,12px); font-weight: 600; letter-spacing: .06em; color: rgba(255,255,255,.88); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.yk-card-name,.yk-card-category,.yk-card-anime,.yk-card-missing { text-shadow: 0 1px 2px #000,0 2px 5px #000,0 0 12px #000; }
 .yk-card-missing { text-align: center; font-family: var(--font-jp); font-size: 7cqw; color: var(--color-ink-3); }
 .yk-sparkle { position: absolute; width: 1em; height: 1em; color: var(--card-spark); line-height: 1; animation: yk-twinkle 2.6s ease-in-out infinite; pointer-events: none; }
 .yk-animated { animation: var(--card-pulse,none); }
@@ -30,9 +32,9 @@
 .yk-card-back { width: 100%; aspect-ratio: 5 / 7; border-radius: 12px; background: var(--color-surface) url('/assets/card-back.png') center / cover; box-shadow: var(--shadow-card); }
 @container yokai (max-width: 90px) {
   .yk-card-badge,.yk-shiny-badge { font-size: 7cqw; padding: 1cqw 2cqw; border-width: .6px; }
-  .yk-card-number { font-size: 6cqw; }
   .yk-card-name { font-size: 8.5cqw; }
   .yk-card-category { font-size: 5.5cqw; letter-spacing: .08em; }
+  .yk-card-anime { font-size: 5.5cqw; }
 }
 @keyframes yk-spin { to { transform: rotate(360deg); } }
 @keyframes yk-sweep { 0% { background-position: 160% 0; } 60%,100% { background-position: -60% 0; } }

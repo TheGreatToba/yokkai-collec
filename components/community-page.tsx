@@ -3,10 +3,10 @@ import { getCurrentUser, getCurrentPseudo } from "@/lib/auth/session";
 import { AccountMenu } from "@/components/account-menu";
 import { CommunityView, type CommunityScreen } from "@/components/community-views";
 
-export async function CommunityPage({screen,playerId}: {screen:CommunityScreen;playerId?:string}) {
+export async function CommunityPage({screen,playerId,auctionId}: {screen:CommunityScreen;playerId?:string;auctionId?:string}) {
   const user=await getCurrentUser();
   if(!user)redirect("/connexion");
   const isMe=!playerId||playerId===user.id;
   const name=isMe?await getCurrentPseudo(user.id):undefined;
-  return <CommunityView key={`${screen}:${playerId ?? user.id}`} screen={screen} account={<AccountMenu/>} name={name??undefined} joined={isMe?user.created_at:undefined} isMe={isMe}/>;
+  return <CommunityView key={`${screen}:${playerId ?? auctionId ?? user.id}`} screen={screen} account={<AccountMenu/>} name={name??undefined} joined={isMe?user.created_at:undefined} isMe={isMe} playerId={playerId} auctionId={auctionId}/>;
 }

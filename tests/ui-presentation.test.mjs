@@ -61,18 +61,27 @@ test("un solde absent reste inconnu, un solde connu utilise fr-FR", () => {
 
 test("la collection d'un autre joueur ne propose pas de sélection ou d'édition", () => {
   const { CollectionView } = load("components/collection.tsx");
-  const html = render(CollectionView, { cards: [card], categories: ["Test"], readOnly: true });
+  const html = render(CollectionView, { cards: [{...card,image:"https://i.imgur.com/private.png",catalogueImage:"/catalogue.png"}], categories: ["Test"], readOnly: true });
   assert.match(html, /Carte de test/);
+  assert.match(html, /catalogue\.png/);
+  assert.doesNotMatch(html, /private\.png/);
   assert.doesNotMatch(html, /Sélection multiple|Détruire la sélection|Modifier le profil/);
 });
 
-test("le Decision Pack confirmé affiche une carte gardée et neuf perdues", () => {
+test("la collection annonce l'évolution de trois SSR non-Shiny en Shiny", () => {
+  const source = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
+  assert.match(source, /Évolution Shiny/);
+  assert.match(source, /Évoluer en Shiny \(consomme 3 exemplaires\)/);
+  assert.doesNotMatch(source, /Évolution LR|Évoluer en LR/);
+});
+
+test("le Decision Pack confirmé affiche une carte gardée et quatre perdues", () => {
   const { BoosterReveal } = load("components/boosters.tsx");
-  const cards = Array.from({ length: 10 }, (_, i) => ({ ...card, instanceId: `copy-${i}` }));
+  const cards = Array.from({ length: 5 }, (_, i) => ({ ...card, instanceId: `copy-${i}` }));
   const html = render(BoosterReveal, {
-    cards, revealed: 10, onReveal() {}, onRevealAll() {}, onReturn() {},
+    cards, revealed: 5, onReveal() {}, onRevealAll() {}, onReturn() {},
     decision: { keptId: "copy-3", async onKeep() { assert.fail("Rendering must not confirm a choice"); } },
   });
-  assert.equal((html.match(/yk-lost-stamp/g) || []).length, 9);
+  assert.equal((html.match(/yk-lost-stamp/g) || []).length, 4);
   assert.equal((html.match(/GARDÉE/g) || []).length, 1);
 });

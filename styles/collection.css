@@ -7,7 +7,7 @@
 .yk-selection-bar { position: fixed; z-index: 20; left: 50%; bottom: 24px; transform: translateX(-50%); display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 16px; width: max-content; max-width: min(760px,calc(100% - 32px)); padding: 12px 20px; border-radius: 999px; border: 1px solid var(--color-veil-strong); background: var(--color-surface); box-shadow: var(--shadow-modal); }
 .yk-frozen-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; border: 1px solid color-mix(in srgb,var(--color-accent-gold) 40%,transparent); border-radius: 12px; background: color-mix(in srgb,var(--color-void) 66%,transparent); color: var(--color-karas); font-size: 12px; }
 .yk-frozen-overlay strong { font-size: 11px; letter-spacing: .1em; }
-.yk-detail-grid { display: grid; grid-template-columns: 260px minmax(0,1fr); align-items: start; gap: 36px; }
+.yk-detail-grid { display: grid; grid-template-columns: 260px minmax(0,1fr); align-items: stretch; gap: 36px; }
 .yk-detail-art { perspective: 900px; }
 .yk-detail-art .yk-card { transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y)); transition: transform .2s; }
 @media (max-width: 680px) { .yk-detail-grid { grid-template-columns: 1fr; }.yk-detail-art { max-width: 240px; margin: auto; }.yk-selection-bar { border-radius: 20px; gap: 12px; } }

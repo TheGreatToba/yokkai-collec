@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export type SfxName = "rumble" | "tear" | "flip" | "slide" | "sr" | "ssr" | "lr" | "shiny" | "flutter";
+const STORAGE_KEY = "yokkai-sound-enabled";
+const CHANGE_EVENT = "yokkai:sound-change";
 
 /** Local audio assets; missing/blocked audio must never interrupt a pack opening. */
 export function useSfx() {
@@ -22,7 +24,19 @@ export function useSfx() {
   }, [enabled]);
   const toggle = useCallback(() => {
     sounds.current.forEach(audio => { audio.pause(); audio.currentTime = 0; });
-    setEnabled(value => !value);
+    const next = !enabled;
+    setEnabled(next);
+    window.localStorage.setItem(STORAGE_KEY, String(next));
+    window.dispatchEvent(new CustomEvent<boolean>(CHANGE_EVENT, { detail: next }));
+  }, [enabled]);
+  useEffect(() => {
+    const saved = window.localStorage.getItem(STORAGE_KEY);
+    if (saved !== null) queueMicrotask(() => setEnabled(saved === "true"));
+    const sync = (event: Event) => setEnabled((event as CustomEvent<boolean>).detail);
+    const syncStorage = (event: StorageEvent) => { if (event.key === STORAGE_KEY && event.newValue !== null) setEnabled(event.newValue === "true"); };
+    window.addEventListener(CHANGE_EVENT, sync);
+    window.addEventListener("storage", syncStorage);
+    return () => { window.removeEventListener(CHANGE_EVENT, sync); window.removeEventListener("storage", syncStorage); };
   }, []);
   useEffect(() => {
     const cache = sounds.current;

@@ -1,112 +1,267 @@
-export type Rarity = "C" | "R" | "SR" | "SSR";
-export type Category = "Anime/Manga" | "Sport" | "Cinéma";
-export type Card = { id: string; name: string; category: Category; rarity: Rarity; image: string };
-export type CollectedCard = Card & { instanceId: string; obtainedAt: string };
-type Entry = { cardId: string; instanceId: string; obtainedAt: string };
-type State = { version: 1; collection: Entry[]; packs: number; nextPackAt: number | null };
+import { createClient } from "@/utils/supabase/client";
+
+export type Rarity = "C" | "R" | "SR" | "SSR" | "LR";
+export type Category = string;
+export type Card = { id: string; name: string; category: Category; anime?: string; rarity: Rarity; image: string; wishlisted?: boolean };
+export type CollectedCard = Card & { instanceId: string; obtainedAt: string; shiny: boolean; isEvolved: boolean; isFirstOwner: boolean; folderId: string | null; catalogueImage: string; customImageUrl: string | null };
+export type Folder = { id: string; name: string };
 export type PackStatus = { available: number; maximum: number; nextPackAt: number | null };
+export type DecisionPackStatus = { available: boolean; nextPackAt: number; pending: (CollectedCard & { discarded?: boolean })[] };
+type GameInfo = {
+  user: { id: string; name: string }; categories: Category[]; rarities: Rarity[];
+  dropRates: { rarity: Rarity; percent: number }[]; shinyRate: number; karasBalance: number;
+};
+type CardRow = { id: string; nom: string; categorie: string; franchise?: string | null; rarete_base: Rarity; image_url: string };
+type OwnedRow = { id: string; date_obtention: string; rarity: Rarity; is_shiny: boolean; is_evolved: boolean; is_first_owner: boolean; folder_id: string | null; custom_image_url: string | null; cards: CardRow };
+const cardFields = "id,nom,categorie,franchise,rarete_base,image_url";
+const rank: Record<Rarity, number> = { C: 0, R: 1, SR: 2, SSR: 3, LR: 4 };
+const PAGE_SIZE = 500;
 
-const KEY = "yokkai-collec-v1";
-const INTERVAL = 30 * 60 * 1000;
-const MAX = 3;
-const rarities: Rarity[] = ["C", "R", "SR", "SSR"];
-const rates = [60, 25, 10, 5];
-const categories: Category[] = ["Anime/Manga", "Sport", "Cinéma"];
-const names = [
-  ["Apprenti ninja", "Gardienne des fleurs", "Voyageur céleste", "Petit alchimiste", "Samouraï des brumes", "Épéiste lunaire", "Mage des étoiles", "Dragon écarlate", "Reine des esprits", "Empereur du soleil"],
-  ["Jeune attaquant", "Sprinteuse", "Gardien de but", "Cycliste", "Basketteuse", "As du tennis", "Capitaine du stade", "Championne olympique", "Légende du ring", "Étoile du football"],
-  ["Figurant", "Exploratrice", "Détective", "Pilote spatial", "Cowboy solitaire", "Agent secret", "Héroïne masquée", "Maître du suspense", "Icône du cinéma", "Légende du grand écran"],
-];
-const cardRarities: Rarity[] = ["C", "C", "C", "C", "C", "R", "R", "SR", "SR", "SSR"];
-const palette = ["#7761ba", "#398a78", "#bc7743"];
-// Self-contained placeholder images: no external image service required.
-const catalog: Card[] = categories.flatMap((category, group) => names[group].map((name, index) => ({
-  id: `${group + 1}-${index + 1}`, name, category, rarity: cardRarities[index],
-  image: `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="300" height="360" viewBox="0 0 300 360"><rect width="300" height="360" fill="${palette[group]}"/><circle cx="150" cy="155" r="90" fill="none" stroke="white" stroke-opacity=".2" stroke-width="2"/><path d="M150 55 220 155 150 255 80 155Z" fill="white" fill-opacity=".15"/><text x="150" y="177" text-anchor="middle" font-family="sans-serif" font-size="64" fill="white">${String(index + 1).padStart(2, "0")}</text><text x="150" y="315" text-anchor="middle" font-family="sans-serif" font-size="12" fill="white">YOKKAI · PLACEHOLDER</text></svg>`)}`,
-})));
-
-export async function getAllCards(): Promise<Card[]> { return catalog.map(card => ({ ...card })); }
-export async function getGameInfo() {
-  return { user: { id: "local-player", name: "Collectionneur" }, categories: [...categories],
-    rarities: [...rarities], dropRates: rarities.map((rarity, i) => ({ rarity, percent: rates[i] })) };
-}
-
-function save(state: State) {
-  try { window.localStorage.setItem(KEY, JSON.stringify(state)); }
-  catch { throw new Error("La sauvegarde locale est indisponible. Autorisez le stockage du navigateur pour jouer."); }
-}
-function validState(value: unknown): value is State {
-  if (!value || typeof value !== "object") return false;
-  const s = value as State;
-  return s.version === 1 && Number.isInteger(s.packs) && s.packs >= 0 && s.packs <= MAX &&
-    (s.packs === MAX ? s.nextPackAt === null : typeof s.nextPackAt === "number" && Number.isFinite(s.nextPackAt) && s.nextPackAt > 0) &&
-    Array.isArray(s.collection) && s.collection.every(e => e && typeof e.instanceId === "string" &&
-      catalog.some(c => c.id === e.cardId) && typeof e.obtainedAt === "string" && Number.isFinite(Date.parse(e.obtainedAt))) &&
-    new Set(s.collection.map(e => e.instanceId)).size === s.collection.length;
-}
-function read(): State {
-  if (typeof window === "undefined") throw new Error("Les données du joueur sont disponibles dans le navigateur.");
-  let raw: string | null;
-  try { raw = window.localStorage.getItem(KEY); }
-  catch { throw new Error("Le stockage local est indisponible dans ce navigateur."); }
-  let state: State;
-  if (raw === null) {
-    state = { version: 1, collection: [], packs: 1, nextPackAt: Date.now() + INTERVAL };
-    save(state);
-  } else {
-    let parsed: unknown;
-    try { parsed = JSON.parse(raw); } catch { throw new Error("La sauvegarde locale est illisible. Elle a été conservée."); }
-    if (!validState(parsed)) throw new Error("La sauvegarde locale est invalide. Elle a été conservée.");
-    state = parsed;
-  }
-  const now = Date.now();
-  if (state.nextPackAt !== null && now >= state.nextPackAt) {
-    const gained = Math.floor((now - state.nextPackAt) / INTERVAL) + 1;
-    state.packs = Math.min(MAX, state.packs + gained);
-    state.nextPackAt = state.packs === MAX ? null : state.nextPackAt + gained * INTERVAL;
-    save(state);
-  }
-  return state;
-}
-function expand(entry: Entry): CollectedCard {
-  return { ...catalog.find(c => c.id === entry.cardId)!, instanceId: entry.instanceId, obtainedAt: entry.obtainedAt };
-}
-async function withPlayerState<T>(operation: () => T): Promise<T> {
-  // Reads also write when initializing or regenerating packs: all player-state
-  // operations must use the same lock to avoid overwriting another tab's draw.
-  if (typeof navigator !== "undefined" && navigator.locks) {
-    return navigator.locks.request(KEY, operation);
-  }
-  return operation();
-}
-export async function getUserCollection(): Promise<CollectedCard[]> {
-  return withPlayerState(() => read().collection.map(expand).sort((a, b) => rarities.indexOf(b.rarity) - rarities.indexOf(a.rarity) || b.obtainedAt.localeCompare(a.obtainedAt)));
-}
-export async function getPackStatus(): Promise<PackStatus> {
-  return withPlayerState(() => {
-    const state = read();
-    return { available: state.packs, maximum: MAX, nextPackAt: state.nextPackAt };
-  });
-}
-function draw(): Card {
-  const roll = Math.random() * 100;
-  let cumulative = 0;
-  const rarity = rarities.find((_, i) => { cumulative += rates[i]; return roll < cumulative; })!;
-  const pool = catalog.filter(c => c.rarity === rarity);
-  return pool[Math.floor(Math.random() * pool.length)];
-}
-export async function openBooster(): Promise<CollectedCard[]> {
-  const open = () => {
-    const state = read();
-    if (state.packs === 0) throw new Error("Aucun pack disponible pour le moment.");
-    const obtainedAt = new Date().toISOString();
-    const entries = Array.from({ length: 10 }, () => ({ cardId: draw().id, instanceId: crypto.randomUUID(), obtainedAt }));
-    if (state.packs === MAX) state.nextPackAt = Date.now() + INTERVAL;
-    state.packs -= 1;
-    state.collection.push(...entries);
-    // Save the complete draw before returning it, including cards not yet revealed.
-    save(state);
-    return entries.map(expand).sort((a, b) => rarities.indexOf(a.rarity) - rarities.indexOf(b.rarity));
+function failure(error: { message?: string; code?: string }) {
+  const messages: Record<string, string> = {
+    AUTH_REQUIRED: "Connectez-vous pour retrouver votre collection et vos packs.",
+    PROFILE_MISSING: "Votre profil est introuvable. Impossible de charger la partie.",
+    PACK_NOT_READY: "Aucun pack disponible pour le moment.",
+    CATALOGUE_INCOMPLETE: "Le catalogue n’est pas encore prêt. Réessayez plus tard.",
+    SSR_CARD_NOT_OWNED: "Cet exemplaire SSR n’est plus dans votre collection.",
+    NOT_ENOUGH_SSR_COPIES: "Il faut trois exemplaires SSR identiques pour effectuer cette évolution.",
+    DECISION_PACK_NOT_READY: "Le Decision Pack quotidien n’est pas encore disponible.",
+    DECISION_CHOICE_UNAVAILABLE: "Cette carte du Decision Pack n’est plus disponible.",
+    DECISION_LAST_CHOICE: "La dernière carte doit être conservée.",
+    CARD_NOT_OWNED: "Cette carte n’est plus dans votre collection.",
+    FOLDER_NAME_TAKEN: "Un dossier porte déjà ce nom.",
+    FOLDER_NOT_FOUND: "Ce dossier n’existe plus.",
   };
-  return withPlayerState(open);
+  if (error.message === "INVALID_IMGUR_URL") return new Error("Saisissez un lien Imgur valide commenÃ§ant par https://i.imgur.com/ ou https://imgur.com/.");
+  if (error.message && messages[error.message]) return new Error(messages[error.message]);
+  if (error.code === "PGRST301") return new Error(messages.AUTH_REQUIRED);
+  if (error.code === "42501") return new Error("Vos données sont temporairement inaccessibles. Actualisez la page ou reconnectez-vous.");
+  return new Error("Impossible de joindre les données du jeu. Réessayez dans un instant.");
+}
+
+function cardFromRow(row: CardRow): Card {
+  return { id: row.id, name: row.nom, category: row.categorie, anime: row.franchise || undefined, rarity: row.rarete_base, image: row.image_url };
+}
+
+// Memory-only caches avoid reloading the collection at every one-second UI tick.
+type CacheEntry = { expires: number; promise: Promise<unknown> };
+const cache = new Map<string, CacheEntry>();
+let client: ReturnType<typeof createClient> | undefined;
+function db() {
+  if (!client) {
+    client = createClient();
+    let userId: string | undefined;
+    client.auth.onAuthStateChange((_event, session) => {
+      if (session?.user.id !== userId) {
+        userId = session?.user.id;
+        cache.clear();
+      }
+    });
+  }
+  return client;
+}
+
+async function playerId() {
+  const { data, error } = await db().auth.getClaims();
+  const id = data?.claims?.sub;
+  if (error || !id) throw failure({ message: "AUTH_REQUIRED" });
+  return id;
+}
+
+async function assertPlayer(id: string) {
+  if (await playerId() !== id) throw failure({ message: "AUTH_REQUIRED" });
+}
+
+function memo<T>(key: string, ttl: number, load: () => Promise<T>): Promise<T> {
+  const existing = cache.get(key);
+  if (existing && existing.expires > Date.now()) return existing.promise as Promise<T>;
+  const entry: CacheEntry = { expires: Infinity, promise: Promise.resolve() };
+  entry.promise = load().then((value) => {
+    entry.expires = Date.now() + ttl;
+    return value;
+  }, (error) => {
+    if (cache.get(key) === entry) cache.delete(key);
+    throw error;
+  });
+  cache.set(key, entry);
+  return entry.promise as Promise<T>;
+}
+
+export async function getAllCards(): Promise<Card[]> {
+  const cards: Card[] = [];
+  let cursor: string | undefined;
+  while (true) {
+    let query = db().from("cards").select(cardFields).order("id").limit(PAGE_SIZE);
+    if (cursor) query = query.gt("id", cursor);
+    const { data, error } = await query;
+    if (error) throw failure(error);
+    if (!data?.length) break;
+    const rows = data as CardRow[];
+    cards.push(...rows.map(cardFromRow));
+    cursor = rows[rows.length - 1].id;
+  }
+  return cards;
+}
+
+export async function searchCards(query: string, limit = 30): Promise<Card[]> {
+  const id = await playerId();
+  const { data, error } = await db().rpc("search_cards", { p_query: query.trim(), p_limit: limit });
+  if (error) throw failure(error);
+  await assertPlayer(id);
+  return (data as Card[]).map(card => ({ ...card }));
+}
+
+export async function getGameInfo(): Promise<GameInfo> {
+  const id = await playerId();
+  const info = await memo<GameInfo>(`info:${id}`, 60000, async () => {
+    const { data, error } = await db().rpc("get_game_info");
+    if (error) throw failure(error);
+    return data as GameInfo;
+  });
+  await assertPlayer(id);
+  return { ...info, user: { ...info.user }, categories: [...info.categories],
+    rarities: [...info.rarities], dropRates: info.dropRates.map((rate) => ({ ...rate })) };
+}
+
+export async function getUserCollection(): Promise<CollectedCard[]> {
+  const id = await playerId();
+  const collection = await memo<CollectedCard[]>(`collection:${id}`, 10000, async () => {
+    const cards: CollectedCard[] = [];
+    let cursor: string | undefined;
+    while (true) {
+      let query = db().from("user_cards").select(`id,date_obtention,rarity,is_shiny,is_evolved,is_first_owner,folder_id,custom_image_url,cards!inner(${cardFields})`)
+        .eq("user_id", id).order("id").limit(PAGE_SIZE);
+      if (cursor) query = query.gt("id", cursor);
+      const { data, error } = await query;
+      if (error) throw failure(error);
+      if (!data?.length) break;
+      const rows = data as unknown as OwnedRow[];
+      cards.push(...rows.map((row) => ({ ...cardFromRow(row.cards), image: row.custom_image_url || row.cards.image_url,
+        catalogueImage: row.cards.image_url, customImageUrl: row.custom_image_url, rarity: row.rarity, instanceId: row.id,
+        obtainedAt: row.date_obtention, shiny: row.is_shiny, isEvolved: row.is_evolved,
+        isFirstOwner: row.is_first_owner, folderId: row.folder_id })));
+      cursor = rows[rows.length - 1].id;
+    }
+    return cards.sort((a, b) => rank[b.rarity] - rank[a.rarity] ||
+      Date.parse(b.obtainedAt) - Date.parse(a.obtainedAt) || a.instanceId.localeCompare(b.instanceId));
+  });
+  await assertPlayer(id);
+  return collection.map((card) => ({ ...card }));
+}
+
+export async function getPackStatus(): Promise<PackStatus> {
+  const id = await playerId();
+  const { data, error } = await db().rpc("get_regular_pack_status");
+  if (error) throw failure(error);
+  await assertPlayer(id);
+  const status = data as PackStatus & { serverNow: number };
+  // Display clock only: availability and consumption always use database time.
+  return { available: status.available, maximum: status.maximum,
+    nextPackAt: status.nextPackAt === null ? null : Date.now() + status.nextPackAt - status.serverNow };
+}
+
+export async function getDecisionPackStatus(): Promise<DecisionPackStatus> {
+  const id = await playerId();
+  const { data, error } = await db().rpc("get_decision_pack_status");
+  if (error) throw failure(error);
+  await assertPlayer(id);
+  const status = data as DecisionPackStatus & { serverNow: number };
+  return { available: status.available,
+    nextPackAt: Date.now() + status.nextPackAt - status.serverNow,
+    pending: status.pending.map(card => ({ ...card })) };
+}
+
+export async function openBooster(): Promise<CollectedCard[]> {
+  const id = await playerId();
+  try {
+    // One transaction; no direct writes or automatic retry on timeout.
+    const { data, error } = await db().rpc("open_regular_pack");
+    if (error) throw failure(error);
+    await assertPlayer(id);
+    return (data as CollectedCard[]).sort((a, b) => rank[a.rarity] - rank[b.rarity]);
+  } finally {
+    // The server may have committed even if the response was lost.
+    cache.delete(`collection:${id}`);
+  }
+}
+
+export async function evolveSsrCard(instanceId: string): Promise<CollectedCard> {
+  const id = await playerId();
+  try {
+    const { data, error } = await db().rpc("evolve_ssr_card", { p_card_instance_id: instanceId });
+    if (error) throw failure(error);
+    await assertPlayer(id);
+    return data as CollectedCard;
+  } finally {
+    cache.delete(`collection:${id}`);
+  }
+}
+
+export async function openDecisionPack(): Promise<DecisionPackStatus["pending"]> {
+  const id = await playerId();
+  const { data, error } = await db().rpc("open_decision_pack");
+  if (error) throw failure(error);
+  await assertPlayer(id);
+  return data as DecisionPackStatus["pending"];
+}
+
+export async function keepDecisionPackCard(choiceId: string): Promise<CollectedCard> {
+  const id = await playerId();
+  try {
+    const { data, error } = await db().rpc("keep_decision_pack_card", { p_choice_id: choiceId });
+    if (error) throw failure(error);
+    await assertPlayer(id);
+    return data as CollectedCard;
+  } finally { cache.delete(`collection:${id}`); }
+}
+
+export async function discardPackCard(instanceId: string, kind: "regular" | "decision"): Promise<void> {
+  const id = await playerId();
+  try {
+    const rpc = kind === "regular" ? "discard_regular_pack_card" : "discard_decision_pack_card";
+    const args = kind === "regular" ? { p_card_instance_id: instanceId } : { p_choice_id: instanceId };
+    const { error } = await db().rpc(rpc, args);
+    if (error) throw failure(error);
+    await assertPlayer(id);
+  } finally { cache.delete(`collection:${id}`); }
+}
+
+export async function getFolders(): Promise<Folder[]> {
+  const id = await playerId();
+  const { data, error } = await db().from("folders").select("id,nom").eq("user_id", id).order("nom");
+  if (error) throw failure(error);
+  await assertPlayer(id);
+  return (data as { id: string; nom: string }[]).map(folder => ({ id: folder.id, name: folder.nom }));
+}
+
+export async function createFolder(name: string): Promise<Folder> {
+  const id = await playerId();
+  const { data, error } = await db().rpc("create_folder", { p_name: name });
+  if (error) throw failure(error);
+  await assertPlayer(id);
+  return data as Folder;
+}
+
+export async function deleteFolder(folderId: string): Promise<void> {
+  const id = await playerId();
+  const { error } = await db().rpc("delete_folder", { p_folder_id: folderId });
+  if (error) throw failure(error);
+  await assertPlayer(id); cache.delete(`collection:${id}`);
+}
+
+export async function moveCardToFolder(instanceId: string, folderId: string | null): Promise<void> {
+  const id = await playerId();
+  const { error } = await db().rpc("move_card_to_folder", { p_card_instance_id: instanceId, p_folder_id: folderId });
+  if (error) throw failure(error);
+  await assertPlayer(id); cache.delete(`collection:${id}`);
+}
+
+export async function setCardCustomImage(instanceId: string, imageUrl: string | null): Promise<CollectedCard> {
+  const id = await playerId();
+  try {
+    const { data, error } = await db().rpc("set_card_custom_image", { p_card_instance_id: instanceId, p_image_url: imageUrl });
+    if (error) throw failure(error);
+    await assertPlayer(id);
+    return data as CollectedCard;
+  } finally { cache.delete(`collection:${id}`); }
 }
