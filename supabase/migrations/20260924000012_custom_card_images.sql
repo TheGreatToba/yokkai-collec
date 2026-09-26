@@ -10,7 +10,7 @@ alter table public.user_cards
 create or replace function public.profile_card_json(c public.cards,uc public.user_cards)
 returns jsonb language sql stable security definer set search_path='' as $$
   select jsonb_build_object('id',c.id,'name',c.nom,'category',c.categorie,'anime',c.franchise,
-    'rarity',uc.rarity,'image',coalesce(uc.custom_image_url,c.image_url),'catalogueImage',c.image_url,
+    'rarity',c.rarete_base,'image',coalesce(uc.custom_image_url,c.image_url),'catalogueImage',c.image_url,
     'customImageUrl',uc.custom_image_url,'instanceId',uc.id,'obtainedAt',uc.date_obtention,
     'shiny',uc.is_shiny,'isEvolved',uc.is_evolved,'isFirstOwner',uc.is_first_owner,'folderId',uc.folder_id)
 $$;
@@ -41,7 +41,7 @@ begin
   if player_id is null then raise exception 'AUTH_REQUIRED' using errcode='P0001'; end if;
   perform public.settle_expired_auctions();
   return (select coalesce(jsonb_agg(jsonb_build_object(
-    'id',a.id,'card',jsonb_build_object('id',c.id,'name',c.nom,'category',c.categorie,'rarity',uc.rarity,
+    'id',a.id,'card',jsonb_build_object('id',c.id,'name',c.nom,'category',c.categorie,'rarity',c.rarete_base,
       'image',coalesce(uc.custom_image_url,c.image_url),'catalogueImage',c.image_url,'customImageUrl',uc.custom_image_url,'shiny',uc.is_shiny),
     'amount',a.current_price,'endsAt',a.ends_at,'status',a.status,'seller',p.pseudo,'sellerId',a.seller_id,
     'buyerId',a.buyer_id,'bids',(select count(*) from public.bids b where b.auction_id=a.id),
@@ -57,7 +57,7 @@ declare player_id uuid:=auth.uid(); result jsonb;
 begin
   if player_id is null then raise exception 'AUTH_REQUIRED' using errcode='P0001'; end if;
   perform public.settle_expired_auctions();
-  select jsonb_build_object('id',a.id,'card',jsonb_build_object('id',c.id,'name',c.nom,'category',c.categorie,'rarity',uc.rarity,
+  select jsonb_build_object('id',a.id,'card',jsonb_build_object('id',c.id,'name',c.nom,'category',c.categorie,'rarity',c.rarete_base,
       'image',coalesce(uc.custom_image_url,c.image_url),'catalogueImage',c.image_url,'customImageUrl',uc.custom_image_url,'shiny',uc.is_shiny),
     'amount',a.current_price,'endsAt',a.ends_at,'status',a.status,'seller',p.pseudo,'sellerId',a.seller_id,'buyerId',a.buyer_id,
     'bids',(select count(*) from public.bids b where b.auction_id=a.id),

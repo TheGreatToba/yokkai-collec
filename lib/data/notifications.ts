@@ -1,6 +1,6 @@
 import { createClient } from "@/utils/supabase/client";
 
-export type AppNotification={id:string;type:"wishlist_card_on_auction";referenceId:string;readAt:string|null;createdAt:string;cardName:string};
+export type AppNotification={id:string;type:"wishlist_card_on_auction"|"friend_request";referenceId:string;readAt:string|null;createdAt:string;cardName:string|null;actorPseudo:string|null};
 let client:ReturnType<typeof createClient>|undefined;
 const db=()=>client??=createClient();
 export async function getNotifications(){const {data,error}=await db().rpc("list_notifications",{p_limit:30});if(error)throw new Error("Impossible de charger les notifications.");return data as AppNotification[];}

@@ -22,7 +22,7 @@ grant all on table public.trade_offers to service_role;
 create function public.trade_card_json(p_ids uuid[])
 returns jsonb language sql stable security definer set search_path='' as $$
   select coalesce(jsonb_agg(jsonb_build_object('instanceId',uc.id,'id',c.id,'name',c.nom,'category',c.categorie,
-    'rarity',uc.rarity,'image',c.image_url,'shiny',uc.is_shiny,'isEvolved',uc.is_evolved,'isFirstOwner',uc.is_first_owner,
+    'rarity',c.rarete_base,'image',c.image_url,'shiny',uc.is_shiny,'isEvolved',uc.is_evolved,'isFirstOwner',uc.is_first_owner,
     'obtainedAt',uc.date_obtention,'folderId',uc.folder_id) order by array_position(p_ids,uc.id)),'[]'::jsonb)
   from public.user_cards uc join public.cards c on c.id=uc.card_id where uc.id=any(p_ids)
 $$;

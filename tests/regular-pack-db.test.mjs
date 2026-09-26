@@ -21,7 +21,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
       $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
     grant usage on schema public, auth to anon, authenticated, service_role;
   `);
-  for (const name of ["20260923000000_create_card_schema", "20260923000001_create_signup_profile", "20260923000002_regular_pack", "20260924000000_regular_pack_phase1", "20260924000001_lr_shiny_evolution", "20260924000002_decision_pack", "20260924000003_karas", "20260924000004_collection_improvements", "20260924000005_auctions", "20260924000006_friendships", "20260924000007_trades", "20260924000012_custom_card_images", "20260924000013_reset_custom_image_on_auction", "20260925000000_achievements", "20260925000001_wishlists_notifications", "20260925000002_ssr_shiny_evolution"]) {
+  for (const name of ["20260923000000_create_card_schema", "20260923000001_create_signup_profile", "20260923000002_regular_pack", "20260924000000_regular_pack_phase1", "20260924000001_lr_shiny_evolution", "20260924000002_decision_pack", "20260924000003_karas", "20260924000004_collection_improvements", "20260924000005_auctions", "20260924000006_friendships", "20260924000007_trades", "20260924000012_custom_card_images", "20260924000013_reset_custom_image_on_auction", "20260925000000_achievements", "20260925000001_wishlists_notifications", "20260925000002_ssr_shiny_evolution", "20260926000000_discard_karas_rewards", "20260926000001_friend_request_notifications"]) {
     await db.exec(readFileSync(new URL(`../supabase/migrations/${name}.sql`, import.meta.url), "utf8"));
   }
   await db.query("insert into auth.users values ($1, '{\"pseudo\":\"Alice\"}'), ($2, '{\"pseudo\":\"Bob\"}'), ($3, '{\"pseudo\":\"Charlie\"}')", [alice, bob, charlie]);
@@ -202,7 +202,10 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     assert.equal(await count(bob), 0);
     const resumed = await asUser(bob, () => rpc("open_decision_pack"));
     assert.deepEqual(resumed.map(card => card.instanceId), choices.map(card => card.instanceId));
+    const balanceBeforeDiscard = Number((await db.query("select karas_balance from public.user_profiles where user_id=$1", [bob])).rows[0].karas_balance);
     await asUser(bob, () => db.query("select public.discard_decision_pack_card($1)", [choices[0].instanceId]));
+    const decisionReward = { C: 1, R: 2, SR: 3, SSR: 4, LR: 5 }[choices[0].rarity];
+    assert.equal(Number((await db.query("select karas_balance from public.user_profiles where user_id=$1", [bob])).rows[0].karas_balance), balanceBeforeDiscard + decisionReward);
     const pending = await asUser(bob, () => rpc("get_decision_pack_status"));
     assert.equal(pending.available, false);
     assert.equal(pending.pending.filter(card => card.discarded).length, 1);
@@ -222,6 +225,17 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     assert.equal(await count(bob), 1);
     await asUser(bob, () => db.query("select public.discard_regular_pack_card($1)", [own]));
     assert.equal(await count(bob), 0);
+  });
+
+  await t.test("destruction : gain de 1 à 5 Karas selon la rareté", async () => {
+    await db.query("update public.user_profiles set karas_balance=0 where user_id=$1", [bob]);
+    for (const [rarity, reward] of Object.entries({ C: 1, R: 2, SR: 3, SSR: 4, LR: 5 })) {
+      const cardId = (await db.query("select id from public.cards where source_id=$1", [rarity])).rows[0].id;
+      const copyId = (await db.query("insert into public.user_cards(user_id,card_id,rarity) values ($1,$2,$3::public.card_rarity) returning id", [bob, cardId, rarity])).rows[0].id;
+      const before = Number((await db.query("select karas_balance from public.user_profiles where user_id=$1", [bob])).rows[0].karas_balance);
+      await asUser(bob, () => db.query("select public.discard_regular_pack_card($1)", [copyId]));
+      assert.equal(Number((await db.query("select karas_balance from public.user_profiles where user_id=$1", [bob])).rows[0].karas_balance), before + reward);
+    }
   });
 
   await t.test("catalogue incomplet : ni copie créée ni timer consommé", async () => {
@@ -310,6 +324,8 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     assert.deepEqual(search.map(({pseudo,status})=>({pseudo,status})), [{pseudo:"Alice",status:"none"}]);
 
     const requestId = (await asUser(bob, () => db.query("select public.send_friend_request($1) as id", [alice]))).rows[0].id;
+    const friendNotification = (await asUser(alice, () => db.query("select public.list_notifications() as value"))).rows[0].value.find(item => item.type === "friend_request");
+    assert.deepEqual({referenceId:friendNotification.referenceId,actorPseudo:friendNotification.actorPseudo},{referenceId:requestId,actorPseudo:"Bob"});
     await assert.rejects(asUser(alice, () => db.query("select public.send_friend_request($1)", [bob])), /FRIENDSHIP_EXISTS/);
     await assert.rejects(asUser(bob, () => db.query("select public.respond_friend_request($1,true)", [requestId])), /FRIEND_REQUEST_NOT_FOUND/);
     const alicePending = (await asUser(alice, () => db.query("select public.get_friendships() as value"))).rows[0].value;

@@ -12,7 +12,7 @@ type GameInfo = {
   dropRates: { rarity: Rarity; percent: number }[]; shinyRate: number; karasBalance: number;
 };
 type CardRow = { id: string; nom: string; categorie: string; franchise?: string | null; rarete_base: Rarity; image_url: string };
-type OwnedRow = { id: string; date_obtention: string; rarity: Rarity; is_shiny: boolean; is_evolved: boolean; is_first_owner: boolean; folder_id: string | null; custom_image_url: string | null; cards: CardRow };
+type OwnedRow = { id: string; date_obtention: string; is_shiny: boolean; is_evolved: boolean; is_first_owner: boolean; folder_id: string | null; custom_image_url: string | null; cards: CardRow };
 const cardFields = "id,nom,categorie,franchise,rarete_base,image_url";
 const rank: Record<Rarity, number> = { C: 0, R: 1, SR: 2, SSR: 3, LR: 4 };
 const PAGE_SIZE = 500;
@@ -131,7 +131,7 @@ export async function getUserCollection(): Promise<CollectedCard[]> {
     const cards: CollectedCard[] = [];
     let cursor: string | undefined;
     while (true) {
-      let query = db().from("user_cards").select(`id,date_obtention,rarity,is_shiny,is_evolved,is_first_owner,folder_id,custom_image_url,cards!inner(${cardFields})`)
+      let query = db().from("user_cards").select(`id,date_obtention,is_shiny,is_evolved,is_first_owner,folder_id,custom_image_url,cards!inner(${cardFields})`)
         .eq("user_id", id).order("id").limit(PAGE_SIZE);
       if (cursor) query = query.gt("id", cursor);
       const { data, error } = await query;
@@ -139,7 +139,7 @@ export async function getUserCollection(): Promise<CollectedCard[]> {
       if (!data?.length) break;
       const rows = data as unknown as OwnedRow[];
       cards.push(...rows.map((row) => ({ ...cardFromRow(row.cards), image: row.custom_image_url || row.cards.image_url,
-        catalogueImage: row.cards.image_url, customImageUrl: row.custom_image_url, rarity: row.rarity, instanceId: row.id,
+        catalogueImage: row.cards.image_url, customImageUrl: row.custom_image_url, instanceId: row.id,
         obtainedAt: row.date_obtention, shiny: row.is_shiny, isEvolved: row.is_evolved,
         isFirstOwner: row.is_first_owner, folderId: row.folder_id })));
       cursor = rows[rows.length - 1].id;

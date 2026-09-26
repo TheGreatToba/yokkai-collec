@@ -16,13 +16,13 @@ const notificationStyle = {
   friend: ["+", "text-accent-neon bg-accent-neon/14"], mission: ["✦", "text-success bg-success/14"],
 };
 export function Topbar({ view, account, name, karas, notifications, onReadAll, onOpenNotification }: {
-  view: "packs" | "collection" | "profile" | "market" | "auction" | "trades" | "search" | "wishlist" | "achievements"; account?: ReactNode; name?: string; collection?: CollectedCard[];
+  view: "packs" | "collection" | "profile" | "friends" | "market" | "auction" | "trades" | "search" | "wishlist" | "achievements"; account?: ReactNode; name?: string; collection?: CollectedCard[];
   karas?: number; notifications?: NotificationItem[]; onReadAll?: () => void; onOpenNotification?: (id:string,href:string)=>Promise<void>;
 }) {
   const sound = useSfx();
   const [panel, setPanel] = useState<"notifications" | "account" | null>(null);
   const [loaded,setLoaded]=useState<NotificationItem[]>();
-  useEffect(()=>{if(notifications)return;let active=true;const load=()=>void getNotifications().then(items=>{if(active)setLoaded(items.map(n=>({id:n.id,title:"Carte en wishlist aux enchères",text:`${n.cardName} est maintenant disponible.`,time:new Date(n.createdAt).toLocaleString("fr-FR"),read:!!n.readAt,href:`/marche/${n.referenceId}`,kind:"wishlist"})));},()=>{});load();const timer=window.setInterval(load,60000);return()=>{active=false;window.clearInterval(timer);};},[notifications]);
+  useEffect(()=>{if(notifications)return;let active=true;const load=()=>void getNotifications().then(items=>{if(active)setLoaded(items.map(n=>n.type==="friend_request"?{id:n.id,title:"Nouvelle demande d’ami",text:`${n.actorPseudo??"Un collectionneur"} souhaite devenir votre ami.`,time:new Date(n.createdAt).toLocaleString("fr-FR"),read:!!n.readAt,href:"/amis",kind:"friend"}:{id:n.id,title:"Carte en wishlist aux enchères",text:`${n.cardName} est maintenant disponible.`,time:new Date(n.createdAt).toLocaleString("fr-FR"),read:!!n.readAt,href:`/marche/${n.referenceId}`,kind:"wishlist"}));},()=>{});load();const timer=window.setInterval(load,60000);return()=>{active=false;window.clearInterval(timer);};},[notifications]);
   const shown=notifications??loaded;
   const unread = shown?.filter(n => !n.read).length;
   async function readAll(){if(onReadAll)await onReadAll();else{await markNotificationRead();setLoaded(current=>current?.map(n=>({...n,read:true})));}}
@@ -33,6 +33,7 @@ export function Topbar({ view, account, name, karas, notifications, onReadAll, o
       <nav aria-label="Navigation principale" className="yk-tabs">
         <Link href="/boosters" aria-current={view === "packs" ? "page" : undefined}>Boosters</Link>
         <Link href="/collection" aria-current={view === "collection" ? "page" : undefined}>Collection</Link>
+        <Link href="/amis" aria-current={view === "friends" ? "page" : undefined}>Amis</Link>
         <Link href="/marche" aria-current={view === "market" || view === "auction" ? "page" : undefined}>Marché</Link>
         <Link href="/echanges" aria-current={view === "trades" ? "page" : undefined}>Échanges</Link>
         <Link href="/wishlist" aria-current={view === "wishlist" ? "page" : undefined}>Wishlist</Link>

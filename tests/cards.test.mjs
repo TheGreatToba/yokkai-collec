@@ -103,6 +103,13 @@ test("collection : pagination, filtre utilisateur, doublons et tri rareté/date"
   assert.equal(calls.length, 3); // Shared memory cache avoids polling all pages.
 });
 
+test("collection : la rareté vient du catalogue, jamais du snapshot de l'exemplaire", async () => {
+  const copy = owned(7, "alice", "C");
+  copy.cards.rarete_base = "LR";
+  const { api } = setup({ collection: [copy] });
+  assert.equal((await api.getUserCollection())[0].rarity, "LR");
+});
+
 test("cache court, expiration et aucune réutilisation entre comptes", async () => {
   const { api, calls, advance, setUser } = setup({ collection: [owned(1), owned(2, "bob")] });
   const [first, second] = await Promise.all([api.getUserCollection(), api.getUserCollection()]);

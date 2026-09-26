@@ -1,0 +1,49 @@
+import { readFileSync } from "node:fs";
+import vm from "node:vm";
+import assert from "node:assert/strict";
+import test from "node:test";
+import ts from "typescript";
+
+function setup(handler,{nodeEnv="development"}={}){
+  const logs=[];const calls=[];
+  const client={async rpc(name,args){calls.push({name,args});return handler(name,args);}};
+  const context={exports:{},process:{env:{NODE_ENV:nodeEnv}},console:{error:(...args)=>logs.push(args)},
+    require:(name)=>{assert.equal(name,"@/utils/supabase/client");return {createClient:()=>client};}};
+  const source=ts.transpileModule(readFileSync(new URL("../lib/data/friends.ts",import.meta.url),"utf8"),{
+    compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020},
+  }).outputText;
+  vm.runInNewContext(source,context);
+  return {api:context.exports,logs,calls};
+}
+
+test("amis : erreurs métier, autorisation et réseau ont des messages distincts",async()=>{
+  const business=setup(async()=>({data:null,error:{message:"CANNOT_FRIEND_SELF",code:"P0001"}}));
+  await assert.rejects(business.api.sendFriendRequest("alice"),/vous ajouter vous-m/i);
+
+  const authorization=setup(async()=>({data:null,error:{message:"Forbidden",status:403,code:"42501"}}));
+  await assert.rejects(authorization.api.getFriendships(),/pas autoris/i);
+  assert.equal(authorization.logs[0][1].code,"42501");
+  assert.equal(authorization.logs[0][1].status,403);
+  assert.equal(authorization.logs[0][1].message,"Forbidden");
+
+  const network=setup(async()=>{throw new TypeError("Failed to fetch");});
+  await assert.rejects(network.api.searchUsers("ali"),/Impossible de joindre le serveur/);
+  assert.equal(network.logs.length,1);
+});
+
+test("amis : une relation existante distingue ami, demande envoyÃ©e et demande reÃ§ue",async()=>{
+  for(const [bucket,message] of [["friends",/amis avec ce joueur/],["outgoing",/ce joueur/],["incoming",/une demande/]]){
+    const lists={friends:[],incoming:[],outgoing:[]};lists[bucket].push({id:"target",pseudo:"Yuki"});
+    const {api,calls}=setup(async(name)=>name==="send_friend_request"
+      ?{data:null,error:{message:"FRIENDSHIP_EXISTS",code:"P0001"}}
+      :{data:lists,error:null});
+    await assert.rejects(api.sendFriendRequest("target"),message);
+    assert.deepEqual(calls.map(call=>call.name),["send_friend_request","get_friendships"]);
+  }
+});
+
+test("amis : les dÃ©tails techniques ne sont pas journalisÃ©s en production",async()=>{
+  const {api,logs}=setup(async()=>({data:null,error:{message:"permission denied",code:"42501"}}),{nodeEnv:"production"});
+  await assert.rejects(api.getFriendships(),/pas autoris/i);
+  assert.equal(logs.length,0);
+});

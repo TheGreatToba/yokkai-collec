@@ -123,7 +123,7 @@ begin
   if player_id is null then raise exception 'AUTH_REQUIRED' using errcode='P0001'; end if;
   perform public.settle_expired_auctions();
   return (select coalesce(jsonb_agg(jsonb_build_object(
-    'id',a.id,'card',jsonb_build_object('id',c.id,'name',c.nom,'category',c.categorie,'rarity',uc.rarity,'image',c.image_url,'shiny',uc.is_shiny),
+    'id',a.id,'card',jsonb_build_object('id',c.id,'name',c.nom,'category',c.categorie,'rarity',c.rarete_base,'image',c.image_url,'shiny',uc.is_shiny),
     'amount',a.current_price,'endsAt',a.ends_at,'status',a.status,'seller',p.pseudo,'sellerId',a.seller_id,
     'buyerId',a.buyer_id,'bids',(select count(*) from public.bids b where b.auction_id=a.id),
     'watched',exists(select 1 from public.auction_watchers w where w.auction_id=a.id and w.user_id=player_id)
@@ -138,7 +138,7 @@ declare player_id uuid:=auth.uid(); result jsonb;
 begin
   if player_id is null then raise exception 'AUTH_REQUIRED' using errcode='P0001'; end if;
   perform public.settle_expired_auctions();
-  select jsonb_build_object('id',a.id,'card',jsonb_build_object('id',c.id,'name',c.nom,'category',c.categorie,'rarity',uc.rarity,'image',c.image_url,'shiny',uc.is_shiny),
+  select jsonb_build_object('id',a.id,'card',jsonb_build_object('id',c.id,'name',c.nom,'category',c.categorie,'rarity',c.rarete_base,'image',c.image_url,'shiny',uc.is_shiny),
     'amount',a.current_price,'endsAt',a.ends_at,'status',a.status,'seller',p.pseudo,'sellerId',a.seller_id,'buyerId',a.buyer_id,
     'bids',(select count(*) from public.bids b where b.auction_id=a.id),
     'winner',(select pseudo from public.user_profiles where user_id=a.buyer_id),'balance',(select karas_balance from public.user_profiles where user_id=player_id),

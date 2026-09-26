@@ -111,14 +111,16 @@ begin
     from public.user_cards as owned
     join public.cards as cards on cards.id = owned.card_id
     where owned.id = p_card_instance_id and owned.user_id = player_id
-      and owned.rarity = 'SSR' and not owned.is_shiny
+      and cards.rarete_base = 'SSR' and not owned.is_shiny
     for update of owned;
   if not found then raise exception 'SSR_CARD_NOT_OWNED' using errcode = 'P0001'; end if;
 
   select array_agg(id order by date_obtention, id) into consumed_ids
-    from (select id, date_obtention from public.user_cards
-      where user_id = player_id and card_id = target_card.id and rarity = 'SSR' and not is_shiny
-      order by date_obtention, id limit 3 for update) as copies;
+    from (select owned.id, owned.date_obtention from public.user_cards owned
+      join public.cards cards on cards.id = owned.card_id
+      where owned.user_id = player_id and owned.card_id = target_card.id
+        and cards.rarete_base = 'SSR' and not owned.is_shiny
+      order by owned.date_obtention, owned.id limit 3 for update of owned) as copies;
   if coalesce(cardinality(consumed_ids), 0) < 3 then
     raise exception 'NOT_ENOUGH_SSR_COPIES' using errcode = 'P0001';
   end if;

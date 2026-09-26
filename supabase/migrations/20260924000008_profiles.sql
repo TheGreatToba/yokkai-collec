@@ -31,7 +31,7 @@ create policy avatars_delete_own on storage.objects for delete to authenticated
 create or replace function public.profile_card_json(c public.cards,uc public.user_cards)
 returns jsonb language sql stable security definer set search_path='' as $$
   select jsonb_build_object('id',c.id,'name',c.nom,'category',c.categorie,'anime',c.franchise,
-    'rarity',uc.rarity,'image',c.image_url,'instanceId',uc.id,'obtainedAt',uc.date_obtention,
+    'rarity',c.rarete_base,'image',c.image_url,'instanceId',uc.id,'obtainedAt',uc.date_obtention,
     'shiny',uc.is_shiny,'isEvolved',uc.is_evolved,'isFirstOwner',uc.is_first_owner,'folderId',uc.folder_id)
 $$;
 revoke all on function public.profile_card_json(public.cards,public.user_cards) from public,anon,authenticated;
