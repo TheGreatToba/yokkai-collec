@@ -61,9 +61,11 @@ function db() {
   return client;
 }
 
+// Local session read: getClaims calls /auth/v1/user on every poll when Auth signs
+// with a symmetric secret (self-hosted). RLS still enforces ownership server-side.
 async function playerId() {
-  const { data, error } = await db().auth.getClaims();
-  const id = data?.claims?.sub;
+  const { data, error } = await db().auth.getSession();
+  const id = data?.session?.user.id;
   if (error || !id) throw failure({ message: "AUTH_REQUIRED" });
   return id;
 }

@@ -20,7 +20,7 @@ function setup({ catalogue = [], collection = [], apiLimit = 500 } = {}) {
   const calls = [];
   const client = {
     auth: {
-      getClaims: async () => ({ data: user ? { claims: { sub: user } } : null, error: null }),
+      getSession: async () => ({ data: { session: user ? { user: { id: user } } : null }, error: null }),
       onAuthStateChange: (fn) => { listener = fn; },
     },
     from(table) {
