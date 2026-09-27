@@ -5,12 +5,13 @@ import Link from "next/link";
 import {useEffect,useMemo,useState} from "react";
 import {Avatar,Button,Modal,Toast} from "@/components/ui";
 import {YokaiCard} from "@/components/yokai-card";
+import {CardFranchise} from "@/components/card-franchise";
 import {FriendAction} from "@/components/friends";
 import {searchCards,type Card,type CollectedCard} from "@/lib/data/cards";
 import {getProfile,saveProfile,uploadAvatar,type Profile} from "@/lib/data/profile";
 import {getWishlist,type WishlistCard} from "@/lib/data/wishlist";
 
-function Featured({cards}:{cards:CollectedCard[]}) { return <div className="yk-featured-stage">{cards.map(card=><div key={card.instanceId}><YokaiCard {...card}/></div>)}{Array.from({length:Math.max(0,4-cards.length)},(_,i)=><div key={`empty-${i}`} className="yk-featured-empty"><span aria-hidden="true">✦</span><small>Emplacement libre</small></div>)}</div>; }
+function Featured({cards}:{cards:CollectedCard[]}) { return <div className="yk-featured-stage">{cards.map(card=><div key={card.instanceId}><YokaiCard {...card}/><CardFranchise card={card}/></div>)}{Array.from({length:Math.max(0,4-cards.length)},(_,i)=><div key={`empty-${i}`} className="yk-featured-empty"><span aria-hidden="true">✦</span><small>Emplacement libre</small></div>)}</div>; }
 
 function Editor({profile,collection,onSaved,onClose}:{profile:Profile;collection:CollectedCard[];onSaved:(p:Profile)=>void;onClose:()=>void}) {
   const [bio,setBio]=useState(profile.bio);const [avatar,setAvatar]=useState(profile.avatarUrl);const [selected,setSelected]=useState(()=>new Set(profile.featuredCards.map(c=>c.instanceId)));const [busy,setBusy]=useState(false);const [error,setError]=useState("");

@@ -3,14 +3,15 @@
 import { useEffect, useState } from "react";
 import { Avatar, Button, Chip, Karas, StatusPill } from "@/components/ui";
 import { YokaiCard } from "@/components/yokai-card";
+import { CardFranchise } from "@/components/card-franchise";
 import { getFriendships, type FriendUser } from "@/lib/data/friends";
 import { createTradeOffer, getTradeContext, listTradeOffers, respondTradeOffer, type TradeContext, type TradeOffer } from "@/lib/data/trades";
 import type { CollectedCard } from "@/lib/data/cards";
 
 function CardPicker({ cards, selected, onToggle }: { cards: CollectedCard[]; selected: Set<string>; onToggle: (id: string) => void }) {
-  return <div className="yk-trade-picker">{cards.map(card => <button type="button" key={card.instanceId} aria-pressed={selected.has(card.instanceId)} onClick={() => onToggle(card.instanceId)} className={`yk-trade-pick ${selected.has(card.instanceId) ? "is-selected" : ""}`}><span className="w-16 shrink-0"><YokaiCard {...card} animated={false} /></span><span className="min-w-0 flex-1"><strong className="block truncate text-xs">{card.name}</strong><span className="mt-1 block text-[10px] text-ink-3">{card.rarity}{card.shiny ? " · Shiny" : ""}</span></span><span className="yk-trade-check">{selected.has(card.instanceId) ? "✓" : ""}</span></button>)}</div>;
+  return <div className="yk-trade-picker">{cards.map(card => <button type="button" key={card.instanceId} aria-pressed={selected.has(card.instanceId)} onClick={() => onToggle(card.instanceId)} className={`yk-trade-pick ${selected.has(card.instanceId) ? "is-selected" : ""}`}><span className="w-16 shrink-0"><YokaiCard {...card} animated={false} /></span><span className="min-w-0 flex-1"><strong className="block truncate text-xs">{card.name}</strong><CardFranchise card={card} className="mt-1 block truncate text-left text-[10px] text-ink-3"/><span className="mt-1 block text-[10px] text-ink-3">{card.rarity}{card.shiny ? " · Shiny" : ""}</span></span><span className="yk-trade-check">{selected.has(card.instanceId) ? "✓" : ""}</span></button>)}</div>;
 }
-function OfferCards({ cards }: { cards: CollectedCard[] }) { return cards.length ? <div className="mt-3 flex flex-wrap gap-2">{cards.map(card => <span key={card.instanceId} className="rounded-full border border-veil bg-void px-3 py-1 text-xs"><strong>{card.rarity}</strong> {card.name}{card.shiny ? " ✦" : ""}</span>)}</div> : <p className="mt-3 text-xs text-ink-3">Aucune carte</p>; }
+function OfferCards({ cards }: { cards: CollectedCard[] }) { return cards.length ? <div className="mt-3 flex flex-wrap gap-2">{cards.map(card => <span key={card.instanceId} className="rounded-input border border-veil bg-void px-3 py-1.5 text-xs"><span><strong>{card.rarity}</strong> {card.name}{card.shiny ? " ✦" : ""}</span><CardFranchise card={card} className="mt-0.5 block max-w-44 truncate text-left text-[10px] text-ink-3"/></span>)}</div> : <p className="mt-3 text-xs text-ink-3">Aucune carte</p>; }
 const labels = { pending: "En attente", accepted: "Acceptée", declined: "Refusée", countered: "Contre-offre envoyée" };
 
 export function TradesPanel() {

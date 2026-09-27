@@ -21,7 +21,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
       $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
     grant usage on schema public, auth to anon, authenticated, service_role;
   `);
-  for (const name of ["20260923000000_create_card_schema", "20260923000001_create_signup_profile", "20260923000002_regular_pack", "20260924000000_regular_pack_phase1", "20260924000001_lr_shiny_evolution", "20260924000002_decision_pack", "20260924000003_karas", "20260924000004_collection_improvements", "20260924000005_auctions", "20260924000006_friendships", "20260924000007_trades", "20260924000012_custom_card_images", "20260924000013_reset_custom_image_on_auction", "20260925000000_achievements", "20260925000001_wishlists_notifications", "20260925000002_ssr_shiny_evolution", "20260926000000_discard_karas_rewards", "20260926000001_friend_request_notifications", "20260926000002_decision_pack_auto_karas_and_franchise", "20260926000003_regular_pack_franchise"]) {
+  for (const name of ["20260923000000_create_card_schema", "20260923000001_create_signup_profile", "20260923000002_regular_pack", "20260924000000_regular_pack_phase1", "20260924000001_lr_shiny_evolution", "20260924000002_decision_pack", "20260924000003_karas", "20260924000004_collection_improvements", "20260924000005_auctions", "20260924000006_friendships", "20260924000007_trades", "20260924000012_custom_card_images", "20260924000013_reset_custom_image_on_auction", "20260925000000_achievements", "20260925000001_wishlists_notifications", "20260925000002_ssr_shiny_evolution", "20260926000000_discard_karas_rewards", "20260926000001_friend_request_notifications", "20260926000002_decision_pack_auto_karas_and_franchise", "20260926000003_regular_pack_franchise", "20260926000004_card_franchise_presentations"]) {
     await db.exec(readFileSync(new URL(`../supabase/migrations/${name}.sql`, import.meta.url), "utf8"));
   }
   await db.exec(readFileSync(new URL("../supabase/migrations/20260926000004_card_franchise_presentations.sql", import.meta.url), "utf8"));
@@ -278,6 +278,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     assert.equal((await db.query("select custom_image_url from public.user_cards where id=$1", [copyId])).rows[0].custom_image_url, null);
     const listed = (await asUser(bob, () => db.query("select public.list_auctions() as value"))).rows[0].value.find(item => item.id === auctionId);
     assert.equal(listed.card.image, "https://storage.example/card.png");
+    assert.equal(listed.card.anime, "Franchise");
     assert.equal("customImageUrl" in listed.card, false);
     const publicDetail = (await asUser(bob, () => db.query("select public.get_auction($1) as value", [auctionId]))).rows[0].value;
     assert.equal(publicDetail.card.image, "https://storage.example/card.png");
@@ -373,6 +374,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     assert.equal(tradeNotification.actorPseudo,"Alice");
     const inbox=(await asUser(bob,()=>db.query("select public.list_trade_offers() as value"))).rows[0].value;
     assert.equal(inbox[0].offeredCards[0].instanceId,aliceCard);
+    assert.equal(inbox[0].offeredCards[0].anime,"Franchise");
     await assert.rejects(asUser(alice,()=>db.query("select public.respond_trade_offer($1,'accept')",[offerId])),/TRADE_NOT_PENDING/);
     assert.equal((await asUser(bob,()=>db.query("select public.respond_trade_offer($1,'accept') as value",[offerId]))).rows[0].value,true);
     assert.equal((await db.query("select user_id,is_first_owner,folder_id from public.user_cards where id=$1",[aliceCard])).rows[0].user_id,bob);

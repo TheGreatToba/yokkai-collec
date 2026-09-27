@@ -33,7 +33,7 @@ export function Topbar({ view, account, name, karas, notifications, notification
   const [loaded,setLoaded]=useState<NotificationItem[]>();
   const [notificationError,setNotificationError]=useState("");
   const [notificationAttempt,setNotificationAttempt]=useState(0);
-  useEffect(()=>{if(notifications)return;let active=true;const load=()=>void getNotifications().then(items=>{if(active){setLoaded(items.map(notificationItem));setNotificationError("");}},error=>{if(process.env.NODE_ENV!=="production")console.error("[notifications] list_notifications failed",{message:error instanceof Error?error.message:String(error),code:error instanceof NotificationRequestError?error.code:undefined,error});if(active)setNotificationError("Impossible de charger tes notifications.");});load();const timer=window.setInterval(load,60000);return()=>{active=false;window.clearInterval(timer);};},[notifications,notificationAttempt]);
+  useEffect(()=>{if(notifications)return;let active=true;const load=()=>void getNotifications().then(items=>{if(active){setLoaded(items.map(notificationItem));setNotificationError("");}},error=>{if(process.env.NODE_ENV!=="production")console.error("[notifications] list_notifications failed",{message:error instanceof Error?error.message:String(error),code:error instanceof NotificationRequestError?error.code:undefined,error});if(active)setNotificationError("Impossible de charger tes notifications.");});load();const timer=window.setInterval(load,10000);return()=>{active=false;window.clearInterval(timer);};},[notifications,notificationAttempt]);
   const shown=notifications??loaded;
   const visibleNotificationError=externalNotificationError??notificationError;
   const unread = shown?.filter(n => !n.read).length;
