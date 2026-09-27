@@ -51,14 +51,20 @@ export function Game({ view, account }: { view: "packs" | "collection"; account?
     return evolved;
   }
   async function keepDecision(instanceId: string) {
-    await keepDecisionPackCard(instanceId);
+    const kept = await keepDecisionPackCard(instanceId);
     const [decision, cards] = await Promise.all([getDecisionPackStatus(), getUserCollection()]);
-    setDecisionStatus(decision); setCollection(cards);
+    setDecisionStatus(decision); setCollection(cards); setInfo(current => current ? { ...current, karasBalance: current.karasBalance + kept.karasReward } : current);
+    return kept.karasReward;
   }
   async function discard(instanceId: string) {
     await discardPackCard(instanceId, drawKind);
     if (drawKind === "regular") setCollection(await getUserCollection());
     else setDecisionStatus(await getDecisionPackStatus());
+  }
+  async function discardCollectionCard(instanceId: string) {
+    await discardPackCard(instanceId, "regular");
+    const [cards, game] = await Promise.all([getUserCollection(), getGameInfo()]);
+    setCollection(cards); setInfo(game);
   }
   async function addFolder(name: string) { const folder = await createFolder(name); setFolders(current => [...current, folder].sort((a,b)=>a.name.localeCompare(b.name,"fr"))); }
   async function removeFolder(folderId: string) { await deleteFolder(folderId); const [nextFolders,cards]=await Promise.all([getFolders(),getUserCollection()]);setFolders(nextFolders);setCollection(cards); }
@@ -76,7 +82,7 @@ export function Game({ view, account }: { view: "packs" | "collection"; account?
     {error && <p role="alert" className="my-6 rounded-lg border border-danger/40 bg-danger/10 p-4 text-sm text-danger-ink">{error}</p>}{!status && !error && <p role="status" className="mt-10">Chargement…</p>}
     {view === "packs" && <Boosters status={status} countdown={countdown} decisionStatus={decisionStatus} decisionCountdown={decisionCountdown} busy={busy} draw={draw} drawKind={drawKind} collection={collection} revealed={revealed} onOpen={open} onKeepDecision={keepDecision} onDiscard={discard} onReveal={revealCard} onSound={sound.play} />}
 
-    {view === "collection" && status && <CollectionView cards={collection} categories={info?.categories || []} folders={folders} onCreateFolder={addFolder} onDeleteFolder={removeFolder} onMoveCard={moveCard} onCreateAuction={auctionCard} onEvolve={evolve} onSetCustomImage={customizeCard} />}
+    {view === "collection" && status && <CollectionView cards={collection} categories={info?.categories || []} folders={folders} onCreateFolder={addFolder} onDeleteFolder={removeFolder} onMoveCard={moveCard} onCreateAuction={auctionCard} onEvolve={evolve} onSetCustomImage={customizeCard} onDiscard={discardCollectionCard} />}
 
     </main><footer className="mx-auto mt-6 flex w-full max-w-6xl flex-wrap justify-between gap-3 border-t border-veil px-6 py-6 text-xs text-ink-3"><span>Yokkai Collec’ · v0.2</span><span>Collection sauvegardée sur votre compte</span></footer>
   </div>;

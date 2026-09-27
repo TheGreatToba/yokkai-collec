@@ -21,9 +21,12 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
       $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
     grant usage on schema public, auth to anon, authenticated, service_role;
   `);
-  for (const name of ["20260923000000_create_card_schema", "20260923000001_create_signup_profile", "20260923000002_regular_pack", "20260924000000_regular_pack_phase1", "20260924000001_lr_shiny_evolution", "20260924000002_decision_pack", "20260924000003_karas", "20260924000004_collection_improvements", "20260924000005_auctions", "20260924000006_friendships", "20260924000007_trades", "20260924000012_custom_card_images", "20260924000013_reset_custom_image_on_auction", "20260925000000_achievements", "20260925000001_wishlists_notifications", "20260925000002_ssr_shiny_evolution", "20260926000000_discard_karas_rewards", "20260926000001_friend_request_notifications"]) {
+  for (const name of ["20260923000000_create_card_schema", "20260923000001_create_signup_profile", "20260923000002_regular_pack", "20260924000000_regular_pack_phase1", "20260924000001_lr_shiny_evolution", "20260924000002_decision_pack", "20260924000003_karas", "20260924000004_collection_improvements", "20260924000005_auctions", "20260924000006_friendships", "20260924000007_trades", "20260924000012_custom_card_images", "20260924000013_reset_custom_image_on_auction", "20260925000000_achievements", "20260925000001_wishlists_notifications", "20260925000002_ssr_shiny_evolution", "20260926000000_discard_karas_rewards", "20260926000001_friend_request_notifications", "20260926000002_decision_pack_auto_karas_and_franchise", "20260926000003_regular_pack_franchise"]) {
     await db.exec(readFileSync(new URL(`../supabase/migrations/${name}.sql`, import.meta.url), "utf8"));
   }
+  await db.exec(readFileSync(new URL("../supabase/migrations/20260926000004_card_franchise_presentations.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../supabase/migrations/20260927000000_outbid_notifications.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../supabase/migrations/20260927000001_trade_offer_received_notifications.sql", import.meta.url), "utf8"));
   await db.query("insert into auth.users values ($1, '{\"pseudo\":\"Alice\"}'), ($2, '{\"pseudo\":\"Bob\"}'), ($3, '{\"pseudo\":\"Charlie\"}')", [alice, bob, charlie]);
   for (const rarity of ["C", "R", "SR", "SSR", "LR"]) {
     await db.query(`insert into public.cards (source_id, nom, categorie, franchise, rarete_base, image_url, source)
@@ -91,6 +94,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     assert.ok(draw.every((c) => !c.shiny || c.rarity === "LR"));
     assert.ok(draw.every((c) => c.isEvolved === false));
     assert.ok(draw.every((c) => c.isFirstOwner === (c.rarity === "LR")));
+    assert.ok(draw.every((c) => c.anime === "Franchise"));
     assert.equal((await asUser(alice, () => rpc("get_regular_pack_status"))).available, 4);
     for (let pack = 0; pack < 4; pack += 1) {
       assert.equal((await asUser(alice, () => rpc("open_regular_pack"))).length, 5);
@@ -202,16 +206,18 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     assert.equal(await count(bob), 0);
     const resumed = await asUser(bob, () => rpc("open_decision_pack"));
     assert.deepEqual(resumed.map(card => card.instanceId), choices.map(card => card.instanceId));
-    const balanceBeforeDiscard = Number((await db.query("select karas_balance from public.user_profiles where user_id=$1", [bob])).rows[0].karas_balance);
-    await asUser(bob, () => db.query("select public.discard_decision_pack_card($1)", [choices[0].instanceId]));
-    const decisionReward = { C: 1, R: 2, SR: 3, SSR: 4, LR: 5 }[choices[0].rarity];
-    assert.equal(Number((await db.query("select karas_balance from public.user_profiles where user_id=$1", [bob])).rows[0].karas_balance), balanceBeforeDiscard + decisionReward);
-    const pending = await asUser(bob, () => rpc("get_decision_pack_status"));
-    assert.equal(pending.available, false);
-    assert.equal(pending.pending.filter(card => card.discarded).length, 1);
+    assert.ok(choices.every(card => card.anime === "Franchise"));
+    const balanceBeforeChoice = Number((await db.query("select karas_balance from public.user_profiles where user_id=$1", [bob])).rows[0].karas_balance);
+    const discardedChoices = choices.filter((_, index) => index !== 1);
+    const liveRarityChoice = discardedChoices[0];
+    await db.query("update public.cards set rarete_base='C' where id=$1", [liveRarityChoice.id]);
+    const decisionReward = discardedChoices.reduce((sum, card) => sum + (card.id === liveRarityChoice.id ? 1 : ({ C: 1, R: 2, SR: 3, SSR: 4, LR: 5 })[card.rarity]), 0);
     const kept = (await asUser(bob, () => db.query("select public.keep_decision_pack_card($1) as value", [choices[1].instanceId]))).rows[0].value;
     assert.equal(await count(bob), 1);
     assert.equal(kept.id, choices[1].id);
+    assert.equal(kept.karasReward, decisionReward);
+    assert.equal(Number((await db.query("select karas_balance from public.user_profiles where user_id=$1", [bob])).rows[0].karas_balance), balanceBeforeChoice + decisionReward);
+    await db.query("update public.cards set rarete_base=$2::public.card_rarity where id=$1", [liveRarityChoice.id, liveRarityChoice.rarity]);
     assert.ok((await asUser(bob, () => rpc("get_achievements"))).find(item => item.id === "decision-decisive").completedAt);
     const completed = await asUser(bob, () => rpc("get_decision_pack_status"));
     assert.equal(completed.available, false);
@@ -281,6 +287,8 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     await asUser(bob, () => db.query("select public.place_bid($1,20)", [auctionId]));
     assert.equal(Number((await db.query("select karas_balance from public.user_profiles where user_id=$1", [bob])).rows[0].karas_balance), 80);
     await asUser(charlie, () => db.query("select public.place_bid($1,30)", [auctionId]));
+    const outbidNotification = (await asUser(bob, () => db.query("select public.list_notifications() as value"))).rows[0].value.find(item => item.type === "outbid");
+    assert.deepEqual({referenceId:outbidNotification.referenceId,cardName:outbidNotification.cardName},{referenceId:auctionId,cardName:"LR"});
     assert.equal(Number((await db.query("select karas_balance from public.user_profiles where user_id=$1", [bob])).rows[0].karas_balance), 100);
     assert.equal(Number((await db.query("select karas_balance from public.user_profiles where user_id=$1", [charlie])).rows[0].karas_balance), 70);
     await assert.rejects(asUser(bob, () => db.query("select public.place_bid($1,39)", [auctionId])), /BID_TOO_LOW/);
@@ -293,9 +301,11 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     await db.query("update public.auctions set ends_at=clock_timestamp()+interval '4 minutes' where id=$1", [auctionId]);
     const beforeExtension = Date.parse((await db.query("select ends_at::text as value from public.auctions where id=$1", [auctionId])).rows[0].value);
     await asUser(charlie, () => db.query("select public.place_bid($1,40)", [auctionId]));
+    assert.equal(Number((await db.query("select count(*) as count from public.notifications where user_id=$1 and type='outbid'", [charlie])).rows[0].count),0);
     const afterExtension = Date.parse((await db.query("select ends_at::text as value from public.auctions where id=$1", [auctionId])).rows[0].value);
     assert.equal(afterExtension, beforeExtension + 60_000);
     const detail = (await asUser(charlie, () => db.query("select public.get_auction($1) as value", [auctionId]))).rows[0].value;
+    assert.equal(detail.card.anime, "Franchise");
     assert.deepEqual(detail.history.map((bid) => bid.amount), [40, 30, 20]);
 
     await db.query("update public.auctions set ends_at=clock_timestamp()-interval '1 second' where id=$1", [auctionId]);
@@ -351,6 +361,8 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     await assert.rejects(asUser(charlie,()=>db.query("select public.create_trade_offer($1,'{}',10,'{}',0,null)",[bob])),/FRIENDS_ONLY/);
 
     const offerId=(await asUser(alice,()=>db.query("select public.create_trade_offer($1,$2,10,$3,15,null) as id",[bob,[aliceCard],[bobCard]]))).rows[0].id;
+    const tradeNotification=(await asUser(bob,()=>db.query("select public.list_notifications() as value"))).rows[0].value.find(item=>item.type==="trade_offer_received"&&item.referenceId===offerId);
+    assert.equal(tradeNotification.actorPseudo,"Alice");
     const inbox=(await asUser(bob,()=>db.query("select public.list_trade_offers() as value"))).rows[0].value;
     assert.equal(inbox[0].offeredCards[0].instanceId,aliceCard);
     await assert.rejects(asUser(alice,()=>db.query("select public.respond_trade_offer($1,'accept')",[offerId])),/TRADE_NOT_PENDING/);
@@ -369,6 +381,8 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
 
     const parent=(await asUser(alice,()=>db.query("select public.create_trade_offer($1,'{}',10,'{}',0,null) as id",[bob]))).rows[0].id;
     const counter=(await asUser(bob,()=>db.query("select public.create_trade_offer($1,'{}',5,'{}',5,$2) as id",[alice,parent]))).rows[0].id;
+    const counterNotification=(await asUser(alice,()=>db.query("select public.list_notifications() as value"))).rows[0].value.find(item=>item.type==="trade_offer_received"&&item.referenceId===counter);
+    assert.equal(counterNotification.actorPseudo,"Bob");
     assert.equal((await db.query("select status from public.trade_offers where id=$1",[parent])).rows[0].status,"countered");
     assert.equal((await asUser(alice,()=>db.query("select public.respond_trade_offer($1,'decline') as value",[counter]))).rows[0].value,false);
   });

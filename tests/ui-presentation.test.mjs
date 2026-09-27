@@ -84,4 +84,6 @@ test("le Decision Pack confirmé affiche une carte gardée et quatre perdues", (
   });
   assert.equal((html.match(/yk-lost-stamp/g) || []).length, 4);
   assert.equal((html.match(/GARDÉE/g) || []).length, 1);
+  assert.doesNotMatch(html, />Détruire</);
+  assert.match(html, /Carte ajoutée à ta collection · \+0 Karas depuis les cartes non conservées/);
 });

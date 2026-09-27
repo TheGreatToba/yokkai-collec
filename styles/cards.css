@@ -29,6 +29,9 @@
 .yk-shiny-badge { background: var(--holo-badge); color: var(--color-void); border-color: var(--holo-spark); }
 .yk-holo { background: var(--holo-foil); background-size: 300% 300%; mix-blend-mode: screen; }
 .yk-animated .yk-holo { animation: yk-holo 4.5s ease-in-out infinite alternate; }
+.yk-shiny .yk-card-art::after { content: ''; position: absolute; inset: -35%; pointer-events: none; opacity: .5; background: linear-gradient(112deg,transparent 34%,rgba(255,255,255,.08) 41%,rgba(200,230,255,.72) 48%,rgba(255,184,236,.42) 53%,transparent 62%); mix-blend-mode: screen; transform: translateX(-55%) rotate(4deg); }
+.yk-shiny.yk-animated .yk-card-art::after { animation: yk-shiny-glint 3.2s ease-in-out infinite; }
+.yk-shiny .yk-card-interior { box-shadow: inset 0 0 28px color-mix(in srgb,var(--holo-glow) 55%,transparent); }
 .yk-card-back { width: 100%; aspect-ratio: 5 / 7; border-radius: 12px; background: var(--color-surface) url('/assets/card-back.png') center / cover; box-shadow: var(--shadow-card); }
 @container yokai (max-width: 90px) {
   .yk-card-badge,.yk-shiny-badge { font-size: 7cqw; padding: 1cqw 2cqw; border-width: .6px; }
@@ -41,4 +44,5 @@
 @keyframes yk-holo { from { background-position: 0% 30%; } to { background-position: 100% 70%; } }
 @keyframes yk-pulse { 0%,100% { box-shadow: 0 0 0 1px var(--card-glow-color),0 10px 26px var(--card-glow-color); } 50% { box-shadow: 0 0 0 1px var(--card-glow-color),0 0 58px var(--card-glow-color); } }
 @keyframes yk-twinkle { 0%,100% { opacity: 0; transform: scale(.3) rotate(0deg); } 50% { opacity: 1; transform: scale(1) rotate(45deg); } }
+@keyframes yk-shiny-glint { 0%,18% { transform: translateX(-65%) rotate(4deg); opacity: 0; } 42% { opacity: .72; } 68%,100% { transform: translateX(65%) rotate(4deg); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .yk-sparkle { display: none; } }

@@ -3,10 +3,12 @@ import { createClient } from "@/utils/supabase/client";
 export type Rarity = "C" | "R" | "SR" | "SSR" | "LR";
 export type Category = string;
 export type Card = { id: string; name: string; category: Category; anime?: string; rarity: Rarity; image: string; wishlisted?: boolean };
+export type CataloguePage = { cards: Card[]; total: number };
 export type CollectedCard = Card & { instanceId: string; obtainedAt: string; shiny: boolean; isEvolved: boolean; isFirstOwner: boolean; folderId: string | null; catalogueImage: string; customImageUrl: string | null };
 export type Folder = { id: string; name: string };
 export type PackStatus = { available: number; maximum: number; nextPackAt: number | null };
 export type DecisionPackStatus = { available: boolean; nextPackAt: number; pending: (CollectedCard & { discarded?: boolean })[] };
+export type DecisionPackChoice = CollectedCard & { karasReward: number };
 type GameInfo = {
   user: { id: string; name: string }; categories: Category[]; rarities: Rarity[];
   dropRates: { rarity: Rarity; percent: number }[]; shinyRate: number; karasBalance: number;
@@ -113,6 +115,22 @@ export async function searchCards(query: string, limit = 30): Promise<Card[]> {
   return (data as Card[]).map(card => ({ ...card }));
 }
 
+export async function getCataloguePage({ query = "", category = "", rarity = "", page = 1, pageSize = 24 }: {
+  query?: string; category?: string; rarity?: Rarity | ""; page?: number; pageSize?: number;
+} = {}): Promise<CataloguePage> {
+  const safePage = Math.max(1, Math.trunc(page));
+  const safePageSize = Math.min(60, Math.max(1, Math.trunc(pageSize)));
+  const from = (safePage - 1) * safePageSize;
+  let request = db().from("cards").select(cardFields, { count: "exact" });
+  const term = query.trim().replace(/[,%()]/g, " ");
+  if (term) request = request.or(`nom.ilike.%${term}%,franchise.ilike.%${term}%`);
+  if (category) request = request.eq("categorie", category);
+  if (rarity) request = request.eq("rarete_base", rarity);
+  const { data, error, count } = await request.order("nom").order("id").range(from, from + safePageSize - 1);
+  if (error) throw failure(error);
+  return { cards: ((data ?? []) as CardRow[]).map(cardFromRow), total: count ?? 0 };
+}
+
 export async function getGameInfo(): Promise<GameInfo> {
   const id = await playerId();
   const info = await memo<GameInfo>(`info:${id}`, 60000, async () => {
@@ -207,13 +225,13 @@ export async function openDecisionPack(): Promise<DecisionPackStatus["pending"]>
   return data as DecisionPackStatus["pending"];
 }
 
-export async function keepDecisionPackCard(choiceId: string): Promise<CollectedCard> {
+export async function keepDecisionPackCard(choiceId: string): Promise<DecisionPackChoice> {
   const id = await playerId();
   try {
     const { data, error } = await db().rpc("keep_decision_pack_card", { p_choice_id: choiceId });
     if (error) throw failure(error);
     await assertPlayer(id);
-    return data as CollectedCard;
+    return data as DecisionPackChoice;
   } finally { cache.delete(`collection:${id}`); }
 }
 
