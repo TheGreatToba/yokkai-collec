@@ -122,6 +122,38 @@ export function imagePath(card) {
   return `${createHash("sha256").update(JSON.stringify([card.source, card.source_id])).digest("hex")}`;
 }
 
+export function cardNameCategoryKey(card) {
+  return JSON.stringify([card.nom.trim(), card.categorie.trim()]);
+}
+
+export function planNameCategoryImport(rows, existing) {
+  const csvByKey = new Map();
+  for (const row of rows) {
+    const card = validateCard(row);
+    const key = cardNameCategoryKey(card);
+    if (csvByKey.has(key)) throw new Error(
+      `Collision CSV sur (nom, categorie) : ${card.nom} / ${card.categorie}`,
+    );
+    csvByKey.set(key, card);
+  }
+  const dbByKey = new Map();
+  for (const card of existing) {
+    const key = cardNameCategoryKey(card);
+    if (dbByKey.has(key)) throw new Error(
+      `Collision en base sur (nom, categorie) : ${card.nom} / ${card.categorie}`,
+    );
+    dbByKey.set(key, card);
+  }
+  const updates = [];
+  const inserts = [];
+  for (const [key, card] of csvByKey) {
+    const current = dbByKey.get(key);
+    if (current) updates.push({ card, current });
+    else inserts.push(card);
+  }
+  return { updates, inserts };
+}
+
 async function checked(request) {
   const result = await request;
   if (result.error) throw Object.assign(new Error(result.error.message), {
@@ -129,6 +161,86 @@ async function checked(request) {
     code: result.error.code,
   });
   return result.data;
+}
+
+async function allCardsForCategories(client, categories) {
+  const cards = [];
+  for (const category of categories) {
+    for (let from = 0; ; from += 1000) {
+      const page = await retry(() => checked(client.from("cards").select(
+        "id,source_id,nom,categorie,franchise,rarete_base,image_url,source",
+      ).eq("categorie", category).range(from, from + 999)));
+      cards.push(...page);
+      if (page.length < 1000) break;
+    }
+  }
+  return cards;
+}
+
+export async function compareNameCategoryImport({ rows, client }) {
+  const input = [];
+  for await (const row of rows) input.push(row);
+  const categories = [...new Set(input.map((row) => row.categorie?.trim()).filter(Boolean))];
+  const existing = await allCardsForCategories(client, categories);
+  const plan = planNameCategoryImport(input, existing);
+  const changedRarityIds = plan.updates
+    .filter(({ card, current }) => card.rarete_base !== current.rarete_base)
+    .map(({ current }) => current.id);
+  let evolvedCopies = 0;
+  for (let offset = 0; offset < changedRarityIds.length; offset += 200) {
+    const ids = changedRarityIds.slice(offset, offset + 200);
+    const copies = await retry(() => checked(client.from("user_cards").select("id")
+      .eq("is_evolved", true).in("card_id", ids)));
+    evolvedCopies += copies.length;
+  }
+  return { ...plan, total: input.length, changedRarities: changedRarityIds.length, evolvedCopies };
+}
+
+export async function applyNameCategoryImport({ plan, client, bucket = "card-images",
+  concurrency = 5, fetchImage = fetch, log = console.log, onFailure = async () => {}, sleep = delay }) {
+  const work = [
+    ...plan.updates.map((item, index) => ({ ...item, kind: "update", index: index + 1 })),
+    ...plan.inserts.map((card, index) => ({ card, kind: "insert", index: plan.updates.length + index + 1 })),
+  ];
+  const stats = { updated: 0, inserted: 0, skipped: 0 };
+  let cursor = 0;
+  let fatal;
+  await Promise.all(Array.from({ length: Math.min(concurrency, work.length) }, async () => {
+    try {
+      while (!fatal && cursor < work.length) {
+        const item = work[cursor++];
+        let image;
+        try {
+          image = await retry(() => downloadImage(item.card.image_url, fetchImage), 3, sleep);
+        } catch (error) {
+          stats.skipped++;
+          const entry = { record: item.index, source: item.card.source,
+            source_id: item.card.source_id, stage: "image", message: error.message };
+          await onFailure(entry);
+          log(`SKIP ${JSON.stringify(entry)}`);
+          continue;
+        }
+        const path = imagePath(item.card);
+        await retry(() => checked(client.storage.from(bucket).upload(path, image.bytes, {
+          contentType: image.contentType, upsert: true, cacheControl: "3600",
+        })), 3, sleep);
+        const imageUrl = client.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+        if (item.kind === "update") {
+          await retry(() => checked(client.from("cards").update({
+            rarete_base: item.card.rarete_base, image_url: imageUrl, franchise: item.card.franchise,
+          }).eq("id", item.current.id)), 3, sleep);
+          stats.updated++;
+        } else {
+          await retry(() => checked(client.from("cards").insert({ ...item.card, image_url: imageUrl })), 3, sleep);
+          stats.inserted++;
+        }
+      }
+    } catch (error) {
+      fatal ??= error;
+    }
+  }));
+  if (fatal) throw fatal;
+  return stats;
 }
 
 export async function prepareStorage(client, bucket) {
@@ -238,10 +350,11 @@ async function main() {
     limit: { type: "string" },
     "error-log": { type: "string", default: "logs/import-cards-errors.jsonl" },
     "dry-run": { type: "boolean", default: false },
+    "match-name-category": { type: "boolean", default: false },
     help: { type: "boolean", default: false },
   } });
   if (values.help) {
-    console.log("npm run import:cards -- [--csv data/characters_clean.csv] [--dry-run] [--limit 10] [--batch-size 100] [--concurrency 5] [--bucket card-images] [--error-log logs/import-cards-errors.jsonl]");
+    console.log("npm run import:cards -- [--csv data/characters_clean.csv] [--dry-run] [--match-name-category] [--limit 10] [--batch-size 100] [--concurrency 5] [--bucket card-images] [--error-log logs/import-cards-errors.jsonl]");
     return;
   }
   const positive = (name, max) => {
@@ -256,14 +369,14 @@ async function main() {
   const limit = values.limit ? positive("limit", Number.MAX_SAFE_INTEGER) : Infinity;
   if (!/^[a-z0-9][a-z0-9-]{0,62}$/.test(values.bucket)) throw new Error("Nom de bucket invalide.");
   let client;
-  if (!values["dry-run"]) {
+  if (!values["dry-run"] || values["match-name-category"]) {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!url || !key) throw new Error("Renseigner NEXT_PUBLIC_SUPABASE_URL et SUPABASE_SECRET_KEY (ou SUPABASE_SERVICE_ROLE_KEY) dans .env.local. La clé publique ne permet pas l'import.");
     client = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false },
       global: { fetch: (input, init) => fetch(input, { ...init, signal: AbortSignal.timeout(60000) }) },
     });
-    await prepareStorage(client, values.bucket);
+    if (!values["dry-run"]) await prepareStorage(client, values.bucket);
   }
   const errorLog = resolve(values["error-log"]);
   if (errorLog === resolve(values.csv)) throw new Error("Le journal ne peut pas remplacer le CSV.");
@@ -275,7 +388,19 @@ async function main() {
       JSON.stringify({ date: new Date().toISOString(), ...entry }) + "\n", "utf8"));
     return writes;
   };
-  console.log(values["dry-run"] ? "Validation locale du CSV (aucun accès réseau)." : `Import vers ${values.bucket}, lots de ${batchSize}, concurrence ${concurrency}.`);
+  console.log(values["dry-run"]
+    ? (values["match-name-category"] ? "Dry-run distant en lecture seule." : "Validation locale du CSV (aucun accès réseau).")
+    : `Import vers ${values.bucket}, lots de ${batchSize}, concurrence ${concurrency}.`);
+  if (values["match-name-category"]) {
+    const plan = await compareNameCategoryImport({ rows: readCards(values.csv), client });
+    console.log(`Comparaison (nom, categorie) : total=${plan.total} | mises_a_jour=${plan.updates.length} | insertions=${plan.inserts.length} | raretes_modifiees=${plan.changedRarities} | exemplaires_evolues_concernes=${plan.evolvedCopies}`);
+    if (values["dry-run"]) return;
+    const matchStats = await applyNameCategoryImport({ plan, client, bucket: values.bucket,
+      concurrency, onFailure });
+    console.log(`TerminÃ© : ${JSON.stringify(matchStats)}`);
+    if (matchStats.skipped) process.exitCode = 2;
+    return;
+  }
   const stats = await importCards({ rows: readCards(values.csv), client, bucket: values.bucket,
     batchSize, concurrency, limit, dryRun: values["dry-run"], onFailure });
   console.log(`Terminé : ${JSON.stringify(stats)}`);

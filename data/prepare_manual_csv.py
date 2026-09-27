@@ -11,7 +11,6 @@ Usage :
 """
 
 import csv
-import hashlib
 import sys
 import unicodedata
 
@@ -34,6 +33,9 @@ def detect_columns(fieldnames):
             mapping["categorie"] = fn
         elif ("image" in norm or "lien" in norm) and "image" not in mapping:
             mapping["image"] = fn
+        elif ("licence" in norm or "license" in norm or "franchise" in norm or "saga" in norm) \
+                and "franchise" not in mapping:
+            mapping["franchise"] = fn
         elif ("nom" in norm or "personnage" in norm or "name" in norm) and "nom" not in mapping:
             mapping["nom"] = fn
 
@@ -43,14 +45,12 @@ def detect_columns(fieldnames):
         print(f"Colonnes détectées dans le fichier : {fieldnames}")
         sys.exit(1)
 
+    # "franchise" est optionnelle — absente pour kpop/film/kdrama/nba/meme, présente
+    # (via "licence") pour les personnages de jeu vidéo
+    if "franchise" not in mapping:
+        print("Pas de colonne licence/franchise détectée — le champ restera vide.")
+
     return mapping
-
-
-def make_source_id(categorie: str, nom: str) -> str:
-    """Construit un identifiant stable pour rendre les imports manuels relançables."""
-    identity = f"{normalize(categorie)}\0{normalize(nom)}"
-    digest = hashlib.sha256(identity.encode("utf-8")).hexdigest()[:24]
-    return f"manual-{digest}"
 
 
 def main():
@@ -81,7 +81,6 @@ def main():
         for row in reader:
             rarete = (row.get(mapping["rarete"]) or "").strip().upper()
             nom = (row.get(mapping["nom"]) or "").strip()
-            categorie = (row.get(mapping["categorie"]) or "").strip()
 
             if rarete not in RARETES_VALIDES:
                 n_invalid_rarete += 1
@@ -89,10 +88,10 @@ def main():
                 continue
 
             writer.writerow({
-                "source_id": make_source_id(categorie, nom),
+                "source_id": "",
                 "nom": nom,
-                "categorie": categorie,
-                "franchise": "",
+                "categorie": (row.get(mapping["categorie"]) or "").strip(),
+                "franchise": (row.get(mapping.get("franchise", "")) or "").strip(),
                 "franchise_romaji": "",
                 "image_url": (row.get(mapping["image"]) or "").strip(),
                 "favoris_count": "",

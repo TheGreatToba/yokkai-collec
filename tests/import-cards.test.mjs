@@ -4,8 +4,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
-import { downloadImage, imagePath, importCards, prepareStorage, readCards,
-  retry, validateCard } from "../scripts/import-cards.mjs";
+import { cardNameCategoryKey, downloadImage, imagePath, importCards, planNameCategoryImport,
+  prepareStorage, readCards, retry, validateCard } from "../scripts/import-cards.mjs";
 
 const row = (id = "1") => ({ source_id: id, nom: "Personnage", categorie: "Anime/Manga",
   franchise: "", franchise_romaji: "", image_url: `https://s4.anilist.co/${id}.png`,
@@ -14,6 +14,23 @@ const image = () => new Response(new Uint8Array([137, 80, 78, 71]), {
   headers: { "content-type": "image/png" },
 });
 const silent = () => {};
+
+test("plan (nom, categorie) : updates, inserts et collisions strictes", () => {
+  const existing = [{ ...validateCard({ ...row(), source_id: "old", nom: "IU", categorie: "KPOP" }),
+    id: "stable-id", image_url: "https://project.supabase.co/old" }];
+  const updated = { ...row(), source_id: "", nom: "IU", categorie: "KPOP", rarete_base: "LR",
+    franchise: "Solo", source: "manual" };
+  const added = { ...row(), source_id: "", nom: "NewJeans", categorie: "KPOP", source: "manual" };
+  const plan = planNameCategoryImport([updated, added], existing);
+  assert.equal(plan.updates.length, 1);
+  assert.equal(plan.updates[0].current.id, "stable-id");
+  assert.equal(plan.updates[0].card.rarete_base, "LR");
+  assert.equal(plan.inserts.length, 1);
+  assert.equal(cardNameCategoryKey(plan.inserts[0]), JSON.stringify(["NewJeans", "KPOP"]));
+  assert.throws(() => planNameCategoryImport([updated, updated], existing), /Collision CSV/);
+  assert.throws(() => planNameCategoryImport([updated], [...existing, { ...existing[0], id: "other" }]),
+    /Collision en base/);
+});
 
 function fakeClient({ uploadError, dbError, buckets = [], schemaError } = {}) {
   const cards = new Map();
