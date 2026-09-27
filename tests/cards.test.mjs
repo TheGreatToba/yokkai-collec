@@ -5,7 +5,7 @@ import test from "node:test";
 import ts from "typescript";
 
 const card = (n, rarity = "C") => ({ id: String(n).padStart(6, "0"), nom: `Carte ${n}`,
-  categorie: "Anime/Manga", rarete_base: rarity, image_url: "https://storage.example/image.png" });
+  categorie: "Anime/Manga", franchise: `Anime ${n}`, rarete_base: rarity, image_url: "https://storage.example/image.png" });
 const owned = (n, user = "alice", rarity = "C") => ({ id: String(n).padStart(6, "0"),
   user_id: user, date_obtention: new Date(1800000000000 + n * 1000).toISOString(), rarity,
   is_shiny: false, is_evolved: false, is_first_owner: rarity === "LR", folder_id: null, custom_image_url: null, cards: card(n % 3, rarity) });
@@ -26,6 +26,7 @@ function setup({ catalogue = [], collection = [], apiLimit = 500 } = {}) {
     from(table) {
       let after = "";
       let selectedUser;
+      let selectedIds;
       let limit;
       const query = {
         select: () => query,
@@ -33,10 +34,11 @@ function setup({ catalogue = [], collection = [], apiLimit = 500 } = {}) {
         limit: (value) => { limit = value; return query; },
         gt: (column, value) => { assert.equal(column, "id"); after = value; return query; },
         eq: (column, value) => { assert.equal(column, "user_id"); selectedUser = value; return query; },
+        in: (column, values) => { assert.equal(column, "id"); selectedIds = values; return query; },
         then(resolve) {
           calls.push({ table, after, selectedUser });
           const data = (table === "cards" ? catalogue : collection.filter((c) => c.user_id === selectedUser))
-            .filter((c) => c.id > after).sort((a, b) => a.id.localeCompare(b.id)).slice(0, Math.min(limit, apiLimit));
+            .filter((c) => c.id > after && (!selectedIds || selectedIds.includes(c.id))).sort((a, b) => a.id.localeCompare(b.id)).slice(0, Math.min(limit ?? Infinity, apiLimit));
           return Promise.resolve({ data, error: queryError }).then(resolve);
         },
       };
@@ -158,10 +160,11 @@ test("le statut vient du serveur même quand l'horloge locale change", async () 
 });
 
 test("ouverture : une RPC, tri du reveal et invalidation immédiate de la collection", async () => {
-  const { api, calls } = setup();
+  const { api, calls } = setup({ catalogue: [card(1, "SSR"), card(2, "C")] });
   assert.equal((await api.getUserCollection()).length, 0);
   const draw = await api.openBooster();
   assert.deepEqual(Array.from(draw, (c) => c.rarity), ["C", "SSR"]);
+  assert.deepEqual(Array.from(draw, (c) => c.anime), ["Anime 2", "Anime 1"]);
   assert.equal((await api.getUserCollection()).length, 2);
   assert.equal(calls.filter((c) => c.rpc === "open_regular_pack").length, 1);
 });

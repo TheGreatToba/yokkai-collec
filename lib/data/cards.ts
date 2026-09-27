@@ -45,6 +45,15 @@ function cardFromRow(row: CardRow): Card {
   return { id: row.id, name: row.nom, category: row.categorie, anime: row.franchise || undefined, rarity: row.rarete_base, image: row.image_url };
 }
 
+async function withLiveFranchises<T extends Card>(cards: T[]): Promise<T[]> {
+  if (!cards.length) return cards;
+  const ids = [...new Set(cards.map(card => card.id))];
+  const { data, error } = await db().from("cards").select("id,franchise").in("id", ids);
+  if (error) throw failure(error);
+  const franchises = new Map((data as {id:string;franchise:string|null}[]).map(row => [row.id, row.franchise?.trim() || undefined]));
+  return cards.map(card => ({ ...card, anime: franchises.get(card.id) }));
+}
+
 // Memory-only caches avoid reloading the collection at every one-second UI tick.
 type CacheEntry = { expires: number; promise: Promise<unknown> };
 const cache = new Map<string, CacheEntry>();
@@ -188,7 +197,7 @@ export async function getDecisionPackStatus(): Promise<DecisionPackStatus> {
   const status = data as DecisionPackStatus & { serverNow: number };
   return { available: status.available,
     nextPackAt: Date.now() + status.nextPackAt - status.serverNow,
-    pending: status.pending.map(card => ({ ...card })) };
+    pending: await withLiveFranchises(status.pending) };
 }
 
 export async function openBooster(): Promise<CollectedCard[]> {
@@ -198,7 +207,7 @@ export async function openBooster(): Promise<CollectedCard[]> {
     const { data, error } = await db().rpc("open_regular_pack");
     if (error) throw failure(error);
     await assertPlayer(id);
-    return (data as CollectedCard[]).sort((a, b) => rank[a.rarity] - rank[b.rarity]);
+    return (await withLiveFranchises(data as CollectedCard[])).sort((a, b) => rank[a.rarity] - rank[b.rarity]);
   } finally {
     // The server may have committed even if the response was lost.
     cache.delete(`collection:${id}`);
@@ -211,7 +220,7 @@ export async function evolveSsrCard(instanceId: string): Promise<CollectedCard> 
     const { data, error } = await db().rpc("evolve_ssr_card", { p_card_instance_id: instanceId });
     if (error) throw failure(error);
     await assertPlayer(id);
-    return data as CollectedCard;
+    return (await withLiveFranchises([data as CollectedCard]))[0];
   } finally {
     cache.delete(`collection:${id}`);
   }
@@ -222,7 +231,7 @@ export async function openDecisionPack(): Promise<DecisionPackStatus["pending"]>
   const { data, error } = await db().rpc("open_decision_pack");
   if (error) throw failure(error);
   await assertPlayer(id);
-  return data as DecisionPackStatus["pending"];
+  return withLiveFranchises(data as DecisionPackStatus["pending"]);
 }
 
 export async function keepDecisionPackCard(choiceId: string): Promise<DecisionPackChoice> {
@@ -231,7 +240,7 @@ export async function keepDecisionPackCard(choiceId: string): Promise<DecisionPa
     const { data, error } = await db().rpc("keep_decision_pack_card", { p_choice_id: choiceId });
     if (error) throw failure(error);
     await assertPlayer(id);
-    return data as DecisionPackChoice;
+    return (await withLiveFranchises([data as DecisionPackChoice]))[0];
   } finally { cache.delete(`collection:${id}`); }
 }
 
@@ -282,6 +291,6 @@ export async function setCardCustomImage(instanceId: string, imageUrl: string | 
     const { data, error } = await db().rpc("set_card_custom_image", { p_card_instance_id: instanceId, p_image_url: imageUrl });
     if (error) throw failure(error);
     await assertPlayer(id);
-    return data as CollectedCard;
+    return (await withLiveFranchises([data as CollectedCard]))[0];
   } finally { cache.delete(`collection:${id}`); }
 }
