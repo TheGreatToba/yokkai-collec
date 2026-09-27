@@ -52,6 +52,14 @@ test("Shiny reste une surcouche SSR/LR et ne s'applique pas aux autres raretés"
   }
 });
 
+test("la carte affiche la franchise dans son cadre sans répéter la catégorie générique", () => {
+  const { YokaiCard } = load("components/yokai-card.tsx");
+  const withFranchise = render(YokaiCard, { ...card, anime: "Black Clover", animated: false });
+  assert.match(withFranchise, /yk-card-anime[^>]*[^]*Black Clover/);
+  const withoutFranchise = render(YokaiCard, { ...card, category: "Anime\/Manga", anime: undefined, animated: false });
+  assert.doesNotMatch(withoutFranchise, /yk-card-anime/);
+});
+
 test("un solde absent reste inconnu, un solde connu utilise fr-FR", () => {
   const { Karas } = load("components/ui/index.tsx");
   assert.match(render(Karas, {}), /Solde karas indisponible/);

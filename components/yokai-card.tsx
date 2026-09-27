@@ -12,8 +12,9 @@ const spots = [[12,18],[78,26],[20,62],[70,58],[48,14],[84,46],[8,40],[58,70]];
 
 export function YokaiCard({ rarity, shiny = false, name, image, category, anime, animated = true, className = "", fallbackImage, catalogueImage }: YokaiCardProps) {
   const holo = shiny && (rarity === "SSR" || rarity === "LR");
+  const franchise = anime?.trim();
   const sparkCount = !animated ? 0 : holo ? 8 : rarity === "LR" ? 4 : rarity === "SSR" ? 3 : 0;
-  return <div className={`yk-card yk-rarity-${rarity} ${holo ? "yk-shiny" : ""} ${animated ? "yk-animated" : ""} ${className}`} role="img" aria-label={`${name}, ${rarity}${holo ? " Shiny" : ""}, ${category}`}>
+  return <div className={`yk-card yk-rarity-${rarity} ${holo ? "yk-shiny" : ""} ${animated ? "yk-animated" : ""} ${className}`} role="img" aria-label={`${name}, ${rarity}${holo ? " Shiny" : ""}, ${franchise || category}`}>
     <div className="yk-card-clip" aria-hidden="true">
       <div className="yk-card-frame" />
       {holo && <div className="yk-shiny-frame" />}
@@ -34,7 +35,7 @@ export function YokaiCard({ rarity, shiny = false, name, image, category, anime,
         <div className="yk-card-content">
           <div className="yk-card-top"><span className="yk-card-category" title={category}>{category}</span><span className="yk-card-badges"><span className="yk-card-badge">{rarity}</span>{holo && <span className="yk-shiny-badge">✦</span>}</span></div>
           {!image && <span className="yk-card-missing">Illustration indisponible</span>}
-          <div className="yk-card-bottom"><span className="yk-card-name" title={name}>{name}</span><span className="yk-card-anime" title={anime ?? category}>{anime ?? category}</span></div>
+          <div className="yk-card-bottom"><span className="yk-card-name" title={name}>{name}</span>{franchise && <span className="yk-card-anime" title={franchise}>{franchise}</span>}</div>
         </div>
       </div>
     </div>
