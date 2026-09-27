@@ -27,6 +27,8 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
   await db.exec(readFileSync(new URL("../supabase/migrations/20260926000004_card_franchise_presentations.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20260927000000_outbid_notifications.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20260927000001_trade_offer_received_notifications.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../supabase/migrations/20260927000002_auction_won_notifications.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../supabase/migrations/20260927000003_achievement_completed_notifications.sql", import.meta.url), "utf8"));
   await db.query("insert into auth.users values ($1, '{\"pseudo\":\"Alice\"}'), ($2, '{\"pseudo\":\"Bob\"}'), ($3, '{\"pseudo\":\"Charlie\"}')", [alice, bob, charlie]);
   for (const rarity of ["C", "R", "SR", "SSR", "LR"]) {
     await db.query(`insert into public.cards (source_id, nom, categorie, franchise, rarete_base, image_url, source)
@@ -314,7 +316,13 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     assert.deepEqual(sold, { status: "sold", current_price: 40, buyer_id: charlie });
     const transferred = (await db.query("select user_id,is_first_owner from public.user_cards where id=$1", [copyId])).rows[0];
     assert.deepEqual(transferred, { user_id: charlie, is_first_owner: false });
+    const wonNotification = (await asUser(charlie, () => db.query("select public.list_notifications() as value"))).rows[0].value.find(item => item.type === "auction_won");
+    assert.deepEqual({referenceId:wonNotification.referenceId,cardName:wonNotification.cardName},{referenceId:auctionId,cardName:"LR"});
     assert.ok((await asUser(charlie, () => rpc("get_achievements"))).find(item => item.id === "adjuge").completedAt);
+    const achievementNotification = (await asUser(charlie, () => db.query("select public.list_notifications() as value"))).rows[0].value.find(item => item.type === "achievement_completed" && item.referenceId === "adjuge");
+    assert.equal(achievementNotification.achievementName, "Adjugé !");
+    await db.query("select public.complete_achievements($1,array['auctions_won'])", [charlie]);
+    assert.equal(Number((await db.query("select count(*) as count from public.notifications where user_id=$1 and type='achievement_completed' and achievement_id='adjuge'", [charlie])).rows[0].count), 1);
     assert.equal(Number((await db.query("select karas_balance from public.user_profiles where user_id=$1", [alice])).rows[0].karas_balance), 110);
 
     const unsoldCopy = (await db.query("insert into public.user_cards (user_id,card_id,rarity) values ($1,$2,'LR') returning id", [alice, cardId])).rows[0].id;

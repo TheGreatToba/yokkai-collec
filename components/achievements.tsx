@@ -67,7 +67,7 @@ export function AchievementsPage({ account }: { account?: ReactNode }) {
         {items.map(item => {
           const state = item.claimedAt ? "claimed" : item.completedAt ? "completed" : "locked";
           const percent = Math.min(100, item.progressTarget ? item.progressCurrent / item.progressTarget * 100 : 0);
-          return <article key={item.id} className={`rounded-panel border p-5 transition-colors ${state === "claimed" ? "border-success/30 bg-success/5" : state === "completed" ? "border-accent-gold/55 bg-accent-gold/8" : "border-veil bg-surface"}`}>
+          return <article id={item.id} key={item.id} className={`scroll-mt-24 rounded-panel border p-5 transition-colors ${state === "claimed" ? "border-success/30 bg-success/5" : state === "completed" ? "border-accent-gold/55 bg-accent-gold/8" : "border-veil bg-surface"}`}>
             <div className="flex items-start gap-4"><span aria-hidden="true" className={`flex size-11 shrink-0 items-center justify-center rounded-full border font-display text-lg ${state === "claimed" ? "border-success/40 bg-success/10 text-success" : state === "completed" ? "border-accent-gold/50 bg-accent-gold/10 text-karas" : "border-veil-strong bg-void text-ink-3"}`}>{state === "claimed" ? "✓" : state === "completed" ? "✦" : "◇"}</span>
               <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center justify-between gap-2"><h2 className="font-display text-lg font-semibold">{item.title}</h2><StatusPill tone={state === "claimed" ? "success" : state === "completed" ? "gold" : "info"}>{state === "claimed" ? "Réclamé" : state === "completed" ? "À réclamer" : "Verrouillé"}</StatusPill></div><p className="mt-2 text-sm leading-6 text-ink-2">{item.description}</p></div>
             </div>

@@ -87,3 +87,20 @@ test("le Decision Pack confirmé affiche une carte gardée et quatre perdues", (
   assert.doesNotMatch(html, />Détruire</);
   assert.match(html, /Carte ajoutée à ta collection · \+0 Karas depuis les cartes non conservées/);
 });
+
+test("les six types de notifications ont un texte et une redirection", () => {
+  const source = readFileSync(path.join(root, "components/topbar.tsx"), "utf8");
+  const model = readFileSync(path.join(root, "lib/data/notifications.ts"), "utf8");
+  for (const type of ["wishlist_card_on_auction", "friend_request", "outbid", "trade_offer_received", "auction_won", "achievement_completed"]) {
+    assert.match(model, new RegExp(type));
+  }
+  assert.match(source, /de ta wishlist vient d’être mise aux enchères — clique pour voir/);
+  assert.match(source, /Tu as été surenchéri sur/);
+  assert.match(source, /Tu as remporté/);
+  assert.match(source, /t’a envoyé une offre d’échange/);
+  assert.match(source, /Nouveau succès/);
+  assert.match(source, /veut t’ajouter en ami/);
+  for (const href of ["/marche/", "/amis", "/echanges?offre=", "/succes#"]) {
+    assert.match(source, new RegExp(href.replace("?", "\\?")));
+  }
+});

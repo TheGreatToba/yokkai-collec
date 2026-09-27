@@ -17,10 +17,12 @@ const notificationStyle = {
 };
 export function notificationItem(notification:AppNotification):NotificationItem {
   const common={id:notification.id,time:new Date(notification.createdAt).toLocaleString("fr-FR"),read:!!notification.readAt};
-  if(notification.type==="friend_request")return {...common,title:"Nouvelle demande d’ami",text:`${notification.actorPseudo??"Un collectionneur"} souhaite devenir votre ami.`,href:"/amis",kind:"friend"};
+  if(notification.type==="friend_request")return {...common,title:"Nouvelle demande d’ami",text:`${notification.actorPseudo??"Un collectionneur"} veut t’ajouter en ami.`,href:"/amis",kind:"friend"};
   if(notification.type==="outbid")return {...common,title:"Tu as été surenchéri",text:`Tu as été surenchéri sur ${notification.cardName??"une carte"}.`,href:`/marche/${notification.referenceId}`,kind:"outbid"};
   if(notification.type==="trade_offer_received")return {...common,title:"Nouvelle offre d’échange",text:`${notification.actorPseudo??"Un collectionneur"} t’a envoyé une offre d’échange.`,href:`/echanges?offre=${notification.referenceId}`,kind:"trade"};
-  return {...common,title:"Carte en wishlist aux enchères",text:`${notification.cardName} est maintenant disponible.`,href:`/marche/${notification.referenceId}`,kind:"wishlist"};
+  if(notification.type==="auction_won")return {...common,title:"Enchère remportée",text:`Tu as remporté ${notification.cardName??"une carte"} !`,href:`/marche/${notification.referenceId}`,kind:"won"};
+  if(notification.type==="achievement_completed")return {...common,title:"Succès débloqué",text:`Nouveau succès : ${notification.achievementName??"un succès"}.`,href:`/succes#${notification.referenceId}`,kind:"mission"};
+  return {...common,title:"Carte en wishlist aux enchères",text:`${notification.cardName??"Une carte"} de ta wishlist vient d’être mise aux enchères — clique pour voir.`,href:`/marche/${notification.referenceId}`,kind:"wishlist"};
 }
 export function Topbar({ view, account, name, karas, notifications, notificationError: externalNotificationError, onRetryNotifications, onReadAll, onOpenNotification }: {
   view: "packs" | "collection" | "profile" | "friends" | "market" | "auction" | "trades" | "search" | "wishlist" | "achievements"; account?: ReactNode; name?: string; collection?: CollectedCard[];

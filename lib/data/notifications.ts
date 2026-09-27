@@ -1,6 +1,6 @@
 import { createClient } from "@/utils/supabase/client";
 
-export type AppNotification={id:string;type:"wishlist_card_on_auction"|"friend_request"|"outbid"|"trade_offer_received";referenceId:string;readAt:string|null;createdAt:string;cardName:string|null;actorPseudo:string|null};
+export type AppNotification={id:string;type:"wishlist_card_on_auction"|"friend_request"|"outbid"|"trade_offer_received"|"auction_won"|"achievement_completed";referenceId:string;readAt:string|null;createdAt:string;cardName:string|null;actorPseudo:string|null;achievementName:string|null};
 export class NotificationRequestError extends Error {
   code?: string;
   details?: string;
