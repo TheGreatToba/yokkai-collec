@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { Button, Chip, Feedback, Field, Karas, Modal, Skeleton, StatusPill, Tabs, Toast } from "@/components/ui";
+import { CardShell } from "@/components/card-shell";
+import { CardBack, YokaiCard } from "@/components/yokai-card";
 
 const tabItems = [
   { id: "collection", label: "Collection" },
@@ -17,6 +19,8 @@ const rarity = [
   ["LR", "text-rarity-lr border-rarity-lr/50 bg-rarity-lr/10"],
 ] as const;
 
+const cardRarities = ["C", "R", "SR", "SSR", "LR"] as const;
+
 function Section({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
   return <section className="rounded-panel border border-veil bg-surface p-5 shadow-card sm:p-7"><div className="mb-6"><p className="eyebrow">Composant</p><h2 className="mt-2 font-display text-xl font-semibold">{title}</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-ink-2">{description}</p></div>{children}</section>;
 }
@@ -30,6 +34,8 @@ export function DesignSystemGallery() {
   const [modal, setModal] = useState(false);
   const [toast, setToast] = useState("");
   return <>
+    <section id="card-shell" className="scroll-mt-6 rounded-panel border border-veil bg-surface p-5 shadow-card sm:p-7"><div className="mb-7"><p className="eyebrow">Composant · Phase 1.5</p><h2 className="mt-2 font-display text-xl font-semibold">Carte</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-ink-2">Ratio 5:7 conservé. Le shell ajoute uniquement l’élévation, le tilt et un reflet extérieur ; la face, ses badges, son cadrage, ses textes et ses effets de rareté restent inchangés.</p></div><h3 className="yk-section-title">Raretés et variantes</h3><div className="mt-5 grid grid-cols-2 gap-5 sm:grid-cols-4 lg:grid-cols-7">{cardRarities.map(cardRarity => <div key={cardRarity}><CardShell><YokaiCard rarity={cardRarity} name="Kitsune céleste" category="Anime" anime="Spirit Realm" image="/assets/booster-pack.png" animated={false}/></CardShell><p className="mt-3 text-center text-xs font-semibold text-ink-2">{cardRarity}</p></div>)}<div><CardShell><YokaiCard rarity="SSR" shiny name="Kitsune céleste" category="Anime" anime="Spirit Realm" image="/assets/booster-pack.png" animated={false}/></CardShell><p className="mt-3 text-center text-xs font-semibold text-ink-2">SSR Shiny</p></div><div><CardShell><YokaiCard rarity="LR" shiny name="Kitsune céleste" category="Anime" anime="Spirit Realm" image="/assets/booster-pack.png" animated={false}/></CardShell><p className="mt-3 text-center text-xs font-semibold text-ink-2">LR Shiny</p></div></div><h3 className="yk-section-title mt-10">Dos et états du shell</h3><div className="mt-5 grid grid-cols-2 gap-5 sm:grid-cols-4 lg:grid-cols-5"><div><CardShell><CardBack/></CardShell><p className="mt-3 text-center text-xs text-ink-2">Dos · 5:7</p></div><div><CardShell><YokaiCard rarity="SSR" name="Repos" category="État" anime="Shell" image="/assets/booster-pack.png" animated={false}/></CardShell><p className="mt-3 text-center text-xs text-ink-2">Repos</p></div><div><CardShell demoState="hover"><YokaiCard rarity="SSR" name="Survol" category="État" anime="Shell" image="/assets/booster-pack.png" animated={false}/></CardShell><p className="mt-3 text-center text-xs text-ink-2">Hover</p></div><div><CardShell demoState="tilt"><YokaiCard rarity="SSR" name="Tilt" category="État" anime="Shell" image="/assets/booster-pack.png" animated={false}/></CardShell><p className="mt-3 text-center text-xs text-ink-2">Tilt</p></div><div><CardShell demoState="reflection"><YokaiCard rarity="SSR" name="Reflet" category="État" anime="Shell" image="/assets/booster-pack.png" animated={false}/></CardShell><p className="mt-3 text-center text-xs text-ink-2">Reflet</p></div></div><p className="mt-7 rounded-input border border-veil bg-void p-4 text-xs leading-5 text-ink-3">Sur appareil tactile, sans capacité de survol, ou avec <code>prefers-reduced-motion</code>, l’élévation, le tilt et le reflet sont désactivés. Aucun mouvement de pointeur ne déclenche de rendu React.</p></section>
+
     <Section title="Boutons" description="Primaire, secondaire et danger partagent les mêmes rythmes, rayons et états accessibles.">
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <State label="Repos"><Button>Ouvrir un booster</Button></State>

@@ -24,6 +24,15 @@ export const animation = {
   },
   modal: { duration: 350 },
   feedback: { duration: 350 },
+  cardShell: {
+    perspective: "900px",
+    hoverLift: "-6px",
+    tiltX: 3,
+    tiltY: 4,
+    reflectionTravel: 30,
+    reflectionOpacity: 0.34,
+    demoReflectionOffset: "-12%",
+  },
 } as const;
 
 export const animationCssVariables = {
@@ -44,4 +53,10 @@ export const animationCssVariables = {
   "--ease-instant": animation.easing.instant,
   "--ease-standard": animation.easing.standard,
   "--ease-exit": animation.easing.exit,
+  "--card-shell-perspective": animation.cardShell.perspective,
+  "--card-shell-hover-lift": animation.cardShell.hoverLift,
+  "--card-shell-demo-tilt-x": `${-animation.cardShell.tiltX}deg`,
+  "--card-shell-demo-tilt-y": `${animation.cardShell.tiltY}deg`,
+  "--card-shell-reflection-opacity": `${animation.cardShell.reflectionOpacity}`,
+  "--card-shell-demo-reflection-offset": animation.cardShell.demoReflectionOffset,
 } as const;

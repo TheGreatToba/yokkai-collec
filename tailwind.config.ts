@@ -24,6 +24,7 @@ const config = {
     addBase({ ':root': Object.fromEntries([
       ...Object.entries(config.theme.extend.colors).map(([name, value]) => [`--color-${name}`, value]),
       ...Object.entries(config.theme.extend.boxShadow).map(([name, value]) => [`--shadow-${name}`, value]),
+      ...Object.entries(config.theme.extend.borderRadius).map(([name, value]) => [`--radius-${name}`, value]),
       ...Object.entries(config.theme.extend.backgroundImage).map(([name, value]) => [`--background-${name}`, value]),
       ...Object.entries(animationCssVariables),
     ]) });
