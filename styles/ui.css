@@ -5,6 +5,8 @@
 }
 :root { color-scheme: dark; --ease-yokkai: var(--ease-standard); }
 body { background: radial-gradient(1200px 600px at 50% -10%, var(--color-veil) 0%, transparent 60%), var(--color-night); color: var(--color-ink); font-family: var(--font-sans); }
+.yk-page-transition { min-height: 100%; animation: yk-page-enter var(--page-enter-duration) var(--ease-standard) var(--page-enter-delay) both; transform-origin: center top; }
+.yk-route-loading { width: 100%; max-width: var(--layout-content-max); margin-inline: auto; padding: 40px var(--layout-gutter); }
 button, input, select, textarea { font: inherit; }
 button:disabled { cursor: not-allowed; }
 :is(button,a,input,select,textarea):focus-visible { outline: 2px solid var(--color-accent-gold); outline-offset: 4px; }
@@ -53,6 +55,8 @@ a[aria-current="page"] { color: var(--color-ink); }
 @keyframes yk-ui-toast-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 @keyframes yk-ui-feedback-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes yk-ui-skeleton { from { background-position: 100% 0; } to { background-position: -120% 0; } }
+@keyframes yk-page-enter { from { opacity: 0; transform: scale(var(--page-enter-scale)); } to { opacity: 1; transform: none; } }
+@media (max-width: 620px) { .yk-route-loading { padding-inline: var(--layout-gutter-compact); } }
 @media (prefers-reduced-motion: reduce) {
   :where(body *,body *::before,body *::after):not(:where(.yk-card,.yk-card *,.yk-card-back,.yk-card-back *,.yk-reveal-stage,.yk-reveal-stage *)) { animation-duration: var(--duration-reduced) !important; animation-iteration-count: 1 !important; transition-duration: var(--duration-reduced) !important; transition-property: opacity,color,background-color,border-color,box-shadow !important; transform: none !important; scroll-behavior: auto !important; }
 }

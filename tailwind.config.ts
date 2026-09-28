@@ -27,6 +27,11 @@ const config = {
       ...Object.entries(config.theme.extend.borderRadius).map(([name, value]) => [`--radius-${name}`, value]),
       ...Object.entries(config.theme.extend.backgroundImage).map(([name, value]) => [`--background-${name}`, value]),
       ...Object.entries(animationCssVariables),
+      ['--layout-content-max', '72rem'],
+      ['--layout-gutter', '1.5rem'],
+      ['--layout-gutter-compact', '1rem'],
+      ['--topbar-height', '4.5rem'],
+      ['--topbar-panel-width', '25rem'],
     ]) });
   })],
 };

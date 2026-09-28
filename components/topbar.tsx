@@ -30,6 +30,7 @@ export function Topbar({ view, account, name, karas, notifications, notification
 }) {
   const sound = useSfx();
   const [panel, setPanel] = useState<"notifications" | "account" | null>(null);
+  const [mobileMenu, setMobileMenu] = useState(false);
   const [loaded,setLoaded]=useState<NotificationItem[]>();
   const [notificationError,setNotificationError]=useState("");
   const [notificationAttempt,setNotificationAttempt]=useState(0);
@@ -40,18 +41,21 @@ export function Topbar({ view, account, name, karas, notifications, notification
   async function readAll(){if(onReadAll)await onReadAll();else{await markNotificationRead();setLoaded(current=>current?.map(n=>({...n,read:true})));}}
   return <>
     <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-full focus:bg-accent-gold focus:p-3 focus:text-void">Aller au contenu</a>
-    <header className="yk-topbar">
+    <header className="yk-topbar" data-mobile-menu={mobileMenu ? "open" : "closed"}>
       <Link href="/" className="yk-brand" aria-label="Yokkai Collec’, accueil"><span className="yk-logo">Y</span><span>Yokkai<br />Collec’</span></Link>
-      <nav aria-label="Navigation principale" className="yk-tabs">
+      <nav id="primary-navigation" aria-label="Navigation principale" className="yk-primary-nav">
         <Link href="/boosters" aria-current={view === "packs" ? "page" : undefined}>Boosters</Link>
         <Link href="/collection" aria-current={view === "collection" ? "page" : undefined}>Collection</Link>
-        <Link href="/amis" aria-current={view === "friends" ? "page" : undefined}>Amis</Link>
+        <Link href="/recherche" aria-current={view === "search" ? "page" : undefined}>Catalogue</Link>
         <Link href="/marche" aria-current={view === "market" || view === "auction" ? "page" : undefined}>Marché</Link>
         <Link href="/echanges" aria-current={view === "trades" ? "page" : undefined}>Échanges</Link>
+        <Link href="/amis" aria-current={view === "friends" ? "page" : undefined}>Amis</Link>
         <Link href="/wishlist" aria-current={view === "wishlist" ? "page" : undefined}>Wishlist</Link>
         <Link href="/succes" aria-current={view === "achievements" ? "page" : undefined}>Succès</Link>
+        <Link href="/profil" className="yk-mobile-account" aria-current={view === "profile" ? "page" : undefined}>Mon compte</Link>
       </nav>
       <div className="yk-topbar-actions">
+        <button type="button" className="yk-icon-button yk-menu-toggle" aria-label={mobileMenu ? "Fermer le menu" : "Ouvrir le menu"} aria-expanded={mobileMenu} aria-controls="primary-navigation" onClick={() => setMobileMenu(open => !open)}><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d={mobileMenu ? "M6 6l12 12M18 6 6 18" : "M4 7h16M4 12h16M4 17h16"}/></svg></button>
         <button type="button" onClick={sound.toggle} aria-pressed={sound.enabled} aria-label={sound.enabled ? "Désactiver les sons" : "Activer les sons"} title={sound.enabled ? "Son activé" : "Son coupé"} className="yk-icon-button"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M4 9h4l5-4v14l-5-4H4z"/>{sound.enabled ? <path d="M17 8a6 6 0 0 1 0 8M20 5a10 10 0 0 1 0 14"/> : <path d="m17 9 5 6m0-6-5 6"/>}</svg></button>
         <Link href="/recherche" className="yk-icon-button" aria-label="Ouvrir le catalogue"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="10" cy="10" r="6" /><path d="m15 15 6 6" /></svg></Link>
         <div className="relative">
@@ -64,7 +68,7 @@ export function Topbar({ view, account, name, karas, notifications, notification
             })}</ul>}
           </section></>}
         </div>
-        <span className="yk-balance" title={karas == null ? "Solde indisponible" : "Mon solde"}><Karas amount={karas} /></span>
+        <span className="yk-balance" title={karas == null ? "Chargement du solde" : "Mon solde"}>{karas == null ? <span role="status" aria-label="Chargement du solde Karas" className="yk-balance-skeleton" /> : <Karas amount={karas} />}</span>
         <Link href="/profil" aria-label="Mon profil" className="rounded-full"><Avatar name={name || "Compte"} /></Link>
         <button type="button" aria-label="Options du compte" aria-haspopup="dialog" className="px-1 py-3 text-xs text-ink-3" onClick={() => setPanel("account")}>⌄</button>
       </div>
