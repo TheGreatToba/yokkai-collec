@@ -13,7 +13,7 @@ export function AuthForm({ mode, confirmationError = false }: {
   if (state.success) return <div role="status" className="space-y-5">
     <div className="rounded-xl border border-lime-300/30 bg-lime-300/5 p-5">
       <h2 className="font-semibold text-lime-300">Vérifie ta boîte mail</h2>
-      <p className="mt-3 text-sm leading-6 text-white/70">Un lien de confirmation vient de partir. Ouvre-le pour éveiller ton compte. Pense aussi aux courriers indésirables.</p>
+      <p className="mt-3 text-sm leading-6 text-white/70">Si cette adresse permet une nouvelle inscription, tu recevras un lien de confirmation. Pense aussi aux courriers indésirables. Si tu as déjà un compte, tu peux te connecter directement.</p>
     </div>
     <Link href="/connexion" className="inline-block text-sm text-lime-300 underline underline-offset-4">Se connecter →</Link>
   </div>;
@@ -25,9 +25,10 @@ export function AuthForm({ mode, confirmationError = false }: {
       <legend className="sr-only">{signup ? "Créer un compte" : "Se connecter"}</legend>
       {signup && <div>
         <label htmlFor="pseudo" className="auth-label">Pseudo</label>
-        <input id="pseudo" name="pseudo" autoComplete="nickname" required maxLength={30}
+        <input id="pseudo" name="pseudo" autoComplete="nickname" required
           defaultValue={state.values?.pseudo} className="auth-input" placeholder="Votre nom de collectionneur"
-          aria-invalid={Boolean(state.fields?.pseudo)} aria-describedby={state.fields?.pseudo ? "pseudo-error" : undefined} />
+          aria-invalid={Boolean(state.fields?.pseudo)} aria-describedby={state.fields?.pseudo ? "pseudo-error" : "pseudo-help"} />
+        {!state.fields?.pseudo && <p id="pseudo-help" className="mt-2 text-xs text-white/50">3 à 30 caractères. Espaces internes, accents et emoji autorisés.</p>}
         {state.fields?.pseudo && <p id="pseudo-error" className="mt-2 text-sm text-red-200" role="alert">{state.fields.pseudo}</p>}
       </div>}
       <div>

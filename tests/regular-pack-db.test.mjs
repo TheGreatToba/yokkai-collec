@@ -29,6 +29,8 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
   await db.exec(readFileSync(new URL("../supabase/migrations/20260927000001_trade_offer_received_notifications.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20260927000002_auction_won_notifications.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20260927000003_achievement_completed_notifications.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../supabase/migrations/20260928000002_pseudo_availability.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../supabase/migrations/20260928000003_pseudo_rules.sql", import.meta.url), "utf8"));
   await db.query("insert into auth.users values ($1, '{\"pseudo\":\"Alice\"}'), ($2, '{\"pseudo\":\"Bob\"}'), ($3, '{\"pseudo\":\"Charlie\"}')", [alice, bob, charlie]);
   for (const rarity of ["C", "R", "SR", "SSR", "LR"]) {
     await db.query(`insert into public.cards (source_id, nom, categorie, franchise, rarete_base, image_url, source)
@@ -55,6 +57,34 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     assert.equal(status.available, 5);
     assert.equal(status.maximum, 5);
     assert.equal(status.nextPackAt, null);
+  });
+
+  await t.test("pseudos : disponibilité publique, normalisation et contraintes du trigger", async () => {
+    const available = async (pseudo, role = "anon") => asUser(null, async () =>
+      (await db.query("select public.is_pseudo_available($1) as value", [pseudo])).rows[0].value, role);
+    assert.equal(await available("ALICE"), false);
+    assert.equal(await available("  Alice  "), false);
+    assert.equal(await available("Yōkai 👺"), true);
+
+    await db.query("insert into auth.users values ($1, $2::jsonb)", [
+      "00000000-0000-0000-0000-000000000010",
+      JSON.stringify({ pseudo: "  Yōkai 👺  " }),
+    ]);
+    assert.equal((await db.query("select pseudo from public.user_profiles where user_id=$1", [
+      "00000000-0000-0000-0000-000000000010",
+    ])).rows[0].pseudo, "Yōkai 👺");
+
+    for (const [index, pseudo, error] of [
+      [11, "ab", "PSEUDO_TOO_SHORT"],
+      [12, "a".repeat(31), "PSEUDO_TOO_LONG"],
+      [13, "a/b", "PSEUDO_INVALID_CHARACTERS"],
+      [14, "a\u0007b", "PSEUDO_INVALID_CHARACTERS"],
+    ]) {
+      await assert.rejects(db.query("insert into auth.users values ($1, $2::jsonb)", [
+        `00000000-0000-0000-0000-${String(index).padStart(12, "0")}`,
+        JSON.stringify({ pseudo }),
+      ]), new RegExp(error));
+    }
   });
 
   await t.test("Karas : solde initial nul et crédit/débit atomiques réservés au serveur", async () => {

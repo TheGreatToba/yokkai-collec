@@ -11,6 +11,47 @@ function errorCode(error: unknown) {
   return typeof error.code === "string" ? error.code : undefined;
 }
 
+function errorStatus(error: unknown) {
+  if (typeof error !== "object" || error === null || !("status" in error)) return undefined;
+  return typeof error.status === "number" ? error.status : undefined;
+}
+
+function authErrorDiagnostic(error: unknown) {
+  if (typeof error !== "object" || error === null) {
+    return { code: undefined, status: undefined, kind: typeof error, message: String(error) };
+  }
+  const status = "status" in error ? error.status : undefined;
+  const name = "name" in error ? error.name : undefined;
+  const message = "message" in error ? error.message : undefined;
+  return {
+    code: errorCode(error),
+    status: typeof status === "number" ? status : undefined,
+    kind: typeof name === "string" ? name : "object",
+    // Provider messages are useful diagnostically; redact any email-like value defensively.
+    message: typeof message === "string"
+      ? message.replace(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g, "[email redacted]")
+      : undefined,
+  };
+}
+
+function logAuthErrorInDevelopment(operation: "sign-in" | "sign-up", error: unknown) {
+  if (process.env.NODE_ENV !== "production") {
+    console.error(`Authentication ${operation} failed`, authErrorDiagnostic(error));
+  }
+}
+
+async function checkPseudoAvailability(
+  supabase: ReturnType<typeof createClient>,
+  pseudo: string,
+) {
+  const { data, error } = await supabase.rpc("is_pseudo_available", { p_pseudo: pseudo });
+  if (error) {
+    logAuthErrorInDevelopment("sign-up", error);
+    return undefined;
+  }
+  return data === true;
+}
+
 function isTransientNetworkError(error: unknown) {
   if (typeof error !== "object" || error === null) return false;
   const name = "name" in error && typeof error.name === "string" ? error.name : "";
@@ -34,13 +75,10 @@ export async function signIn(_state: AuthState, form: FormData): Promise<AuthSta
       result = await supabase.auth.signInWithPassword(credentials);
     }
     const { error } = result;
-    if (error) return { error: authError(error.code), values };
+    if (error) return { error: authError(error.code, error.status), values };
   } catch (error) {
-    console.error("Authentication sign-in failed", {
-      code: errorCode(error),
-      kind: error instanceof Error ? error.name : typeof error,
-    });
-    return { error: authError(errorCode(error)), values };
+    logAuthErrorInDevelopment("sign-in", error);
+    return { error: authError(errorCode(error), errorStatus(error)), values };
   }
   revalidatePath("/", "layout");
   redirect("/");
@@ -63,15 +101,36 @@ export async function signUp(_state: AuthState, form: FormData): Promise<AuthSta
       return { error: authError(), values };
     }
     const supabase = createClient(await cookies());
+    const pseudoAvailable = await checkPseudoAvailability(supabase, input.pseudo);
+    if (pseudoAvailable === false) {
+      return {
+        fields: { pseudo: "Ce pseudo est déjà pris, essaie-en un autre." },
+        values,
+      };
+    }
+    if (pseudoAvailable === undefined) return { error: authError(), values };
     const { data, error } = await supabase.auth.signUp({
       email: input.email,
       password: input.password,
       options: { data: { pseudo: input.pseudo }, emailRedirectTo: `${site.origin}/auth/confirm` },
     });
-    if (error) return { error: authError(error.code), values };
+    if (error) {
+      logAuthErrorInDevelopment("sign-up", error);
+      if (error.code === "unexpected_failure") {
+        const availableAfterFailure = await checkPseudoAvailability(supabase, input.pseudo);
+        if (availableAfterFailure === false) {
+          return {
+            fields: { pseudo: "Ce pseudo est déjà pris, essaie-en un autre." },
+            values,
+          };
+        }
+      }
+      return { error: authError(error.code, error.status), values };
+    }
     hasSession = Boolean(data.session);
-  } catch {
-    return { error: authError(), values };
+  } catch (error) {
+    logAuthErrorInDevelopment("sign-up", error);
+    return { error: authError(errorCode(error), errorStatus(error)), values };
   }
   if (!hasSession) return { success: true, values };
   revalidatePath("/", "layout");
