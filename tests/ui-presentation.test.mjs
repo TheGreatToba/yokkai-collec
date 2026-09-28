@@ -75,6 +75,15 @@ test("les modales imbriquées libèrent le scroll et la confirmation remplace le
   assert.match(collection, /open=\{!!selected&&!discardConfirm\}/);
 });
 
+test("la destruction multiple est active et transmet tous les exemplaires sélectionnés", () => {
+  const collection = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
+  const game = readFileSync(path.join(root, "components/game.tsx"), "utf8");
+  assert.match(collection, /onDiscardMany\(selectedCards\.map\(card => card\.instanceId\)\)/);
+  assert.match(collection, /bulkDiscardBusy\?"Destruction…":"Détruire la sélection"/);
+  assert.doesNotMatch(collection, /Destruction bientôt disponible/);
+  assert.match(game, /onDiscardMany=\{discardCollectionCards\}/);
+});
+
 test("la collection d'un autre joueur ne propose pas de sélection ou d'édition", () => {
   const { CollectionView } = load("components/collection.tsx");
   const html = render(CollectionView, { cards: [{...card,image:"https://i.imgur.com/private.png",catalogueImage:"/catalogue.png"}], categories: ["Test"], readOnly: true });

@@ -71,6 +71,16 @@ export function Game({ view, account }: { view: "packs" | "collection"; account?
     setCollection(await getUserCollection());
     setInfo(current => current && balance !== null ? { ...current, karasBalance: balance } : current);
   }
+  async function discardCollectionCards(instanceIds: string[]) {
+    try {
+      for (const instanceId of instanceIds) await discardPackCard(instanceId, "regular");
+    } finally {
+      // Also reconcile after a partial network failure: completed destructions
+      // must disappear and their credited balance must remain visible.
+      const [cards, game] = await Promise.all([getUserCollection(), getGameInfo()]);
+      setCollection(cards); setInfo(game);
+    }
+  }
   async function addFolder(name: string) { const folder = await createFolder(name); setFolders(current => [...current, folder].sort((a,b)=>a.name.localeCompare(b.name,"fr"))); }
   async function removeFolder(folderId: string) { await deleteFolder(folderId); const [nextFolders,cards]=await Promise.all([getFolders(),getUserCollection()]);setFolders(nextFolders);setCollection(cards); }
   async function moveCard(instanceId: string, folderId: string | null) { await moveCardToFolder(instanceId,folderId);setCollection(await getUserCollection()); }
@@ -87,7 +97,7 @@ export function Game({ view, account }: { view: "packs" | "collection"; account?
     {error && <p role="alert" className="my-6 rounded-lg border border-danger/40 bg-danger/10 p-4 text-sm text-danger-ink">{error}</p>}{!status && !error && <p role="status" className="mt-10">Chargement…</p>}
     {view === "packs" && <Boosters status={status} countdown={countdown} decisionStatus={decisionStatus} decisionCountdown={decisionCountdown} busy={busy} draw={draw} drawKind={drawKind} collection={collection} revealed={revealed} onOpen={open} onKeepDecision={keepDecision} onDiscard={discard} onReveal={revealCard} onSound={sound.play} />}
 
-    {view === "collection" && status && <CollectionView cards={collection} categories={info?.categories || []} folders={folders} onCreateFolder={addFolder} onDeleteFolder={removeFolder} onMoveCard={moveCard} onCreateAuction={auctionCard} onEvolve={evolve} onSetCustomImage={customizeCard} onDiscard={discardCollectionCard} />}
+    {view === "collection" && status && <CollectionView cards={collection} categories={info?.categories || []} folders={folders} onCreateFolder={addFolder} onDeleteFolder={removeFolder} onMoveCard={moveCard} onCreateAuction={auctionCard} onEvolve={evolve} onSetCustomImage={customizeCard} onDiscard={discardCollectionCard} onDiscardMany={discardCollectionCards} />}
 
     </main><footer className="mx-auto mt-6 flex w-full max-w-6xl flex-wrap justify-between gap-3 border-t border-veil px-6 py-6 text-xs text-ink-3"><span>Yokkai Collec’ · v0.2</span><span>Collection sauvegardée sur votre compte</span></footer>
   </div>;
