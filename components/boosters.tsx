@@ -49,18 +49,20 @@ export function BoosterReveal({ cards, revealed, onReveal, onReturn, onNext, nex
     if (faceUp) { if (!revealLocked) deposit(); return; }
     setFaceUp(true);
     onSound?.("flip");
-    const shiny = current.shiny && (current.rarity === "SSR" || current.rarity === "LR");
-    const revealDuration = current.rarity === "LR" ? 1900 : current.rarity === "SSR" ? 1100 : current.rarity === "SR" ? 520 : 0;
+    const isLR = current.rarity === "LR";
+    const isSSR = current.rarity === "SSR";
+    const shiny = current.shiny && (isSSR || isLR);
+    const revealDuration = isLR ? 4400 : isSSR ? 3200 : current.rarity === "SR" ? 520 : 0;
     if (revealDuration) {
       setRevealLocked(true);
       revealTimer.current = window.setTimeout(() => {
         setRevealLocked(false);
-        if (shiny || current.rarity === "LR") setSpot(current);
+        if (shiny || isLR) setSpot(current);
         revealTimer.current = null;
       }, revealDuration);
     }
-    if (shiny || current.rarity === "LR") onSound?.(shiny ? "shiny" : "lr");
-    else if (current.rarity === "SSR" || current.rarity === "SR") onSound?.(current.rarity === "SSR" ? "ssr" : "sr");
+    if (shiny || isLR) onSound?.(shiny ? "shiny" : "lr");
+    else if (isSSR || current.rarity === "SR") onSound?.(isSSR ? "ssr" : "sr");
   }
   async function keep() {
     if (!chosen || !decision || keepLock.current) return;
@@ -79,12 +81,144 @@ export function BoosterReveal({ cards, revealed, onReveal, onReturn, onNext, nex
   return <section aria-label="Cartes du pack" className="mt-8">
     <div><h2 className="font-display text-2xl">{decision ? "Un seul choix" : "Révèle tes cartes"}</h2><p role="status" aria-atomic="true" className="mt-2 text-sm text-ink-2">{done ? `${revealed} cartes révélées` : `Touche chaque carte pour la retourner · ${revealed} / ${cards.length}`}</p></div>
     {!done && <div className={`yk-reveal-stage ${faceUp && current?.rarity === "SSR" ? "yk-reveal-ssr" : ""} ${faceUp && current?.rarity === "SR" ? "yk-reveal-sr" : ""} ${faceUp && current?.rarity === "LR" ? "yk-reveal-lr" : ""} ${faceUp && current?.shiny ? "yk-reveal-shiny" : ""}`}>
-      {faceUp && (current?.rarity === "SSR" || current?.rarity === "LR") && <p className="yk-callout">Rareté exceptionnelle !</p>}
+      {faceUp && current?.rarity === "SSR" && <p className="yk-callout yk-ssr-callout">✦ Rareté Exceptionnelle ✦</p>}
+      {faceUp && current?.rarity === "LR" && <p className="yk-callout yk-lr-callout">✦ Invocation Légendaire ✦</p>}
       {faceUp && current?.shiny && <p className="yk-shiny-callout">✨ Version Shiny !</p>}
       {faceUp && current?.rarity === "SR" && <div className="yk-sr-flash" aria-hidden="true" />}
-      {faceUp && (current?.rarity === "SSR" || current?.rarity === "LR") && <div className="yk-burst" aria-hidden="true" />}
-      {faceUp && (current?.rarity === "SSR" || current?.rarity === "LR") && <div className="yk-reveal-rays" aria-hidden="true" />}
-      {faceUp && (current?.rarity === "SSR" || current?.rarity === "LR") && <div className="yk-reveal-particles" aria-hidden="true">{Array.from({length: current.rarity === "LR" ? 22 : 12},(_,i)=><span key={i} style={{"--particle":i} as CSSProperties}/>)}</div>}
+      {faceUp && current?.rarity === "SSR" && (
+        <div className="yk-ssr-cinematic-stage" aria-hidden="true">
+          <div className="yk-ssr-backdrop">
+            <div className="yk-ssr-nebula" />
+            <div className="yk-ssr-cosmic-dust-field">
+              {Array.from({ length: 20 }, (_, i) => (
+                <span key={i} style={{ "--dust-i": i } as CSSProperties} className="yk-ssr-cosmic-dust" />
+              ))}
+            </div>
+          </div>
+          <div className="yk-ssr-backlight" />
+          <div className="yk-ssr-ribbon-stage">
+            <svg className="yk-ssr-ribbon-svg" viewBox="0 0 300 400" fill="none">
+              <defs>
+                <linearGradient id="ssr-ribbon-grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#ff77bb" stopOpacity="0" />
+                  <stop offset="35%" stopColor="#ff3d8b" stopOpacity="0.95" />
+                  <stop offset="70%" stopColor="#ff99d6" stopOpacity="1" />
+                  <stop offset="100%" stopColor="#ffffff" stopOpacity="0.9" />
+                </linearGradient>
+                <linearGradient id="ssr-ribbon-grad2" x1="100%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#ec4899" stopOpacity="0" />
+                  <stop offset="45%" stopColor="#f43f5e" stopOpacity="0.9" />
+                  <stop offset="80%" stopColor="#fbcfe8" stopOpacity="1" />
+                  <stop offset="100%" stopColor="#ffffff" stopOpacity="0.85" />
+                </linearGradient>
+              </defs>
+              <path className="yk-ssr-ribbon-path yk-ssr-ribbon-1" d="M 40 370 C 15 280, 80 200, 165 180 C 255 160, 275 80, 205 30" stroke="url(#ssr-ribbon-grad1)" strokeWidth="6" strokeLinecap="round" />
+              <path className="yk-ssr-ribbon-path yk-ssr-ribbon-2" d="M 260 360 C 285 270, 220 210, 135 190 C 45 170, 25 90, 95 35" stroke="url(#ssr-ribbon-grad2)" strokeWidth="5.5" strokeLinecap="round" />
+            </svg>
+          </div>
+          <div className="yk-ssr-godrays">
+            {Array.from({ length: 20 }, (_, i) => (
+              <span key={i} style={{ "--ray-i": i } as CSSProperties} className="yk-ssr-godray" />
+            ))}
+          </div>
+          <div className="yk-ssr-supernova">
+            <div className="yk-ssr-flare-core" />
+            <div className="yk-ssr-flare-beam" />
+            <div className="yk-ssr-shockwave" />
+          </div>
+          <div className="yk-ssr-petals-explosion">
+            {Array.from({ length: 36 }, (_, i) => (
+              <span
+                key={i}
+                style={{
+                  "--p-idx": i,
+                  "--p-angle": `${(i * 360) / 36}deg`,
+                  "--p-dist": `${130 + (i % 5) * 35}px`,
+                  "--p-size": `${3 + (i % 3) * 1.5}px`,
+                  "--p-delay": `${(i % 4) * 30}ms`
+                } as CSSProperties}
+                className="yk-ssr-petal"
+              />
+            ))}
+          </div>
+          <div className="yk-ssr-ambient-petals">
+            {Array.from({ length: 22 }, (_, i) => (
+              <span
+                key={i}
+                style={{
+                  "--petal-i": i,
+                  "--petal-angle": `${(i * 360) / 22}deg`,
+                  "--petal-dist": `${135 + (i % 4) * 30}px`,
+                  "--petal-delay": `${i * 90}ms`
+                } as CSSProperties}
+                className="yk-ssr-ambient-petal"
+              />
+            ))}
+          </div>
+        </div>
+      )}
+      {faceUp && current?.rarity === "LR" && (
+        <div className="yk-lr-cinematic-stage" aria-hidden="true">
+          <div className="yk-lr-backdrop">
+            <div className="yk-lr-nebula" />
+            <div className="yk-lr-cosmic-dust-field">
+              {Array.from({ length: 24 }, (_, i) => (
+                <span key={i} style={{ "--dust-i": i } as CSSProperties} className="yk-lr-cosmic-dust" />
+              ))}
+            </div>
+          </div>
+          <div className="yk-lr-backlight" />
+          <div className="yk-lr-lightning-stage">
+            <svg className="yk-lr-lightning-svg" viewBox="0 0 240 340" fill="none">
+              <path className="yk-lr-bolt yk-lr-bolt-1" d="M20 50 L10 90 L25 100 L5 160 L20 180 L8 240 L25 250 L15 300" stroke="#ffd700" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path className="yk-lr-bolt yk-lr-bolt-2" d="M220 40 L230 85 L215 110 L235 170 L218 200 L232 260 L215 285 L225 310" stroke="#ffe57f" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path className="yk-lr-bolt yk-lr-bolt-3" d="M40 15 L90 8 L105 20 L150 5 L175 18 L210 10" stroke="#fff176" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path className="yk-lr-bolt yk-lr-bolt-4" d="M35 325 L85 332 L110 320 L160 335 L190 322 L215 330" stroke="#ffd700" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path className="yk-lr-bolt yk-lr-bolt-5" d="M15 70 L30 110 L12 150 L28 190" stroke="#d8b4fe" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path className="yk-lr-bolt yk-lr-bolt-6" d="M225 60 L210 120 L228 160 L212 210" stroke="#c084fc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <div className="yk-lr-godrays">
+            {Array.from({ length: 24 }, (_, i) => (
+              <span key={i} style={{ "--ray-i": i } as CSSProperties} className="yk-lr-godray" />
+            ))}
+          </div>
+          <div className="yk-lr-supernova">
+            <div className="yk-lr-flare-core" />
+            <div className="yk-lr-flare-beam" />
+            <div className="yk-lr-shockwave" />
+          </div>
+          <div className="yk-lr-spark-explosion">
+            {Array.from({ length: 48 }, (_, i) => (
+              <span
+                key={i}
+                style={{
+                  "--p-idx": i,
+                  "--p-angle": `${(i * 360) / 48}deg`,
+                  "--p-dist": `${140 + (i % 6) * 45}px`,
+                  "--p-size": `${2.5 + (i % 3) * 1.5}px`,
+                  "--p-delay": `${(i % 5) * 35}ms`
+                } as CSSProperties}
+                className="yk-lr-spark"
+              />
+            ))}
+          </div>
+          <div className="yk-lr-stardust-ring">
+            {Array.from({ length: 28 }, (_, i) => (
+              <span
+                key={i}
+                style={{
+                  "--star-i": i,
+                  "--star-angle": `${(i * 360) / 28}deg`,
+                  "--star-dist": `${145 + (i % 4) * 35}px`,
+                  "--star-delay": `${i * 80}ms`
+                } as CSSProperties}
+                className="yk-lr-stardust"
+              />
+            ))}
+          </div>
+        </div>
+      )}
       <div className="yk-deck">{cards.slice(revealed + 1).map((card, i, remaining) => <div className="yk-stacked-back" key={card.instanceId} style={{ transform: `translate(${(remaining.length-i)*3}px,${-(remaining.length-i)*4}px) rotate(${(remaining.length-i)*1.3}deg)`, filter: `brightness(${1-(remaining.length-i)*.045})` }}><CardBack /></div>)}
         <button type="button" ref={next} onClick={flip} aria-disabled={revealLocked} aria-label={revealLocked ? `Révélation de ${current.name} en cours` : faceUp ? `Ranger ${current.name}` : `Révéler la carte ${revealed + 1} sur ${cards.length}`} className={`yk-deck-button ${faceUp ? "yk-face-up" : ""}`}><span className="yk-flip"><span className="yk-flip-back" aria-hidden="true"><CardBack /></span><span className="yk-flip-front" aria-hidden="true">{faceUp && <YokaiCard {...current} />}</span></span></button>
       </div>
