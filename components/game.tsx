@@ -58,8 +58,13 @@ export function Game({ view, account }: { view: "packs" | "collection"; account?
   }
   async function discard(instanceId: string) {
     await discardPackCard(instanceId, drawKind);
-    if (drawKind === "regular") setCollection(await getUserCollection());
-    else setDecisionStatus(await getDecisionPackStatus());
+    if (drawKind === "regular") {
+      const [cards, game] = await Promise.all([getUserCollection(), getGameInfo()]);
+      setCollection(cards); setInfo(game);
+    } else {
+      const [decision, game] = await Promise.all([getDecisionPackStatus(), getGameInfo()]);
+      setDecisionStatus(decision); setInfo(game);
+    }
   }
   async function discardCollectionCard(instanceId: string) {
     await discardPackCard(instanceId, "regular");

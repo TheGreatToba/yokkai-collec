@@ -241,7 +241,11 @@ export async function keepDecisionPackCard(choiceId: string): Promise<DecisionPa
     if (error) throw failure(error);
     await assertPlayer(id);
     return (await withLiveCardFranchises([data as DecisionPackChoice]))[0];
-  } finally { cache.delete(`collection:${id}`); }
+  } finally {
+    // The automatically discarded Decision cards credit Karas too.
+    cache.delete(`collection:${id}`);
+    cache.delete(`info:${id}`);
+  }
 }
 
 export async function discardPackCard(instanceId: string, kind: "regular" | "decision"): Promise<void> {
@@ -252,7 +256,12 @@ export async function discardPackCard(instanceId: string, kind: "regular" | "dec
     const { error } = await db().rpc(rpc, args);
     if (error) throw failure(error);
     await assertPlayer(id);
-  } finally { cache.delete(`collection:${id}`); }
+  } finally {
+    // Destruction and its Karas credit are committed together server-side.
+    // Refresh both snapshots even if the RPC response itself was lost.
+    cache.delete(`collection:${id}`);
+    cache.delete(`info:${id}`);
+  }
 }
 
 export async function getFolders(): Promise<Folder[]> {

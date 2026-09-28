@@ -17,6 +17,7 @@ function setup({ catalogue = [], collection = [], apiLimit = 500 } = {}) {
   let rpcError;
   let queryError;
   let rpcHook;
+  let karasBalance = 0;
   const calls = [];
   const client = {
     auth: {
@@ -45,13 +46,13 @@ function setup({ catalogue = [], collection = [], apiLimit = 500 } = {}) {
       return query;
     },
     async rpc(name, args) {
-      if (name !== "evolve_ssr_card") assert.equal(args, undefined); // Draw parameters remain server-owned.
+      if (!["evolve_ssr_card", "discard_regular_pack_card", "discard_decision_pack_card"].includes(name)) assert.equal(args, undefined); // Draw parameters remain server-owned.
       calls.push({ rpc: name });
       await rpcHook?.();
       if (rpcError) return { data: null, error: rpcError };
       if (name === "get_game_info") return { data: { user: { id: user, name: user },
         categories: ["Anime/Manga"], rarities: ["C", "R", "SR", "SSR", "LR"],
-        dropRates: [{ rarity: "C", percent: 59 }, { rarity: "R", percent: 25 }, { rarity: "SR", percent: 10 }, { rarity: "SSR", percent: 5 }, { rarity: "LR", percent: 1 }], shinyRate: 5, karasBalance: 0 }, error: null };
+        dropRates: [{ rarity: "C", percent: 59 }, { rarity: "R", percent: 25 }, { rarity: "SR", percent: 10 }, { rarity: "SSR", percent: 5 }, { rarity: "LR", percent: 1 }], shinyRate: 5, karasBalance }, error: null };
       if (name === "get_regular_pack_status") return { data: { available: 1, maximum: 5,
         serverNow: 1000000, nextPackAt: 1000000 + 60000 }, error: null };
       if (name === "open_regular_pack") {
@@ -61,6 +62,13 @@ function setup({ catalogue = [], collection = [], apiLimit = 500 } = {}) {
           category: row.cards.categorie, rarity: row.cards.rarete_base, image: row.cards.image_url,
           instanceId: row.id, obtainedAt: row.date_obtention, shiny: row.is_shiny, isEvolved: row.is_evolved,
           isFirstOwner: row.is_first_owner, folderId: row.folder_id })), error: null };
+      }
+      if (name === "discard_regular_pack_card") {
+        const index = collection.findIndex((copy) => copy.id === args.p_card_instance_id && copy.user_id === user);
+        if (index < 0) return { data: null, error: { message: "CARD_NOT_OWNED" } };
+        const [discarded] = collection.splice(index, 1);
+        karasBalance += { C: 1, R: 2, SR: 3, SSR: 4, LR: 5 }[discarded.cards.rarete_base];
+        return { data: null, error: null };
       }
       assert.fail(name);
     },
@@ -167,6 +175,16 @@ test("ouverture : une RPC, tri du reveal et invalidation immédiate de la collec
   assert.deepEqual(Array.from(draw, (c) => c.anime), ["Anime 2", "Anime 1"]);
   assert.equal((await api.getUserCollection()).length, 2);
   assert.equal(calls.filter((c) => c.rpc === "open_regular_pack").length, 1);
+});
+
+test("destruction : invalide immédiatement la collection et le solde de Karas", async () => {
+  const { api, calls } = setup({ collection: [owned(1, "alice", "SSR")] });
+  assert.equal((await api.getGameInfo()).karasBalance, 0);
+  assert.equal((await api.getUserCollection()).length, 1);
+  await api.discardPackCard("000001", "regular");
+  assert.equal((await api.getUserCollection()).length, 0);
+  assert.equal((await api.getGameInfo()).karasBalance, 4);
+  assert.equal(calls.filter((call) => call.rpc === "get_game_info").length, 2);
 });
 
 test("erreurs DB explicites, requêtes réessayables et aucune relance automatique d'ouverture", async () => {

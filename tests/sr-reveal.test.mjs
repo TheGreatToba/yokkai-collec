@@ -23,6 +23,8 @@ test("SSR et LR escaladent rayons, particules, shake et duree", () => {
   assert.match(css, /\.yk-reveal-ssr \{ animation: yk-ssr-shake/);
   assert.match(css, /\.yk-reveal-lr::before/);
   assert.match(css, /transition-delay: \.55s/);
+  assert.doesNotMatch(css, /\.yk-burst[^}]*border-radius:\s*50%/s);
+  assert.doesNotMatch(css, /\.yk-reveal-rays[^}]*conic-gradient/s);
 });
 
 test("Shiny garde un chatoiement continu sur la carte", () => {
