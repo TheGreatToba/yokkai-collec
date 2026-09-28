@@ -8,6 +8,25 @@ export function Button({ variant = "primary", className = "", type = "button", .
 export function Chip({ active = false, className = "", ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { active?: boolean }) {
   return <button type="button" aria-pressed={active} className={`inline-flex min-h-8 items-center gap-2 rounded-full border px-3 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${active ? "border-accent-gold bg-veil text-ink" : "border-veil bg-night text-ink-2 hover:border-veil-strong"} ${className}`} {...props} />;
 }
+type PaginationItem = number | "ellipsis-start" | "ellipsis-end";
+
+function paginationItems(page: number, pageCount: number): PaginationItem[] {
+  if (pageCount <= 7) return Array.from({ length: pageCount }, (_, index) => index + 1);
+  if (page <= 4) return [1, 2, 3, 4, 5, "ellipsis-end", pageCount];
+  if (page >= pageCount - 3) return [1, "ellipsis-start", pageCount - 4, pageCount - 3, pageCount - 2, pageCount - 1, pageCount];
+  return [1, "ellipsis-start", page - 1, page, page + 1, "ellipsis-end", pageCount];
+}
+
+export function Pagination({ page, pageCount, onPageChange, label = "Pagination" }: { page: number; pageCount: number; onPageChange: (page: number) => void; label?: string }) {
+  if (pageCount <= 1) return null;
+  const activePage = Math.max(1, Math.min(page, pageCount));
+  const buttonClass = "flex size-8 shrink-0 items-center justify-center rounded-full border text-xs transition-colors sm:size-9 sm:text-sm";
+  return <nav aria-label={label} className="mt-10 flex flex-nowrap items-center justify-center gap-1 overflow-x-auto pb-1">
+    <button type="button" aria-label="Page précédente" disabled={activePage === 1} onClick={() => onPageChange(activePage - 1)} className={`${buttonClass} border-veil text-ink-2 hover:border-veil-strong hover:text-ink disabled:cursor-not-allowed disabled:opacity-30`}><span aria-hidden="true">‹</span></button>
+    {paginationItems(activePage, pageCount).map(item => typeof item === "number" ? <button type="button" key={item} aria-label={`Page ${item}`} aria-current={item === activePage ? "page" : undefined} onClick={() => onPageChange(item)} className={`${buttonClass} ${item === activePage ? "border-accent-gold bg-accent-gold text-void" : "border-veil text-ink-2 hover:border-veil-strong hover:text-ink"}`}>{item}</button> : <span key={item} aria-hidden="true" className="flex size-8 shrink-0 items-center justify-center text-sm text-ink-3 sm:size-9">…</span>)}
+    <button type="button" aria-label="Page suivante" disabled={activePage === pageCount} onClick={() => onPageChange(activePage + 1)} className={`${buttonClass} border-veil text-ink-2 hover:border-veil-strong hover:text-ink disabled:cursor-not-allowed disabled:opacity-30`}><span aria-hidden="true">›</span></button>
+  </nav>;
+}
 export function StatusPill({ children, tone = "gold" }: { children: ReactNode; tone?: "gold" | "success" | "danger" | "info" }) {
   const tones = { gold: "bg-accent-gold/14 text-karas", success: "bg-success/14 text-success", danger: "bg-danger/14 text-danger-ink", info: "bg-accent-neon/14 text-accent-neon" };
   return <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${tones[tone]}`}>{children}</span>;
