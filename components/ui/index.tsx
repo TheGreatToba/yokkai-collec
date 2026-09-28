@@ -22,6 +22,20 @@ export function Avatar({ name, image, online, size = 40 }: { name: string; image
     {online !== undefined && <span aria-label={online ? "En ligne" : "Hors ligne"} className={`absolute right-0 bottom-0 size-2.5 rounded-full border-2 border-night ${online ? "bg-success" : "bg-ink-3"}`} />}
   </span>;
 }
+let modalLockCount = 0;
+let bodyOverflowBeforeModal = "";
+
+function lockModalScroll() {
+  if (modalLockCount === 0) bodyOverflowBeforeModal = document.body.style.overflow;
+  modalLockCount += 1;
+  document.body.style.overflow = "hidden";
+}
+
+function unlockModalScroll() {
+  modalLockCount = Math.max(0, modalLockCount - 1);
+  if (modalLockCount === 0) document.body.style.overflow = bodyOverflowBeforeModal;
+}
+
 export function Modal({ open, onClose, title, children, className = "" }: { open: boolean; onClose: () => void; title: string; children: ReactNode; className?: string }) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -29,10 +43,13 @@ export function Modal({ open, onClose, title, children, className = "" }: { open
     const dialog = ref.current;
     if (!open || !dialog) return;
     const trigger = document.activeElement as HTMLElement | null;
-    const overflow = document.body.style.overflow;
-    dialog.showModal();
-    document.body.style.overflow = "hidden";
-    return () => { dialog.close(); document.body.style.overflow = overflow; trigger?.focus({ preventScroll: true }); };
+    if (!dialog.open) dialog.showModal();
+    lockModalScroll();
+    return () => {
+      if (dialog.open) dialog.close();
+      unlockModalScroll();
+      if (trigger?.isConnected) trigger.focus({ preventScroll: true });
+    };
   }, [open]);
   return <dialog ref={ref} aria-labelledby={titleId} className={`yk-modal ${className}`} onCancel={e => { e.preventDefault(); onClose(); }} onClose={onClose} onClick={e => {
     if (e.target !== e.currentTarget) return;

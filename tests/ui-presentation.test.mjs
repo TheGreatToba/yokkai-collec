@@ -67,6 +67,14 @@ test("un solde absent reste inconnu, un solde connu utilise fr-FR", () => {
   assert.match(render(Karas, { amount: 1240 }), /1[\s\u202f\u00a0]240/);
 });
 
+test("les modales imbriquées libèrent le scroll et la confirmation remplace le détail", () => {
+  const modal = readFileSync(path.join(root, "components/ui/index.tsx"), "utf8");
+  const collection = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
+  assert.match(modal, /modalLockCount = Math\.max\(0, modalLockCount - 1\)/);
+  assert.match(modal, /if \(modalLockCount === 0\) document\.body\.style\.overflow = bodyOverflowBeforeModal/);
+  assert.match(collection, /open=\{!!selected&&!discardConfirm\}/);
+});
+
 test("la collection d'un autre joueur ne propose pas de sélection ou d'édition", () => {
   const { CollectionView } = load("components/collection.tsx");
   const html = render(CollectionView, { cards: [{...card,image:"https://i.imgur.com/private.png",catalogueImage:"/catalogue.png"}], categories: ["Test"], readOnly: true });
