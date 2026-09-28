@@ -32,6 +32,10 @@ const config = {
       ['--layout-gutter-compact', '1rem'],
       ['--topbar-height', '4.5rem'],
       ['--topbar-panel-width', '25rem'],
+      ['--collection-grid-gap', '1rem'],
+      ['--collection-row-gap', '1.5rem'],
+      ['--collection-detail-width', '62rem'],
+      ['--collection-detail-art-width', '16rem'],
     ]) });
   })],
 };

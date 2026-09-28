@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import vm from "node:vm";
@@ -28,7 +28,12 @@ function load(relative) {
         getUserCollection() { assert.fail("Presentational server render must not load the API"); },
       };
       if (name === "@/components/ui") return load("components/ui/index.tsx");
-      if (name.startsWith("@/")) return load(`${name.slice(2)}.${name.includes("/hooks/") ? "ts" : "tsx"}`);
+      if (name.startsWith("@/")) {
+        const modulePath = name.slice(2);
+        const relative = ["tsx", "ts"].map(extension => `${modulePath}.${extension}`).find(candidate => existsSync(path.join(root, candidate)));
+        if (!relative) throw new Error(`Module local introuvable : ${name}`);
+        return load(relative);
+      }
       return require(name);
     },
   }, { filename });
