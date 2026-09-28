@@ -248,14 +248,15 @@ export async function keepDecisionPackCard(choiceId: string): Promise<DecisionPa
   }
 }
 
-export async function discardPackCard(instanceId: string, kind: "regular" | "decision"): Promise<void> {
+export async function discardPackCard(instanceId: string, kind: "regular" | "decision"): Promise<number | null> {
   const id = await playerId();
   try {
-    const rpc = kind === "regular" ? "discard_regular_pack_card" : "discard_decision_pack_card";
+    const rpc = kind === "regular" ? "discard_collection_card" : "discard_decision_pack_card";
     const args = kind === "regular" ? { p_card_instance_id: instanceId } : { p_choice_id: instanceId };
-    const { error } = await db().rpc(rpc, args);
+    const { data, error } = await db().rpc(rpc, args);
     if (error) throw failure(error);
     await assertPlayer(id);
+    return kind === "regular" ? data as number : null;
   } finally {
     // Destruction and its Karas credit are committed together server-side.
     // Refresh both snapshots even if the RPC response itself was lost.

@@ -46,7 +46,7 @@ function setup({ catalogue = [], collection = [], apiLimit = 500 } = {}) {
       return query;
     },
     async rpc(name, args) {
-      if (!["evolve_ssr_card", "discard_regular_pack_card", "discard_decision_pack_card"].includes(name)) assert.equal(args, undefined); // Draw parameters remain server-owned.
+      if (!["evolve_ssr_card", "discard_collection_card", "discard_decision_pack_card"].includes(name)) assert.equal(args, undefined); // Draw parameters remain server-owned.
       calls.push({ rpc: name });
       await rpcHook?.();
       if (rpcError) return { data: null, error: rpcError };
@@ -63,12 +63,12 @@ function setup({ catalogue = [], collection = [], apiLimit = 500 } = {}) {
           instanceId: row.id, obtainedAt: row.date_obtention, shiny: row.is_shiny, isEvolved: row.is_evolved,
           isFirstOwner: row.is_first_owner, folderId: row.folder_id })), error: null };
       }
-      if (name === "discard_regular_pack_card") {
+      if (name === "discard_collection_card") {
         const index = collection.findIndex((copy) => copy.id === args.p_card_instance_id && copy.user_id === user);
         if (index < 0) return { data: null, error: { message: "CARD_NOT_OWNED" } };
         const [discarded] = collection.splice(index, 1);
         karasBalance += { C: 1, R: 2, SR: 3, SSR: 4, LR: 5 }[discarded.cards.rarete_base];
-        return { data: null, error: null };
+        return { data: karasBalance, error: null };
       }
       assert.fail(name);
     },
@@ -181,7 +181,7 @@ test("destruction : invalide immédiatement la collection et le solde de Karas",
   const { api, calls } = setup({ collection: [owned(1, "alice", "SSR")] });
   assert.equal((await api.getGameInfo()).karasBalance, 0);
   assert.equal((await api.getUserCollection()).length, 1);
-  await api.discardPackCard("000001", "regular");
+  assert.equal(await api.discardPackCard("000001", "regular"), 4);
   assert.equal((await api.getUserCollection()).length, 0);
   assert.equal((await api.getGameInfo()).karasBalance, 4);
   assert.equal(calls.filter((call) => call.rpc === "get_game_info").length, 2);

@@ -57,19 +57,19 @@ export function Game({ view, account }: { view: "packs" | "collection"; account?
     return kept.karasReward;
   }
   async function discard(instanceId: string) {
-    await discardPackCard(instanceId, drawKind);
+    const balance = await discardPackCard(instanceId, drawKind);
     if (drawKind === "regular") {
-      const [cards, game] = await Promise.all([getUserCollection(), getGameInfo()]);
-      setCollection(cards); setInfo(game);
+      setCollection(await getUserCollection());
+      setInfo(current => current && balance !== null ? { ...current, karasBalance: balance } : current);
     } else {
       const [decision, game] = await Promise.all([getDecisionPackStatus(), getGameInfo()]);
       setDecisionStatus(decision); setInfo(game);
     }
   }
   async function discardCollectionCard(instanceId: string) {
-    await discardPackCard(instanceId, "regular");
-    const [cards, game] = await Promise.all([getUserCollection(), getGameInfo()]);
-    setCollection(cards); setInfo(game);
+    const balance = await discardPackCard(instanceId, "regular");
+    setCollection(await getUserCollection());
+    setInfo(current => current && balance !== null ? { ...current, karasBalance: balance } : current);
   }
   async function addFolder(name: string) { const folder = await createFolder(name); setFolders(current => [...current, folder].sort((a,b)=>a.name.localeCompare(b.name,"fr"))); }
   async function removeFolder(folderId: string) { await deleteFolder(folderId); const [nextFolders,cards]=await Promise.all([getFolders(),getUserCollection()]);setFolders(nextFolders);setCollection(cards); }
