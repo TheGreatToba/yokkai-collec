@@ -9,7 +9,7 @@ test("le reveal SR possede un flash bref et un pulse sans reprendre le burst SSR
   const source = readFileSync(path.join(root, "components/boosters.tsx"), "utf8");
   const css = readFileSync(path.join(root, "styles/boosters.css"), "utf8");
   assert.match(source, /rarity === "SR" && <div className="yk-sr-flash"/);
-  assert.match(source, /rarity === "SSR" \|\| current\?\.rarity === "LR"\) && <div className="yk-burst"/);
+  assert.doesNotMatch(source, /rarity === "SR"[^\n]*yk-(?:ssr|lr)-cinematic-stage/);
   assert.match(css, /\.yk-reveal-sr \.yk-face-up \{ animation: yk-sr-border-pulse/);
   assert.match(css, /@keyframes yk-sr-flash/);
 });
@@ -17,14 +17,18 @@ test("le reveal SR possede un flash bref et un pulse sans reprendre le burst SSR
 test("SSR et LR escaladent rayons, particules, shake et duree", () => {
   const source = readFileSync(path.join(root, "components/boosters.tsx"), "utf8");
   const css = readFileSync(path.join(root, "styles/boosters.css"), "utf8");
-  assert.match(source, /current\.rarity === "LR" \? 1900 : current\.rarity === "SSR" \? 1100/);
-  assert.match(source, /className="yk-reveal-rays"/);
-  assert.match(source, /current\.rarity === "LR" \? 22 : 12/);
-  assert.match(css, /\.yk-reveal-ssr \{ animation: yk-ssr-shake/);
-  assert.match(css, /\.yk-reveal-lr::before/);
-  assert.match(css, /transition-delay: \.55s/);
-  assert.doesNotMatch(css, /\.yk-burst[^}]*border-radius:\s*50%/s);
-  assert.doesNotMatch(css, /\.yk-reveal-rays[^}]*conic-gradient/s);
+  assert.match(source, /isLR \? 4400 : isSSR \? 3200/);
+  assert.match(source, /className="yk-ssr-cinematic-stage"/);
+  assert.match(source, /className="yk-lr-cinematic-stage"/);
+  assert.match(source, /className="yk-ssr-godray"/);
+  assert.match(source, /className="yk-lr-godray"/);
+  assert.match(source, /Array\.from\(\{ length: 36 \}/);
+  assert.match(source, /Array\.from\(\{ length: 48 \}/);
+  assert.match(css, /\.yk-reveal-ssr \.yk-deck \{ animation: yk-ssr-deck-charge 3\.2s/);
+  assert.match(css, /\.yk-reveal-lr \.yk-deck \{ animation: yk-lr-deck-charge 4\.4s/);
+  assert.match(css, /\.yk-ssr-cinematic-stage[^}]*pointer-events: none/);
+  assert.match(css, /\.yk-lr-cinematic-stage[^}]*pointer-events: none/);
+  assert.match(css, /prefers-reduced-motion:[^}]+[\s\S]*\.yk-ssr-cinematic-stage,\.yk-lr-cinematic-stage[^}]+display: none/);
 });
 
 test("Shiny garde un chatoiement continu sur la carte", () => {
