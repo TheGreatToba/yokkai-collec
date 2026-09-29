@@ -59,7 +59,22 @@
 .yk-frozen-overlay { position: absolute; inset: 0; z-index: 9; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--spacing) * 3); border: 1px solid color-mix(in srgb,var(--color-accent-gold) 40%,transparent); border-radius: var(--radius-card); background: color-mix(in srgb,var(--color-void) 66%,transparent); color: var(--color-karas); font-size: var(--text-xs); }
 .yk-frozen-overlay strong { font-size: var(--text-xs); letter-spacing: var(--tracking-wide); }
 .yk-card-detail-modal { width: min(var(--collection-detail-width),calc(100% - var(--layout-gutter) * 2)); }
-.yk-detail-grid { display: grid; grid-template-columns: var(--collection-detail-art-width) minmax(0,1fr); align-items: stretch; gap: calc(var(--spacing) * 8); }
+.yk-detail-grid { display: grid; grid-template-columns: var(--collection-detail-art-width) minmax(0,1fr); align-items: start; gap: calc(var(--spacing) * 8); }
+.yk-detail-side { display: grid; gap: var(--layout-gutter-compact); }
+.yk-detail-folder { display: grid; gap: calc(var(--spacing) * 2); }
+.yk-detail-folder select { width: 100%; min-height: 40px; padding: 0 calc(var(--spacing) * 3); border: 1px solid var(--color-veil); border-radius: var(--radius-input); background: var(--color-night); color: var(--color-ink-2); font-size: var(--text-sm); }
+.yk-detail-info { display: grid; min-width: 0; align-content: start; gap: calc(var(--spacing) * 5); }
+.yk-detail-facts { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: calc(var(--spacing) * 3) var(--layout-gutter-compact); padding: var(--layout-gutter-compact); border: 1px solid var(--color-veil); border-radius: var(--radius-panel); background: var(--color-void); }
+.yk-detail-facts dt { color: var(--color-ink-3); font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
+.yk-detail-facts dd { margin-top: calc(var(--spacing) * 1); color: var(--color-ink); font-size: var(--text-sm); }
+.yk-detail-actions { display: grid; gap: calc(var(--spacing) * 2.5); }
+.yk-detail-evolve { display: grid; gap: calc(var(--spacing) * 1.5); }
+.yk-detail-evolve p,.yk-detail-hint { color: var(--color-ink-3); font-size: var(--text-xs); line-height: 1.5; }
+.yk-detail-image { display: grid; gap: calc(var(--spacing) * 2); }
+.yk-detail-image-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: calc(var(--spacing) * 2); }
+.yk-detail-link { color: var(--color-accent-neon); text-decoration: underline; text-underline-offset: 3px; transition: color var(--duration-fast) var(--ease-standard); }
+.yk-detail-link:hover:not(:disabled) { color: var(--color-ink); }
+.yk-detail-danger { padding-top: calc(var(--spacing) * 5); border-top: 1px solid var(--color-veil); }
 .yk-detail-art { width: 100%; max-width: var(--collection-detail-art-width); }
 
 @media (max-width: 1280px) { .yk-collection-grid:not(.yk-collection-grid-list) { grid-template-columns: repeat(5,minmax(0,1fr)); } }
@@ -84,11 +99,14 @@
   .yk-collection-grid-list>li { grid-template-columns: var(--collection-list-card-width-mobile) minmax(0,1fr); gap: var(--layout-gutter-compact); }
   .yk-collection-pagination { flex-direction: column; gap: calc(var(--spacing) * 3); }
   .yk-collection-pagination>label { position: static; }
-  .yk-detail-grid { grid-template-columns: 1fr; }
-  .yk-detail-art { max-width: var(--collection-detail-art-width); margin: auto; }
+  .yk-detail-grid { grid-template-columns: 1fr; gap: var(--layout-gutter); }
+  .yk-detail-side { justify-items: center; }
+  .yk-detail-folder { width: 100%; }
+  .yk-detail-art { max-width: var(--collection-detail-art-width-mobile); margin: auto; }
   .yk-selection-bar { border-radius: var(--radius-panel); gap: calc(var(--spacing) * 3); }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .yk-filter-section summary svg,.yk-collection-sidebar,.yk-filter-option,.yk-filter-reset,.yk-shiny-toggle i,.yk-shiny-toggle i::after,.yk-collection-grid>li { transition-duration: var(--duration-reduced); }
 }
+@media (max-width: 430px) { .yk-detail-image-row,.yk-detail-facts { grid-template-columns: 1fr; } }

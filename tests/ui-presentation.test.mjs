@@ -180,6 +180,20 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
   assert.match(source, /Garder cette carte et perdre les \{cards\.length - 1\} autres \?/);
 });
 
+test("la modale de détail groupe dossier sous la carte et destruction explicite en bas", () => {
+  const source = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
+  const modal = source.slice(source.indexOf('title="Détail de la carte"'), source.indexOf('title="Détruire cette carte ?"'));
+  assert.ok(modal.indexOf("yk-detail-art") < modal.indexOf("yk-detail-folder"));
+  assert.ok(modal.indexOf("yk-detail-folder") < modal.indexOf("yk-detail-info"));
+  assert.ok(modal.indexOf("yk-detail-actions") < modal.indexOf("yk-detail-image"));
+  assert.ok(modal.indexOf("yk-detail-image") < modal.indexOf("yk-detail-danger"));
+  assert.match(modal, /Détruire la carte \(\+\{DESTRUCTION_KARAS\[selected\.rarity\]\}/);
+  assert.match(modal, /Revenir à l’image d’origine/);
+  assert.match(modal, /selectedMeta\?\.marketValue!=null&&/);
+  assert.doesNotMatch(modal, /aria-label=\{`Détruire \$\{selected\.name\}`\}/);
+  assert.match(source, /setDiscardConfirm\(true\)/);
+});
+
 test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
   const { MarketView } = load("components/community-views.tsx");
   const auction = (id, extra = {}) => ({ id, card: { ...card, id: `card-${id}` }, amount: 120, remaining: "00:12:00", remainingSeconds: 720, seller: "Kitsune", bids: 3, ...extra });
