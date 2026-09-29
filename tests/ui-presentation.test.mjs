@@ -112,7 +112,8 @@ test("le catalogue reprend la sidebar sans notion de possession ni action de mas
   assert.match(catalogue, /CatalogueFilterSection title="Rareté"/);
   assert.match(catalogue, /CatalogueFilterSection title="Catégorie"/);
   assert.match(catalogue, /<CardShell><YokaiCard/);
-  assert.match(catalogue, /Cartes par page \(non disponible dans cette phase\)/);
+  assert.match(catalogue, /CARD_PAGE_SIZES\.map/);
+  assert.match(catalogue, /getCataloguePage\(\{query,category,rarity,page,pageSize\}\)[^]*?\[query,category,rarity,page,pageSize\]/);
   assert.match(catalogue, /Possesseurs actuels/);
   assert.match(catalogue, /Ajouter à ma wishlist/);
   assert.doesNotMatch(catalogue, /Dossier|Sélection multiple|Obtenue le|possédée/);
