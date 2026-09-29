@@ -256,8 +256,8 @@ Le Decision Pack possède un délai indépendant de 24 heures. Son tirage est
 persisté dans `decision_packs` et `decision_pack_choices` jusqu’au choix final,
 ce qui empêche un rechargement de relancer les cinq propositions. Chaque carte
 est au minimum SR : SR 94 %, SSR 5 %, LR 1 %. `keep_decision_pack_card()` crée
-exactement un exemplaire dans la collection. Les RPC de défausse suppriment un
-exemplaire Regular ou marquent un choix Decision comme défaussé ; la dernière
+exactement un exemplaire dans la collection. Les RPC de destruction suppriment un
+exemplaire Regular ou marquent un choix Decision comme détruit ; la dernière
 proposition Decision restante ne peut pas être jetée.
 
 Chaque profil possède également un `karas_balance` entier, non négatif et

@@ -257,7 +257,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     await assert.rejects(asUser(bob, () => rpc("open_decision_pack")), /DECISION_PACK_NOT_READY/);
   });
 
-  await t.test("défausse rapide Regular : suppression limitée au propriétaire", async () => {
+  await t.test("destruction rapide Regular : suppression limitée au propriétaire", async () => {
     const own = (await db.query("select id from public.user_cards where user_id=$1 limit 1", [bob])).rows[0].id;
     await assert.rejects(asUser(alice, () => db.query("select public.discard_regular_pack_card($1)", [own])), /CARD_NOT_OWNED/);
     assert.equal(await count(bob), 1);
