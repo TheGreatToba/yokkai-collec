@@ -8,10 +8,7 @@ Cette liste conserve des idées présentes dans les maquettes Gemini. Elle ne co
 | Rediriger automatiquement vers la Collection après validation d’un booster | `docs/groupe-2-boosters.md` |
 | Faire voler les cartes conservées vers la navigation et désintégrer les autres | `docs/groupe-2-boosters.md` |
 | Convertir automatiquement les quatre cartes non retenues du booster décisif en Karas | `docs/groupe-2-boosters.md` |
-| Ajouter une minute lorsqu’une enchère est posée dans les cinq dernières minutes | `docs/groupe-3-marche.md` |
 | Mettre à jour en temps réel le chrono, l’historique et les offres d’une enchère | `docs/groupe-3-marche.md` |
-| Transférer automatiquement une carte remportée dans l’inventaire | `docs/groupe-3-marche.md` |
-| Réinitialiser automatiquement une image personnalisée lors d’une mise en vente | `docs/groupe-3-marche.md` |
 | Valider dynamiquement la disponibilité du pseudo avec un debounce de 300 ms | `docs/groupe-6-landingpage.md` |
 | Imposer un délai minimum de 500 ms à l’état de chargement de connexion | `docs/groupe-6-landingpage.md` |
 | Rediriger après inscription et déclencher automatiquement un toast de bienvenue | `docs/groupe-6-landingpage.md` |
@@ -26,3 +23,9 @@ Cette liste conserve des idées présentes dans les maquettes Gemini. Elle ne co
 | Afficher le gain « Détruire (+X Karas) » sous chaque carte ; nécessite d’exposer la valeur de destruction par carte avant l’action (`discardPackCard` ne renvoie que le solde final) | Phase 5 · Boosters, `docs/groupe-2-boosters.md` |
 | Annoncer le montant de Karas dans la modale de confirmation du Booster Décisif ; le montant n’est connu qu’après `keepDecisionPackCard` | Phase 5 · Boosters, `docs/groupe-2-boosters.md` |
 | Révéler en touchant directement chacune des 5 cartes de la rangée ; la révélation passe aujourd’hui par le paquet, qui porte le flip et les reveals SR/SSR/LR figés | Phase 5 · Boosters |
+| Trier le Marché par « Les plus populaires » ; nécessite une mesure de popularité (suivis, vues) exposée par `list_auctions` | Phase 6 · Marché, `docs/groupe-3-marche.md` |
+| Rechercher une carte dans le Marché ; nécessite un paramètre de recherche côté `list_auctions` (ou un filtre client sur la liste déjà chargée, à valider) | Phase 6 · Marché, `docs/groupe-3-marche.md` |
+| Lister dans « Mes enchères · En cours » les enchères où l’on a misé sans être en tête ; `list_auctions` n’expose que le meilleur enchérisseur (`buyerId`), pas les participants | Phase 6 · Marché |
+| Proposer « Obtenir des Karas » à côté de l’alerte de solde insuffisant ; aucun moyen d’acquérir des Karas n’existe en dehors du jeu | Phase 6 · Marché, `docs/groupe-3-marche.md` |
+| Suggérer un prix de départ recommandé dans la modale de vente ; nécessite une valeur de marché par carte | Phase 6 · Marché, `docs/groupe-3-marche.md` |
+| Lancer des confettis ou un flash sur la ligne d’historique lors d’une nouvelle mise | Phase 6 · Marché, `docs/groupe-3-marche.md` |

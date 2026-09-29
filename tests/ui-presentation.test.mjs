@@ -78,7 +78,8 @@ test("les modales imbriquées libèrent le scroll et la confirmation remplace le
   assert.match(modal, /modalLockCount = Math\.max\(0, modalLockCount - 1\)/);
   assert.match(modal, /if \(modalLockCount === 0\) document\.body\.style\.overflow = bodyOverflowBeforeModal/);
   assert.match(modal, /onClose=\{\(\) => \{ if \(open\) onClose\(\); \}\}/);
-  assert.match(collection, /open=\{!!selected&&!discardConfirm\}/);
+  assert.match(collection, /open=\{!!selected&&!discardConfirm&&!auctionOpen\}/);
+  assert.match(collection, /open=\{auctionOpen&&!!selected\}/);
 });
 
 test("la destruction multiple est active et transmet tous les exemplaires sélectionnés", () => {
@@ -177,6 +178,47 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
   assert.match(selection, /Revient demain à 00:30/);
   const source = readFileSync(path.join(root, "components/boosters.tsx"), "utf8");
   assert.match(source, /Garder cette carte et perdre les \{cards\.length - 1\} autres \?/);
+});
+
+test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
+  const { MarketView } = load("components/community-views.tsx");
+  const auction = (id, extra = {}) => ({ id, card: { ...card, id: `card-${id}` }, amount: 120, remaining: "00:12:00", remainingSeconds: 720, seller: "Kitsune", bids: 3, ...extra });
+  const lists = { active: [auction("a", { wishlist: true }), auction("b", { remainingSeconds: 120, remaining: "00:02:00" })], mine: [], won: [], sold: [] };
+  const html = render(MarketView, { lists, activeSales: "0", async onToggleWatch() {} });
+  assert.equal((html.match(/class="yk-market-tile"/g) || []).length, 2);
+  assert.match(html, /aria-pressed="true"[^>]*>.*?<span>Suivi<\/span>/);
+  assert.match(html, /aria-pressed="false"[^>]*>.*?<span>Suivre<\/span>/);
+  assert.match(html, /yk-market-timer yk-urgency-critical/);
+  assert.match(html, /<option value="asc">Prix croissant<\/option><option value="desc">Prix décroissant<\/option>/);
+  assert.match(html, />Mes enchères</);
+});
+
+test("Phase 6 : détail d'enchère, solde, minute ajoutée, historique et issues", () => {
+  const { AuctionView, presentAuction } = load("components/community-views.tsx");
+  const base = { id: "a", card: { ...card, anime: "Spirit Realm" }, amount: 120, remaining: "00:04:00", remainingSeconds: 240, seller: "Kitsune", bids: 2, nextBid: 130, minimumBid: 130, balance: 100, extended: true,
+    history: [{ id: "h1", name: "Oni", amount: 120, time: "14:32" }, { id: "h2", name: "Moi", amount: 110, time: "14:30", mine: true }] };
+  const live = render(AuctionView, { auction: base, async onBid() {} });
+  assert.match(live, />\+10 Karas<span>· 130 Karas<\/span>/);
+  assert.match(live, /Une minute a été ajoutée à l’enchère\./);
+  assert.match(live, /Solde de Karas insuffisant \(ton solde : 100 Karas\)/);
+  assert.match(live, /Oni<\/a><span class="text-ink-3"> · <\/span><span class="text-karas tabular-nums">120 Karas<\/span><span class="text-ink-3"> · <\/span><time[^>]*>14:32<\/time>/);
+  assert.ok(live.indexOf("yk-auction-history") > live.indexOf("yk-auction-panel"));
+  assert.match(render(AuctionView, { auction: { ...base, finished: true, status: "won" } }), /Enchère remportée !/);
+  assert.match(render(AuctionView, { auction: { ...base, finished: true, status: "lost", winner: "Oni" } }), /Enchère perdue[^]*Remportée par Oni/);
+  const raw = { id: "a", card, amount: 120, endsAt: new Date(Date.now() + 60_000).toISOString(), status: "active", seller: "Kitsune", sellerId: "s", buyerId: "x", bids: 2, watched: false, balance: 50,
+    history: [{ id: "h1", name: "Oni", amount: 120, createdAt: "2026-09-29T12:32:00Z", mine: false }, { id: "h2", name: "Moi", amount: 110, createdAt: "2026-09-29T12:30:00Z", mine: true }] };
+  assert.equal(presentAuction(raw, "me").status, "outbid");
+  assert.equal(presentAuction({ ...raw, status: "sold" }, "me").status, "lost");
+  assert.equal(presentAuction({ ...raw, status: "sold", buyerId: "me" }, "me").status, "won");
+  assert.match(presentAuction(raw, "me").history[0].time, /^\d{2}:\d{2}$/);
+});
+
+test("Phase 6 : la mise en vente confirme le verrouillage et signale la réinitialisation d'image", () => {
+  const source = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
+  assert.match(source, /Carte mise aux enchères — verrouillée jusqu’à la fin de la vente/);
+  assert.match(source, /selected\.customImageUrl&&<li>L’image personnalisée de cette carte sera réinitialisée\.<\/li>/);
+  assert.match(source, /\[\["15","15 min"\],\["30","30 min"\],\["60","1 h"\],\["240","4 h"\],\["720","12 h"\],\["1440","24 h"\]\]/);
+  assert.match(source, /useState\("10"\)/);
 });
 
 test("les six types de notifications ont un texte et une redirection", () => {

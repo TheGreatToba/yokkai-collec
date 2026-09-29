@@ -26,6 +26,7 @@ export const animation = {
   },
   modal: { duration: 350 },
   feedback: { duration: 350 },
+  market: { extensionNotice: 6000, extensionPulse: 600 },
   cardShell: {
     perspective: "900px",
     hoverLift: "-6px",
@@ -54,6 +55,7 @@ export const animationCssVariables = {
   "--page-enter-scale": `${animation.page.enterScale}`,
   "--modal-duration": `${animation.modal.duration}ms`,
   "--feedback-duration": `${animation.feedback.duration}ms`,
+  "--market-extension-pulse": `${animation.market.extensionPulse}ms`,
   "--ease-instant": animation.easing.instant,
   "--ease-standard": animation.easing.standard,
   "--ease-exit": animation.easing.exit,

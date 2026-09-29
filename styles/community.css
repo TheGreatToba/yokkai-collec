@@ -1,23 +1,8 @@
-.yk-empty-state { min-height: 280px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px dashed var(--color-veil-strong); border-radius: 16px; padding: 32px; text-align: center; margin-top: 24px; }
-.yk-filter-panel { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px; margin: 24px 0; padding: 20px; border: 1px solid var(--color-veil); border-radius: 16px; background: var(--color-surface); }
-.yk-market-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(210px,1fr)); gap: 24px; }
-.yk-auction-tile { padding: 18px; border: 1px solid var(--color-veil); border-radius: 16px; background: var(--color-surface); transition: transform .2s,border-color .2s; }.yk-auction-tile:hover { transform: translateY(-5px); border-color: var(--color-veil-strong); }
-.yk-auction-timer { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); padding: 5px 10px; border: 1px solid var(--color-veil); border-radius: 999px; background: var(--color-void); white-space: nowrap; font-variant-numeric: tabular-nums; font-size: 12px; }
-.yk-auction-row { display: grid; grid-template-columns: 52px minmax(0,1fr) auto; align-items: center; gap: 20px; padding: 16px 20px; border: 1px solid var(--color-veil); border-radius: 16px; background: var(--color-surface); }
-.yk-auction-title-row { display: grid; grid-template-columns: minmax(280px,420px) minmax(0,1fr); align-items: center; gap: clamp(32px,5vw,72px); max-width: 1040px; margin-inline: auto; }
-.yk-auction-title-row .yk-title { white-space: nowrap; }
-.yk-auction-title-row > .yk-button { justify-self: end; }
-.yk-auction-detail { display: grid; grid-template-columns: minmax(280px,420px) minmax(0,1fr); align-items: start; gap: clamp(32px,5vw,72px); max-width: 1040px; margin-inline: auto; }
-.yk-auction-card { position: sticky; top: 96px; width: 100%; }
-.yk-auction-content { display: grid; min-width: 0; gap: 24px; }
-.yk-auction-heading { display: grid; gap: 14px; padding-block: 2px 4px; }
-.yk-auction-heading h2 { font-size: clamp(32px,4vw,44px); line-height: 1.12; }
-.yk-auction-bid { padding: clamp(20px,3vw,28px); }
-.yk-auction-bid-overview { display: grid; grid-template-columns: minmax(0,1fr) minmax(120px,36%); gap: 24px; align-items: stretch; }
-.yk-auction-balance { display: flex; min-width: 0; flex-direction: column; justify-content: center; border-left: 1px solid var(--color-veil); padding-left: clamp(18px,3vw,28px); }
-.yk-auction-countdown { margin-top: 12px; font-size: clamp(30px,4vw,40px); line-height: 1.15; overflow-wrap: anywhere; }
-.yk-auction-offer { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; margin-top: 16px; }
-.yk-auction-history { min-width: 0; }
+.yk-empty-state { min-height: 280px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px dashed var(--color-veil-strong); border-radius: var(--radius-panel); padding: calc(var(--spacing) * 8); text-align: center; margin-top: calc(var(--spacing) * 6); background: color-mix(in srgb,var(--color-surface) 72%,transparent); }
+.yk-filter-panel { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: calc(var(--spacing) * 5); margin: calc(var(--spacing) * 6) 0; padding: calc(var(--spacing) * 4); border: 1px solid var(--color-veil); border-radius: var(--radius-panel); background: color-mix(in srgb,var(--color-surface) 88%,transparent); box-shadow: var(--shadow-card); }
+.yk-market-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(min(100%,var(--market-card-min)),1fr)); gap: var(--collection-row-gap) var(--collection-grid-gap); }
+.yk-auction-tile { min-width: 0; padding: calc(var(--spacing) * 3); border: 1px solid var(--color-veil); border-radius: var(--radius-panel); background: linear-gradient(180deg,color-mix(in srgb,var(--color-veil) 18%,var(--color-surface)),var(--color-surface)); box-shadow: var(--shadow-card); transition: transform var(--duration-fast) var(--ease-standard),border-color var(--duration-fast) var(--ease-standard),box-shadow var(--duration-fast) var(--ease-standard); }
+@media (hover:hover) and (pointer:fine) { .yk-auction-tile:hover { transform: translateY(-4px); border-color: var(--color-veil-strong); box-shadow: var(--shadow-hover); } }
 .yk-profile-banner { position: relative; height: 180px; overflow: hidden; border: 1px solid var(--color-veil); border-radius: 20px; background: radial-gradient(circle at 18% 35%,color-mix(in srgb,var(--color-accent-neon) 18%,transparent),transparent 32%),radial-gradient(ellipse at 80% 100%,color-mix(in srgb,var(--color-accent-gold) 20%,transparent),transparent 55%),linear-gradient(135deg,var(--color-veil),var(--color-surface)); }
 .yk-profile-banner::after { content: ''; position: absolute; inset: 0; background-image: linear-gradient(115deg,transparent 0 42%,color-mix(in srgb,var(--color-accent-gold) 9%,transparent) 42% 43%,transparent 43% 100%); }
 .yk-profile-banner > img { position: absolute; top: 0; right: 0; width: auto; max-width: 68%; height: 100%; object-fit: contain; object-position: right center; filter: saturate(.86) contrast(1.05); }
@@ -68,9 +53,10 @@
 .yk-trade-pick { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 8px; border: 1px solid var(--color-veil); border-radius: 12px; background: var(--color-surface); text-align: left; transition: border-color .2s,background .2s,transform .2s; }
 .yk-trade-pick:hover { border-color: var(--color-veil-strong); transform: translateY(-2px); }.yk-trade-pick.is-selected { border-color: var(--color-accent-gold); background: color-mix(in srgb,var(--color-accent-gold) 10%,var(--color-surface)); }
 .yk-trade-check { display: grid; width: 26px; height: 26px; flex: 0 0 auto; place-items: center; border: 1px solid var(--color-ink-3); border-radius: 50%; color: var(--color-void); font-size: 12px; font-weight: 700; }.is-selected .yk-trade-check { border-color: var(--color-accent-gold); background: var(--color-accent-gold); }
-@media (max-width: 900px) { .yk-profile-columns { grid-template-columns: minmax(0,1fr) 230px; }.yk-search-columns { grid-template-columns: minmax(0,1fr) 260px; }.yk-auction-title-row,.yk-auction-detail { grid-template-columns: minmax(250px,340px) minmax(0,1fr); gap: 28px; } }
+@media (max-width: 900px) { .yk-profile-columns { grid-template-columns: minmax(0,1fr) 230px; }.yk-search-columns { grid-template-columns: minmax(0,1fr) 260px; } }
 @media (max-width: 1280px) { .yk-catalogue-grid { grid-template-columns: repeat(5,minmax(0,1fr)); } }
 @media (max-width: 1080px) { .yk-catalogue-grid { grid-template-columns: repeat(4,minmax(0,1fr)); } }
 @media (max-width: 760px) { .yk-catalogue-heading { align-items: center; }.yk-catalogue-heading .yk-mobile-filter-trigger { display: inline-flex; width: auto; }.yk-catalogue-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
-@media (max-width: 700px) { .yk-profile-columns,.yk-search-columns,.yk-auction-title-row,.yk-auction-detail,.yk-trade-columns { grid-template-columns: 1fr; }.yk-auction-title-row { gap: 18px; }.yk-auction-title-row .yk-title { white-space: normal; }.yk-auction-title-row > .yk-button { justify-self: start; }.yk-auction-card { position: static; max-width: 380px; margin-inline: auto; }.yk-auction-content { gap: 18px; }.yk-auction-stats { gap: 10px; }.yk-trade-columns::after { top: 50%; transform: translate(-50%,-50%); }.yk-search-row { gap: 10px; }.yk-featured-stage { gap: 10px; } }
-@media (max-width: 430px) { .yk-auction-bid-overview,.yk-auction-offer { grid-template-columns: 1fr; }.yk-auction-balance { border-top: 1px solid var(--color-veil); border-left: 0; padding-top: 18px; padding-left: 0; }.yk-auction-offer .yk-button { width: 100%; }.yk-auction-heading h2 { font-size: 30px; } }
+@media (max-width: 700px) { .yk-profile-columns,.yk-search-columns,.yk-trade-columns { grid-template-columns: 1fr; }.yk-trade-columns::after { top: 50%; transform: translate(-50%,-50%); }.yk-search-row { gap: 10px; }.yk-featured-stage { gap: 10px; } }
+@media (max-width: 700px) { .yk-market-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }.yk-auction-tile { padding: calc(var(--spacing) * 2); }.yk-auction-tile .yk-karas { padding-inline: calc(var(--spacing) * 2); font-size: var(--text-xs); } }
+@media (prefers-reduced-motion: reduce), (hover:none) { .yk-auction-tile { transform: none; transition-property: opacity,border-color,box-shadow; } }
