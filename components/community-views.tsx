@@ -51,7 +51,7 @@ function AuctionTile({ auction: a, onToggleWatch }: { auction: AuctionPresentati
   return <li className="yk-market-tile">
     <Link href={`/marche/${a.id}`} className="yk-market-tile-link" aria-label={`Voir l’enchère ${a.card.name}, ${formatKaras(a.amount)}, ${a.finished?"terminée":`fin dans ${a.remaining}`}`}>
       <CardShell><YokaiCard {...a.card}/></CardShell>
-      <div className="yk-market-tile-meta"><div className="yk-market-tile-status"><span className={`yk-market-timer ${a.finished?"":urgencyClass(a.remainingSeconds)}`}><HourglassIcon/>{a.finished?"Terminée":a.remaining}</span>{a.status&&<AuctionStatus status={a.status}/>}</div><Karas amount={a.amount} className="yk-market-price"/><p className="truncate text-[11px] text-ink-3">{a.bids} mise{a.bids>1?"s":""} · {a.seller}</p></div>
+      <div className="yk-market-tile-meta"><div className="yk-market-tile-status"><span className={`yk-market-timer ${a.finished?"":urgencyClass(a.remainingSeconds)}`}><HourglassIcon/>{a.finished?"Terminée":a.remaining}</span><Karas amount={a.amount} className="yk-market-price"/></div><div className="yk-market-tile-status"><p className="min-w-0 truncate text-[11px] text-ink-3">{a.bids} mise{a.bids>1?"s":""} · {a.seller}</p>{a.status&&<AuctionStatus status={a.status}/>}</div></div>
     </Link>
     <WatchButton watched={a.wishlist} onToggle={onToggleWatch?()=>onToggleWatch(a.id):undefined} className="yk-market-tile-watch"/>
   </li>;
