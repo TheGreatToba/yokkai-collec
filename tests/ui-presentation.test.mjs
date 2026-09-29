@@ -147,7 +147,6 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
   const cards = Array.from({ length: 5 }, (_, i) => ({ ...card, instanceId: `copy-${i}`, anime: "Spirit Realm" }));
   const regular = render(BoosterReveal, { cards, revealed: 2, onReveal() {}, onReturn() {}, async onDiscard() {} });
   assert.equal((regular.match(/>Détruire</g) || []).length, 2);
-  assert.equal((regular.match(/yk-reveal-caption[^>]*>Spirit Realm</g) || []).length, 2);
   assert.match(regular, /<button[^>]*disabled=""[^>]*>Ajouter à ma collection</);
   const regularDone = render(BoosterReveal, { cards, revealed: 5, onReveal() {}, onReturn() {}, async onDiscard() {} });
   assert.match(regularDone, /href="\/collection"[^>]*>Ajouter à ma collection</);

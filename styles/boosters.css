@@ -155,7 +155,6 @@
 .yk-slot-next .yk-slot-hint { color: var(--color-accent-neon); }
 .yk-filled { animation: yk-drop .55s var(--ease-yokkai); }
 .yk-reveal-card { position: relative; transition: opacity var(--duration-fast) var(--ease-standard); }
-.yk-reveal-caption { margin-top: calc(var(--spacing) * 2); overflow: hidden; color: var(--color-ink-2); font-size: 12px; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
 .yk-reveal-actions { display: flex; min-height: 44px; margin-top: calc(var(--spacing) * 2); flex-wrap: wrap; align-items: flex-start; justify-content: center; gap: calc(var(--spacing) * 1); }
 .yk-slot-button { width: 100%; min-height: 36px; padding: calc(var(--spacing) * 2) calc(var(--spacing) * 2); font-size: 12px; }
 .yk-reveal-grid-choosing .yk-slot-button.yk-button-primary { border-color: var(--color-accent-gold); box-shadow: var(--shadow-gold); }
@@ -163,7 +162,6 @@
 .yk-picked .yk-reveal-card { outline: 2px solid var(--color-accent-gold); outline-offset: 4px; box-shadow: var(--shadow-gold); }
 .yk-kept .yk-reveal-card { outline: 2px solid var(--color-accent-gold); outline-offset: 4px; box-shadow: var(--shadow-gold); }
 .yk-lost .yk-card { filter: grayscale(1) brightness(.6); opacity: .3; transform: scale(.92); }
-.yk-lost .yk-reveal-caption { color: var(--color-ink-3); }
 .yk-lost-stamp { position: absolute; left: 10%; right: 10%; top: 45%; padding: 8px; border: 2px solid var(--color-danger); color: var(--color-danger); transform: rotate(-15deg); font-size: clamp(9px,1.5vw,18px); font-weight: 700; text-align: center; letter-spacing: .12em; }
 .yk-reveal-footer { display: flex; flex-direction: column; align-items: center; gap: calc(var(--spacing) * 2); margin-top: var(--layout-gutter); padding-top: var(--layout-gutter); border-top: 1px solid var(--color-veil); text-align: center; }
 .yk-reveal-summary { max-width: var(--booster-reveal-max); margin: calc(var(--layout-gutter) * 1.5) auto 0; padding: var(--layout-gutter); border: 1px solid var(--color-veil); border-radius: var(--radius-panel); background: linear-gradient(180deg,color-mix(in srgb,var(--color-veil) 24%,var(--color-surface)),var(--color-surface)); box-shadow: var(--shadow-card); text-align: center; }
