@@ -138,6 +138,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .yk-social-search-field,.yk-social-person,.yk-trade-offer { transition-duration: var(--duration-reduced); }
+  /* Keep the ⇄ marker centred: the global reduced-motion reset (styles/ui.css) drops static transforms. */
+  .yk-trade-columns::after { transform: translateX(-50%) !important; }
 }
 
 /* Achievements and wishlist */

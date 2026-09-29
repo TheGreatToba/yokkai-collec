@@ -137,6 +137,19 @@ test("mobile : vitrine du profil sur la grille partagée et page Amis sans débo
   assert.match(friends, /const liveFriendsPanel: FriendsPanelAdapter = \{ friendships: getFriendships, search: searchUsers, respond: respondFriendRequest \}/);
 });
 
+test("barre d'outils Collection compacte sur mobile et tiroir fermé même en mouvement réduit", () => {
+  const collection = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
+  const css = readFileSync(path.join(root, "styles/collection.css"), "utf8");
+  const ui = readFileSync(path.join(root, "styles/ui.css"), "utf8");
+  // The filter trigger lives inside the toolbar so both collapse into two compact rows.
+  assert.ok(collection.indexOf('className="yk-mobile-filter-trigger"') > collection.indexOf('<div className="yk-collection-toolbar">'));
+  assert.match(css, /grid-template-areas: "filters select view" "sort shiny shiny"/);
+  // The global reduced-motion reset drops transforms: the closed drawer and the Karas gem must keep theirs.
+  assert.match(ui, /transform: none !important/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\) and \(max-width: 760px\) \{ \.yk-collection-sidebar:not\(\.yk-sidebar-open\) \{ transform: translateX\(-100%\) !important; \} \}/);
+  assert.match(ui, /\.yk-karas-gem \{ transform: rotate\(45deg\) !important; \}/);
+});
+
 test("Collection, Catalogue et Marché partagent une seule échelle de colonnes", () => {
   const ui = readFileSync(path.join(root, "styles/ui.css"), "utf8");
   assert.match(ui, /\.yk-card-grid \{ display: grid; grid-template-columns: repeat\(var\(--card-grid-columns,var\(--card-grid-columns-xl\)\)/);

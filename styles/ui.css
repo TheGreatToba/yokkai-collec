@@ -59,6 +59,8 @@ a[aria-current="page"] { color: var(--color-ink); }
 @media (max-width: 620px) { .yk-route-loading { padding-inline: var(--layout-gutter-compact); } }
 @media (prefers-reduced-motion: reduce) {
   :where(body *,body *::before,body *::after):not(:where(.yk-card,.yk-card *,.yk-card-back,.yk-card-back *,.yk-reveal-stage,.yk-reveal-stage *)) { animation-duration: var(--duration-reduced) !important; animation-iteration-count: 1 !important; transition-duration: var(--duration-reduced) !important; transition-property: opacity,color,background-color,border-color,box-shadow !important; transform: none !important; scroll-behavior: auto !important; }
+  /* The reset above targets motion; static shape transforms must survive it (page-specific ones live next to their component). */
+  .yk-karas-gem { transform: rotate(45deg) !important; }
 }
 /* Shared card grid (Collection, Catalogue, Marché, future card pages): one column scale, no per-page overrides. */
 .yk-card-grid { display: grid; grid-template-columns: repeat(var(--card-grid-columns,var(--card-grid-columns-xl)),minmax(0,1fr)); gap: var(--collection-row-gap) var(--collection-grid-gap); }

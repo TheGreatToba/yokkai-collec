@@ -145,12 +145,12 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
     <button type="button" className="yk-filter-reset" disabled={!(query||rarity||category||shinyOnly||folder)} onClick={resetFilters}><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Réinitialiser les filtres</button>
   </>;
   return <section aria-label="Collection de cartes" className={`yk-collection ${selecting ? "pb-28" : ""}`}>
-    <button type="button" className="yk-mobile-filter-trigger" aria-expanded={filtersOpen} aria-controls="collection-filters" onClick={()=>setFiltersOpen(true)}><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filtres{(query||rarity||category||folder)?<span>•</span>:null}</button>
     {filtersOpen&&<button type="button" className="yk-filter-backdrop" aria-label="Fermer les filtres" onClick={()=>setFiltersOpen(false)}/>}
     <div className="yk-collection-layout">
       <aside id="collection-filters" className={`yk-collection-sidebar ${filtersOpen?"yk-sidebar-open":""}`} aria-label="Filtres de la collection"><div className="yk-sidebar-mobile-head"><strong>Filtres</strong><button type="button" aria-label="Fermer les filtres" onClick={()=>setFiltersOpen(false)}>×</button></div>{filters}</aside>
       <div className="yk-collection-main">
         <div className="yk-collection-toolbar">
+          <button type="button" className="yk-mobile-filter-trigger" aria-expanded={filtersOpen} aria-controls="collection-filters" onClick={()=>setFiltersOpen(true)}><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filtres{(query||rarity||category||folder)?<span>•</span>:null}</button>
           <div className="yk-collection-toolbar-actions">
             <div className="yk-sort-placeholder" aria-label="Tri non disponible dans cette phase"><span>Trier par :</span><strong>Plus récentes</strong><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="m7 10 5 5 5-5"/></svg></div>
             {!readOnly&&<Button variant="secondary" className="yk-selection-mode" onClick={()=>{setSelecting(!selecting);setSelection(new Set());}}>{selecting?"Quitter la sélection":"Sélection multiple"}</Button>}
