@@ -18,6 +18,7 @@ type OwnedRow = { id: string; date_obtention: string; is_shiny: boolean; is_evol
 const cardFields = "id,nom,categorie,franchise,rarete_base,image_url";
 const rank: Record<Rarity, number> = { C: 0, R: 1, SR: 2, SSR: 3, LR: 4 };
 const PAGE_SIZE = 500;
+const FRANCHISE_BATCH = 200;
 
 function failure(error: { message?: string; code?: string }) {
   const messages: Record<string, string> = {
@@ -48,9 +49,13 @@ function cardFromRow(row: CardRow): Card {
 export async function withLiveCardFranchises<T extends Card>(cards: T[]): Promise<T[]> {
   if (!cards.length) return cards;
   const ids = [...new Set(cards.map(card => card.id))];
-  const { data, error } = await db().from("cards").select("id,franchise").in("id", ids);
-  if (error) throw failure(error);
-  const franchises = new Map((data as {id:string;franchise:string|null}[]).map(row => [row.id, row.franchise?.trim() || undefined]));
+  // Batched: the gateway rejects GET URLs above ~25 KB (≈700 uuids) with a bare 400.
+  const batches = Array.from({ length: Math.ceil(ids.length / FRANCHISE_BATCH) }, (_, i) => ids.slice(i * FRANCHISE_BATCH, (i + 1) * FRANCHISE_BATCH));
+  const results = await Promise.all(batches.map(batch => db().from("cards").select("id,franchise").in("id", batch)));
+  const failed = results.find(result => result.error);
+  if (failed?.error) throw failure(failed.error);
+  const rows = results.flatMap(result => result.data as {id:string;franchise:string|null}[]);
+  const franchises = new Map(rows.map(row => [row.id, row.franchise?.trim() || undefined]));
   return cards.map(card => ({ ...card, anime: franchises.get(card.id) }));
 }
 
