@@ -191,6 +191,9 @@ test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
   assert.match(html, /yk-market-timer yk-urgency-critical/);
   assert.match(html, /<option value="asc">Prix croissant<\/option><option value="desc">Prix décroissant<\/option>/);
   assert.match(html, />Mes enchères</);
+  const source = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
+  assert.match(source, /\[\["mine","En cours"\],\["won","Gagnées"\],\["sold","Terminées"\]\]/);
+  assert.doesNotMatch(source, /"Vendues"/);
 });
 
 test("Phase 6 : détail d'enchère, solde, minute ajoutée, historique et issues", () => {
