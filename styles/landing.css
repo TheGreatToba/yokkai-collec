@@ -14,7 +14,7 @@
 .yk-landing-cta { min-height: 56px; padding-inline: 30px; text-transform: uppercase; letter-spacing: .07em; }
 .yk-landing-proof { display: flex; flex-wrap: wrap; gap: 18px 30px; margin-top: 44px; color: var(--color-ink-3); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
 .yk-landing-proof span { display: flex; align-items: baseline; gap: 7px; }.yk-landing-proof b { color: var(--color-ink); font-family: var(--font-display); font-size: 18px; }
-.yk-landing-cards { position: relative; height: 570px; }
+.yk-landing-cards { position: relative; z-index: 6; height: 570px; }
 .yk-landing-aura { position: absolute; inset: 8% -10%; border-radius: 50%; background: radial-gradient(circle,rgba(232,194,106,.13),rgba(167,123,255,.09) 35%,transparent 68%); filter: blur(6px); }
 .yk-landing-card { position: absolute; top: 50%; left: 50%; width: clamp(185px,17vw,235px); transform-origin: 50% 90%; }
 .yk-landing-card-1 { z-index: 1; transform: translate(-105%,-45%) rotate(-13deg); filter: brightness(.7); }
