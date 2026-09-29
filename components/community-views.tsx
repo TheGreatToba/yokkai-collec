@@ -38,7 +38,7 @@ export type AuctionPresentation = {
   nextBid?: number; minimumBid?: number; progress?: number; antiSnipeMessage?: string; extended?: boolean;
   history?: {id:string; name:string; time:string; amount:number; mine?:boolean}[];
 };
-const labels = {leading:"En tête",outbid:"Surenchéri",mine:"Ma vente",won:"Remportée",lost:"Perdue",sold:"Vendue",unsold:"Non vendue · dégelée"};
+const labels = {leading:"En tête",outbid:"Surenchéri",mine:"Ma vente",won:"Remportée",lost:"Perdue",sold:"Vendue",unsold:"Non vendue"};
 function AuctionStatus({status}: {status: NonNullable<AuctionPresentation["status"]>}) { return <StatusPill tone={status==="outbid"||status==="lost"?"danger":status==="leading"||status==="won"?"success":"gold"}>{labels[status]}</StatusPill>; }
 const urgencyClass = (seconds:number) => seconds<300?"yk-urgency-critical":seconds<3600?"yk-urgency-soon":"";
 const formatKaras = (amount:number) => `${amount.toLocaleString("fr-FR")} Karas`;
@@ -51,7 +51,7 @@ function AuctionTile({ auction: a, onToggleWatch }: { auction: AuctionPresentati
   return <li className="yk-market-tile">
     <Link href={`/marche/${a.id}`} className="yk-market-tile-link" aria-label={`Voir l’enchère ${a.card.name}, ${formatKaras(a.amount)}, ${a.finished?"terminée":`fin dans ${a.remaining}`}`}>
       <CardShell><YokaiCard {...a.card}/></CardShell>
-      <div className="yk-market-tile-meta"><div className="flex items-center justify-between gap-2"><span className={`yk-market-timer ${a.finished?"":urgencyClass(a.remainingSeconds)}`}><HourglassIcon/>{a.finished?"Terminée":a.remaining}</span>{a.status&&<AuctionStatus status={a.status}/>}</div><Karas amount={a.amount} className="yk-market-price"/><p className="truncate text-[11px] text-ink-3">{a.bids} mise{a.bids>1?"s":""} · {a.seller}</p></div>
+      <div className="yk-market-tile-meta"><div className="yk-market-tile-status"><span className={`yk-market-timer ${a.finished?"":urgencyClass(a.remainingSeconds)}`}><HourglassIcon/>{a.finished?"Terminée":a.remaining}</span>{a.status&&<AuctionStatus status={a.status}/>}</div><Karas amount={a.amount} className="yk-market-price"/><p className="truncate text-[11px] text-ink-3">{a.bids} mise{a.bids>1?"s":""} · {a.seller}</p></div>
     </Link>
     <WatchButton watched={a.wishlist} onToggle={onToggleWatch?()=>onToggleWatch(a.id):undefined} className="yk-market-tile-watch"/>
   </li>;

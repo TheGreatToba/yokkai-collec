@@ -17,7 +17,7 @@ const active: AuctionPresentation[] = Array.from({ length: 12 }, (_, index) => (
 export function MarketPreview({ empty = false }: { empty?: boolean }) {
   const [watched, setWatched] = useState(() => new Set(active.filter(a => a.wishlist).map(a => a.id)));
   const withWatch = (items: AuctionPresentation[]) => items.map(a => ({ ...a, wishlist: watched.has(a.id) }));
-  const lists = empty ? { active: withWatch(active), mine: [], won: [], sold: [] } : { active: withWatch(active), mine: withWatch(active.slice(0, 2)).map(a => ({ ...a, status: "mine" as const })), won: withWatch(active.slice(2, 4)).map(a => ({ ...a, status: "won" as const, finished: true })), sold: withWatch(active.slice(4, 7)).map(a => ({ ...a, status: "sold" as const, finished: true })) };
+  const lists = empty ? { active: withWatch(active), mine: [], won: [], sold: [] } : { active: withWatch(active), mine: withWatch(active.slice(0, 2)).map(a => ({ ...a, status: "mine" as const })), won: withWatch(active.slice(2, 4)).map(a => ({ ...a, status: "won" as const, finished: true })), sold: withWatch(active.slice(4, 10)).map((a, index) => ({ ...a, status: index % 2 ? "sold" as const : "unsold" as const, bids: index % 2 ? a.bids : 0, finished: true })) };
   return <MarketView lists={lists} activeSales={empty ? "0" : "2"} onToggleWatch={async id => setWatched(current => { const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next; })} />;
 }
 
