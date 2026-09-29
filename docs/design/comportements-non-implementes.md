@@ -23,6 +23,25 @@ Manques qui touchent l’usage réel du jeu, et pas seulement l’habillage. Cha
 - **Piste** : exposer les participants (ou un indicateur « a misé » pour le joueur courant) via `list_auctions`, ou ajouter une RPC dédiée du type « mes enchères en tant qu’enchérisseur ». L’interface pourra alors les ajouter à « En cours » avec le statut « Surenchéri », déjà prévu dans `AuctionStatus`.
 - **Source** : Phase 6 · Marché, `docs/groupe-3-marche.md` (§ 4.1 « Ventes actives + Enchères posées en tant qu’acheteur »).
 
+## Bugs connus à traiter
+
+Défauts constatés pendant la refonte mais volontairement non corrigés dans le cadre d’une refonte strictement visuelle. Aucun n’est une régression de la refonte.
+
+### Collection · La modale de détail se ferme toute seule après une évolution SSR → Shiny
+
+- **Statut** : bug préexistant sur `master` (reproduit à l’identique avec la version de `master` de `components/collection.tsx`), pas une régression de la refonte.
+- **Symptôme** : après un clic sur « Évoluer en Shiny », l’évolution réussit mais la modale de détail se ferme au lieu d’afficher la carte Shiny obtenue ; il faut rouvrir la carte depuis la grille.
+- **Cause** : `evolveSelected()` attend `onEvolve()` puis appelle `setSelectedId(evolved.instanceId)`. Entre les deux, la collection est rechargée (`evolve()` dans `components/game.tsx` → `setCollection(await getUserCollection())`) et la carte source, consommée par l’évolution, disparaît de la liste. Pendant ce rendu intermédiaire, `selected` vaut `undefined`, donc `open` passe à `false` : le composant `Modal` (`components/ui/index.tsx`) ferme le `<dialog>`, dont l’événement natif `close` déclenche ensuite `onClose` → `setSelectedId(null)`, ce qui annule la sélection de la carte évoluée.
+- **Fichiers concernés** : `components/collection.tsx` (`evolveSelected`, `Modal open={!!selected&&…}`), `components/game.tsx` (`evolve`), `components/ui/index.tsx` (`Modal`, gestion de `close`).
+- **Pistes** : sélectionner la carte évoluée avant le rechargement de la collection, ou ne pas dériver `open` d’une carte momentanément absente (garder la dernière carte affichée pendant l’évolution).
+
+### Global · Débordement horizontal de 1 à 4 px pendant l’animation d’entrée de page
+
+- **Statut** : comportement de la transition commune à toutes les pages (Phase 1), sans lien avec une page particulière.
+- **Symptôme** : sur mobile, la largeur scrollable de la page dépasse brièvement l’écran de quelques pixels (mesuré 391 à 394 px pour 390 px) pendant l’entrée de page ; un léger défilement horizontal est alors possible.
+- **Cause** : `.yk-page-transition` (`app/template.tsx`, styles dans `styles/ui.css`) joue `yk-page-enter`, qui part de `transform: scale(var(--page-enter-scale))` = 1,02 (`animation.page.enterScale` dans `lib/ui/animations.ts`) pendant `--page-enter-duration` (250 ms) après `--page-enter-delay` (100 ms), soit 350 ms. Le contenu agrandi de 2 % dépasse la largeur de l’écran le temps de l’animation. Confirmé par élimination : masquer `.yk-page-transition` supprime le débordement, et avec `prefers-reduced-motion: reduce` la page reste à 390 px sur 6 mesures sur 6.
+- **Pistes** : animer l’entrée sans agrandissement horizontal (opacité et léger `translateY`), ou découper le débordement horizontal au niveau racine (`overflow-x: clip`) en vérifiant que cela ne masque pas d’autres débordements réels.
+
 ## Contrôles et idées de maquette non câblés
 
 | Idée documentaire | Source |
