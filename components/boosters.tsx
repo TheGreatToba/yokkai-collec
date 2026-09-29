@@ -7,7 +7,6 @@ import type { Card, CollectedCard, DecisionPackStatus, PackStatus } from "@/lib/
 import { Button, Modal, StatusPill } from "@/components/ui";
 import { CardBack, YokaiCard } from "@/components/yokai-card";
 import type { SfxName } from "@/hooks/use-sfx";
-import "@/styles/boosters.css";
 
 export type RevealCard = Card & { instanceId: string; shiny?: boolean; isEvolved?: boolean; isNew?: boolean; copies?: number; discarded?: boolean };
 type Sound = SfxName;

@@ -40,6 +40,11 @@ const config = {
       ['--collection-drawer-width', '21rem'],
       ['--collection-list-card-width', '8rem'],
       ['--collection-list-card-width-mobile', '6.5rem'],
+      ['--booster-panel-min', '26rem'],
+      ['--booster-art-height', '20rem'],
+      ['--booster-orbit-size', '16rem'],
+      ['--booster-pack-width', '11.25rem'],
+      ['--booster-pack-height', '16.875rem'],
     ]) });
   })],
 };

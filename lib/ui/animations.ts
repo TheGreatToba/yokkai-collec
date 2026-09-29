@@ -7,6 +7,7 @@ export const animation = {
     reduced: 150,
     skeleton: 1500,
     toast: 2600,
+    ambient: 5000,
   },
   easing: {
     instant: "cubic-bezier(0.2, 0, 0, 1)",
@@ -44,6 +45,7 @@ export const animationCssVariables = {
   "--duration-reduced": `${animation.duration.reduced}ms`,
   "--duration-skeleton": `${animation.duration.skeleton}ms`,
   "--duration-toast": `${animation.duration.toast}ms`,
+  "--duration-ambient": `${animation.duration.ambient}ms`,
   "--stagger-item": `${animation.stagger.item}ms`,
   "--stagger-maximum": `${animation.stagger.maximum}ms`,
   "--page-enter-duration": `${animation.page.enter}ms`,
