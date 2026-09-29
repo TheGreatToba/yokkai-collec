@@ -24,5 +24,5 @@ const cards: CollectedCard[] = Array.from({ length: 12 }, (_, index) => ({
 }));
 
 export default function CollectionPreview() {
-  return <><Topbar view="collection" name="Kitsune" karas={4920} notifications={[]} /><main id="main-content" className="mx-auto w-full max-w-6xl px-6 py-6"><p className="eyebrow">Collection personnelle</p><h1 className="yk-title mt-2">Ma Collection</h1><CollectionPreviewClient cards={cards} /></main></>;
+  return <><Topbar view="collection" name="Kitsune" karas={4920} notifications={[]} /><main id="main-content" className="mx-auto w-full max-w-[var(--layout-collection-max)] px-6 py-6"><p className="eyebrow">Collection personnelle</p><h1 className="yk-title mt-2">Ma Collection</h1><CollectionPreviewClient cards={cards} /></main></>;
 }

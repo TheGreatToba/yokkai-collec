@@ -28,6 +28,7 @@ const config = {
       ...Object.entries(config.theme.extend.backgroundImage).map(([name, value]) => [`--background-${name}`, value]),
       ...Object.entries(animationCssVariables),
       ['--layout-content-max', '72rem'],
+      ['--layout-collection-max', '100rem'],
       ['--layout-gutter', '1.5rem'],
       ['--layout-gutter-compact', '1rem'],
       ['--topbar-height', '4.5rem'],
