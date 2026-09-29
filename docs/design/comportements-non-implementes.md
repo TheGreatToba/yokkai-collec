@@ -2,6 +2,20 @@
 
 Cette liste conserve des idées présentes dans les maquettes Gemini. Elle ne constitue pas un backlog validé et n’autorise aucune modification de logique métier.
 
+## Gaps fonctionnels à prioriser
+
+Manques qui touchent l’usage réel du jeu, et pas seulement l’habillage. Chacun demande une évolution des données exposées par le serveur, hors du périmètre d’une refonte visuelle.
+
+### Marché · Les enchères où l’on a misé sans être en tête sont introuvables
+
+- **Constat** : « Mes enchères › En cours » ne liste que les ventes du joueur et les enchères où il est actuellement en tête. Dès qu’il est surenchéri, l’enchère disparaît de cet onglet alors que sa participation continue.
+- **Impact** : un joueur peut perdre le fil de ses propres mises et manquer l’occasion de surenchérir avant la fin. Seule la notification « Tu as été surenchéri » (lien direct vers l’enchère) permet aujourd’hui de la retrouver ; la page détail affiche bien le statut « Surenchéri », mais uniquement une fois ouverte.
+- **Cause** : `list_auctions` n’expose que le meilleur enchérisseur (`buyerId`), pas la liste des participants ni la participation du joueur courant.
+- **Piste** : exposer les participants (ou un indicateur « a misé » pour le joueur courant) via `list_auctions`, ou ajouter une RPC dédiée du type « mes enchères en tant qu’enchérisseur ». L’interface pourra alors les ajouter à « En cours » avec le statut « Surenchéri », déjà prévu dans `AuctionStatus`.
+- **Source** : Phase 6 · Marché, `docs/groupe-3-marche.md` (§ 4.1 « Ventes actives + Enchères posées en tant qu’acheteur »).
+
+## Contrôles et idées de maquette non câblés
+
 | Idée documentaire | Source |
 | --- | --- |
 | Trier côté serveur les cartes d’un reveal par rareté croissante | `docs/groupe-2-boosters.md` |
@@ -25,7 +39,6 @@ Cette liste conserve des idées présentes dans les maquettes Gemini. Elle ne co
 | Révéler en touchant directement chacune des 5 cartes de la rangée ; la révélation passe aujourd’hui par le paquet, qui porte le flip et les reveals SR/SSR/LR figés | Phase 5 · Boosters |
 | Trier le Marché par « Les plus populaires » ; nécessite une mesure de popularité (suivis, vues) exposée par `list_auctions` | Phase 6 · Marché, `docs/groupe-3-marche.md` |
 | Rechercher une carte dans le Marché ; nécessite un paramètre de recherche côté `list_auctions` (ou un filtre client sur la liste déjà chargée, à valider) | Phase 6 · Marché, `docs/groupe-3-marche.md` |
-| Lister dans « Mes enchères · En cours » les enchères où l’on a misé sans être en tête ; `list_auctions` n’expose que le meilleur enchérisseur (`buyerId`), pas les participants | Phase 6 · Marché |
 | Proposer « Obtenir des Karas » à côté de l’alerte de solde insuffisant ; aucun moyen d’acquérir des Karas n’existe en dehors du jeu | Phase 6 · Marché, `docs/groupe-3-marche.md` |
 | Suggérer un prix de départ recommandé dans la modale de vente ; nécessite une valeur de marché par carte | Phase 6 · Marché, `docs/groupe-3-marche.md` |
 | Lancer des confettis ou un flash sur la ligne d’historique lors d’une nouvelle mise | Phase 6 · Marché, `docs/groupe-3-marche.md` |
