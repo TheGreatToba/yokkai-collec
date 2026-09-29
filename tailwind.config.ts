@@ -45,6 +45,10 @@ const config = {
       ['--booster-orbit-size', '16rem'],
       ['--booster-pack-width', '11.25rem'],
       ['--booster-pack-height', '16.875rem'],
+      ['--booster-reveal-max', '52rem'],
+      ['--booster-reveal-gap', '1rem'],
+      ['--booster-reveal-gap-compact', '0.625rem'],
+      ['--booster-progress-dot', '1.5rem'],
     ]) });
   })],
 };

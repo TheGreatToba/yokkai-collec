@@ -1,21 +1,41 @@
 "use client";
 
-import { Boosters } from "@/components/boosters";
+import { useState } from "react";
+import { Boosters, type RevealCard } from "@/components/boosters";
+import type { Rarity } from "@/lib/data/cards";
+
+// Local-only simulation: no RPC, so the complete opening flow (including SSR/LR
+// reveals) can be exercised in a browser without consuming a real pack.
+const draws: Record<"regular" | "decision", [string, Rarity, boolean?][]> = {
+  regular: [["Kappa ancien", "C"], ["Tanuki solaire", "R"], ["Tengu des brumes", "SR"], ["Oni écarlate", "SSR"], ["Kitsune céleste", "LR"]],
+  decision: [["Kappa ancien", "R"], ["Tengu des brumes", "SR"], ["Yuki-Onna", "SR"], ["Oni écarlate", "SSR", true], ["Tanuki solaire", "SR"]],
+};
+const franchises = ["Spirit Realm", "Mononoke Chronicles", "Hyakki Yagyō", "Spirit Realm", "Moonlit Shrine"];
 
 export function BoostersPreview() {
+  const [draw, setDraw] = useState<RevealCard[]>([]);
+  const [drawKind, setDrawKind] = useState<"regular" | "decision">("regular");
+  const [revealed, setRevealed] = useState(0);
+  const [reserve, setReserve] = useState(3);
+  const [decisionUsed, setDecisionUsed] = useState(false);
+  const [decisionReturn] = useState(() => new Date().setHours(24, 0, 0, 0));
   return <Boosters
-    status={{ available: 3, maximum: 5, nextPackAt: 4_102_444_800_000 }}
-    countdown="42 min"
-    decisionStatus={{ available: true, pending: [], nextPackAt: 4_102_444_800_000 }}
-    decisionCountdown="6 j"
+    status={{ available: reserve, maximum: 5, nextPackAt: 4_102_444_800_000 }}
+    countdown="42:00"
+    decisionStatus={{ available: !decisionUsed, pending: [], nextPackAt: decisionReturn }}
+    decisionCountdown="08:00:00"
     busy={false}
-    draw={[]}
-    drawKind="regular"
+    draw={draw}
+    drawKind={drawKind}
     collection={[]}
-    revealed={0}
-    onOpen={async () => {}}
-    onKeepDecision={async () => 0}
+    revealed={revealed}
+    onOpen={async kind => {
+      if (kind === "regular") setReserve(current => Math.max(0, current - 1)); else setDecisionUsed(true);
+      setDrawKind(kind); setRevealed(0);
+      setDraw(draws[kind].map(([name, rarity, shiny], index) => ({ id: `preview-${kind}-${index}`, instanceId: `preview-${kind}-${index}-${Date.now()}`, name, category: "Anime", anime: franchises[index], rarity, image: "/assets/booster-pack.png", shiny })));
+    }}
+    onKeepDecision={async () => 180}
     onDiscard={async () => {}}
-    onReveal={() => {}}
+    onReveal={index => setRevealed(current => current === index ? current + 1 : current)}
   />;
 }

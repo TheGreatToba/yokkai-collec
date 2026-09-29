@@ -142,6 +142,32 @@ test("le Decision Pack confirmé affiche une carte gardée et quatre perdues", (
   assert.match(html, /Carte ajoutée à ta collection · \+0 Karas depuis les cartes non conservées/);
 });
 
+test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
+  const { BoosterReveal, Boosters } = load("components/boosters.tsx");
+  const cards = Array.from({ length: 5 }, (_, i) => ({ ...card, instanceId: `copy-${i}`, anime: "Spirit Realm" }));
+  const regular = render(BoosterReveal, { cards, revealed: 2, onReveal() {}, onReturn() {}, async onDiscard() {} });
+  assert.equal((regular.match(/>Défausser</g) || []).length, 2);
+  assert.equal((regular.match(/yk-reveal-caption[^>]*>Spirit Realm</g) || []).length, 2);
+  assert.match(regular, /<button[^>]*disabled=""[^>]*>Ajouter à ma collection</);
+  const regularDone = render(BoosterReveal, { cards, revealed: 5, onReveal() {}, onReturn() {}, async onDiscard() {} });
+  assert.match(regularDone, /href="\/collection"[^>]*>Ajouter à ma collection</);
+  const choosing = render(BoosterReveal, { cards, revealed: 5, onReveal() {}, onReturn() {}, decision: { async onKeep() { return 0; } } });
+  assert.equal((choosing.match(/>Garder celle-ci</g) || []).length, 5);
+  assert.doesNotMatch(choosing, />Défausser</);
+  const selection = render(Boosters, {
+    status: { available: 0, maximum: 5, nextPackAt: Date.now() + 60_000 }, countdown: "01:00",
+    decisionStatus: { available: false, pending: [], nextPackAt: new Date().setHours(24, 30, 0, 0) }, decisionCountdown: "10:00:00",
+    busy: false, draw: [], drawKind: "regular", collection: [], revealed: 0,
+    async onOpen() {}, async onKeepDecision() { return 0; }, async onDiscard() {}, onReveal() {},
+  });
+  assert.match(selection, /0\/5 en réserve/);
+  assert.match(selection, /Prochain dans 01:00/);
+  assert.match(selection, /1 carte à garder parmi 5/);
+  assert.match(selection, /Revient demain à 00:30/);
+  const source = readFileSync(path.join(root, "components/boosters.tsx"), "utf8");
+  assert.match(source, /Garder cette carte et perdre les \{cards\.length - 1\} autres \?/);
+});
+
 test("les six types de notifications ont un texte et une redirection", () => {
   const source = readFileSync(path.join(root, "components/topbar.tsx"), "utf8");
   const model = readFileSync(path.join(root, "lib/data/notifications.ts"), "utf8");

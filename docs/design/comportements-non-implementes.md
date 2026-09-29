@@ -24,3 +24,7 @@ Cette liste conserve des idées présentes dans les maquettes Gemini. Elle ne co
 | Choisir le tri de la Collection ; nécessite un paramètre de tri transmis à la requête paginée, ou un tri client seulement si l’intégralité des cartes est déjà chargée | Révision Phase 3 |
 | Choisir le nombre de cartes par page ; nécessite un paramètre de taille de page partagé par la requête, le calcul du nombre de pages et la pagination | Révision Phase 3 |
 | Choisir le nombre de cartes par page dans le Catalogue ; nécessite d’exposer la taille choisie à `getCataloguePage`, puis de la partager avec le calcul du nombre de pages et la pagination serveur | Phase 4 · Catalogue |
+| Faire de « Ajouter à ma collection » une validation réelle du Regular Pack ; aujourd’hui les cartes sont déjà enregistrées par `openBooster` à l’ouverture, le bouton est donc un lien vers la Collection (désactivé tant que les 5 cartes ne sont pas révélées) | Phase 5 · Boosters |
+| Afficher le gain « Défausser (+X Karas) » sous chaque carte ; nécessite d’exposer la valeur de défausse par carte avant l’action (`discardPackCard` ne renvoie que le solde final) | Phase 5 · Boosters, `docs/groupe-2-boosters.md` |
+| Annoncer le montant de Karas dans la modale de confirmation du Booster Décisif ; le montant n’est connu qu’après `keepDecisionPackCard` | Phase 5 · Boosters, `docs/groupe-2-boosters.md` |
+| Révéler en touchant directement chacune des 5 cartes de la rangée ; la révélation passe aujourd’hui par le paquet, qui porte le flip et les reveals SR/SSR/LR figés | Phase 5 · Boosters |
