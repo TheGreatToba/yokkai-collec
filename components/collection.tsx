@@ -13,7 +13,8 @@ export type CollectionPresentation = { number?: string; isNew?: boolean; frozen?
 const rarityOrder: Rarity[] = ["LR","SSR","SR","R","C"];
 const rarityText = { C:"text-rarity-c", R:"text-rarity-r", SR:"text-rarity-sr", SSR:"text-rarity-ssr", LR:"text-rarity-lr" };
 const formatDate = (value: string, long = false) => new Date(value).toLocaleDateString("fr-FR", {dateStyle:long ? "long" : "medium"});
-const PAGE_SIZE = 20;
+// Multiples of 6 so every page fills the six-column desktop grid.
+const PAGE_SIZES = [24, 36, 48] as const;
 
 function FilterSection({ title, children, open = true }: { title: string; children: React.ReactNode; open?: boolean }) {
   return <details className="yk-filter-section" open={open}><summary>{title}<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="m7 10 5 5 5-5"/></svg></summary><div className="yk-filter-section-content">{children}</div></details>;
@@ -40,6 +41,7 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
   const [shinyOnly, setShinyOnly] = useState(false);
   const [folder, setFolder] = useState<string | "unfiled" | "">("");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<number>(PAGE_SIZES[0]);
   const [folderName, setFolderName] = useState("");
   const [showFolderCreator, setShowFolderCreator] = useState(false);
   const [folderBusy, setFolderBusy] = useState(false);
@@ -68,9 +70,9 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
   const filtered = cards.filter(c => (!normalizedQuery || [c.name,c.category,c.anime].some(value=>value?.toLocaleLowerCase("fr-FR").includes(normalizedQuery))) && (!category || c.category === category) && (!rarity || c.rarity === rarity) && (!shinyOnly || c.shiny)
       && (!folder || (folder === "unfiled" ? !c.folderId : c.folderId === folder)))
     .slice().sort((a,b) => rarityOrder.indexOf(a.rarity)-rarityOrder.indexOf(b.rarity) || Number(b.shiny)-Number(a.shiny));
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const activePage = Math.min(page, pageCount);
-  const visibleCards = filtered.slice((activePage - 1) * PAGE_SIZE, activePage * PAGE_SIZE);
+  const visibleCards = filtered.slice((activePage - 1) * pageSize, activePage * pageSize);
   const selectedCards = cards.filter(c => selection.has(c.instanceId) && !presentation[c.instanceId]?.frozen);
   const duplicates = cards.reduce<Record<string,number>>((counts,c)=>{ counts[c.id]=(counts[c.id]||0)+1; return counts; },{});
   const evolvableCopies = selected ? cards.filter(c => c.id === selected.id && c.rarity === "SSR" && !c.shiny).length : 0;
@@ -153,7 +155,7 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
         </div>
         {filtered.length===0&&<div className="rounded-panel border border-dashed border-veil-strong px-6 py-16 text-center"><p className="font-display text-xl">{cards.length===0?"Ta collection est vide pour l’instant — ouvre ton premier booster.":"Aucune carte ne correspond à ces filtres."}</p>{cards.length===0?<Link href="/boosters" className="yk-button yk-button-primary mt-6">Ouvrir mon premier booster</Link>:<p className="mt-3 text-sm text-ink-2">Essaie une autre rareté ou catégorie.</p>}</div>}
         <ul className={`yk-collection-grid ${viewMode==="list"?"yk-collection-grid-list":""}`} aria-label="Cartes obtenues">{visibleCards.map(card=>{const meta=presentation[card.instanceId];const checked=selection.has(card.instanceId);return <li key={card.instanceId} className="min-w-0"><button type="button" disabled={selecting&&!!meta?.frozen} className={`yk-collection-card ${selecting&&checked?"yk-selected-card":""}`} aria-label={`${selecting?"Sélectionner":"Voir"} ${card.name}, ${card.rarity}`} aria-pressed={selecting?checked:undefined} aria-haspopup={selecting?undefined:"dialog"} onClick={()=>selecting?toggle(card.instanceId):setSelectedId(card.instanceId)}><CardShell><YokaiCard {...card} image={readOnly?card.catalogueImage:card.image} {...meta}/></CardShell>{selecting&&!meta?.frozen&&<span className={`yk-selection-check ${checked?"yk-checked":""}`}>{checked?"✓":""}</span>}{meta?.isNew&&<span className="absolute top-3 left-3 rounded-badge bg-accent-gold px-2 py-1 text-[10px] font-bold text-void">NEW</span>}{duplicates[card.id]>1&&<span className="absolute right-2 bottom-2 rounded-full border border-veil bg-void/90 px-2 py-1 text-xs text-ink-2">×{duplicates[card.id]}</span>}{meta?.frozen&&<span className="yk-frozen-overlay"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0v4"/></svg><strong>EN ENCHÈRE</strong><span>{meta.frozen.remaining}</span></span>}</button><div className="yk-collection-card-meta">{card.isFirstOwner?<p className="text-[11px] font-semibold text-rarity-lr">Premier propriétaire, obtenu le {formatDate(card.obtainedAt)}</p>:<><p className="text-[11px] tracking-wider text-ink-3 uppercase">Obtenue le</p><time dateTime={card.obtainedAt} className="mt-1 block text-[13px] text-ink-2">{formatDate(card.obtainedAt)}</time></>}</div></li>;})}</ul>
-        <div className="yk-collection-pagination"><Pagination page={activePage} pageCount={pageCount} onPageChange={setPage} label="Pagination de la collection"/><label>Cartes par page<select value={PAGE_SIZE} disabled aria-label="Cartes par page (non disponible dans cette phase)"><option>{PAGE_SIZE}</option></select></label></div>
+        <div className="yk-collection-pagination"><Pagination page={activePage} pageCount={pageCount} onPageChange={setPage} label="Pagination de la collection"/><label>Cartes par page<select value={pageSize} onChange={event=>{setPageSize(Number(event.target.value));setPage(1);}}>{PAGE_SIZES.map(size=><option key={size} value={size}>{size}</option>)}</select></label></div>
         {selecting&&<div className="yk-selection-bar"><span className="text-sm"><strong>{selectedCards.length}</strong> sélectionnée(s)</span><Karas amount={selectedValue}/><button type="button" disabled={bulkDiscardBusy} className="text-xs text-ink-2" onClick={()=>setSelection(new Set(filtered.filter(c=>!presentation[c.instanceId]?.frozen).map(c=>c.instanceId)))}>Tout</button><button type="button" disabled={bulkDiscardBusy} className="text-xs text-ink-2" onClick={()=>setSelection(new Set())}>Aucune</button>{bulkDiscardError&&<span role="alert" className="text-xs text-danger">{bulkDiscardError}</span>}<Button variant="danger" disabled={!onDiscardMany||!selectedCards.length||bulkDiscardBusy} onClick={()=>void discardSelection()}>{bulkDiscardBusy?"Destruction…":"Détruire la sélection"}</Button><button type="button" disabled={bulkDiscardBusy} aria-label="Quitter la sélection multiple" title="Quitter la sélection multiple" className="flex size-9 shrink-0 items-center justify-center rounded-full border border-veil text-lg leading-none text-ink-2 transition-colors hover:border-veil-strong hover:bg-veil hover:text-ink" onClick={()=>{setSelecting(false);setSelection(new Set());}}>×</button></div>}
       </div>
     </div>

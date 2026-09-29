@@ -6,7 +6,7 @@ import type { CollectedCard, Rarity } from "@/lib/data/cards";
 export const metadata: Metadata = { title: "Collection preview · Yokkai Collec’", robots: { index: false, follow: false } };
 
 const rarities: Rarity[] = ["LR", "SSR", "SR", "R", "C"];
-const cards: CollectedCard[] = Array.from({ length: 12 }, (_, index) => ({
+const cards: CollectedCard[] = Array.from({ length: 40 }, (_, index) => ({
   id: `preview-card-${index % 7}`,
   instanceId: `preview-instance-${index}`,
   name: ["Kitsune céleste", "Oni écarlate", "Tengu des brumes", "Kappa ancien", "Yuki-Onna", "Tanuki solaire"][index % 6],

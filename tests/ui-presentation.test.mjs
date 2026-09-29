@@ -144,6 +144,15 @@ test("le Decision Pack confirmé affiche une carte gardée et quatre perdues", (
   assert.doesNotMatch(html, />SSR ×(?:<!-- -->)?5</);
 });
 
+test("la collection pagine par multiples de 6 pour remplir la grille", () => {
+  const { CollectionView } = load("components/collection.tsx");
+  const cards = Array.from({ length: 30 }, (_, i) => ({ ...card, instanceId: `copy-${i}`, folderId: null }));
+  const html = render(CollectionView, { cards, categories: [], folders: [], async onMoveCard() {}, async onCreateAuction() {}, async onEvolve() {}, async onSetCustomImage() {}, async onDiscard() {}, async onDiscardMany() {} });
+  assert.equal((html.match(/class="yk-collection-card[ "]/g) || []).length, 24);
+  assert.match(html, /<option value="24"[^>]*>24<\/option><option value="36"[^>]*>36<\/option><option value="48"[^>]*>48<\/option>/);
+  assert.doesNotMatch(html, /Cartes par page \(non disponible/);
+});
+
 test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
   const { BoosterReveal, Boosters } = load("components/boosters.tsx");
   const cards = Array.from({ length: 5 }, (_, i) => ({ ...card, instanceId: `copy-${i}`, anime: "Spirit Realm" }));
