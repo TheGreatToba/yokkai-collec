@@ -21,7 +21,7 @@ export default async function Home() {
   return <div className="yk-landing">
     <header className="yk-landing-header">
       <Link href="/" className="yk-landing-brand" aria-label="Yokkai Collec’, accueil"><span className="yk-landing-logo">Y</span><span>Yokkai<br />Collec’</span></Link>
-      <nav aria-label="Navigation d’accueil" className="yk-landing-nav"><a href="#concept">Le concept</a><a href="#collection">Les cartes</a>{user ? <Link href="/boosters" className="yk-landing-login">Entrer dans le jeu</Link> : <Link href="/connexion" className="yk-landing-login">Connexion</Link>}</nav>
+      <nav aria-label="Navigation d’accueil" className="yk-landing-nav"><a href="#concept">Le concept</a>{user ? <Link href="/boosters" className="yk-landing-login">Entrer dans le jeu</Link> : <Link href="/connexion" className="yk-landing-login">Connexion</Link>}</nav>
     </header>
     <main id="main-content">
       <section className="yk-landing-hero">

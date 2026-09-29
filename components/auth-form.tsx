@@ -10,18 +10,19 @@ export function AuthForm({ mode, confirmationError = false }: {
 }) {
   const signup = mode === "signup";
   const [state, action, pending] = useActionState<AuthState, FormData>(signup ? signUp : signIn, {});
-  if (state.success) return <div role="status" className="space-y-5">
-    <div className="rounded-xl border border-lime-300/30 bg-lime-300/5 p-5">
-      <h2 className="font-semibold text-lime-300">Vérifie ta boîte mail</h2>
-      <p className="mt-3 text-sm leading-6 text-white/70">Si cette adresse permet une nouvelle inscription, tu recevras un lien de confirmation. Pense aussi aux courriers indésirables. Si tu as déjà un compte, tu peux te connecter directement.</p>
+  if (state.success) return <div role="status" className="yk-auth-success">
+    <div className="yk-auth-success-panel">
+      <span className="yk-auth-success-icon" aria-hidden="true">✓</span>
+      <div><h2>Vérifie ta boîte mail</h2>
+      <p>Si cette adresse permet une nouvelle inscription, tu recevras un lien de confirmation. Pense aussi aux courriers indésirables. Si tu as déjà un compte, tu peux te connecter directement.</p></div>
     </div>
-    <Link href="/connexion" className="inline-block text-sm text-lime-300 underline underline-offset-4">Se connecter →</Link>
+    <Link href="/connexion" className="yk-auth-link">Se connecter →</Link>
   </div>;
 
-  return <form action={action} className="space-y-5" aria-busy={pending}>
+  return <form action={action} className="yk-auth-form" aria-busy={pending}>
     {confirmationError && <p role="alert" className="auth-error">Ce lien de confirmation est invalide ou a expiré. Si votre adresse est déjà confirmée, connectez-vous. Sinon, recommencez l’inscription pour recevoir un nouveau lien.</p>}
     {state.error && <p role="alert" className="auth-error">{state.error}</p>}
-    <fieldset disabled={pending} className="space-y-5 disabled:opacity-60">
+    <fieldset disabled={pending}>
       <legend className="sr-only">{signup ? "Créer un compte" : "Se connecter"}</legend>
       {signup && <div>
         <label htmlFor="pseudo" className="auth-label">Pseudo</label>
@@ -46,13 +47,13 @@ export function AuthForm({ mode, confirmationError = false }: {
         {signup && <p id="password-help" className="mt-2 text-xs text-white/50">8 caractères minimum.</p>}
         {state.fields?.password && <p id="password-error" className="mt-2 text-sm text-red-200" role="alert">{state.fields.password}</p>}
       </div>
-      <button type="submit" disabled={pending} className="primary w-full">
+      <button type="submit" disabled={pending} aria-busy={pending} className="primary yk-auth-submit">
         {pending ? signup ? "Création du compte…" : "Connexion…" : signup ? "Créer mon compte" : "Se connecter"}
       </button>
     </fieldset>
-    <p className="text-center text-sm text-white/60">
+    <p className="yk-auth-switch">
       {signup ? "Déjà un compte ? " : "Pas encore de compte ? "}
-      <Link href={signup ? "/connexion" : "/inscription"} className="text-lime-300 underline underline-offset-4">
+      <Link href={signup ? "/connexion" : "/inscription"} className="yk-auth-link">
         {signup ? "Se connecter" : "Rejoindre la chasse"}
       </Link>
     </p>

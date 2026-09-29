@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import vm from "node:vm";
@@ -28,7 +28,12 @@ function load(relative) {
         getUserCollection() { assert.fail("Presentational server render must not load the API"); },
       };
       if (name === "@/components/ui") return load("components/ui/index.tsx");
-      if (name.startsWith("@/")) return load(`${name.slice(2)}.${name.includes("/hooks/") ? "ts" : "tsx"}`);
+      if (name.startsWith("@/")) {
+        const modulePath = name.slice(2);
+        const relative = ["tsx", "ts"].map(extension => `${modulePath}.${extension}`).find(candidate => existsSync(path.join(root, candidate)));
+        if (!relative) throw new Error(`Module local introuvable : ${name}`);
+        return load(relative);
+      }
       return require(name);
     },
   }, { filename });
@@ -73,15 +78,20 @@ test("les modales imbriquées libèrent le scroll et la confirmation remplace le
   assert.match(modal, /modalLockCount = Math\.max\(0, modalLockCount - 1\)/);
   assert.match(modal, /if \(modalLockCount === 0\) document\.body\.style\.overflow = bodyOverflowBeforeModal/);
   assert.match(modal, /onClose=\{\(\) => \{ if \(open\) onClose\(\); \}\}/);
-  assert.match(collection, /open=\{!!selected&&!discardConfirm\}/);
+  assert.match(collection, /open=\{!!selected&&!discardConfirm&&!auctionOpen\}/);
+  assert.match(collection, /open=\{auctionOpen&&!!selected\}/);
 });
 
 test("la destruction multiple est active et transmet tous les exemplaires sélectionnés", () => {
   const collection = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
+  const styles = readFileSync(path.join(root, "styles/collection.css"), "utf8");
   const game = readFileSync(path.join(root, "components/game.tsx"), "utf8");
   assert.match(collection, /onDiscardMany\(selectedCards\.map\(card => card\.instanceId\)\)/);
   assert.match(collection, /bulkDiscardBusy\?"Destruction…":"Détruire la sélection"/);
   assert.doesNotMatch(collection, /Destruction bientôt disponible/);
+  assert.ok(collection.indexOf('className="yk-selection-bar"') > collection.indexOf('className="yk-collection-grid"'));
+  assert.match(styles.match(/\.yk-selection-bar \{[^}]+\}/)?.[0] ?? "", /position:\s*sticky/);
+  assert.match(styles.match(/\.yk-selection-bar \{[^}]+\}/)?.[0] ?? "", /bottom:\s*var\(--layout-gutter-compact\)/);
   assert.match(game, /onDiscardMany=\{discardCollectionCards\}/);
 });
 
@@ -92,6 +102,26 @@ test("la collection d'un autre joueur ne propose pas de sélection ou d'édition
   assert.match(html, /catalogue\.png/);
   assert.doesNotMatch(html, /private\.png/);
   assert.doesNotMatch(html, /Sélection multiple|Détruire la sélection|Modifier le profil/);
+});
+
+test("le catalogue reprend la sidebar sans notion de possession ni action de masse", () => {
+  const source = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
+  const layout = readFileSync(path.join(root, "app/layout.tsx"), "utf8");
+  const styles = readFileSync(path.join(root, "styles/community.css"), "utf8");
+  const catalogue = source.slice(source.indexOf("export function SearchView"), source.indexOf("export function TradesView"));
+  assert.match(catalogue, /yk-collection-sidebar/);
+  assert.match(catalogue, /CatalogueFilterSection title="Rareté"/);
+  assert.match(catalogue, /CatalogueFilterSection title="Catégorie"/);
+  assert.match(catalogue, /<CardShell><YokaiCard/);
+  assert.match(catalogue, /CARD_PAGE_SIZES\.map/);
+  assert.match(catalogue, /getCataloguePage\(\{query,category,rarity,page,pageSize\}\)[^]*?\[query,category,rarity,page,pageSize\]/);
+  assert.match(catalogue, /Possesseurs actuels/);
+  assert.match(catalogue, /Ajouter à ma wishlist/);
+  assert.doesNotMatch(catalogue, /Dossier|Sélection multiple|Obtenue le|possédée/);
+  assert.match(layout, /styles\/community\.css/);
+  assert.match(layout, /styles\/collection\.css/);
+  assert.match(styles, /\.yk-catalogue-grid \{ display: grid/);
+  assert.match(styles, /\.yk-catalogue-card \{[^}]*width: 100%/);
 });
 
 test("la collection annonce l'évolution de trois SSR non-Shiny en Shiny", () => {
@@ -112,6 +142,86 @@ test("le Decision Pack confirmé affiche une carte gardée et quatre perdues", (
   assert.equal((html.match(/GARDÉE/g) || []).length, 1);
   assert.doesNotMatch(html, />Détruire</);
   assert.match(html, /Carte ajoutée à ta collection · \+0 Karas depuis les cartes non conservées/);
+  assert.match(html, />SSR ×(?:<!-- -->)?1</);
+  assert.doesNotMatch(html, />SSR ×(?:<!-- -->)?5</);
+});
+
+test("la collection pagine par multiples de 6 pour remplir la grille", () => {
+  const { CollectionView } = load("components/collection.tsx");
+  const cards = Array.from({ length: 30 }, (_, i) => ({ ...card, instanceId: `copy-${i}`, folderId: null }));
+  const html = render(CollectionView, { cards, categories: [], folders: [], async onMoveCard() {}, async onCreateAuction() {}, async onEvolve() {}, async onSetCustomImage() {}, async onDiscard() {}, async onDiscardMany() {} });
+  assert.equal((html.match(/class="yk-collection-card[ "]/g) || []).length, 24);
+  assert.match(html, /<option value="24"[^>]*>24<\/option><option value="36"[^>]*>36<\/option><option value="48"[^>]*>48<\/option>/);
+  assert.doesNotMatch(html, /Cartes par page \(non disponible/);
+});
+
+test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
+  const { BoosterReveal, Boosters } = load("components/boosters.tsx");
+  const cards = Array.from({ length: 5 }, (_, i) => ({ ...card, instanceId: `copy-${i}`, anime: "Spirit Realm" }));
+  const regular = render(BoosterReveal, { cards, revealed: 2, onReveal() {}, onReturn() {}, async onDiscard() {} });
+  assert.equal((regular.match(/>Détruire</g) || []).length, 2);
+  assert.match(regular, /<button[^>]*disabled=""[^>]*>Ajouter à ma collection</);
+  const regularDone = render(BoosterReveal, { cards, revealed: 5, onReveal() {}, onReturn() {}, async onDiscard() {} });
+  assert.match(regularDone, /href="\/collection"[^>]*>Ajouter à ma collection</);
+  const choosing = render(BoosterReveal, { cards, revealed: 5, onReveal() {}, onReturn() {}, decision: { async onKeep() { return 0; } } });
+  assert.equal((choosing.match(/>Garder celle-ci</g) || []).length, 5);
+  assert.doesNotMatch(choosing, />Détruire</);
+  const selection = render(Boosters, {
+    status: { available: 0, maximum: 5, nextPackAt: Date.now() + 60_000 }, countdown: "01:00",
+    decisionStatus: { available: false, pending: [], nextPackAt: new Date().setHours(24, 30, 0, 0) }, decisionCountdown: "10:00:00",
+    busy: false, draw: [], drawKind: "regular", collection: [], revealed: 0,
+    async onOpen() {}, async onKeepDecision() { return 0; }, async onDiscard() {}, onReveal() {},
+  });
+  assert.match(selection, /0\/5 en réserve/);
+  assert.match(selection, /Prochain dans 01:00/);
+  assert.match(selection, /1 carte à garder parmi 5/);
+  assert.match(selection, /Revient demain à 00:30/);
+  const source = readFileSync(path.join(root, "components/boosters.tsx"), "utf8");
+  assert.match(source, /Garder cette carte et perdre les \{cards\.length - 1\} autres \?/);
+});
+
+test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
+  const { MarketView } = load("components/community-views.tsx");
+  const auction = (id, extra = {}) => ({ id, card: { ...card, id: `card-${id}` }, amount: 120, remaining: "00:12:00", remainingSeconds: 720, seller: "Kitsune", bids: 3, ...extra });
+  const lists = { active: [auction("a", { wishlist: true }), auction("b", { remainingSeconds: 120, remaining: "00:02:00" })], mine: [], won: [], sold: [] };
+  const html = render(MarketView, { lists, activeSales: "0", async onToggleWatch() {} });
+  assert.equal((html.match(/class="yk-market-tile"/g) || []).length, 2);
+  assert.match(html, /aria-pressed="true"[^>]*>.*?<span>Suivi<\/span>/);
+  assert.match(html, /aria-pressed="false"[^>]*>.*?<span>Suivre<\/span>/);
+  assert.match(html, /yk-market-timer yk-urgency-critical/);
+  assert.match(html, /<option value="asc">Prix croissant<\/option><option value="desc">Prix décroissant<\/option>/);
+  assert.match(html, />Mes enchères</);
+  const source = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
+  assert.match(source, /\[\["mine","En cours"\],\["won","Gagnées"\],\["sold","Terminées"\]\]/);
+  assert.doesNotMatch(source, /"Vendues"/);
+});
+
+test("Phase 6 : détail d'enchère, solde, minute ajoutée, historique et issues", () => {
+  const { AuctionView, presentAuction } = load("components/community-views.tsx");
+  const base = { id: "a", card: { ...card, anime: "Spirit Realm" }, amount: 120, remaining: "00:04:00", remainingSeconds: 240, seller: "Kitsune", bids: 2, nextBid: 130, minimumBid: 130, balance: 100, extended: true,
+    history: [{ id: "h1", name: "Oni", amount: 120, time: "14:32" }, { id: "h2", name: "Moi", amount: 110, time: "14:30", mine: true }] };
+  const live = render(AuctionView, { auction: base, async onBid() {} });
+  assert.match(live, />\+10 Karas<span>· 130 Karas<\/span>/);
+  assert.match(live, /Une minute a été ajoutée à l’enchère\./);
+  assert.match(live, /Solde de Karas insuffisant \(ton solde : 100 Karas\)/);
+  assert.match(live, /Oni<\/a><span class="text-ink-3"> · <\/span><span class="text-karas tabular-nums">120 Karas<\/span><span class="text-ink-3"> · <\/span><time[^>]*>14:32<\/time>/);
+  assert.ok(live.indexOf("yk-auction-history") > live.indexOf("yk-auction-panel"));
+  assert.match(render(AuctionView, { auction: { ...base, finished: true, status: "won" } }), /Enchère remportée !/);
+  assert.match(render(AuctionView, { auction: { ...base, finished: true, status: "lost", winner: "Oni" } }), /Enchère perdue[^]*Remportée par Oni/);
+  const raw = { id: "a", card, amount: 120, endsAt: new Date(Date.now() + 60_000).toISOString(), status: "active", seller: "Kitsune", sellerId: "s", buyerId: "x", bids: 2, watched: false, balance: 50,
+    history: [{ id: "h1", name: "Oni", amount: 120, createdAt: "2026-09-29T12:32:00Z", mine: false }, { id: "h2", name: "Moi", amount: 110, createdAt: "2026-09-29T12:30:00Z", mine: true }] };
+  assert.equal(presentAuction(raw, "me").status, "outbid");
+  assert.equal(presentAuction({ ...raw, status: "sold" }, "me").status, "lost");
+  assert.equal(presentAuction({ ...raw, status: "sold", buyerId: "me" }, "me").status, "won");
+  assert.match(presentAuction(raw, "me").history[0].time, /^\d{2}:\d{2}$/);
+});
+
+test("Phase 6 : la mise en vente confirme le verrouillage et signale la réinitialisation d'image", () => {
+  const source = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
+  assert.match(source, /Carte mise aux enchères — verrouillée jusqu’à la fin de la vente/);
+  assert.match(source, /selected\.customImageUrl&&<li>L’image personnalisée de cette carte sera réinitialisée\.<\/li>/);
+  assert.match(source, /\[\["15","15 min"\],\["30","30 min"\],\["60","1 h"\],\["240","4 h"\],\["720","12 h"\],\["1440","24 h"\]\]/);
+  assert.match(source, /useState\("10"\)/);
 });
 
 test("les six types de notifications ont un texte et une redirection", () => {

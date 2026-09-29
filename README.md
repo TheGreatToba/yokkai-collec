@@ -51,8 +51,8 @@ après ouverture, un échec d’écriture et les accès concurrents entre deux o
 - Un Decision Pack est disponible toutes les 24 heures, indépendamment des Regular
   Packs. Il propose cinq cartes (SR 94 %, SSR 5 %, LR 1 %) et une seule est conservée.
   Un choix en attente est sauvegardé côté serveur et ne peut pas être relancé.
-- L’écran de reveal permet de défausser immédiatement une carte d’un Regular ou
-  Decision Pack. La dernière option d’un Decision Pack ne peut pas être défaussée.
+- L’écran de reveal permet de détruire immédiatement une carte d’un Regular ou
+  Decision Pack. La dernière option d’un Decision Pack ne peut pas être détruite.
 - Chaque profil possède un solde de Karas, initialisé à 0 et affiché dans la
   topbar. Les opérations atomiques de crédit et débit sont réservées au serveur ;
   le marché crédite désormais les vendeurs lors du règlement des enchères.

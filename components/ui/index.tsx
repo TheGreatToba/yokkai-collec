@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useId, useRef, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode } from "react";
 
 export function Button({ variant = "primary", className = "", type = "button", ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "secondary" | "danger" }) {
   return <button type={type} className={`yk-button yk-button-${variant} ${className}`} {...props} />;
 }
 export function Chip({ active = false, className = "", ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { active?: boolean }) {
-  return <button type="button" aria-pressed={active} className={`inline-flex min-h-8 items-center gap-2 rounded-full border px-3 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${active ? "border-accent-gold bg-veil text-ink" : "border-veil bg-night text-ink-2 hover:border-veil-strong"} ${className}`} {...props} />;
+  return <button type="button" aria-pressed={active} className={`yk-chip ${className}`} {...props} />;
 }
 type PaginationItem = number | "ellipsis-start" | "ellipsis-end";
 
@@ -32,7 +32,7 @@ export function StatusPill({ children, tone = "gold" }: { children: ReactNode; t
   return <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${tones[tone]}`}>{children}</span>;
 }
 export function Karas({ amount, className = "" }: { amount?: number | null; className?: string }) {
-  return <span className={`inline-flex items-center gap-2 text-karas tabular-nums ${className}`} aria-label={amount == null ? "Solde karas indisponible" : `${amount.toLocaleString("fr-FR")} karas`}><span aria-hidden="true" className="yk-karas-gem" />{amount == null ? "—" : amount.toLocaleString("fr-FR")}</span>;
+  return <span className={`yk-karas inline-flex items-center gap-2 text-karas tabular-nums ${className}`} aria-label={amount == null ? "Solde karas indisponible" : `${amount.toLocaleString("fr-FR")} karas`}><span aria-hidden="true" className="yk-karas-gem" />{amount == null ? "—" : amount.toLocaleString("fr-FR")}</span>;
 }
 export function Avatar({ name, image, online, size = 40 }: { name: string; image?: string; online?: boolean; size?: number }) {
   return <span className="relative inline-flex shrink-0 items-center justify-center rounded-full border border-accent-gold/40 bg-veil font-display font-semibold text-accent-gold" style={{ width: size, height: size }}>
@@ -78,5 +78,25 @@ export function Modal({ open, onClose, title, children, className = "" }: { open
 }
 export function Toast({ message, onDismiss }: { message: string; onDismiss: () => void }) {
   useEffect(() => { if (!message) return; const timer = window.setTimeout(onDismiss, 2600); return () => clearTimeout(timer); }, [message, onDismiss]);
-  return message ? <div role="status" className="fixed top-20 left-1/2 z-50 max-w-[calc(100%-32px)] -translate-x-1/2 rounded-full border border-veil-strong bg-veil px-6 py-3 text-sm shadow-modal">{message}</div> : null;
+  return message ? <div role="status" className="yk-toast">{message}</div> : null;
+}
+
+export function Field({ label, error, hint, className = "", id, ...props }: InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string; hint?: string }) {
+  const generatedId = useId();
+  const controlId = id ?? generatedId;
+  const descriptionId = error || hint ? `${controlId}-description` : undefined;
+  return <label className={`block ${className}`} htmlFor={controlId}><span className="yk-field-label">{label}</span><input id={controlId} className="yk-field-control" aria-invalid={!!error} aria-describedby={descriptionId} {...props}/>{(error || hint) && <span id={descriptionId} className={`yk-field-help ${error ? "yk-field-error" : ""}`}>{error ?? hint}</span>}</label>;
+}
+
+export type TabItem = { id: string; label: string; disabled?: boolean };
+export function Tabs({ items, value, onChange, label = "Onglets" }: { items: TabItem[]; value: string; onChange: (value: string) => void; label?: string }) {
+  return <div className="yk-tabs" role="tablist" aria-label={label}>{items.map(item => <button key={item.id} type="button" role="tab" className="yk-tab" aria-selected={item.id === value} disabled={item.disabled} onClick={() => onChange(item.id)}>{item.label}</button>)}</div>;
+}
+
+export function Skeleton({ className = "", label = "Chargement" }: { className?: string; label?: string }) {
+  return <span role="status" aria-label={label} className={`yk-skeleton block ${className}`} />;
+}
+
+export function Feedback({ tone, title, children }: { tone: "success" | "error"; title: string; children?: ReactNode }) {
+  return <div role={tone === "error" ? "alert" : "status"} className={`yk-feedback yk-feedback-${tone}`}><span className="yk-feedback-icon" aria-hidden="true">{tone === "success" ? "✓" : "!"}</span><span><strong className="block text-sm text-ink">{title}</strong>{children && <span className="mt-1 block text-xs text-ink-2">{children}</span>}</span></div>;
 }

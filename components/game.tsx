@@ -93,12 +93,12 @@ export function Game({ view, account }: { view: "packs" | "collection"; account?
   const decisionCountdown = `${Math.floor(decisionSeconds / 3600).toString().padStart(2, "0")}:${Math.floor(decisionSeconds % 3600 / 60).toString().padStart(2, "0")}:${(decisionSeconds % 60).toString().padStart(2, "0")}`;
   return <div className="w-full">
     <Topbar view={view} account={account} name={info?.user.name} karas={info?.karasBalance} collection={collection} />
-    <main id="main-content" className={`mx-auto max-w-6xl px-6 ${view === "collection" ? "py-6" : "py-10"}`}>{view === "packs"?<><p className="eyebrow">Une ouverture. Cinq destins.</p><h1 className="yk-title mt-3">Tes boosters</h1><p className="mt-4 max-w-xl text-sm leading-6 text-ink-2">Brise le sceau. Révèle les cartes qui rejoindront ta collection.</p></>:<h1 className="text-2xl font-semibold tracking-tight text-ink">Ma collection</h1>}
+    <main id="main-content" className={`mx-auto px-6 ${view === "collection" ? "max-w-[var(--layout-collection-max)] py-6" : "max-w-6xl py-10"}`}>{view === "packs"?<><p className="eyebrow">Une ouverture. Cinq destins.</p><h1 className="yk-title mt-3">Tes boosters</h1><p className="mt-4 max-w-xl text-sm leading-6 text-ink-2">Brise le sceau. Révèle les cartes qui rejoindront ta collection.</p></>:<h1 className="text-2xl font-semibold tracking-tight text-ink">Ma collection</h1>}
     {error && <p role="alert" className="my-6 rounded-lg border border-danger/40 bg-danger/10 p-4 text-sm text-danger-ink">{error}</p>}{!status && !error && <p role="status" className="mt-10">Chargement…</p>}
     {view === "packs" && <Boosters status={status} countdown={countdown} decisionStatus={decisionStatus} decisionCountdown={decisionCountdown} busy={busy} draw={draw} drawKind={drawKind} collection={collection} revealed={revealed} onOpen={open} onKeepDecision={keepDecision} onDiscard={discard} onReveal={revealCard} onSound={sound.play} />}
 
     {view === "collection" && status && <CollectionView cards={collection} categories={info?.categories || []} folders={folders} onCreateFolder={addFolder} onDeleteFolder={removeFolder} onMoveCard={moveCard} onCreateAuction={auctionCard} onEvolve={evolve} onSetCustomImage={customizeCard} onDiscard={discardCollectionCard} onDiscardMany={discardCollectionCards} />}
 
-    </main><footer className="mx-auto mt-6 flex w-full max-w-6xl flex-wrap justify-between gap-3 border-t border-veil px-6 py-6 text-xs text-ink-3"><span>Yokkai Collec’ · v0.2</span><span>Collection sauvegardée sur votre compte</span></footer>
+    </main><footer className={`mx-auto mt-6 flex w-full ${view === "collection" ? "max-w-[var(--layout-collection-max)]" : "max-w-6xl"} flex-wrap justify-between gap-3 border-t border-veil px-6 py-6 text-xs text-ink-3`}><span>Yokkai Collec’ · v0.2</span><span>Collection sauvegardée sur votre compte</span></footer>
   </div>;
 }
