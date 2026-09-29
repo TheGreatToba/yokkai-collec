@@ -143,7 +143,9 @@ test("barre d'outils Collection compacte sur mobile et tiroir fermé même en mo
   const ui = readFileSync(path.join(root, "styles/ui.css"), "utf8");
   // The filter trigger lives inside the toolbar so both collapse into two compact rows.
   assert.ok(collection.indexOf('className="yk-mobile-filter-trigger"') > collection.indexOf('<div className="yk-collection-toolbar">'));
-  assert.match(css, /grid-template-areas: "filters select view" "sort shiny shiny"/);
+  // Mobile: "Sélection multiple" becomes an icon; the label stays available to screen readers.
+  assert.match(css, /\.yk-collection-toolbar \.yk-selection-mode-label \{ position: absolute;/);
+  assert.match(collection, /className="yk-selection-mode" aria-pressed=\{selecting\}/);
   // The global reduced-motion reset drops transforms: the closed drawer and the Karas gem must keep theirs.
   assert.match(ui, /transform: none !important/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\) and \(max-width: 760px\) \{ \.yk-collection-sidebar:not\(\.yk-sidebar-open\) \{ transform: translateX\(-100%\) !important; \} \}/);
