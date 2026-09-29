@@ -227,8 +227,8 @@ test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
   const lists = { active: [auction("a", { wishlist: true }), auction("b", { remainingSeconds: 120, remaining: "00:02:00" })], mine: [], won: [], sold: [] };
   const html = render(MarketView, { lists, activeSales: "0", async onToggleWatch() {} });
   assert.equal((html.match(/class="yk-market-tile"/g) || []).length, 2);
-  assert.match(html, /aria-pressed="true"[^>]*>.*?<span>Suivi<\/span>/);
-  assert.match(html, /aria-pressed="false"[^>]*>.*?<span>Suivre<\/span>/);
+  assert.match(html, /aria-pressed="true"[^>]*aria-label="Ne plus suivre cette enchère"[^>]*>.*?<span class="yk-watch-label">Suivi<\/span>/);
+  assert.match(html, /aria-pressed="false"[^>]*aria-label="Suivre cette enchère"[^>]*>.*?<span class="yk-watch-label">Suivre<\/span>/);
   assert.match(html, /yk-market-timer yk-urgency-critical/);
   assert.match(html, /<option value="asc">Prix croissant<\/option><option value="desc">Prix décroissant<\/option>/);
   assert.match(html, />Mes enchères</);
