@@ -6,6 +6,15 @@ Cette liste conserve des idées présentes dans les maquettes Gemini. Elle ne co
 
 Manques qui touchent l’usage réel du jeu, et pas seulement l’habillage. Chacun demande une évolution des données exposées par le serveur, hors du périmètre d’une refonte visuelle.
 
+### Notifications · Le panneau ne se rafraîchit pas à son ouverture
+
+- **Constat** : les notifications sont chargées au montage de la Topbar, puis relues toutes les 10 secondes. Ouvrir le panneau depuis la cloche ne déclenche pas de nouvelle lecture. Le retour sur un onglet redevenu visible ne provoque pas non plus de rafraîchissement immédiat.
+- **Impact** : une notification récente peut rester invisible jusqu’au prochain passage du polling. Lorsque le navigateur suspend ou ralentit les timers d’un onglet, elle peut ne devenir visible qu’après un rafraîchissement manuel de la page.
+- **Cause** : `getNotifications()` est appelé uniquement par l’effet initial, l’intervalle de polling et le bouton « Réessayer ». L’ouverture du panneau et l’événement `visibilitychange` ne sont pas reliés à cette fonction.
+- **Piste** : conserver le polling existant et déclencher une actualisation supplémentaire à l’ouverture du panneau ainsi qu’au retour de visibilité de l’onglet, avec une protection contre les requêtes simultanées.
+- **Statut** : non implémenté, car ce correctif modifie le déclenchement des requêtes et dépasse le périmètre strictement visuel de la Phase 8.
+- **Source** : constat utilisateur après la Phase 8 · Notifications.
+
 ### Marché · Les enchères où l’on a misé sans être en tête sont introuvables
 
 - **Constat** : « Mes enchères › En cours » ne liste que les ventes du joueur et les enchères où il est actuellement en tête. Dès qu’il est surenchéri, l’enchère disparaît de cet onglet alors que sa participation continue.
