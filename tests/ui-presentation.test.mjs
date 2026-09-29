@@ -124,6 +124,19 @@ test("le catalogue reprend la sidebar sans notion de possession ni action de mas
   assert.match(styles, /\.yk-catalogue-card \{[^}]*width: 100%/);
 });
 
+test("mobile : vitrine du profil sur la grille partagée et page Amis sans débordement", () => {
+  const profile = readFileSync(path.join(root, "components/profile.tsx"), "utf8");
+  const community = readFileSync(path.join(root, "styles/community.css"), "utf8");
+  assert.match(profile, /className="yk-card-grid yk-featured-stage"/);
+  assert.match(community, /\.yk-featured-stage \{ --card-grid-columns-xl: 4; --card-grid-columns-lg: 4; --card-grid-columns-md: 4;/);
+  assert.doesNotMatch(community.match(/\.yk-featured-stage \{[^}]+\}/)?.[0] ?? "", /grid-template-columns/);
+  // Grid children must be allowed to shrink, otherwise the non-wrapping tabs widen the page.
+  assert.match(community, /\.yk-social-stack > \* \{ min-width: 0; \}/);
+  assert.doesNotMatch(community, /\.yk-social-person \.yk-friend-action,[^{]*\{ width: 100%; margin-left/);
+  const friends = readFileSync(path.join(root, "components/friends.tsx"), "utf8");
+  assert.match(friends, /const liveFriendsPanel: FriendsPanelAdapter = \{ friendships: getFriendships, search: searchUsers, respond: respondFriendRequest \}/);
+});
+
 test("Collection, Catalogue et Marché partagent une seule échelle de colonnes", () => {
   const ui = readFileSync(path.join(root, "styles/ui.css"), "utf8");
   assert.match(ui, /\.yk-card-grid \{ display: grid; grid-template-columns: repeat\(var\(--card-grid-columns,var\(--card-grid-columns-xl\)\)/);

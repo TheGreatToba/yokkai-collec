@@ -21,7 +21,8 @@
 .yk-banner-results img { width: 44px; height: 52px; flex: 0 0 auto; border-radius: 8px; object-fit: cover; }
 .yk-banner-results span { display: grid; min-width: 0; gap: 4px; }
 .yk-profile-columns { display: grid; grid-template-columns: minmax(0,1fr) 280px; gap: 32px; }
-.yk-featured-stage { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 16px; padding: 28px 12px; background: radial-gradient(ellipse at center,var(--color-veil),transparent 70%); }
+/* Profile showcase: 4 slots on desktop, then the shared .yk-card-grid mobile scale. */
+.yk-featured-stage { --card-grid-columns-xl: 4; --card-grid-columns-lg: 4; --card-grid-columns-md: 4; gap: 16px; padding: 28px 12px; background: radial-gradient(ellipse at center,var(--color-veil),transparent 70%); }
 .yk-featured-stage > div { opacity: 1; }
 .yk-featured-empty { min-height: 210px; display: grid; place-content: center; gap: 8px; border: 1px dashed var(--color-veil-strong); border-radius: 14px; color: var(--color-ink-3); text-align: center; }
 .yk-featured-empty > span { font-size: 28px; color: var(--color-accent-gold); }
@@ -58,7 +59,9 @@
 @media (max-width: 700px) { .yk-market-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }.yk-auction-tile { padding: calc(var(--spacing) * 2); }.yk-auction-tile .yk-karas { padding-inline: calc(var(--spacing) * 2); font-size: var(--text-xs); } }
 
 /* Social */
-.yk-social-stack { display: grid; gap: calc(var(--spacing) * 8); }
+.yk-social-stack { display: grid; grid-template-columns: minmax(0,1fr); gap: calc(var(--spacing) * 8); }
+/* Grid children default to min-width:auto: without this the non-wrapping tabs widen the whole page on mobile. */
+.yk-social-stack > * { min-width: 0; }
 .yk-social-panel,.yk-social-search { border: 1px solid var(--color-veil); border-radius: var(--radius-panel); background: linear-gradient(145deg,color-mix(in srgb,var(--color-veil) 14%,var(--color-surface)),var(--color-surface)); box-shadow: var(--shadow-card); }
 .yk-social-panel { padding: calc(var(--spacing) * 5); }
 .yk-social-search { display: grid; grid-template-columns: minmax(0,1fr) minmax(calc(var(--spacing) * 60),.8fr); align-items: center; gap: calc(var(--spacing) * 5); padding: calc(var(--spacing) * 5); }
@@ -120,10 +123,10 @@
   .yk-social-search { grid-template-columns: 1fr; padding: calc(var(--spacing) * 4); }
   .yk-search-hint { grid-column: 1; margin-top: calc(var(--spacing) * -3); }
   .yk-social-panel { padding: calc(var(--spacing) * 3); }
-  .yk-social-panel .yk-tabs { width: 100%; overflow-x: auto; }
-  .yk-social-panel .yk-tab { flex: 0 0 auto; white-space: nowrap; }
+  .yk-social-panel .yk-tabs { display: grid; grid-auto-columns: minmax(0,1fr); grid-auto-flow: column; width: 100%; }
+  .yk-social-panel .yk-tab { padding-inline: calc(var(--spacing) * 1.5); font-size: var(--text-xs); line-height: 1.3; text-align: center; white-space: normal; }
   .yk-social-person { align-items: flex-start; flex-wrap: wrap; }
-  .yk-social-person .yk-friend-action,.yk-social-person>.yk-status-pill { width: 100%; margin-left: calc(var(--spacing) * 13); }
+  .yk-social-person>.yk-friend-action,.yk-social-person>.yk-friend-action-buttons { width: calc(100% - var(--spacing) * 13); margin-left: calc(var(--spacing) * 13); }
   .yk-trade-columns { grid-template-columns: 1fr; gap: calc(var(--spacing) * 4); }
   .yk-trade-columns::after { display: none; }
   .yk-trade-side { padding: calc(var(--spacing) * 3); }
