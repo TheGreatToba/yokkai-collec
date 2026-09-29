@@ -120,8 +120,21 @@ test("le catalogue reprend la sidebar sans notion de possession ni action de mas
   assert.doesNotMatch(catalogue, /Dossier|Sélection multiple|Obtenue le|possédée/);
   assert.match(layout, /styles\/community\.css/);
   assert.match(layout, /styles\/collection\.css/);
-  assert.match(styles, /\.yk-catalogue-grid \{ display: grid/);
+  assert.match(catalogue, /className="yk-card-grid yk-catalogue-grid"/);
   assert.match(styles, /\.yk-catalogue-card \{[^}]*width: 100%/);
+});
+
+test("Collection, Catalogue et Marché partagent une seule échelle de colonnes", () => {
+  const ui = readFileSync(path.join(root, "styles/ui.css"), "utf8");
+  assert.match(ui, /\.yk-card-grid \{ display: grid; grid-template-columns: repeat\(var\(--card-grid-columns,var\(--card-grid-columns-xl\)\)/);
+  assert.match(ui, /max-width: 760px\) \{ \.yk-card-grid \{ --card-grid-columns: var\(--card-grid-columns-sm\)/);
+  assert.match(readFileSync(path.join(root, "components/collection.tsx"), "utf8"), /className=\{`yk-card-grid yk-collection-grid /);
+  assert.match(readFileSync(path.join(root, "components/community-views.tsx"), "utf8"), /className="yk-card-grid yk-market-list"/);
+  // No page may redefine its own column count for these grids (the 1280px :not() override broke mobile).
+  for (const file of ["collection", "community", "market"]) {
+    const css = readFileSync(path.join(root, `styles/${file}.css`), "utf8");
+    assert.doesNotMatch(css, /\.yk-(?:collection-grid|catalogue-grid|market-list)(?::not\([^)]*\))? \{[^}]*grid-template-columns: repeat/);
+  }
 });
 
 test("la collection annonce l'évolution de trois SSR non-Shiny en Shiny", () => {

@@ -60,3 +60,8 @@ a[aria-current="page"] { color: var(--color-ink); }
 @media (prefers-reduced-motion: reduce) {
   :where(body *,body *::before,body *::after):not(:where(.yk-card,.yk-card *,.yk-card-back,.yk-card-back *,.yk-reveal-stage,.yk-reveal-stage *)) { animation-duration: var(--duration-reduced) !important; animation-iteration-count: 1 !important; transition-duration: var(--duration-reduced) !important; transition-property: opacity,color,background-color,border-color,box-shadow !important; transform: none !important; scroll-behavior: auto !important; }
 }
+/* Shared card grid (Collection, Catalogue, Marché, future card pages): one column scale, no per-page overrides. */
+.yk-card-grid { display: grid; grid-template-columns: repeat(var(--card-grid-columns,var(--card-grid-columns-xl)),minmax(0,1fr)); gap: var(--collection-row-gap) var(--collection-grid-gap); }
+@media (max-width: 1280px) { .yk-card-grid { --card-grid-columns: var(--card-grid-columns-lg); } }
+@media (max-width: 1080px) { .yk-card-grid { --card-grid-columns: var(--card-grid-columns-md); } }
+@media (max-width: 760px) { .yk-card-grid { --card-grid-columns: var(--card-grid-columns-sm); } }

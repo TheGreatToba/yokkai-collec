@@ -14,7 +14,6 @@
 .yk-market-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--layout-gutter-compact); margin: var(--layout-gutter) 0; padding: calc(var(--spacing) * 3); border: 1px solid var(--color-veil); border-radius: var(--radius-panel); background: color-mix(in srgb,var(--color-surface) 88%,transparent); }
 .yk-market-sort { display: flex; align-items: center; gap: calc(var(--spacing) * 2); color: var(--color-ink-3); font-size: 12px; white-space: nowrap; }
 .yk-market-sort select { min-height: 40px; padding: 0 calc(var(--spacing) * 3); border: 1px solid var(--color-veil); border-radius: var(--radius-input); background: var(--color-night); color: var(--color-ink); font-size: 13px; }
-.yk-market-list { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: var(--collection-row-gap) var(--collection-grid-gap); }
 .yk-market-tile { display: flex; min-width: 0; flex-direction: column; gap: calc(var(--spacing) * 2); }
 .yk-market-tile-link { display: block; min-width: 0; border-radius: var(--radius-card); }
 .yk-market-tile-meta { display: grid; gap: calc(var(--spacing) * 1.5); margin-top: calc(var(--spacing) * 3); }
@@ -78,13 +77,10 @@
 @keyframes yk-countdown-pulse { 0%,100% { transform: none; } 40% { transform: scale(1.06); color: var(--color-danger-ink); } }
 @keyframes yk-extension-flash { from { opacity: 0; transform: translateY(-4px); box-shadow: 0 0 0 0 var(--color-karas); } to { opacity: 1; transform: none; box-shadow: none; } }
 
-@media (max-width: 1280px) { .yk-market-list { grid-template-columns: repeat(5,minmax(0,1fr)); } }
-@media (max-width: 1080px) { .yk-market-list { grid-template-columns: repeat(4,minmax(0,1fr)); } }
 @media (max-width: 760px) {
   .yk-market-head { align-items: stretch; }
   .yk-market-sections { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
   .yk-market-section { justify-content: center; }
-  .yk-market-list { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .yk-market-sort { width: 100%; justify-content: space-between; }
   .yk-auction-page { grid-template-columns: minmax(0,1fr); grid-template-areas: "art" "main" "history"; margin-top: var(--layout-gutter-compact); }
   .yk-auction-art { width: min(100%,var(--market-art-width-mobile)); margin-inline: auto; }

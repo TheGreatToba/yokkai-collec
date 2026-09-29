@@ -36,7 +36,6 @@
 .yk-catalogue { min-width: 0; }
 .yk-catalogue-heading { display: flex; align-items: end; justify-content: space-between; gap: calc(var(--spacing) * 4); margin-bottom: calc(var(--spacing) * 5); }
 .yk-catalogue-heading .yk-mobile-filter-trigger { margin: 0; }
-.yk-catalogue-grid { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: var(--collection-row-gap) var(--collection-grid-gap); }
 .yk-catalogue-card { display: block; width: 100%; border-radius: var(--radius-card); text-align: left; }
 .yk-catalogue-detail-modal { max-width: calc(var(--spacing) * 192); }
 .yk-catalogue-owners { margin-top: calc(var(--spacing) * 7); border-top: 1px solid var(--color-veil); padding-top: calc(var(--spacing) * 5); }
@@ -54,9 +53,7 @@
 .yk-trade-pick:hover { border-color: var(--color-veil-strong); transform: translateY(-2px); }.yk-trade-pick.is-selected { border-color: var(--color-accent-gold); background: color-mix(in srgb,var(--color-accent-gold) 10%,var(--color-surface)); }
 .yk-trade-check { display: grid; width: 26px; height: 26px; flex: 0 0 auto; place-items: center; border: 1px solid var(--color-ink-3); border-radius: 50%; color: var(--color-void); font-size: 12px; font-weight: 700; }.is-selected .yk-trade-check { border-color: var(--color-accent-gold); background: var(--color-accent-gold); }
 @media (max-width: 900px) { .yk-profile-columns { grid-template-columns: minmax(0,1fr) 230px; }.yk-search-columns { grid-template-columns: minmax(0,1fr) 260px; } }
-@media (max-width: 1280px) { .yk-catalogue-grid { grid-template-columns: repeat(5,minmax(0,1fr)); } }
-@media (max-width: 1080px) { .yk-catalogue-grid { grid-template-columns: repeat(4,minmax(0,1fr)); } }
-@media (max-width: 760px) { .yk-catalogue-heading { align-items: center; }.yk-catalogue-heading .yk-mobile-filter-trigger { display: inline-flex; width: auto; }.yk-catalogue-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 760px) { .yk-catalogue-heading { align-items: center; }.yk-catalogue-heading .yk-mobile-filter-trigger { display: inline-flex; width: auto; }}
 @media (max-width: 700px) { .yk-profile-columns,.yk-search-columns,.yk-trade-columns { grid-template-columns: 1fr; }.yk-trade-columns::after { top: 50%; transform: translate(-50%,-50%); }.yk-search-row { gap: 10px; }.yk-featured-stage { gap: 10px; } }
 @media (max-width: 700px) { .yk-market-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }.yk-auction-tile { padding: calc(var(--spacing) * 2); }.yk-auction-tile .yk-karas { padding-inline: calc(var(--spacing) * 2); font-size: var(--text-xs); } }
 
