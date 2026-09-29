@@ -103,6 +103,19 @@ test("la collection d'un autre joueur ne propose pas de sélection ou d'édition
   assert.doesNotMatch(html, /Sélection multiple|Détruire la sélection|Modifier le profil/);
 });
 
+test("le catalogue reprend la sidebar sans notion de possession ni action de masse", () => {
+  const source = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
+  const catalogue = source.slice(source.indexOf("export function SearchView"), source.indexOf("export function TradesView"));
+  assert.match(catalogue, /yk-collection-sidebar/);
+  assert.match(catalogue, /CatalogueFilterSection title="Rareté"/);
+  assert.match(catalogue, /CatalogueFilterSection title="Catégorie"/);
+  assert.match(catalogue, /<CardShell><YokaiCard/);
+  assert.match(catalogue, /Cartes par page \(non disponible dans cette phase\)/);
+  assert.match(catalogue, /Possesseurs actuels/);
+  assert.match(catalogue, /Ajouter à ma wishlist/);
+  assert.doesNotMatch(catalogue, /Dossier|Sélection multiple|Obtenue le|possédée/);
+});
+
 test("la collection annonce l'évolution de trois SSR non-Shiny en Shiny", () => {
   const source = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
   assert.match(source, /Évolution Shiny/);

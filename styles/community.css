@@ -48,14 +48,18 @@
 .yk-search-input { width: 100%; height: 64px; padding: 0 28px; border: 1px solid var(--color-veil-strong); border-radius: 999px; background: var(--color-void); color: var(--color-ink); box-shadow: 0 0 24px color-mix(in srgb,var(--color-accent-neon) 10%,transparent); }
 .yk-search-columns { display: grid; grid-template-columns: minmax(0,1fr) 320px; gap: 32px; margin-top: 32px; }
 .yk-search-row { display: flex; width: 100%; align-items: center; gap: 16px; padding: 16px; border-width: 1px; border-style: solid; border-radius: 16px; background: var(--color-surface); }.yk-search-row:hover { background: var(--color-veil); }
-.yk-catalogue-toolbar { display: flex; flex-wrap: wrap; gap: 12px; }
-.yk-catalogue-toolbar select { min-height: 48px; min-width: 210px; border: 1px solid var(--color-veil); border-radius: var(--radius-input); background: var(--color-night); padding: 0 14px; color: var(--color-ink-2); font-size: 12px; }
-.yk-catalogue-rarity { border-bottom: 1px solid transparent; padding: 4px 2px; color: var(--color-ink-3); font-size: 12px; font-weight: 600; transition: color .2s,border-color .2s; }
-.yk-catalogue-rarity:hover,.yk-catalogue-rarity.is-active { border-color: currentColor; color: var(--color-ink); }
-.yk-catalogue-rarity-C { color: var(--color-rarity-c); }.yk-catalogue-rarity-R { color: var(--color-rarity-r); }.yk-catalogue-rarity-SR { color: var(--color-rarity-sr); }.yk-catalogue-rarity-SSR { color: var(--color-rarity-ssr); }.yk-catalogue-rarity-LR { color: var(--color-rarity-lr); }
-.yk-catalogue-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(min(100%,164px),1fr)); gap: 28px 20px; }
-.yk-catalogue-card { display: block; width: 100%; border-radius: 12px; text-align: left; transition: transform .2s var(--ease-yokkai); }
-.yk-catalogue-card:hover { transform: translateY(-5px); }
+.yk-catalogue { min-width: 0; }
+.yk-catalogue-heading { display: flex; align-items: end; justify-content: space-between; gap: calc(var(--spacing) * 4); margin-bottom: calc(var(--spacing) * 5); }
+.yk-catalogue-heading .yk-mobile-filter-trigger { margin: 0; }
+.yk-catalogue-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: var(--collection-row-gap) var(--collection-grid-gap); }
+.yk-catalogue-card { display: block; width: 100%; border-radius: var(--radius-card); text-align: left; }
+.yk-catalogue-detail-modal { max-width: calc(var(--spacing) * 192); }
+.yk-catalogue-owners { margin-top: calc(var(--spacing) * 7); border-top: 1px solid var(--color-veil); padding-top: calc(var(--spacing) * 5); }
+.yk-catalogue-owners ul { display: grid; gap: calc(var(--spacing) * 2); margin-top: calc(var(--spacing) * 3); }
+.yk-catalogue-owners li a { display: flex; align-items: center; justify-content: space-between; border-radius: var(--radius-input); padding: calc(var(--spacing) * 2); font-size: var(--text-sm); transition: background var(--duration-fast) var(--ease-standard),color var(--duration-fast) var(--ease-standard); }
+.yk-catalogue-owners li a:hover { background: var(--color-veil); color: var(--color-ink); }
+.yk-catalogue-owners li a span:last-child,.yk-catalogue-owners p { color: var(--color-ink-3); font-size: var(--text-xs); }
+.yk-catalogue-owners p { margin-top: calc(var(--spacing) * 3); }
 .yk-trade-columns { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 40px; position: relative; }
 .yk-trade-columns::after { content: '⇄'; position: absolute; left: 50%; top: 40%; transform: translateX(-50%); display: grid; place-items: center; width: 52px; height: 52px; border: 1px solid var(--color-veil-strong); border-radius: 50%; background: var(--color-night); color: var(--color-accent-neon); font-size: 26px; }
 .yk-trade-incoming { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px; padding: 24px; border: 1px solid color-mix(in srgb,var(--color-accent-neon) 36%,transparent); border-radius: 20px; background: linear-gradient(120deg,color-mix(in srgb,var(--color-accent-neon) 18%,var(--color-surface)),var(--color-surface) 68%); box-shadow: 0 18px 48px color-mix(in srgb,var(--color-void) 55%,transparent); }
@@ -65,5 +69,7 @@
 .yk-trade-pick:hover { border-color: var(--color-veil-strong); transform: translateY(-2px); }.yk-trade-pick.is-selected { border-color: var(--color-accent-gold); background: color-mix(in srgb,var(--color-accent-gold) 10%,var(--color-surface)); }
 .yk-trade-check { display: grid; width: 26px; height: 26px; flex: 0 0 auto; place-items: center; border: 1px solid var(--color-ink-3); border-radius: 50%; color: var(--color-void); font-size: 12px; font-weight: 700; }.is-selected .yk-trade-check { border-color: var(--color-accent-gold); background: var(--color-accent-gold); }
 @media (max-width: 900px) { .yk-profile-columns { grid-template-columns: minmax(0,1fr) 230px; }.yk-search-columns { grid-template-columns: minmax(0,1fr) 260px; }.yk-auction-title-row,.yk-auction-detail { grid-template-columns: minmax(250px,340px) minmax(0,1fr); gap: 28px; } }
+@media (max-width: 900px) { .yk-catalogue-grid { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+@media (max-width: 760px) { .yk-catalogue-heading { align-items: center; }.yk-catalogue-heading .yk-mobile-filter-trigger { display: inline-flex; width: auto; }.yk-catalogue-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @media (max-width: 700px) { .yk-profile-columns,.yk-search-columns,.yk-auction-title-row,.yk-auction-detail,.yk-trade-columns { grid-template-columns: 1fr; }.yk-auction-title-row { gap: 18px; }.yk-auction-title-row .yk-title { white-space: normal; }.yk-auction-title-row > .yk-button { justify-self: start; }.yk-auction-card { position: static; max-width: 380px; margin-inline: auto; }.yk-auction-content { gap: 18px; }.yk-auction-stats { gap: 10px; }.yk-trade-columns::after { top: 50%; transform: translate(-50%,-50%); }.yk-search-row { gap: 10px; }.yk-featured-stage { gap: 10px; } }
 @media (max-width: 430px) { .yk-auction-bid-overview,.yk-auction-offer { grid-template-columns: 1fr; }.yk-auction-balance { border-top: 1px solid var(--color-veil); border-left: 0; padding-top: 18px; padding-left: 0; }.yk-auction-offer .yk-button { width: 100%; }.yk-auction-heading h2 { font-size: 30px; } }
