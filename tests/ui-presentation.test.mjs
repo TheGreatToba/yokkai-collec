@@ -296,3 +296,17 @@ test("les six types de notifications ont un texte et une redirection", () => {
     assert.match(source, new RegExp(href.replace("?", "\\?")));
   }
 });
+
+test("les notifications se relisent à l'ouverture du panneau et au retour sur l'onglet", () => {
+  const hook = readFileSync(path.join(root, "hooks/use-notification-feed.ts"), "utf8");
+  const topbar = readFileSync(path.join(root, "components/topbar.tsx"), "utf8");
+  const community = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
+  assert.match(hook, /setInterval\(\(\) => void refresh\(\), POLL_INTERVAL_MS\)/);
+  assert.match(hook, /addEventListener\("visibilitychange"/);
+  assert.match(hook, /removeEventListener\("visibilitychange"/);
+  assert.match(hook, /inFlight\.current\) return/);
+  assert.match(topbar, /setPanel\("notifications"\);if\(notifications\)onRefreshNotifications\?\.\(\);else void feed\.refresh\(\);/);
+  assert.match(community, /onRefreshNotifications=\{\(\)=>void feed\.refresh\(\)\}/);
+  for (const source of [topbar, community]) assert.doesNotMatch(source, /getNotifications\(\)/);
+  assert.ok(existsSync(path.join(root, "app/design-system/notification-refresh-preview/page.tsx")));
+});

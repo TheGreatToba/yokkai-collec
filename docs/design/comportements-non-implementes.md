@@ -12,7 +12,7 @@ Manques qui touchent l’usage réel du jeu, et pas seulement l’habillage. Cha
 - **Impact** : une notification récente peut rester invisible jusqu’au prochain passage du polling. Lorsque le navigateur suspend ou ralentit les timers d’un onglet, elle peut ne devenir visible qu’après un rafraîchissement manuel de la page.
 - **Cause** : `getNotifications()` est appelé uniquement par l’effet initial, l’intervalle de polling et le bouton « Réessayer ». L’ouverture du panneau et l’événement `visibilitychange` ne sont pas reliés à cette fonction.
 - **Piste** : conserver le polling existant et déclencher une actualisation supplémentaire à l’ouverture du panneau ainsi qu’au retour de visibilité de l’onglet, avec une protection contre les requêtes simultanées.
-- **Statut** : non implémenté, car ce correctif modifie le déclenchement des requêtes et dépasse le périmètre strictement visuel de la Phase 8.
+- **Statut** : implémenté dans la passe fonctionnelle `feat/simple-wiring`. Le hook `useNotificationFeed` (`hooks/use-notification-feed.ts`), partagé par la Topbar et `CommunityView`, conserve le polling de 10 secondes, relit à l’ouverture du panneau et au retour de visibilité de l’onglet, et ignore un déclenchement tant qu’une lecture est en cours. Preuve au clic : `/design-system/notification-refresh-preview`.
 - **Source** : constat utilisateur après la Phase 8 · Notifications.
 
 ### Marché · Les enchères où l’on a misé sans être en tête sont introuvables
@@ -52,7 +52,6 @@ Défauts constatés pendant la refonte mais volontairement non corrigés dans le
 | Convertir automatiquement les quatre cartes non retenues du booster décisif en Karas | `docs/groupe-2-boosters.md` |
 | Mettre à jour en temps réel le chrono, l’historique et les offres d’une enchère | `docs/groupe-3-marche.md` |
 | Valider dynamiquement la disponibilité du pseudo avec un debounce de 300 ms | `docs/groupe-6-landingpage.md` |
-| Imposer un délai minimum de 500 ms à l’état de chargement de connexion | `docs/groupe-6-landingpage.md` |
 | Rediriger après inscription et déclencher automatiquement un toast de bienvenue | `docs/groupe-6-landingpage.md` |
 | Rafraîchir silencieusement inventaire, solde et notifications après les actions | `docs/groupe-3-marche.md`, `docs/groupe-5-succes-wishlist-notifs.md` |
 | Créditer, débiter ou animer un roll-up de Karas à partir des scénarios de maquette | `docs/design_system.md`, `docs/groupe-1-collection-catalogue.md`, `docs/groupe-2-boosters.md`, `docs/groupe-5-succes-wishlist-notifs.md` |
