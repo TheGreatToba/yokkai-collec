@@ -19,3 +19,7 @@ Cette liste conserve des idées présentes dans les maquettes Gemini. Elle ne co
 | Créditer, débiter ou animer un roll-up de Karas à partir des scénarios de maquette | `docs/design_system.md`, `docs/groupe-1-collection-catalogue.md`, `docs/groupe-2-boosters.md`, `docs/groupe-5-succes-wishlist-notifs.md` |
 | Charger ou étendre les listes de possesseurs selon les maquettes Catalogue | `docs/groupe-1-collection-catalogue.md` |
 | Déduire de nouveaux états de notification, d’amitié ou d’échange non fournis par les données actuelles | `docs/groupe-4-social.md`, `docs/groupe-5-succes-wishlist-notifs.md` |
+| Filtrer la Collection par « Type de carte » ; nécessite un type persistant associé à chaque carte du catalogue, exposé par les lectures Collection | Référence visuelle de révision Phase 3 |
+| Filtrer la Collection par mode d’acquisition ; nécessite une provenance persistante par exemplaire (booster, échange, marché, évolution, etc.) et son exposition dans les données Collection | Référence visuelle de révision Phase 3 |
+| Choisir le tri de la Collection ; nécessite un paramètre de tri transmis à la requête paginée, ou un tri client seulement si l’intégralité des cartes est déjà chargée | Révision Phase 3 |
+| Choisir le nombre de cartes par page ; nécessite un paramètre de taille de page partagé par la requête, le calcul du nombre de pages et la pagination | Révision Phase 3 |

@@ -36,6 +36,10 @@ const config = {
       ['--collection-row-gap', '1.5rem'],
       ['--collection-detail-width', '62rem'],
       ['--collection-detail-art-width', '16rem'],
+      ['--collection-sidebar-width', '15rem'],
+      ['--collection-drawer-width', '21rem'],
+      ['--collection-list-card-width', '8rem'],
+      ['--collection-list-card-width-mobile', '6.5rem'],
     ]) });
   })],
 };

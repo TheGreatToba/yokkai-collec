@@ -83,10 +83,14 @@ test("les modales imbriquées libèrent le scroll et la confirmation remplace le
 
 test("la destruction multiple est active et transmet tous les exemplaires sélectionnés", () => {
   const collection = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
+  const styles = readFileSync(path.join(root, "styles/collection.css"), "utf8");
   const game = readFileSync(path.join(root, "components/game.tsx"), "utf8");
   assert.match(collection, /onDiscardMany\(selectedCards\.map\(card => card\.instanceId\)\)/);
   assert.match(collection, /bulkDiscardBusy\?"Destruction…":"Détruire la sélection"/);
   assert.doesNotMatch(collection, /Destruction bientôt disponible/);
+  assert.ok(collection.indexOf('className="yk-selection-bar"') > collection.indexOf('className="yk-collection-grid"'));
+  assert.match(styles.match(/\.yk-selection-bar \{[^}]+\}/)?.[0] ?? "", /position:\s*sticky/);
+  assert.match(styles.match(/\.yk-selection-bar \{[^}]+\}/)?.[0] ?? "", /bottom:\s*var\(--layout-gutter-compact\)/);
   assert.match(game, /onDiscardMany=\{discardCollectionCards\}/);
 });
 
