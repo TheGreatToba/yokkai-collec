@@ -40,6 +40,7 @@ export function BoosterReveal({ cards, revealed, onReveal, onReturn, onNext, nex
   const revealTimer = useRef<number | null>(null);
   const next = useRef<HTMLButtonElement>(null);
   const completeLink = useRef<HTMLAnchorElement>(null);
+  const nextBooster = useRef<HTMLButtonElement>(null);
   const current = cards[revealed];
   const done = revealed >= cards.length;
   // Summary counts only the cards that stay in the collection (not destroyed, not lost in a Decision Pack).
@@ -53,7 +54,7 @@ export function BoosterReveal({ cards, revealed, onReveal, onReturn, onNext, nex
     return () => clearTimeout(timer);
   }, [faceUp, spot, revealLocked, deposit]);
   useEffect(() => () => { if (revealTimer.current) window.clearTimeout(revealTimer.current); }, []);
-  useEffect(() => { if (done && !choosing) completeLink.current?.focus({preventScroll:true}); else next.current?.focus({preventScroll:true}); }, [done, choosing]);
+  useEffect(() => { if (done && !choosing) (nextBooster.current && !nextBooster.current.disabled ? nextBooster.current : completeLink.current)?.focus({preventScroll:true}); else next.current?.focus({preventScroll:true}); }, [done, choosing]);
   function flip() {
     if (!current) return;
     if (faceUp) { if (!revealLocked) deposit(); return; }
@@ -247,7 +248,7 @@ export function BoosterReveal({ cards, revealed, onReveal, onReturn, onNext, nex
     })}</ol>
     {error && <p role="alert" className="mt-5 text-center text-sm text-danger">{error}</p>}
     {!done && !decision && <div className="yk-reveal-footer"><Button disabled>Ajouter à ma collection</Button><p className="text-xs text-ink-3">Révèle les {cards.length} cartes pour valider ton booster.</p></div>}
-    {done && !choosing && <div className={`yk-reveal-summary ${decision ? "yk-reveal-summary-decision" : ""}`}><h2 className="font-display text-2xl">{decision ? `Carte ajoutée à ta collection · +${decision.karasReward ?? 0} Karas depuis les cartes non conservées` : "L’invocation est complète"}</h2><div className="my-5 flex flex-wrap justify-center gap-2">{[...new Set(keptCards.map(c => c.rarity))].map(r => <StatusPill key={r}>{r} ×{keptCards.filter(c=>c.rarity===r).length}</StatusPill>)}</div>{cards.every(c => c.isNew !== undefined) && <p className="mb-5 text-sm text-ink-2">{keptCards.filter(c => c.isNew).length} nouvelle(s) carte(s)</p>}<div className="flex flex-wrap justify-center gap-3"><Link ref={completeLink} href="/collection" className="yk-button yk-button-primary">{decision ? "Voir ma collection" : "Ajouter à ma collection"}</Link>{onNext&&<Button variant="secondary" disabled={nextDisabled} onClick={onNext}>{nextLabel}</Button>}<Button variant="secondary" onClick={onReturn}>Retour aux boosters</Button></div></div>}
+    {done && !choosing && <div className={`yk-reveal-summary ${decision ? "yk-reveal-summary-decision" : ""}`}><h2 className="font-display text-2xl">{decision ? `Carte ajoutée à ta collection · +${decision.karasReward ?? 0} Karas depuis les cartes non conservées` : "L’invocation est complète"}</h2><div className="my-5 flex flex-wrap justify-center gap-2">{[...new Set(keptCards.map(c => c.rarity))].map(r => <StatusPill key={r}>{r} ×{keptCards.filter(c=>c.rarity===r).length}</StatusPill>)}</div>{cards.every(c => c.isNew !== undefined) && <p className="mb-5 text-sm text-ink-2">{keptCards.filter(c => c.isNew).length} nouvelle(s) carte(s)</p>}<div className="flex flex-wrap justify-center gap-3">{onNext&&<button type="button" ref={nextBooster} disabled={nextDisabled} onClick={onNext} className="yk-button yk-button-primary">{nextLabel}</button>}<Link ref={completeLink} href="/collection" className={`yk-button ${onNext ? "yk-button-secondary" : "yk-button-primary"}`}>{decision ? "Voir ma collection" : "Ajouter à ma collection"}</Link><Button variant="secondary" onClick={onReturn}>Retour aux boosters</Button></div></div>}
     <Modal open={!!spot} onClose={() => setSpot(null)} title={spot?.shiny ? "✦ Invocation Shiny ✦" : "Invocation légendaire"} className={`yk-invocation ${spot?.shiny ? "yk-invocation-shiny" : ""}`}>
       {spot && <div className="relative z-10 flex flex-col items-center gap-6"><div className="yk-invoked-card"><YokaiCard {...spot} /></div><h3 className="font-display text-[clamp(28px,4vw,44px)]">{spot.name}</h3>{spot.isNew && <StatusPill>NEW</StatusPill>}<Button variant="secondary" onClick={() => setSpot(null)}>Toucher pour continuer</Button></div>}
     </Modal>
