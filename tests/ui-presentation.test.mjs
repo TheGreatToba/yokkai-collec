@@ -120,8 +120,50 @@ test("le catalogue reprend la sidebar sans notion de possession ni action de mas
   assert.doesNotMatch(catalogue, /Dossier|Sélection multiple|Obtenue le|possédée/);
   assert.match(layout, /styles\/community\.css/);
   assert.match(layout, /styles\/collection\.css/);
-  assert.match(styles, /\.yk-catalogue-grid \{ display: grid/);
+  assert.match(catalogue, /className="yk-card-grid yk-catalogue-grid"/);
   assert.match(styles, /\.yk-catalogue-card \{[^}]*width: 100%/);
+});
+
+test("mobile : vitrine du profil sur la grille partagée et page Amis sans débordement", () => {
+  const profile = readFileSync(path.join(root, "components/profile.tsx"), "utf8");
+  const community = readFileSync(path.join(root, "styles/community.css"), "utf8");
+  assert.match(profile, /className="yk-card-grid yk-featured-stage"/);
+  assert.match(community, /\.yk-featured-stage \{ --card-grid-columns-xl: 4; --card-grid-columns-lg: 4; --card-grid-columns-md: 4;/);
+  assert.doesNotMatch(community.match(/\.yk-featured-stage \{[^}]+\}/)?.[0] ?? "", /grid-template-columns/);
+  // Grid children must be allowed to shrink, otherwise the non-wrapping tabs widen the page.
+  assert.match(community, /\.yk-social-stack > \* \{ min-width: 0; \}/);
+  assert.doesNotMatch(community, /\.yk-social-person \.yk-friend-action,[^{]*\{ width: 100%; margin-left/);
+  const friends = readFileSync(path.join(root, "components/friends.tsx"), "utf8");
+  assert.match(friends, /const liveFriendsPanel: FriendsPanelAdapter = \{ friendships: getFriendships, search: searchUsers, respond: respondFriendRequest \}/);
+});
+
+test("barre d'outils Collection compacte sur mobile et tiroir fermé même en mouvement réduit", () => {
+  const collection = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
+  const css = readFileSync(path.join(root, "styles/collection.css"), "utf8");
+  const ui = readFileSync(path.join(root, "styles/ui.css"), "utf8");
+  // The filter trigger lives inside the toolbar so both collapse into two compact rows.
+  assert.ok(collection.indexOf('className="yk-mobile-filter-trigger"') > collection.indexOf('<div className="yk-collection-toolbar">'));
+  // Mobile: "Sélection multiple" becomes an icon; the label stays available to screen readers.
+  assert.match(css, /\.yk-collection-toolbar \.yk-selection-mode-label \{ position: absolute;/);
+  assert.match(collection, /className="yk-selection-mode" aria-pressed=\{selecting\}/);
+  // The global reduced-motion reset drops transforms: the closed drawer and the Karas gem must keep theirs.
+  assert.match(ui, /transform: none !important/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\) and \(max-width: 760px\) \{ \.yk-collection-sidebar:not\(\.yk-sidebar-open\) \{ transform: translateX\(-100%\) !important; \} \}/);
+  assert.match(ui, /\.yk-karas-gem \{ transform: rotate\(45deg\) !important; \}/);
+});
+
+test("Collection, Catalogue et Marché partagent une seule échelle de colonnes", () => {
+  const ui = readFileSync(path.join(root, "styles/ui.css"), "utf8");
+  assert.match(ui, /\.yk-card-grid \{ display: grid; grid-template-columns: repeat\(var\(--card-grid-columns,var\(--card-grid-columns-xl\)\)/);
+  assert.match(ui, /max-width: 760px\) \{ \.yk-card-grid \{ --card-grid-columns: var\(--card-grid-columns-sm\)/);
+  assert.match(readFileSync(path.join(root, "components/collection.tsx"), "utf8"), /className=\{`yk-card-grid yk-collection-grid /);
+  assert.match(readFileSync(path.join(root, "components/community-views.tsx"), "utf8"), /className="yk-card-grid yk-market-list"/);
+  assert.match(readFileSync(path.join(root, "components/community-views.tsx"), "utf8"), /className="yk-card-grid yk-wishlist-grid"/);
+  // No page may redefine its own column count for these grids (the 1280px :not() override broke mobile).
+  for (const file of ["collection", "community", "market"]) {
+    const css = readFileSync(path.join(root, `styles/${file}.css`), "utf8");
+    assert.doesNotMatch(css, /\.yk-(?:collection-grid|catalogue-grid|market-list|wishlist-grid)(?::not\([^)]*\))? \{[^}]*grid-template-columns: repeat/);
+  }
 });
 
 test("la collection annonce l'évolution de trois SSR non-Shiny en Shiny", () => {
@@ -180,14 +222,28 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
   assert.match(source, /Garder cette carte et perdre les \{cards\.length - 1\} autres \?/);
 });
 
+test("la modale de détail groupe dossier sous la carte et destruction explicite en bas", () => {
+  const source = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
+  const modal = source.slice(source.indexOf('title="Détail de la carte"'), source.indexOf('title="Détruire cette carte ?"'));
+  assert.ok(modal.indexOf("yk-detail-art") < modal.indexOf("yk-detail-folder"));
+  assert.ok(modal.indexOf("yk-detail-folder") < modal.indexOf("yk-detail-info"));
+  assert.ok(modal.indexOf("yk-detail-actions") < modal.indexOf("yk-detail-image"));
+  assert.ok(modal.indexOf("yk-detail-image") < modal.indexOf("yk-detail-danger"));
+  assert.match(modal, /Détruire la carte \(\+\{DESTRUCTION_KARAS\[selected\.rarity\]\}/);
+  assert.match(modal, /Revenir à l’image d’origine/);
+  assert.match(modal, /selectedMeta\?\.marketValue!=null&&/);
+  assert.doesNotMatch(modal, /aria-label=\{`Détruire \$\{selected\.name\}`\}/);
+  assert.match(source, /setDiscardConfirm\(true\)/);
+});
+
 test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
   const { MarketView } = load("components/community-views.tsx");
   const auction = (id, extra = {}) => ({ id, card: { ...card, id: `card-${id}` }, amount: 120, remaining: "00:12:00", remainingSeconds: 720, seller: "Kitsune", bids: 3, ...extra });
   const lists = { active: [auction("a", { wishlist: true }), auction("b", { remainingSeconds: 120, remaining: "00:02:00" })], mine: [], won: [], sold: [] };
   const html = render(MarketView, { lists, activeSales: "0", async onToggleWatch() {} });
   assert.equal((html.match(/class="yk-market-tile"/g) || []).length, 2);
-  assert.match(html, /aria-pressed="true"[^>]*>.*?<span>Suivi<\/span>/);
-  assert.match(html, /aria-pressed="false"[^>]*>.*?<span>Suivre<\/span>/);
+  assert.match(html, /aria-pressed="true"[^>]*aria-label="Ne plus suivre cette enchère"[^>]*>.*?<span class="yk-watch-label">Suivi<\/span>/);
+  assert.match(html, /aria-pressed="false"[^>]*aria-label="Suivre cette enchère"[^>]*>.*?<span class="yk-watch-label">Suivre<\/span>/);
   assert.match(html, /yk-market-timer yk-urgency-critical/);
   assert.match(html, /<option value="asc">Prix croissant<\/option><option value="desc">Prix décroissant<\/option>/);
   assert.match(html, />Mes enchères</);
