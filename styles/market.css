@@ -14,10 +14,16 @@
 .yk-market-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--layout-gutter-compact); margin: var(--layout-gutter) 0; padding: calc(var(--spacing) * 3); border: 1px solid var(--color-veil); border-radius: var(--radius-panel); background: color-mix(in srgb,var(--color-surface) 88%,transparent); }
 .yk-market-sort { display: flex; align-items: center; gap: calc(var(--spacing) * 2); color: var(--color-ink-3); font-size: 12px; white-space: nowrap; }
 .yk-market-sort select { min-height: 40px; padding: 0 calc(var(--spacing) * 3); border: 1px solid var(--color-veil); border-radius: var(--radius-input); background: var(--color-night); color: var(--color-ink); font-size: 13px; }
-.yk-market-tile { display: flex; min-width: 0; flex-direction: column; gap: calc(var(--spacing) * 2); }
+.yk-market-tile { display: flex; min-width: 0; flex-direction: column; gap: calc(var(--spacing) * 2); container-type: inline-size; }
 .yk-market-tile-link { display: block; min-width: 0; border-radius: var(--radius-card); }
 .yk-market-tile-meta { display: grid; gap: calc(var(--spacing) * 1.5); margin-top: calc(var(--spacing) * 3); }
-.yk-market-tile-status { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: calc(var(--spacing) * 1.5); }
+/* Timer · bids/seller · price on one line when the tile is wide enough; the bids text drops below on narrow tiles. */
+.yk-market-tile-line { display: grid; grid-template-columns: auto minmax(0,1fr) auto; grid-template-areas: "timer bids price"; align-items: center; gap: calc(var(--spacing) * 1.5); }
+.yk-market-tile-line > .yk-market-timer { grid-area: timer; }
+.yk-market-tile-line > .yk-market-price { grid-area: price; justify-self: end; }
+.yk-market-tile-bids { grid-area: bids; min-width: 0; overflow: hidden; color: var(--color-ink-3); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+@container (max-width: 13rem) { .yk-market-tile-line { grid-template-columns: auto minmax(0,1fr); grid-template-areas: "timer price" "bids bids"; row-gap: calc(var(--spacing) * 1); } }
+.yk-market-tile-status { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--spacing) * 1.5); }
 .yk-market-tile-status > span { white-space: nowrap; }
 .yk-market-timer { display: inline-flex; align-items: center; gap: calc(var(--spacing) * .75); padding: calc(var(--spacing) * .75) calc(var(--spacing) * 1.5); border: 1px solid var(--color-veil); border-radius: var(--radius-pill); background: var(--color-void); color: var(--color-ink-2); font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .yk-market-timer.yk-urgency-soon { border-color: color-mix(in srgb,var(--color-karas) 45%,transparent); background: color-mix(in srgb,var(--color-karas) 12%,var(--color-void)); color: var(--color-karas); }
