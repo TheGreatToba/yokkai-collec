@@ -7,7 +7,6 @@ import type { CollectedCard, Folder, Rarity } from "@/lib/data/cards";
 import { Button, Chip, Karas, Modal, Pagination } from "@/components/ui";
 import { YokaiCard } from "@/components/yokai-card";
 import { CardShell } from "@/components/card-shell";
-import "@/styles/collection.css";
 
 // Optional display metadata, separate from the existing business types.
 export type CollectionPresentation = { number?: string; isNew?: boolean; frozen?: { remaining: string }; marketValue?: number | null; destructionValue?: number };

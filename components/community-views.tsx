@@ -13,8 +13,6 @@ import { FriendsPanel } from "@/components/friends";
 import { ProfileExperience } from "@/components/profile";
 import { getCardDiscovery, getWishlist, toggleWishlist, type CardDiscovery, type WishlistCard } from "@/lib/data/wishlist";
 import { getNotifications, markNotificationRead, NotificationRequestError, type AppNotification } from "@/lib/data/notifications";
-import "@/styles/community.css";
-import "@/styles/collection.css";
 
 export type CommunityScreen = "profile" | "friends" | "market" | "auction" | "trades" | "search" | "wishlist";
 const headings = { profile: ["Collectionneur", "Mon profil"], friends: ["Entre collectionneurs", "Mes amis"], market: ["La salle des ventes", "Marché"], auction: ["Marché · Enchère", "Détail de l’enchère"], trades: ["Entre collectionneurs", "Proposer un échange"], search: ["Toutes les cartes du jeu", "Catalogue"], wishlist: ["Les cartes convoitées", "Ma wishlist"] };
