@@ -67,5 +67,5 @@ export function publishPlayerSnapshotInvalidation(scopes: readonly PlayerSnapsho
 export function subscribePlayerSnapshotInvalidation(listener: Listener) {
   listeners.add(listener);
   getChannel();
-  return () => listeners.delete(listener);
+  return () => { listeners.delete(listener); };
 }

@@ -1,5 +1,5 @@
 import {createClient} from "@/utils/supabase/client";
-import {withLiveCardFranchises,type CollectedCard} from "@/lib/data/cards";
+import {invalidatePlayerSnapshots,withLiveCardFranchises,type CollectedCard} from "@/lib/data/cards";
 
 export type TradeContext={friend:{id:string;pseudo:string};balance:number;ownCards:CollectedCard[];friendCards:CollectedCard[]};
 export type TradeOffer={id:string;fromUser:string;toUser:string;fromPseudo:string;toPseudo:string;incoming:boolean;offeredCards:CollectedCard[];offeredKaras:number;requestedCards:CollectedCard[];requestedKaras:number;status:"pending"|"accepted"|"declined"|"countered";parentOfferId:string|null;createdAt:string};
@@ -8,4 +8,4 @@ async function call<T>(name:string,args?:Record<string,unknown>):Promise<T>{cons
 export const getTradeContext=async(friendId:string)=>{const context=await call<TradeContext>("get_trade_context",{p_friend_id:friendId});const ownCards=await withLiveCardFranchises(context.ownCards);const friendCards=await withLiveCardFranchises(context.friendCards);return {...context,ownCards,friendCards};};
 export const listTradeOffers=async()=>{const offers=await call<TradeOffer[]>("list_trade_offers");return Promise.all(offers.map(async offer=>({...offer,offeredCards:await withLiveCardFranchises(offer.offeredCards),requestedCards:await withLiveCardFranchises(offer.requestedCards)})));};
 export const createTradeOffer=(input:{toUser:string;offeredCardIds:string[];offeredKaras:number;requestedCardIds:string[];requestedKaras:number;parentOfferId?:string|null})=>call<string>("create_trade_offer",{p_to_user:input.toUser,p_offered_card_ids:input.offeredCardIds,p_offered_karas:input.offeredKaras,p_requested_card_ids:input.requestedCardIds,p_requested_karas:input.requestedKaras,p_parent_offer_id:input.parentOfferId??null});
-export const respondTradeOffer=(id:string,action:"accept"|"decline")=>call<boolean>("respond_trade_offer",{p_offer_id:id,p_action:action});
+export async function respondTradeOffer(id:string,action:"accept"|"decline") { const accepted=await call<boolean>("respond_trade_offer",{p_offer_id:id,p_action:action});if(action==="accept"&&accepted)invalidatePlayerSnapshots(["collection","balance"]);return accepted; }

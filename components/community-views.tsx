@@ -10,6 +10,7 @@ import { YokaiCard } from "@/components/yokai-card";
 import { CardShell } from "@/components/card-shell";
 import { CARD_PAGE_SIZES } from "@/lib/ui/pagination";
 import { getAuction, getAuctions, placeBid, toggleWatch, type AuctionData, type AuctionDetail } from "@/lib/data/market";
+import { subscribePlayerSnapshotInvalidation } from "@/lib/data/player-state";
 import { TradesPanel } from "@/components/trades";
 import { FriendsPanel } from "@/components/friends";
 import { ProfileExperience } from "@/components/profile";
@@ -203,6 +204,7 @@ export function CommunityView({screen,account,name,joined,isMe=true,playerId,auc
     return()=>{active=false;};
   },[screen,isMe,playerId,auctionId,receiveAuction]);
   useEffect(()=>{if(screen!=="market"&&screen!=="auction")return;let active=true;let loading=false;const refresh=async()=>{if(loading||document.visibilityState==="hidden")return;loading=true;try{if(screen==="market"){const next=await getAuctions();if(active)setMarket(next);}else if(auctionId){const next=await getAuction(auctionId);if(active)receiveAuction(next);}}catch(error){if(process.env.NODE_ENV!=="production")console.error("[market] automatic refresh failed",error);}finally{loading=false;}};const timer=window.setInterval(()=>void refresh(),3000);const onVisible=()=>{if(document.visibilityState==="visible")void refresh();};document.addEventListener("visibilitychange",onVisible);return()=>{active=false;window.clearInterval(timer);document.removeEventListener("visibilitychange",onVisible);};},[screen,auctionId,receiveAuction]);
+  useEffect(()=>{let active=true;const unsubscribe=subscribePlayerSnapshotInvalidation(scopes=>{if(scopes.includes("balance"))void getGameInfo().then(info=>{if(active)setKaras(info.karasBalance);},()=>undefined);if(scopes.includes("collection")&&screen==="profile"&&isMe)void getUserCollection().then(cards=>{if(active)setCollection(cards);},()=>undefined);});return()=>{active=false;unsubscribe();};},[screen,isMe]);
   const feed=useNotificationFeed();
   const lists=market&&viewer?{active:market.filter(a=>a.status==="active").map(a=>presentAuction(a,viewer)),mine:market.filter(a=>a.status==="active"&&(a.sellerId===viewer||a.buyerId===viewer)).map(a=>presentAuction(a,viewer)),won:market.filter(a=>a.status==="sold"&&a.buyerId===viewer).map(a=>presentAuction(a,viewer)),sold:market.filter(a=>a.status!=="active"&&a.sellerId===viewer).map(a=>presentAuction(a,viewer))}:undefined;
   const activeSales=market&&viewer?String(market.filter(a=>a.status==="active"&&a.sellerId===viewer).length):undefined;
