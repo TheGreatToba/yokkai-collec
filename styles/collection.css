@@ -1,6 +1,6 @@
 .yk-collection { width: 100%; min-width: 0; }
 .yk-collection-layout { display: grid; grid-template-columns: var(--collection-sidebar-width) minmax(0,1fr); align-items: start; gap: var(--layout-gutter); margin-top: calc(var(--spacing) * 4); }
-.yk-collection-sidebar { position: sticky; top: calc(var(--topbar-height) + var(--layout-gutter-compact)); overflow: hidden; border: 1px solid var(--color-veil); border-radius: var(--radius-panel); background: color-mix(in srgb,var(--color-surface) 94%,transparent); box-shadow: var(--shadow-card); }
+.yk-collection-sidebar { overflow: hidden; border: 1px solid var(--color-veil); border-radius: var(--radius-panel); background: color-mix(in srgb,var(--color-surface) 94%,transparent); box-shadow: var(--shadow-card); }
 .yk-sidebar-mobile-head,.yk-mobile-filter-trigger,.yk-filter-backdrop { display: none; }
 .yk-filter-search { display: grid; grid-template-columns: auto minmax(0,1fr); align-items: center; gap: calc(var(--spacing) * 2); margin: calc(var(--spacing) * 3); padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 3); border: 1px solid var(--color-veil); border-radius: var(--radius-input); background: var(--color-night); color: var(--color-ink-3); }
 .yk-filter-search:focus-within { border-color: var(--color-focus); box-shadow: var(--shadow-focus); }

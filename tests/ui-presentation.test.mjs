@@ -268,7 +268,8 @@ test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
   assert.match(source, /className="yk-market-filter-scroll"/);
   assert.match(source, /className="yk-collection-toolbar yk-market-toolbar-band"/);
   const marketCss = readFileSync(path.join(root, "styles/market.css"), "utf8");
-  assert.doesNotMatch(marketCss, /\.yk-market-sidebar \{[^}]*position: (?:sticky|fixed)/);
+  const collectionCss = readFileSync(path.join(root, "styles/collection.css"), "utf8");
+  assert.doesNotMatch(collectionCss, /\.yk-collection-sidebar \{[^}]*position: sticky/);
   assert.doesNotMatch(marketCss, /\.yk-market-filter-scroll \{[^}]*overflow-y: auto/);
   assert.doesNotMatch(marketCss, /\.yk-market-sidebar \{[^}]*max-height:/);
 });
