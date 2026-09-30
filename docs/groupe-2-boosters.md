@@ -76,7 +76,7 @@
 ### 2.1 Séquence de Révélation & Layout
 
 * **Structure** : Alignement horizontal de **5 cartes face cachée** (ratio `2:3`, dos violet sombre `#0F0C1D` avec motif filigrane).
-* **Ordre de Révélation** : Les cartes sont révélées **une par une au clic** dans l'**ordre de rareté croissante** (trié automatiquement par le serveur : C -> R -> SR -> SSR -> LR / Shiny) pour créer une montée progressive de la tension gacha.
+* **Ordre de Révélation** : Le joueur utilise le **déclenchement global du paquet**. Les cartes sont ensuite révélées successivement dans l'**ordre de rareté croissante** (trié automatiquement par le serveur : C -> R -> SR -> SSR -> LR / Shiny) pour créer une montée progressive de la tension gacha. Il n’y a pas de clic individuel sur chaque carte.
 
 ```
 ====================================================================================================
@@ -94,7 +94,7 @@ YOKKAI COLLEC' - OUVERTURE BOOSTER RÉGULIER
   | REVELÉ  |     | REVELÉ  |     | REVELÉ  |     |  CARTE  |     |  CARTE  |
   |         |     |         |     |         |     |         |     |         |
   |Taro Shin|     |Ken Flame|     |Yuki Frost|    |         |     |         |
-  |Street V |     |Kendo Ace|     |Winter S |     | (CLIC)  |     | (LOCKED)|
+  |Street V |     |Kendo Ace|     |Winter S |     | ATTENTE  |     | ATTENTE |
   +---------+     +---------+     +---------+     +---------+     +---------+
   [Détruire]     [Détruire]     [Détruire]     [ En attente ]  [ En attente ]
    (+ 10 K)        (+ 25 K)        (+ 75 K)
@@ -111,8 +111,9 @@ YOKKAI COLLEC' - OUVERTURE BOOSTER RÉGULIER
 
 * Entrée des cartes en `Stagger` (50ms d'intervalle) avec léger effet de lévitation (`Y: 10px -> 0px`).
 
-2. **Clic de Révélation (Card Flip)** :
+2. **Séquence globale de révélation (Card Flip)** :
 
+* Un déclenchement sur le paquet lance toute la séquence ; chaque carte applique ensuite son reveal dans l’ordre, sans clic individuel.
 * **Carte C / R** : Rotation Y `180deg` en `200ms cubic-bezier(0.16, 1, 0.3, 1)`.
 * **Carte SR** : Applique la fiche d'animation **Reveal SR** (Tremblement 300ms -> Flip 180° -> Onde de choc violette `#A033E5` -> 15 particules).
 * **Carte SSR** : Applique la fiche d'animation **Reveal SSR** (Assombrissement fond -> Slow motion -> Flash blanc/rose `#E53360` -> 35 particules).
@@ -143,7 +144,7 @@ YOKKAI COLLEC' - OUVERTURE BOOSTER RÉGULIER
 
 ### 3.1 Déroulement & Règle du Choix Unique
 
-* **Révélation** : Identique au Booster Régulier (5 cartes révélées une par une par ordre croissant de rareté avec leurs effets lumineux respectifs).
+* **Révélation** : Identique au Booster Régulier : déclenchement global depuis le paquet, puis 5 cartes révélées successivement par ordre croissant de rareté avec leurs effets lumineux respectifs.
 * **Contrainte d'Action** : **Aucun bouton "Détruire" n'est présent sous les cartes**.
 * **Transition "Choix Décisif"** : Une fois la 5ème carte révélée, l'interface bascule en mode sélection d'élite avec le message : *"CHOISIS TA CARTE DÉCISIVE · Les 4 autres seront converties en Karas"*.
 
