@@ -8,16 +8,17 @@ import { animation } from "@/lib/ui/animations";
 // Local-only simulations for the design-system routes: no RPC is called.
 const rarities = ["LR", "SSR", "SR", "R", "C"] as const;
 const names = ["Kuro Kitsune", "Aoi Dragon", "Ren Cyber", "Yuki Frost", "Ken Flame", "Taro Shin"];
-const active: AuctionPresentation[] = Array.from({ length: 12 }, (_, index) => ({
+const active: AuctionPresentation[] = Array.from({ length: 36 }, (_, index) => ({
   id: `preview-${index}`,
   card: { id: `card-${index}`, name: names[index % names.length], category: "Anime", anime: ["Spirit Realm", "Neo Tokyo", "Winter Saga"][index % 3], rarity: rarities[index % rarities.length], image: "/assets/booster-pack.png" },
   amount: [4850, 1200, 850, 320, 210, 45][index % 6], remaining: ["00:02:14", "00:14:50", "01:12:00", "03:45:00", "08:10:00", "18:30:00"][index % 6], remainingSeconds: [134, 890, 4320, 13500, 29400, 66600][index % 6], seller: "KitsuneMaster", bids: 4 + index, wishlist: index === 1, status: index === 2 ? "leading" : index === 5 ? "mine" : undefined,
 }));
 
-export function MarketPreview({ empty = false }: { empty?: boolean }) {
+export function MarketPreview({ empty = false, long = false }: { empty?: boolean; long?: boolean }) {
+  const previewActive = long ? active : active.slice(0, 12);
   const [watched, setWatched] = useState(() => new Set(active.filter(a => a.wishlist).map(a => a.id)));
   const withWatch = (items: AuctionPresentation[]) => items.map(a => ({ ...a, wishlist: watched.has(a.id) }));
-  const lists = empty ? { active: withWatch(active), mine: [], won: [], sold: [] } : { active: withWatch(active), mine: withWatch(active.slice(0, 2)).map((a, index) => ({ ...a, status: index ? "leading" as const : "mine" as const })), won: withWatch(active.slice(2, 4)).map(a => ({ ...a, status: "won" as const, finished: true })), sold: withWatch(active.slice(4, 10)).map((a, index) => ({ ...a, status: index % 2 ? "sold" as const : "unsold" as const, bids: index % 2 ? a.bids : 0, finished: true })) };
+  const lists = empty ? { active: withWatch(previewActive), mine: [], won: [], sold: [] } : { active: withWatch(previewActive), mine: withWatch(previewActive.slice(0, 2)).map((a, index) => ({ ...a, status: index ? "leading" as const : "mine" as const })), won: withWatch(previewActive.slice(2, 4)).map(a => ({ ...a, status: "won" as const, finished: true })), sold: withWatch(previewActive.slice(4, 10)).map((a, index) => ({ ...a, status: index % 2 ? "sold" as const : "unsold" as const, bids: index % 2 ? a.bids : 0, finished: true })) };
   return <MarketView lists={lists} activeSales={empty ? "0" : "2"} onToggleWatch={async id => setWatched(current => { const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next; })} />;
 }
 

@@ -72,9 +72,6 @@ export function MarketView({ lists, activeSales, onToggleWatch }: { lists?: Reco
   const [sort,setSort]=useState<"end"|"asc"|"desc">("end");
   const [category,setCategory]=useState("");
   const [filtersOpen,setFiltersOpen]=useState(false);
-  const sidebarRef=useRef<HTMLElement>(null);
-  // Publishes the sidebar height so its sticky top can let a tall sidebar scroll with the page until its end is visible.
-  useEffect(()=>{const el=sidebarRef.current;if(!el)return;const observer=new ResizeObserver(()=>el.style.setProperty("--market-sidebar-height",`${el.offsetHeight}px`));observer.observe(el);return()=>observer.disconnect();},[]);
   const matches=(a:AuctionPresentation)=>matchesCardSearch(query,[a.card.name,a.card.anime])&&(!rarity||a.card.rarity===rarity)&&(!category||a.card.category===category);
   const categories=[...new Set((section==="browse"?lists?.active:lists?.[mineTab])?.map(a=>a.card.category))].sort();
   const filtered=!!(query||rarity||category);
@@ -87,17 +84,19 @@ export function MarketView({ lists, activeSales, onToggleWatch }: { lists?: Reco
   const heading=!shown?"Chargement des enchères…":section==="browse"?`${shown.length.toLocaleString("fr-FR")} carte${plural} aux enchères`:`${shown.length.toLocaleString("fr-FR")} enchère${plural} ${mineTab==="mine"?"en cours":mineTab==="won"?`gagnée${plural}`:`terminée${plural}`}`;
   const filters=<>
     <div className="yk-filter-search"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><label className="sr-only" htmlFor="market-query">Rechercher dans le marché</label><input id="market-query" type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Rechercher…"/></div>
+    <div className="yk-market-filter-scroll">
     {section==="mine"&&<CatalogueFilterSection title="Statut">{([["mine","En cours"],["won","Gagnées"],["sold","Terminées"]] as const).map(([key,label])=><button type="button" key={key} className="yk-filter-option" aria-pressed={mineTab===key} onClick={()=>setMineTab(key)}><span className="yk-filter-check"/><span>{label}</span>{lists&&<strong>{lists[key].length}</strong>}</button>)}</CatalogueFilterSection>}
     <CatalogueFilterSection title="Rareté"><button type="button" className="yk-filter-option" aria-pressed={!rarity} onClick={()=>setRarity("")}><span className="yk-filter-check"/><span>Toutes</span></button>{catalogueRarities.map(r=><button type="button" key={r} className="yk-filter-option" aria-pressed={rarity===r} onClick={()=>setRarity(r)}><span className="yk-filter-check"/><CatalogueFilterIcon rarity={r}/><span className={catalogueRarityText[r]}>{r}</span></button>)}</CatalogueFilterSection>
     <CatalogueFilterSection title="Catégorie"><button type="button" className="yk-filter-option" aria-pressed={!category} onClick={()=>setCategory("")}><span className="yk-filter-check"/><span>Toutes les catégories</span></button>{categories.map(item=><button type="button" key={item} className="yk-filter-option" aria-pressed={category===item} onClick={()=>setCategory(item)}><span className="yk-filter-check"/><span>{item}</span></button>)}</CatalogueFilterSection>
     {section==="browse"&&<CatalogueFilterSection title="Trier par">{([["end","Fin imminente"],["asc","Prix croissant"],["desc","Prix décroissant"]] as const).map(([key,label])=><button type="button" key={key} className="yk-filter-option" aria-pressed={sort===key} onClick={()=>setSort(key)}><span className="yk-filter-check"/><span>{label}</span></button>)}<button type="button" className="yk-filter-option" disabled aria-describedby="market-popular-soon"><span className="yk-filter-check"/><span>Les + populaires</span><small id="market-popular-soon">Bientôt</small></button></CatalogueFilterSection>}
+    </div>
     <button type="button" className="yk-filter-reset" disabled={!(filtered||(section==="browse"&&sort!=="end"))} onClick={()=>{setQuery("");setRarity("");setCategory("");setSort("end");}}><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Réinitialiser les filtres</button>
   </>;
   return <section aria-label="Marché aux enchères" className="yk-market">
     <div className="yk-catalogue-heading"><div><p role="status" className="font-display text-xl">{heading}</p><p className="mt-1 text-xs text-ink-3">{filtered?"Résultats correspondant à vos filtres":section==="browse"?"Toutes les enchères en cours":"Tes ventes et tes mises"}</p></div></div>
     {filtersOpen&&<button type="button" className="yk-filter-backdrop" aria-label="Fermer les filtres" onClick={()=>setFiltersOpen(false)}/>}
     <div className="yk-collection-layout">
-    <aside ref={sidebarRef} id="market-filters" className={`yk-collection-sidebar yk-market-sidebar ${filtersOpen?"yk-sidebar-open":""}`} aria-label="Filtres du marché"><div className="yk-sidebar-mobile-head"><strong>Filtres</strong><button type="button" aria-label="Fermer les filtres" onClick={()=>setFiltersOpen(false)}>×</button></div>{filters}</aside>
+    <aside id="market-filters" className={`yk-collection-sidebar yk-market-sidebar ${filtersOpen?"yk-sidebar-open":""}`} aria-label="Filtres du marché"><div className="yk-sidebar-mobile-head"><strong>Filtres</strong><button type="button" aria-label="Fermer les filtres" onClick={()=>setFiltersOpen(false)}>×</button></div>{filters}</aside>
     <div className="yk-collection-main">
     <div className="yk-collection-toolbar yk-market-toolbar-band">
       <button type="button" className="yk-mobile-filter-trigger" aria-expanded={filtersOpen} aria-controls="market-filters" onClick={()=>setFiltersOpen(true)}><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filtres{filtered?<span>•</span>:null}</button>

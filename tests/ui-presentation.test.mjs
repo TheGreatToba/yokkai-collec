@@ -263,12 +263,17 @@ test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
   // One sidebar for both tabs; Mes enchères swaps the price sort for a Statut section.
   assert.match(source, /\{section==="mine"&&<CatalogueFilterSection title="Statut">/);
   assert.match(source, /\{section==="browse"&&<CatalogueFilterSection title="Trier par">/);
-  // Same layout as Collection/Catalogue: sidebar + band + grid; a tall sidebar sticks by its end, never scrolling on its own.
-  assert.match(source, /<div className="yk-collection-layout">\s*<aside ref=\{sidebarRef\} id="market-filters"/);
+  // Same layout as Collection/Catalogue, but the market sidebar is fixed and keeps reset outside its scrollable middle.
+  assert.match(source, /<div className="yk-collection-layout">\s*<aside id="market-filters"/);
+  assert.match(source, /className="yk-market-filter-scroll"/);
   assert.match(source, /className="yk-collection-toolbar yk-market-toolbar-band"/);
   const marketCss = readFileSync(path.join(root, "styles/market.css"), "utf8");
-  assert.match(marketCss, /\.yk-market-sidebar \{ top: min\(.*var\(--market-sidebar-height/);
-  assert.doesNotMatch(marketCss, /\.yk-market-sidebar \{[^}]*overflow-y: auto/);
+  assert.match(marketCss, /\.yk-market-sidebar \{ position: fixed;[^}]*bottom: var\(--layout-gutter-compact\)/);
+  assert.match(marketCss, /\.yk-market-filter-scroll \{[^}]*overflow-y: auto/);
+  assert.match(marketCss, /\.yk-market-sidebar > \.yk-filter-reset \{ flex: none/);
+  const uiCss = readFileSync(path.join(root, "styles/ui.css"), "utf8");
+  assert.match(uiCss, /animation: yk-page-enter [^;]* backwards;/);
+  assert.doesNotMatch(uiCss, /animation: yk-page-enter [^;]* both;/);
 });
 
 test("la recherche du marché filtre en mémoire par nom et franchise", () => {

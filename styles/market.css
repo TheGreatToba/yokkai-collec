@@ -11,11 +11,12 @@
 .yk-market-section[aria-selected="true"] { background: var(--color-veil); color: var(--color-ink); box-shadow: var(--shadow-chip); }
 .yk-market-section[aria-selected="true"] span { color: var(--color-karas); }
 .yk-market-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--layout-gutter-compact); margin: var(--layout-gutter) 0; padding: calc(var(--spacing) * 3); border: 1px solid var(--color-veil); border-radius: var(--radius-panel); background: color-mix(in srgb,var(--color-surface) 88%,transparent); }
-/* Same sticky sidebar as Collection/Catalogue. A sidebar taller than the viewport sticks by its end instead of its
-   top, so it scrolls with the page until fully seen, never on its own (height published by MarketView). */
+/* The market filters stay fixed in the viewport; only their middle section can scroll, so reset is always reachable. */
 @media (min-width: 761px) {
-  .yk-market-sidebar { top: min(calc(var(--topbar-height) + var(--layout-gutter-compact)), calc(100dvh - var(--market-sidebar-height, 0px) - var(--layout-gutter-compact))); }
+  .yk-market-sidebar { position: fixed; z-index: 20; top: calc(var(--topbar-height) + var(--layout-gutter-compact)); bottom: var(--layout-gutter-compact); display: flex; width: var(--collection-sidebar-width); flex-direction: column; overflow: hidden; }
 }
+.yk-market-filter-scroll { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.yk-market-sidebar > .yk-filter-reset { flex: none; background: color-mix(in srgb,var(--color-surface) 94%,transparent); }
 .yk-market-band-actions { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--spacing) * 3); margin-left: auto; }
 .yk-market-sidebar .yk-filter-option strong { grid-column: -2; justify-self: end; }
 .yk-market-tile { display: flex; min-width: 0; flex-direction: column; gap: calc(var(--spacing) * 2); container-type: inline-size; border-radius: var(--radius-card); transition: transform var(--duration-fast) var(--ease-standard),box-shadow var(--duration-fast) var(--ease-standard); }

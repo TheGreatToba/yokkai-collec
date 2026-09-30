@@ -5,7 +5,7 @@
 }
 :root { color-scheme: dark; --ease-yokkai: var(--ease-standard); }
 body { background: radial-gradient(1200px 600px at 50% -10%, var(--color-veil) 0%, transparent 60%), var(--color-night); color: var(--color-ink); font-family: var(--font-sans); }
-.yk-page-transition { min-height: 100%; animation: yk-page-enter var(--page-enter-duration) var(--ease-standard) var(--page-enter-delay) both; transform-origin: center top; }
+.yk-page-transition { min-height: 100%; animation: yk-page-enter var(--page-enter-duration) var(--ease-standard) var(--page-enter-delay) backwards; transform-origin: center top; }
 .yk-route-loading { width: 100%; max-width: var(--layout-content-max); margin-inline: auto; padding: 40px var(--layout-gutter); }
 button, input, select, textarea { font: inherit; }
 button:disabled { cursor: not-allowed; }
