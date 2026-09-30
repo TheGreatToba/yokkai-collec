@@ -10,6 +10,8 @@ const eslintConfig = defineConfig([
     // Supplied prototype runtime is reference material, not application code.
     "Yokkai Collec' UI design/**",
     "design_handoff_yokkai_collec/**",
+    // Local Claude worktrees are separate generated checkouts.
+    ".claude/worktrees/**",
     // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
