@@ -14,6 +14,7 @@
 /* The market filters stay fixed in the viewport; only their middle section can scroll, so reset is always reachable. */
 @media (min-width: 761px) {
   .yk-market-sidebar { position: fixed; z-index: 20; top: calc(var(--topbar-height) + var(--layout-gutter-compact)); bottom: var(--layout-gutter-compact); display: flex; width: var(--collection-sidebar-width); flex-direction: column; overflow: hidden; }
+  .yk-market .yk-collection-main { grid-column: 2; }
 }
 .yk-market-filter-scroll { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
 .yk-market-sidebar > .yk-filter-reset { flex: none; background: color-mix(in srgb,var(--color-surface) 94%,transparent); }
