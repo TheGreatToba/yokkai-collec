@@ -11,10 +11,6 @@
 .yk-market-section[aria-selected="true"] { background: var(--color-veil); color: var(--color-ink); box-shadow: var(--shadow-chip); }
 .yk-market-section[aria-selected="true"] span { color: var(--color-karas); }
 .yk-market-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--layout-gutter-compact); margin: var(--layout-gutter) 0; padding: calc(var(--spacing) * 3); border: 1px solid var(--color-veil); border-radius: var(--radius-panel); background: color-mix(in srgb,var(--color-surface) 88%,transparent); }
-/* The market filters start under the page heading and stay in their grid column while the results scroll. */
-@media (min-width: 761px) {
-  .yk-market-sidebar { position: sticky; top: calc(var(--topbar-height) + var(--layout-gutter-compact)); }
-}
 .yk-market-sidebar > .yk-filter-reset { background: color-mix(in srgb,var(--color-surface) 94%,transparent); }
 .yk-market-band-actions { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--spacing) * 3); margin-left: auto; }
 .yk-market-sidebar .yk-filter-option strong { grid-column: -2; justify-self: end; }

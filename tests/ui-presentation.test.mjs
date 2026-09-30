@@ -263,12 +263,12 @@ test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
   // One sidebar for both tabs; Mes enchères swaps the price sort for a Statut section.
   assert.match(source, /\{section==="mine"&&<CatalogueFilterSection title="Statut">/);
   assert.match(source, /\{section==="browse"&&<CatalogueFilterSection title="Trier par">/);
-  // Same layout as Collection/Catalogue: the sidebar starts below the heading without its own scroll area.
+  // Same layout as Collection/Catalogue: the sidebar stays in normal page flow without its own scroll area.
   assert.match(source, /<div className="yk-collection-layout">\s*<aside id="market-filters"/);
   assert.match(source, /className="yk-market-filter-scroll"/);
   assert.match(source, /className="yk-collection-toolbar yk-market-toolbar-band"/);
   const marketCss = readFileSync(path.join(root, "styles/market.css"), "utf8");
-  assert.match(marketCss, /\.yk-market-sidebar \{ position: sticky;[^}]*top: calc\(var\(--topbar-height\)/);
+  assert.doesNotMatch(marketCss, /\.yk-market-sidebar \{[^}]*position: (?:sticky|fixed)/);
   assert.doesNotMatch(marketCss, /\.yk-market-filter-scroll \{[^}]*overflow-y: auto/);
   assert.doesNotMatch(marketCss, /\.yk-market-sidebar \{[^}]*max-height:/);
 });
