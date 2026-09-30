@@ -357,6 +357,16 @@ test("l’inscription vérifie le pseudo après debounce sans remplacer la valid
   assert.match(actions, /export async function signUp[\s\S]*const pseudoAvailable = await checkPseudoAvailability\(supabase, input\.pseudo\)/);
 });
 
+test("le résumé d’un booster redirige vers la Collection et annule le délai sur les actions", () => {
+  const source = readFileSync(path.join(root, "components/boosters.tsx"), "utf8");
+  assert.match(source, /window\.setTimeout\(redirectToCollection, 3000\)/);
+  assert.match(source, /return cancelCollectionRedirect/);
+  assert.match(source, /navigateToCollection=\{\(\) => router\.push\("\/collection"\)\}/);
+  assert.match(source, /onClick=\{\(\) => \{ cancelCollectionRedirect\(\); onNext\(\); \}\}/);
+  assert.match(source, /href="\/collection" onClick=\{cancelCollectionRedirect\}/);
+  assert.match(source, /Redirection vers la Collection dans 3 secondes/);
+});
+
 test("les six types de notifications ont un texte et une redirection", () => {
   const source = readFileSync(path.join(root, "components/topbar.tsx"), "utf8");
   const model = readFileSync(path.join(root, "lib/data/notifications.ts"), "utf8");
