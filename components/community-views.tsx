@@ -16,6 +16,7 @@ import { ProfileExperience } from "@/components/profile";
 import { getCardDiscovery, getWishlist, toggleWishlist, type CardDiscovery, type WishlistCard } from "@/lib/data/wishlist";
 import { markNotificationRead } from "@/lib/data/notifications";
 import { useNotificationFeed } from "@/hooks/use-notification-feed";
+import { matchesCardSearch } from "@/lib/ui/card-search";
 
 export type CommunityScreen = "profile" | "friends" | "market" | "auction" | "trades" | "search" | "wishlist";
 const headings = { profile: ["Collectionneur", "Mon profil"], friends: ["Entre collectionneurs", "Mes amis"], market: ["La salle des ventes", "Marché"], auction: ["Marché · Enchère", "Détail de l’enchère"], trades: ["Entre collectionneurs", "Proposer un échange"], search: ["Toutes les cartes du jeu", "Catalogue"], wishlist: ["Les cartes convoitées", "Ma wishlist"] };
@@ -69,8 +70,7 @@ export function MarketView({ lists, activeSales, onToggleWatch }: { lists?: Reco
   const [query,setQuery]=useState("");
   const [rarity,setRarity]=useState<Rarity|"">("");
   const [sort,setSort]=useState<"end"|"asc"|"desc">("end");
-  const normalizedQuery=query.trim().toLocaleLowerCase("fr-FR");
-  const browse=lists?.active.filter(a=>(!normalizedQuery||[a.card.name,a.card.anime].some(value=>value?.toLocaleLowerCase("fr-FR").includes(normalizedQuery)))&&(!rarity||a.card.rarity===rarity)).slice().sort((a,b)=>sort==="asc"?a.amount-b.amount:sort==="desc"?b.amount-a.amount:a.remainingSeconds-b.remainingSeconds);
+  const browse=lists?.active.filter(a=>matchesCardSearch(query,[a.card.name,a.card.anime])&&(!rarity||a.card.rarity===rarity)).slice().sort((a,b)=>sort==="asc"?a.amount-b.amount:sort==="desc"?b.amount-a.amount:a.remainingSeconds-b.remainingSeconds);
   const mineCount=lists?lists.mine.length+lists.won.length+lists.sold.length:undefined;
   const empty=marketEmptyStates[mineTab];
   return <section aria-label="Marché aux enchères" className="yk-market">
@@ -132,11 +132,11 @@ export function ProfileView({joined,cards,isMe=true,identifier}: {name?:string;j
   return <ProfileExperience identifier={isMe?undefined:identifier} collection={cards} joined={joined}/>;
 }
 
-export function SearchView() {
+export function SearchView({loadPage=getCataloguePage,previewCategories}: {loadPage?:typeof getCataloguePage;previewCategories?:string[]}={}) {
   const [pageSize,setPageSize]=useState<number>(CARD_PAGE_SIZES[0]);
-  const [categories,setCategories]=useState<string[]>([]);const [query,setQuery]=useState("");const [category,setCategory]=useState("");const [rarity,setRarity]=useState<Rarity|"">("");const [page,setPage]=useState(1);const [selected,setSelected]=useState<Card|null>(null);const [detail,setDetail]=useState<CardDiscovery>();const [results,setResults]=useState<Card[]>([]);const [total,setTotal]=useState(0);const [searching,setSearching]=useState(true);const [searchError,setSearchError]=useState("");const [busy,setBusy]=useState(false);const [filtersOpen,setFiltersOpen]=useState(false);
-  useEffect(()=>{let active=true;void getGameInfo().then(info=>{if(active)setCategories(info.categories);},()=>{});return()=>{active=false;};},[]);
-  useEffect(()=>{let active=true;const timer=window.setTimeout(()=>void getCataloguePage({query,category,rarity,page,pageSize}).then(value=>{if(active){setResults(value.cards);setTotal(value.total);}},()=>{if(active)setSearchError("Le catalogue est momentanément indisponible.");}).finally(()=>{if(active)setSearching(false);}),250);return()=>{active=false;window.clearTimeout(timer);};},[query,category,rarity,page,pageSize]);
+  const [categories,setCategories]=useState<string[]>(previewCategories??[]);const [query,setQuery]=useState("");const [category,setCategory]=useState("");const [rarity,setRarity]=useState<Rarity|"">("");const [page,setPage]=useState(1);const [selected,setSelected]=useState<Card|null>(null);const [detail,setDetail]=useState<CardDiscovery>();const [results,setResults]=useState<Card[]>([]);const [total,setTotal]=useState(0);const [searching,setSearching]=useState(true);const [searchError,setSearchError]=useState("");const [busy,setBusy]=useState(false);const [filtersOpen,setFiltersOpen]=useState(false);
+  useEffect(()=>{if(previewCategories)return;let active=true;void getGameInfo().then(info=>{if(active)setCategories(info.categories);},()=>{});return()=>{active=false;};},[previewCategories]);
+  useEffect(()=>{let active=true;const timer=window.setTimeout(()=>void loadPage({query,category,rarity,page,pageSize}).then(value=>{if(active){setResults(value.cards);setTotal(value.total);}},()=>{if(active)setSearchError("Le catalogue est momentanément indisponible.");}).finally(()=>{if(active)setSearching(false);}),250);return()=>{active=false;window.clearTimeout(timer);};},[query,category,rarity,page,pageSize,loadPage]);
   const pageCount=Math.max(1,Math.ceil(total/pageSize));
   async function select(card:Card){setSelected(card);setDetail(undefined);setSearchError("");try{setDetail(await getCardDiscovery(card.id));}catch(e){setSearchError(e instanceof Error?e.message:"Détail indisponible.");}}
   async function toggle(){if(!selected||busy)return;setBusy(true);setSearchError("");try{const wishlisted=await toggleWishlist(selected.id);setDetail(current=>current?{...current,wishlisted}:current);}catch(e){setSearchError(e instanceof Error?e.message:"Action impossible.");}finally{setBusy(false);}}

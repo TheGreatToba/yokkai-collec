@@ -9,6 +9,7 @@ import { YokaiCard } from "@/components/yokai-card";
 import { CardShell } from "@/components/card-shell";
 import { CARD_PAGE_SIZES } from "@/lib/ui/pagination";
 import { COLLECTION_SORTS, isCollectionSort, sortCollection } from "@/lib/ui/collection-sort";
+import { matchesCardSearch } from "@/lib/ui/card-search";
 import { useCollectionSort } from "@/hooks/use-collection-sort";
 
 // Optional display metadata, separate from the existing business types.
@@ -73,8 +74,7 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const selected = cards.find(c => c.instanceId === selectedId);
   const selectedMeta = selected ? presentation[selected.instanceId] : undefined;
-  const normalizedQuery = query.trim().toLocaleLowerCase("fr-FR");
-  const filtered = sortCollection(cards.filter(c => (!normalizedQuery || [c.name,c.category,c.anime].some(value=>value?.toLocaleLowerCase("fr-FR").includes(normalizedQuery))) && (!category || c.category === category) && (!rarity || c.rarity === rarity) && (!shinyOnly || c.shiny)
+  const filtered = sortCollection(cards.filter(c => matchesCardSearch(query,[c.name,c.category,c.anime]) && (!category || c.category === category) && (!rarity || c.rarity === rarity) && (!shinyOnly || c.shiny)
       && (!folder || (folder === "unfiled" ? !c.folderId : c.folderId === folder))), sort);
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const activePage = Math.min(page, pageCount);

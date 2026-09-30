@@ -114,7 +114,7 @@ test("le catalogue reprend la sidebar sans notion de possession ni action de mas
   assert.match(catalogue, /CatalogueFilterSection title="Catégorie"/);
   assert.match(catalogue, /<CardShell><YokaiCard/);
   assert.match(catalogue, /CARD_PAGE_SIZES\.map/);
-  assert.match(catalogue, /getCataloguePage\(\{query,category,rarity,page,pageSize\}\)[^]*?\[query,category,rarity,page,pageSize\]/);
+  assert.match(catalogue, /loadPage\(\{query,category,rarity,page,pageSize\}\)[^]*?\[query,category,rarity,page,pageSize,loadPage\]/);
   assert.match(catalogue, /Possesseurs actuels/);
   assert.match(catalogue, /Ajouter à ma wishlist/);
   assert.doesNotMatch(catalogue, /Dossier|Sélection multiple|Obtenue le|possédée/);
@@ -255,12 +255,26 @@ test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
 test("la recherche du marché filtre en mémoire par nom et franchise", () => {
   const source = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
   assert.match(source, /const \[query,setQuery\]=useState\(""\)/);
-  assert.match(source, /\[a\.card\.name,a\.card\.anime\]/);
-  assert.match(source, /toLocaleLowerCase\("fr-FR"\)\.includes\(normalizedQuery\)/);
+  assert.match(source, /matchesCardSearch\(query,\[a\.card\.name,a\.card\.anime\]\)/);
   assert.match(source, /&&\(!rarity\|\|a\.card\.rarity===rarity\)/);
   assert.match(source, /id="market-query" type="search" value=\{query\}/);
   assert.match(source, /Aucune enchère ne correspond à votre recherche et vos filtres/);
   assert.ok(existsSync(path.join(root, "app/design-system/market-search-preview/page.tsx")));
+});
+
+test("la recherche multi-termes partage une sémantique ET entre Collection, Catalogue et Marché", () => {
+  const { cardSearchTerms, matchesCardSearch } = load("lib/ui/card-search.ts");
+  assert.deepEqual([...cardSearchTerms("  LUFFY, One PIECE ")], ["luffy", "one", "piece"]);
+  assert.equal(matchesCardSearch("one piece luffy", ["Monkey D. Luffy", "One Piece"]), true);
+  assert.equal(matchesCardSearch("LUFFY ONE PIECE", ["Monkey D. Luffy", "One Piece"]), true);
+  assert.equal(matchesCardSearch("one piece naruto", ["Monkey D. Luffy", "One Piece"]), false);
+  const collection = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
+  const community = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
+  const cards = readFileSync(path.join(root, "lib/data/cards.ts"), "utf8");
+  assert.match(collection, /matchesCardSearch\(query,\[c\.name,c\.category,c\.anime\]\)/);
+  assert.match(community, /matchesCardSearch\(query,\[a\.card\.name,a\.card\.anime\]\)/);
+  assert.match(cards, /for \(const term of cardSearchTerms\(query\)\) request = request\.or/);
+  assert.ok(existsSync(path.join(root, "app/design-system/multi-term-search-preview/page.tsx")));
 });
 
 test("Phase 6 : détail d'enchère, solde, minute ajoutée, historique et issues", () => {
