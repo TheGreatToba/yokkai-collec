@@ -12,6 +12,10 @@
 .yk-market-section[aria-selected="true"] { background: var(--color-veil); color: var(--color-ink); box-shadow: var(--shadow-chip); }
 .yk-market-section[aria-selected="true"] span { color: var(--color-karas); }
 .yk-market-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--layout-gutter-compact); margin: var(--layout-gutter) 0; padding: calc(var(--spacing) * 3); border: 1px solid var(--color-veil); border-radius: var(--radius-panel); background: color-mix(in srgb,var(--color-surface) 88%,transparent); }
+.yk-market-search { display: grid; grid-template-columns: auto minmax(0,1fr); align-items: center; gap: calc(var(--spacing) * 2); width: min(100%,22rem); min-height: 40px; padding: 0 calc(var(--spacing) * 3); border: 1px solid var(--color-veil); border-radius: var(--radius-input); background: var(--color-night); color: var(--color-ink-3); }
+.yk-market-search:focus-within { border-color: var(--color-focus); box-shadow: var(--shadow-focus); }
+.yk-market-search input { min-width: 0; border: 0; outline: 0; background: transparent; color: var(--color-ink); font-size: 13px; }
+.yk-market-search input::placeholder { color: var(--color-ink-3); }
 .yk-market-sort { display: flex; align-items: center; gap: calc(var(--spacing) * 2); color: var(--color-ink-3); font-size: 12px; white-space: nowrap; }
 .yk-market-sort select { min-height: 40px; padding: 0 calc(var(--spacing) * 3); border: 1px solid var(--color-veil); border-radius: var(--radius-input); background: var(--color-night); color: var(--color-ink); font-size: 13px; }
 .yk-market-tile { display: flex; min-width: 0; flex-direction: column; gap: calc(var(--spacing) * 2); container-type: inline-size; }

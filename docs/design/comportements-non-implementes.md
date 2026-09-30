@@ -64,7 +64,6 @@ Défauts constatés pendant la refonte mais volontairement non corrigés dans le
 | Annoncer le montant de Karas dans la modale de confirmation du Booster Décisif ; le montant n’est connu qu’après `keepDecisionPackCard` | Phase 5 · Boosters, `docs/groupe-2-boosters.md` |
 | Révéler en touchant directement chacune des 5 cartes de la rangée ; la révélation passe aujourd’hui par le paquet, qui porte le flip et les reveals SR/SSR/LR figés | Phase 5 · Boosters |
 | Trier le Marché par « Les plus populaires » ; nécessite une mesure de popularité (suivis, vues) exposée par `list_auctions` | Phase 6 · Marché, `docs/groupe-3-marche.md` |
-| Rechercher une carte dans le Marché ; nécessite un paramètre de recherche côté `list_auctions` (ou un filtre client sur la liste déjà chargée, à valider) | Phase 6 · Marché, `docs/groupe-3-marche.md` |
 | Proposer « Obtenir des Karas » à côté de l’alerte de solde insuffisant ; aucun moyen d’acquérir des Karas n’existe en dehors du jeu | Phase 6 · Marché, `docs/groupe-3-marche.md` |
 | Suggérer un prix de départ recommandé dans la modale de vente ; nécessite une valeur de marché par carte | Phase 6 · Marché, `docs/groupe-3-marche.md` |
 | Lancer des confettis ou un flash sur la ligne d’historique lors d’une nouvelle mise | Phase 6 · Marché, `docs/groupe-3-marche.md` |

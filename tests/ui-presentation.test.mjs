@@ -252,6 +252,17 @@ test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
   assert.doesNotMatch(source, /"Vendues"/);
 });
 
+test("la recherche du marché filtre en mémoire par nom et franchise", () => {
+  const source = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
+  assert.match(source, /const \[query,setQuery\]=useState\(""\)/);
+  assert.match(source, /\[a\.card\.name,a\.card\.anime\]/);
+  assert.match(source, /toLocaleLowerCase\("fr-FR"\)\.includes\(normalizedQuery\)/);
+  assert.match(source, /&&\(!rarity\|\|a\.card\.rarity===rarity\)/);
+  assert.match(source, /id="market-query" type="search" value=\{query\}/);
+  assert.match(source, /Aucune enchère ne correspond à votre recherche et vos filtres/);
+  assert.ok(existsSync(path.join(root, "app/design-system/market-search-preview/page.tsx")));
+});
+
 test("Phase 6 : détail d'enchère, solde, minute ajoutée, historique et issues", () => {
   const { AuctionView, presentAuction } = load("components/community-views.tsx");
   const base = { id: "a", card: { ...card, anime: "Spirit Realm" }, amount: 120, remaining: "00:04:00", remainingSeconds: 240, seller: "Kitsune", bids: 2, nextBid: 130, minimumBid: 130, balance: 100, extended: true,
