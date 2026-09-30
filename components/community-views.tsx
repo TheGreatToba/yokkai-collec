@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { animation } from "@/lib/ui/animations";
 import { getCataloguePage, getGameInfo, getUserCollection, type Card, type CollectedCard, type Rarity } from "@/lib/data/cards";
 import { notificationItem, Topbar } from "@/components/topbar";
-import { Avatar, Button, Chip, Karas, Modal, Pagination, StatusPill } from "@/components/ui";
+import { Avatar, Button, Karas, Modal, Pagination, StatusPill } from "@/components/ui";
 import { YokaiCard } from "@/components/yokai-card";
 import { CardShell } from "@/components/card-shell";
 import { CARD_PAGE_SIZES } from "@/lib/ui/pagination";
@@ -67,21 +67,46 @@ export function MarketView({ lists, activeSales, onToggleWatch }: { lists?: Reco
   const [mineTab,setMineTab]=useState<"mine"|"won"|"sold">("mine");
   const [rarity,setRarity]=useState<Rarity|"">("");
   const [sort,setSort]=useState<"end"|"asc"|"desc">("end");
-  const browse=lists?.active.filter(a=>!rarity||a.card.rarity===rarity).slice().sort((a,b)=>sort==="asc"?a.amount-b.amount:sort==="desc"?b.amount-a.amount:a.remainingSeconds-b.remainingSeconds);
+  const [query,setQuery]=useState("");
+  const [category,setCategory]=useState("");
+  const [filtersOpen,setFiltersOpen]=useState(false);
+  const sidebarRef=useRef<HTMLElement>(null);
+  // Publishes the sidebar height so its sticky top can let a tall sidebar scroll with the page until its end is visible.
+  useEffect(()=>{const el=sidebarRef.current;if(!el)return;const observer=new ResizeObserver(()=>el.style.setProperty("--market-sidebar-height",`${el.offsetHeight}px`));observer.observe(el);return()=>observer.disconnect();},[]);
+  // Every word must appear in the name or franchise, so "one piece luffy" matches Luffy · One Piece.
+  const terms=query.toLocaleLowerCase("fr-FR").split(/\s+/).filter(Boolean);
+  const matches=(a:AuctionPresentation)=>{const haystack=`${a.card.name} ${a.card.anime??""}`.toLocaleLowerCase("fr-FR");return terms.every(term=>haystack.includes(term))&&(!rarity||a.card.rarity===rarity)&&(!category||a.card.category===category);};
+  const categories=[...new Set((section==="browse"?lists?.active:lists?.[mineTab])?.map(a=>a.card.category))].sort();
+  const filtered=!!(query||rarity||category);
+  const browse=lists?.active.filter(matches).sort((a,b)=>sort==="asc"?a.amount-b.amount:sort==="desc"?b.amount-a.amount:a.remainingSeconds-b.remainingSeconds);
+  const mine=lists?.[mineTab].filter(matches);
   const mineCount=lists?lists.mine.length+lists.won.length+lists.sold.length:undefined;
   const empty=marketEmptyStates[mineTab];
+  const shown=section==="browse"?browse:mine;
+  const plural=(shown?.length??0)>1?"s":"";
+  const heading=!shown?"Chargement des enchères…":section==="browse"?`${shown.length.toLocaleString("fr-FR")} carte${plural} aux enchères`:`${shown.length.toLocaleString("fr-FR")} enchère${plural} ${mineTab==="mine"?"en cours":mineTab==="won"?`gagnée${plural}`:`terminée${plural}`}`;
+  const filters=<>
+    <div className="yk-filter-search"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><label className="sr-only" htmlFor="market-query">Rechercher dans le marché</label><input id="market-query" type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Rechercher…"/></div>
+    {section==="mine"&&<CatalogueFilterSection title="Statut">{([["mine","En cours"],["won","Gagnées"],["sold","Terminées"]] as const).map(([key,label])=><button type="button" key={key} className="yk-filter-option" aria-pressed={mineTab===key} onClick={()=>setMineTab(key)}><span className="yk-filter-check"/><span>{label}</span>{lists&&<strong>{lists[key].length}</strong>}</button>)}</CatalogueFilterSection>}
+    <CatalogueFilterSection title="Rareté"><button type="button" className="yk-filter-option" aria-pressed={!rarity} onClick={()=>setRarity("")}><span className="yk-filter-check"/><span>Toutes</span></button>{catalogueRarities.map(r=><button type="button" key={r} className="yk-filter-option" aria-pressed={rarity===r} onClick={()=>setRarity(r)}><span className="yk-filter-check"/><CatalogueFilterIcon rarity={r}/><span className={catalogueRarityText[r]}>{r}</span></button>)}</CatalogueFilterSection>
+    <CatalogueFilterSection title="Catégorie"><button type="button" className="yk-filter-option" aria-pressed={!category} onClick={()=>setCategory("")}><span className="yk-filter-check"/><span>Toutes les catégories</span></button>{categories.map(item=><button type="button" key={item} className="yk-filter-option" aria-pressed={category===item} onClick={()=>setCategory(item)}><span className="yk-filter-check"/><span>{item}</span></button>)}</CatalogueFilterSection>
+    {section==="browse"&&<CatalogueFilterSection title="Trier par">{([["end","Fin imminente"],["asc","Prix croissant"],["desc","Prix décroissant"]] as const).map(([key,label])=><button type="button" key={key} className="yk-filter-option" aria-pressed={sort===key} onClick={()=>setSort(key)}><span className="yk-filter-check"/><span>{label}</span></button>)}<button type="button" className="yk-filter-option" disabled aria-describedby="market-popular-soon"><span className="yk-filter-check"/><span>Les + populaires</span><small id="market-popular-soon">Bientôt</small></button></CatalogueFilterSection>}
+    <button type="button" className="yk-filter-reset" disabled={!(filtered||(section==="browse"&&sort!=="end"))} onClick={()=>{setQuery("");setRarity("");setCategory("");setSort("end");}}><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Réinitialiser les filtres</button>
+  </>;
   return <section aria-label="Marché aux enchères" className="yk-market">
-    <div className="yk-market-head">
-      <div className="yk-market-sections" role="tablist" aria-label="Sections du marché">{([["browse","Enchères",lists?.active.length],["mine","Mes enchères",mineCount]] as const).map(([key,label,count])=><button key={key} type="button" role="tab" aria-selected={section===key} className="yk-market-section" onClick={()=>setSection(key)}>{label}{count!=null&&<span>{count}</span>}</button>)}</div>
-      <div className="flex flex-wrap items-center gap-3"><StatusPill>Mes ventes actives · {activeSales??"—"}</StatusPill><Link href="/collection" className="yk-button yk-button-secondary">+ Vendre une carte</Link></div>
+    <div className="yk-catalogue-heading"><div><p role="status" className="font-display text-xl">{heading}</p><p className="mt-1 text-xs text-ink-3">{filtered?"Résultats correspondant à vos filtres":section==="browse"?"Toutes les enchères en cours":"Tes ventes et tes mises"}</p></div></div>
+    {filtersOpen&&<button type="button" className="yk-filter-backdrop" aria-label="Fermer les filtres" onClick={()=>setFiltersOpen(false)}/>}
+    <div className="yk-collection-layout">
+    <aside ref={sidebarRef} id="market-filters" className={`yk-collection-sidebar yk-market-sidebar ${filtersOpen?"yk-sidebar-open":""}`} aria-label="Filtres du marché"><div className="yk-sidebar-mobile-head"><strong>Filtres</strong><button type="button" aria-label="Fermer les filtres" onClick={()=>setFiltersOpen(false)}>×</button></div>{filters}</aside>
+    <div className="yk-collection-main">
+    <div className="yk-collection-toolbar yk-market-toolbar-band">
+      <button type="button" className="yk-mobile-filter-trigger" aria-expanded={filtersOpen} aria-controls="market-filters" onClick={()=>setFiltersOpen(true)}><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filtres{filtered?<span>•</span>:null}</button>
+      <div className="yk-market-sections" role="tablist" aria-label="Sections du marché">{([["browse","Enchères",lists?.active.length],["mine","Mes enchères",mineCount]] as const).map(([key,label,count])=><button key={key} type="button" role="tab" aria-selected={section===key} className="yk-market-section" onClick={()=>{setSection(key);setCategory("");}}>{label}{count!=null&&<span>{count}</span>}</button>)}</div>
+      <div className="yk-market-band-actions"><StatusPill>Mes ventes actives · {activeSales??"—"}</StatusPill><Link href="/collection" className="yk-button yk-button-secondary">+ Vendre une carte</Link></div>
     </div>
-    {section==="browse"?<>
-      <div className="yk-market-toolbar"><div className="flex flex-wrap gap-2" role="group" aria-label="Filtrer par rareté"><Chip active={!rarity} onClick={()=>setRarity("")}>Toutes</Chip>{catalogueRarities.map(r=><Chip key={r} active={rarity===r} onClick={()=>setRarity(r)}><span className={catalogueRarityText[r]}>{r}</span></Chip>)}</div><label className="yk-market-sort"><span>Trier par</span><select value={sort} onChange={e=>setSort(e.target.value as "end"|"asc"|"desc")}><option value="end">Fin imminente</option><option value="asc">Prix croissant</option><option value="desc">Prix décroissant</option></select></label></div>
-      {!browse?<Unavailable>Chargement des enchères…</Unavailable>:!browse.length?<Unavailable>{rarity?"Aucune enchère ne correspond à cette rareté.":"Aucune enchère en cours pour le moment."}</Unavailable>:<ul className="yk-card-grid yk-market-list" aria-label="Enchères en cours">{browse.map(a=><AuctionTile key={a.id} auction={a} onToggleWatch={onToggleWatch}/>)}</ul>}
-    </>:<>
-      <div className="yk-market-toolbar"><div className="flex flex-wrap gap-2" role="group" aria-label="Mes enchères">{([["mine","En cours"],["won","Gagnées"],["sold","Terminées"]] as const).map(([key,label])=><Chip key={key} active={mineTab===key} onClick={()=>setMineTab(key)}>{label}{lists&&<span className="text-ink-3">{lists[key].length}</span>}</Chip>)}</div></div>
-      {!lists?<Unavailable>Chargement de tes enchères…</Unavailable>:!lists[mineTab].length?<div role="status" className="yk-empty-state"><span aria-hidden="true" className="font-display text-3xl text-accent-gold">✦</span><p className="mt-4 font-display text-lg">{empty.title}</p><p className="mt-2 max-w-md text-sm leading-6 text-ink-2">{empty.text}</p>{mineTab==="sold"?<Link href="/collection" className="yk-button yk-button-secondary mt-6">{empty.action}</Link>:<Button variant="secondary" className="mt-6" onClick={()=>{setSection("browse");setSort("end");}}>{empty.action}</Button>}</div>:<ul className="yk-card-grid yk-market-list" aria-label={`Mes enchères · ${empty.action}`}>{lists[mineTab].map(a=><AuctionTile key={a.id} auction={a} onToggleWatch={onToggleWatch}/>)}</ul>}
-    </>}
+    {section==="browse"?(!browse?<Unavailable>Chargement des enchères…</Unavailable>:!browse.length?<Unavailable>{filtered?"Aucune enchère ne correspond à votre recherche et vos filtres.":"Aucune enchère en cours pour le moment."}</Unavailable>:<ul className="yk-card-grid yk-market-list" aria-label="Enchères en cours">{browse.map(a=><AuctionTile key={a.id} auction={a} onToggleWatch={onToggleWatch}/>)}</ul>)
+    :!lists||!mine?<Unavailable>Chargement de tes enchères…</Unavailable>:!lists[mineTab].length?<div role="status" className="yk-empty-state"><span aria-hidden="true" className="font-display text-3xl text-accent-gold">✦</span><p className="mt-4 font-display text-lg">{empty.title}</p><p className="mt-2 max-w-md text-sm leading-6 text-ink-2">{empty.text}</p>{mineTab==="sold"?<Link href="/collection" className="yk-button yk-button-secondary mt-6">{empty.action}</Link>:<Button variant="secondary" className="mt-6" onClick={()=>{setSection("browse");setSort("end");}}>{empty.action}</Button>}</div>:!mine.length?<Unavailable>Aucune enchère ne correspond à votre recherche et vos filtres.</Unavailable>:<ul className="yk-card-grid yk-market-list" aria-label={`Mes enchères · ${empty.action}`}>{mine.map(a=><AuctionTile key={a.id} auction={a} onToggleWatch={onToggleWatch}/>)}</ul>}
+    </div></div>
   </section>;
 }
 function AuctionOutcome({ auction }: { auction: AuctionPresentation }) {

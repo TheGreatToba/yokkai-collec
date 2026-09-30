@@ -245,11 +245,30 @@ test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
   assert.match(html, /aria-pressed="true"[^>]*aria-label="Ne plus suivre cette enchère"[^>]*>.*?<span class="yk-watch-label">Suivi<\/span>/);
   assert.match(html, /aria-pressed="false"[^>]*aria-label="Suivre cette enchère"[^>]*>.*?<span class="yk-watch-label">Suivre<\/span>/);
   assert.match(html, /yk-market-timer yk-urgency-critical/);
-  assert.match(html, /<option value="asc">Prix croissant<\/option><option value="desc">Prix décroissant<\/option>/);
+  assert.match(html, /<aside id="market-filters" class="yk-collection-sidebar /);
+  assert.match(html, /id="market-query" type="search"/);
+  assert.match(html, /aria-pressed="true"><span class="yk-filter-check"><\/span><span>Fin imminente<\/span>/);
+  assert.match(html, /<span>Prix croissant<\/span>.*<span>Prix décroissant<\/span>/);
+  assert.match(html, /aria-controls="market-filters"/);
+  const search = render(MarketView, { lists: { ...lists, active: [auction("l", { card: { ...card, id: "l", name: "Luffy", anime: "One Piece", category: "Manga" } }), auction("z", { card: { ...card, id: "z", name: "Zoro", anime: "One Piece", category: "Manga" } })] } });
+  assert.match(search, /2 cartes aux enchères/);
+  assert.match(search, /<span>Manga<\/span>/);
+  assert.match(html, /disabled="" aria-describedby="market-popular-soon"><span class="yk-filter-check"><\/span><span>Les \+ populaires<\/span>/);
   assert.match(html, />Mes enchères</);
   const source = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
+  assert.ok(source.includes("split(/\\s+/)"));
+  assert.match(source, /terms\.every\(term=>haystack\.includes\(term\)\)/);
   assert.match(source, /\[\["mine","En cours"\],\["won","Gagnées"\],\["sold","Terminées"\]\]/);
   assert.doesNotMatch(source, /"Vendues"/);
+  // One sidebar for both tabs; Mes enchères swaps the price sort for a Statut section.
+  assert.match(source, /\{section==="mine"&&<CatalogueFilterSection title="Statut">/);
+  assert.match(source, /\{section==="browse"&&<CatalogueFilterSection title="Trier par">/);
+  // Same layout as Collection/Catalogue: sidebar + band + grid; a tall sidebar sticks by its end, never scrolling on its own.
+  assert.match(source, /<div className="yk-collection-layout">\s*<aside ref=\{sidebarRef\} id="market-filters"/);
+  assert.match(source, /className="yk-collection-toolbar yk-market-toolbar-band"/);
+  const marketCss = readFileSync(path.join(root, "styles/market.css"), "utf8");
+  assert.match(marketCss, /\.yk-market-sidebar \{ top: min\(.*var\(--market-sidebar-height/);
+  assert.doesNotMatch(marketCss, /\.yk-market-sidebar \{[^}]*overflow-y: auto/);
 });
 
 test("Phase 6 : détail d'enchère, solde, minute ajoutée, historique et issues", () => {

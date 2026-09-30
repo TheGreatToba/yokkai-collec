@@ -4,7 +4,6 @@
 
 /* List & Mes enchères */
 .yk-market { margin-top: calc(var(--spacing) * 2); }
-.yk-market-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--layout-gutter-compact); padding-bottom: var(--layout-gutter-compact); border-bottom: 1px solid var(--color-veil); }
 .yk-market-sections { display: inline-flex; gap: calc(var(--spacing) * 1); padding: calc(var(--spacing) * 1); border: 1px solid var(--color-veil); border-radius: var(--radius-pill); background: var(--color-surface); }
 .yk-market-section { display: inline-flex; align-items: center; gap: calc(var(--spacing) * 2); min-height: 40px; padding: 0 calc(var(--spacing) * 4); border-radius: var(--radius-pill); color: var(--color-ink-2); font-size: 13px; font-weight: 600; transition: background var(--duration-fast) var(--ease-standard),color var(--duration-fast) var(--ease-standard),box-shadow var(--duration-fast) var(--ease-standard); }
 .yk-market-section span { color: var(--color-ink-3); font-variant-numeric: tabular-nums; }
@@ -12,9 +11,17 @@
 .yk-market-section[aria-selected="true"] { background: var(--color-veil); color: var(--color-ink); box-shadow: var(--shadow-chip); }
 .yk-market-section[aria-selected="true"] span { color: var(--color-karas); }
 .yk-market-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--layout-gutter-compact); margin: var(--layout-gutter) 0; padding: calc(var(--spacing) * 3); border: 1px solid var(--color-veil); border-radius: var(--radius-panel); background: color-mix(in srgb,var(--color-surface) 88%,transparent); }
-.yk-market-sort { display: flex; align-items: center; gap: calc(var(--spacing) * 2); color: var(--color-ink-3); font-size: 12px; white-space: nowrap; }
-.yk-market-sort select { min-height: 40px; padding: 0 calc(var(--spacing) * 3); border: 1px solid var(--color-veil); border-radius: var(--radius-input); background: var(--color-night); color: var(--color-ink); font-size: 13px; }
-.yk-market-tile { display: flex; min-width: 0; flex-direction: column; gap: calc(var(--spacing) * 2); container-type: inline-size; }
+/* Same sticky sidebar as Collection/Catalogue. A sidebar taller than the viewport sticks by its end instead of its
+   top, so it scrolls with the page until fully seen, never on its own (height published by MarketView). */
+@media (min-width: 761px) {
+  .yk-market-sidebar { top: min(calc(var(--topbar-height) + var(--layout-gutter-compact)), calc(100dvh - var(--market-sidebar-height, 0px) - var(--layout-gutter-compact))); }
+}
+.yk-market-band-actions { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--spacing) * 3); margin-left: auto; }
+.yk-market-sidebar .yk-filter-option strong { grid-column: -2; justify-self: end; }
+.yk-market-tile { display: flex; min-width: 0; flex-direction: column; gap: calc(var(--spacing) * 2); container-type: inline-size; border-radius: var(--radius-card); transition: transform var(--duration-fast) var(--ease-standard),box-shadow var(--duration-fast) var(--ease-standard); }
+/* The lift belongs to the auction wrapper; the YokaiCard face inside stays frozen. */
+@media (hover:hover) and (pointer:fine) { .yk-market-tile:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); } }
+@media (prefers-reduced-motion: reduce) { .yk-market-tile:hover { transform: none; } }
 .yk-market-tile-link { display: block; min-width: 0; border-radius: var(--radius-card); }
 .yk-market-tile-meta { display: grid; gap: calc(var(--spacing) * 1.5); margin-top: calc(var(--spacing) * 3); }
 /* Timer · status · price on one line when the tile is wide enough; the status drops below on narrow tiles. */
@@ -88,10 +95,13 @@
 @keyframes yk-extension-flash { from { opacity: 0; transform: translateY(-4px); box-shadow: 0 0 0 0 var(--color-karas); } to { opacity: 1; transform: none; box-shadow: none; } }
 
 @media (max-width: 760px) {
-  .yk-market-head { align-items: stretch; }
   .yk-market-sections { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+  /* Band on mobile: [Enchères | Mes enchères] / [Filtres][+ Vendre une carte] / active sales. */
+  .yk-market-toolbar-band .yk-market-sections { width: 100%; }
+  .yk-market-band-actions { display: contents; }
+  .yk-market-band-actions .yk-button { order: 2; }
+  .yk-market-band-actions > :first-child { order: 3; }
   .yk-market-section { justify-content: center; }
-  .yk-market-sort { width: 100%; justify-content: space-between; }
   .yk-auction-page { grid-template-columns: minmax(0,1fr); grid-template-areas: "art" "main" "history"; margin-top: var(--layout-gutter-compact); }
   .yk-auction-art { width: min(100%,var(--market-art-width-mobile)); margin-inline: auto; }
   /* Mobile: the watch control collapses to a heart next to the title. */
