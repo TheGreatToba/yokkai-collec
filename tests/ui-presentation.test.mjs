@@ -310,3 +310,24 @@ test("les notifications se relisent à l'ouverture du panneau et au retour sur l
   for (const source of [topbar, community]) assert.doesNotMatch(source, /getNotifications\(\)/);
   assert.ok(existsSync(path.join(root, "app/design-system/notification-refresh-preview/page.tsx")));
 });
+
+test("tri de la Collection : rareté par défaut, dates, nom français et ordre stable", () => {
+  const { sortCollection, COLLECTION_SORTS, DEFAULT_COLLECTION_SORT, isCollectionSort } = load("lib/ui/collection-sort.ts");
+  const make = (instanceId, name, rarity, shiny, obtainedAt) => ({ ...card, instanceId, name, rarity, shiny, obtainedAt });
+  const cards = [make("a", "Écho", "SR", false, "2026-03-01T10:00:00Z"), make("b", "akira", "LR", false, "2026-01-15T10:00:00Z"), make("c", "Zorro", "SSR", true, "2026-05-10T10:00:00Z"), make("d", "Mochi", "SSR", false, "2026-05-10T10:00:00Z"), make("e", "Bashō", "C", false, "2026-07-01T10:00:00Z"), make("f", "Kitsune", "R", true, "2025-12-31T10:00:00Z")];
+  const names = sort => sortCollection(cards, sort).map(item => item.name).join(",");
+  assert.equal(DEFAULT_COLLECTION_SORT, "rarity");
+  assert.equal(COLLECTION_SORTS.map(option => option.label).join(" | "), "Rareté | Plus récentes | Plus anciennes | Nom (A → Z)");
+  assert.equal(names("rarity"), "akira,Zorro,Mochi,Écho,Kitsune,Bashō");
+  assert.equal(names("recent"), "Bashō,Zorro,Mochi,Écho,akira,Kitsune");
+  assert.equal(names("oldest"), "Kitsune,akira,Écho,Zorro,Mochi,Bashō");
+  assert.equal(names("name"), "akira,Bashō,Écho,Kitsune,Mochi,Zorro");
+  assert.equal(cards[0].name, "Écho", "le tri ne modifie pas le tableau reçu");
+  const twins = [make("z", "Double", "C", false, "2026-01-01T00:00:00Z"), make("y", "Double", "C", false, "2026-01-01T00:00:00Z")];
+  assert.equal(sortCollection(twins, "name").map(item => item.instanceId).join(), "y,z");
+  assert.ok(isCollectionSort("oldest")); assert.ok(!isCollectionSort("franchise")); assert.ok(!isCollectionSort(null));
+  const source = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
+  assert.match(source, /sortCollection\(cards\.filter\(/);
+  assert.match(source, /setSort\(e\.target\.value\);setPage\(1\);/);
+  assert.doesNotMatch(source, /yk-sort-placeholder|Tri non disponible/);
+});
