@@ -341,6 +341,22 @@ test("Phase 6 : la mise en vente confirme le verrouillage et signale la réiniti
   assert.match(source, /useState\("10"\)/);
 });
 
+test("l’inscription vérifie le pseudo après debounce sans remplacer la validation de soumission", () => {
+  const form = readFileSync(path.join(root, "components/auth-form.tsx"), "utf8");
+  assert.match(form, /window\.setTimeout\(async \(\) => \{/);
+  assert.match(form, /\}, 450\)/);
+  assert.match(form, /pseudoValidationError\(pseudo\.trim\(\)\)/);
+  assert.match(form, /pseudoRequest\.current \+= 1/);
+  assert.match(form, /if \(pseudoRequest\.current !== request\) return/);
+  assert.match(form, /Disponible/);
+  assert.match(form, /Déjà pris/);
+  assert.doesNotMatch(form, /disabled=\{[^}]*pseudoAvailability/);
+  const actions = readFileSync(path.join(root, "app/auth/actions.ts"), "utf8");
+  assert.match(actions, /export async function checkPseudoAvailabilityWhileTyping/);
+  assert.match(actions, /return await checkPseudoAvailability\(supabase, cleanPseudo\)/);
+  assert.match(actions, /export async function signUp[\s\S]*const pseudoAvailable = await checkPseudoAvailability\(supabase, input\.pseudo\)/);
+});
+
 test("les six types de notifications ont un texte et une redirection", () => {
   const source = readFileSync(path.join(root, "components/topbar.tsx"), "utf8");
   const model = readFileSync(path.join(root, "lib/data/notifications.ts"), "utf8");

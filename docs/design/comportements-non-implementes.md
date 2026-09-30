@@ -51,7 +51,7 @@ Défauts constatés pendant la refonte mais volontairement non corrigés dans le
 | Faire voler les cartes conservées vers la navigation et désintégrer les autres | `docs/groupe-2-boosters.md` |
 | Convertir automatiquement les quatre cartes non retenues du booster décisif en Karas | `docs/groupe-2-boosters.md` |
 | Mettre à jour en temps réel le chrono, l’historique et les offres d’une enchère | `docs/groupe-3-marche.md` |
-| Valider dynamiquement la disponibilité du pseudo avec un debounce de 300 ms | `docs/groupe-6-landingpage.md` |
+| Valider dynamiquement la disponibilité du pseudo avec un debounce | **Implémenté dans `feat/simple-wiring-2`** : vérification informative après 450 ms, uniquement pour un pseudo localement valide, avec abandon des réponses obsolètes. La validation définitive de `signUp` reste inchangée. Preuve : `/design-system/pseudo-availability-preview`. |
 | Rediriger après inscription et déclencher automatiquement un toast de bienvenue | `docs/groupe-6-landingpage.md` |
 | Rafraîchir silencieusement inventaire, solde et notifications après les actions | `docs/groupe-3-marche.md`, `docs/groupe-5-succes-wishlist-notifs.md` |
 | Créditer, débiter ou animer un roll-up de Karas à partir des scénarios de maquette | `docs/design_system.md`, `docs/groupe-1-collection-catalogue.md`, `docs/groupe-2-boosters.md`, `docs/groupe-5-succes-wishlist-notifs.md` |
