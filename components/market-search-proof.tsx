@@ -23,16 +23,17 @@ export function MarketSearchProof() {
     const input=()=>document.querySelector<HTMLInputElement>("#market-query")!;
     const shown=()=>[...document.querySelectorAll<HTMLAnchorElement>(".yk-market-tile-link")].map(link=>link.getAttribute("aria-label")??"");
     const type=async(value:string)=>{const field=input();field.focus();const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;setter?.call(field,value);field.dispatchEvent(new InputEvent("input",{bubbles:true,inputType:"insertText",data:value}));await wait(80);};
-    const rarity=async(label:string)=>{[...document.querySelectorAll<HTMLButtonElement>('[role="group"][aria-label="Filtrer par rareté"] button')].find(button=>button.textContent===label)?.click();await wait(80);};
-    const sort=async(value:string)=>{const select=document.querySelector<HTMLSelectElement>(".yk-market-sort select")!;select.value=value;select.dispatchEvent(new Event("change",{bubbles:true}));await wait(80);};
+    const filterButton=(section:string,label:string)=>{const details=[...document.querySelectorAll<HTMLDetailsElement>("#market-filters .yk-filter-section")].find(item=>item.querySelector("summary")?.textContent?.includes(section));return [...(details?.querySelectorAll<HTMLButtonElement>("button")??[])].find(button=>button.textContent?.trim()===label);};
+    const rarity=async(label:string)=>{filterButton("Rareté",label)?.click();await wait(80);};
+    const sort=async(value:string)=>{const label={end:"Fin imminente",asc:"Prix croissant",desc:"Prix décroissant"}[value as "end"|"asc"|"desc"];filterButton("Trier par",label)?.click();await wait(80);};
     const run=async()=>{
       await wait(150);
       await type("kitsune");check("Recherche en temps réel sur le nom",shown().length===1&&shown()[0].includes("Kuro Kitsune"),shown().join(" | "));
       await type("neo tokyo");check("Recherche sur la franchise",shown().length===2&&shown().every(item=>item.includes("Aoi Dragon")||item.includes("Ren Cyber")),shown().join(" | "));
       await rarity("SR");check("Recherche et rareté se combinent",shown().length===1&&shown()[0].includes("Aoi Dragon"),shown().join(" | "));
-      await sort("desc");check("Le tri par prix reste actif avec la recherche",document.querySelector<HTMLSelectElement>(".yk-market-sort select")?.value==="desc"&&shown()[0]?.includes("Aoi Dragon"),shown().join(" | "));
+      await sort("desc");check("Le tri par prix reste actif avec la recherche",filterButton("Trier par","Prix décroissant")?.getAttribute("aria-pressed")==="true"&&shown()[0]?.includes("Aoi Dragon"),shown().join(" | "));
       await rarity("Toutes");await type("winter");await sort("end");check("Le tri fin imminente reste actif avec la recherche",shown().length===1&&shown()[0].includes("Yuki Frost"),shown().join(" | "));
-      await type("introuvable");check("Une recherche sans résultat affiche l’état vide",shown().length===0&&!!document.querySelector('[role="status"]')?.textContent?.includes("Aucune enchère ne correspond"),document.querySelector('[role="status"]')?.textContent??"");
+      await type("introuvable");check("Une recherche sans résultat affiche l’état vide",shown().length===0&&!!document.querySelector('.yk-empty-state')?.textContent?.includes("Aucune enchère ne correspond"),document.querySelector('.yk-empty-state')?.textContent??"");
     };
     void run();
   },[]);
