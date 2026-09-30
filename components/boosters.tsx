@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import type { Card, CollectedCard, DecisionPackStatus, PackStatus } from "@/lib/data/cards";
@@ -23,9 +22,9 @@ function decisionReturnLabel(nextPackAt: number) {
 }
 type Decision = { onKeep: (instanceId: string) => Promise<number>; keptId?: string; busy?: boolean; karasReward?: number };
 
-export function BoosterReveal({ cards, revealed, onReveal, onReturn, onNext, nextDisabled = false, nextLabel = "Prochain booster", decision, onDiscard, onSound, navigateToCollection }: {
+export function BoosterReveal({ cards, revealed, onReveal, onReturn, onNext, nextDisabled = false, nextLabel = "Prochain booster", decision, onDiscard, onSound }: {
   cards: RevealCard[]; revealed: number; onReveal: (index: number) => void;
-  onReturn: () => void; onNext?: () => void; nextDisabled?: boolean; nextLabel?: string; decision?: Decision; onDiscard?: (instanceId: string) => Promise<void>; onSound?: (sound: Sound) => void; navigateToCollection?: () => void;
+  onReturn: () => void; onNext?: () => void; nextDisabled?: boolean; nextLabel?: string; decision?: Decision; onDiscard?: (instanceId: string) => Promise<void>; onSound?: (sound: Sound) => void;
 }) {
   const [faceUp, setFaceUp] = useState(false);
   const [revealLocked, setRevealLocked] = useState(false);
@@ -39,7 +38,6 @@ export function BoosterReveal({ cards, revealed, onReveal, onReturn, onNext, nex
   const [discarded, setDiscarded] = useState(() => new Set(cards.filter(card => card.discarded).map(card => card.instanceId)));
   const keepLock = useRef(false);
   const revealTimer = useRef<number | null>(null);
-  const collectionTimer = useRef<number | null>(null);
   const next = useRef<HTMLButtonElement>(null);
   const completeLink = useRef<HTMLAnchorElement>(null);
   const nextBooster = useRef<HTMLButtonElement>(null);
@@ -49,14 +47,6 @@ export function BoosterReveal({ cards, revealed, onReveal, onReturn, onNext, nex
   const keptCards = cards.filter(c => !discarded.has(c.instanceId) && (!decision?.keptId || decision.keptId === c.instanceId));
   const choosing = !!decision && done && !decision.keptId;
   const chosen = cards.find(c => c.instanceId === pick && !discarded.has(c.instanceId));
-  const cancelCollectionRedirect = useCallback(() => {
-    if (collectionTimer.current) window.clearTimeout(collectionTimer.current);
-    collectionTimer.current = null;
-  }, []);
-  const redirectToCollection = useCallback(() => {
-    cancelCollectionRedirect();
-    navigateToCollection?.();
-  }, [cancelCollectionRedirect, navigateToCollection]);
   const deposit = useCallback(() => { if (revealTimer.current) window.clearTimeout(revealTimer.current); revealTimer.current = null; setRevealLocked(false); onSound?.("slide"); setFaceUp(false); onReveal(revealed); }, [onReveal, onSound, revealed]);
   useEffect(() => {
     if (!faceUp || spot || revealLocked) return;
@@ -64,11 +54,6 @@ export function BoosterReveal({ cards, revealed, onReveal, onReturn, onNext, nex
     return () => clearTimeout(timer);
   }, [faceUp, spot, revealLocked, deposit]);
   useEffect(() => () => { if (revealTimer.current) window.clearTimeout(revealTimer.current); }, []);
-  useEffect(() => {
-    if (!done || choosing) return;
-    collectionTimer.current = window.setTimeout(redirectToCollection, 3000);
-    return cancelCollectionRedirect;
-  }, [cancelCollectionRedirect, choosing, done, redirectToCollection]);
   useEffect(() => { if (done && !choosing) (nextBooster.current && !nextBooster.current.disabled ? nextBooster.current : completeLink.current)?.focus({preventScroll:true}); else next.current?.focus({preventScroll:true}); }, [done, choosing]);
   function flip() {
     if (!current) return;
@@ -263,18 +248,13 @@ export function BoosterReveal({ cards, revealed, onReveal, onReturn, onNext, nex
     })}</ol>
     {error && <p role="alert" className="mt-5 text-center text-sm text-danger">{error}</p>}
     {!done && !decision && <div className="yk-reveal-footer"><Button disabled>Ajouter à ma collection</Button><p className="text-xs text-ink-3">Révèle les {cards.length} cartes pour valider ton booster.</p></div>}
-    {done && !choosing && <div className={`yk-reveal-summary ${decision ? "yk-reveal-summary-decision" : ""}`}><h2 className="font-display text-2xl">{decision ? `Carte ajoutée à ta collection · +${decision.karasReward ?? 0} Karas depuis les cartes non conservées` : "L’invocation est complète"}</h2><div className="my-5 flex flex-wrap justify-center gap-2">{[...new Set(keptCards.map(c => c.rarity))].map(r => <StatusPill key={r}>{r} ×{keptCards.filter(c=>c.rarity===r).length}</StatusPill>)}</div>{cards.every(c => c.isNew !== undefined) && <p className="mb-5 text-sm text-ink-2">{keptCards.filter(c => c.isNew).length} nouvelle(s) carte(s)</p>}<p className="mb-5 text-xs text-ink-3" role="status">Redirection vers la Collection dans 3 secondes…</p><div className="flex flex-wrap justify-center gap-3">{onNext&&<button type="button" ref={nextBooster} disabled={nextDisabled} onClick={() => { cancelCollectionRedirect(); onNext(); }} className="yk-button yk-button-primary">{nextLabel}</button>}<Link ref={completeLink} href="/collection" onClick={cancelCollectionRedirect} className={`yk-button ${onNext ? "yk-button-secondary" : "yk-button-primary"}`}>{decision ? "Voir ma collection" : "Ajouter à ma collection"}</Link><Button variant="secondary" onClick={() => { cancelCollectionRedirect(); onReturn(); }}>Retour aux boosters</Button></div></div>}
+    {done && !choosing && <div className={`yk-reveal-summary ${decision ? "yk-reveal-summary-decision" : ""}`}><h2 className="font-display text-2xl">{decision ? `Carte ajoutée à ta collection · +${decision.karasReward ?? 0} Karas depuis les cartes non conservées` : "L’invocation est complète"}</h2><div className="my-5 flex flex-wrap justify-center gap-2">{[...new Set(keptCards.map(c => c.rarity))].map(r => <StatusPill key={r}>{r} ×{keptCards.filter(c=>c.rarity===r).length}</StatusPill>)}</div>{cards.every(c => c.isNew !== undefined) && <p className="mb-5 text-sm text-ink-2">{keptCards.filter(c => c.isNew).length} nouvelle(s) carte(s)</p>}<div className="flex flex-wrap justify-center gap-3">{onNext&&<button type="button" ref={nextBooster} disabled={nextDisabled} onClick={onNext} className="yk-button yk-button-primary">{nextLabel}</button>}<Link ref={completeLink} href="/collection" className={`yk-button ${onNext ? "yk-button-secondary" : "yk-button-primary"}`}>{decision ? "Voir ma collection" : "Ajouter à ma collection"}</Link><Button variant="secondary" onClick={onReturn}>Retour aux boosters</Button></div></div>}
     <Modal open={!!spot} onClose={() => setSpot(null)} title={spot?.shiny ? "✦ Invocation Shiny ✦" : "Invocation légendaire"} className={`yk-invocation ${spot?.shiny ? "yk-invocation-shiny" : ""}`}>
       {spot && <div className="relative z-10 flex flex-col items-center gap-6"><div className="yk-invoked-card"><YokaiCard {...spot} /></div><h3 className="font-display text-[clamp(28px,4vw,44px)]">{spot.name}</h3>{spot.isNew && <StatusPill>NEW</StatusPill>}<Button variant="secondary" onClick={() => setSpot(null)}>Toucher pour continuer</Button></div>}
     </Modal>
     <Modal open={confirm} onClose={() => { if (!confirming) setConfirm(false); }} title={`Garder ${chosen?.name || "cette carte"} ?`}>{chosen && <><div className="mx-auto w-40"><YokaiCard {...chosen} /></div><p className="mt-6 text-center font-semibold text-ink">Garder cette carte et perdre les {cards.length - 1} autres ?</p><p className="mb-6 mt-2 text-center text-xs text-ink-3">Ce choix est définitif.</p>{error && <p role="alert" className="mb-4 text-center text-danger">{error}</p>}<div className="flex flex-wrap justify-center gap-3"><Button variant="secondary" disabled={confirming} onClick={() => setConfirm(false)}>Revenir au choix</Button><Button disabled={decision?.busy || confirming} aria-busy={confirming || undefined} onClick={keep}>{confirming ? "Confirmation…" : "Garder cette carte"}</Button></div></>}</Modal>
     <Modal open={!!discardCandidate} onClose={() => { if (!discarding) setDiscardCandidate(null); }} title="Détruire cette carte ?">{discardCandidate && <><div className="mx-auto w-32"><YokaiCard {...discardCandidate} /></div><p className="mb-6 mt-5 text-center text-sm text-ink-2">{discardCandidate.name} sera retirée de ta collection. Cette action est définitive.</p><div className="flex flex-wrap justify-center gap-3"><Button variant="secondary" disabled={!!discarding} onClick={() => setDiscardCandidate(null)}>Annuler</Button><Button variant="danger" disabled={!!discarding} aria-busy={!!discarding || undefined} onClick={() => void discard(discardCandidate.instanceId)}>{discarding ? "Destruction…" : "Détruire"}</Button></div></>}</Modal>
   </section>;
-}
-
-function BoosterRevealWithNavigation(props: Omit<Parameters<typeof BoosterReveal>[0], "navigateToCollection">) {
-  const router = useRouter();
-  return <BoosterReveal {...props} navigateToCollection={() => router.push("/collection")} />;
 }
 
 export function Boosters({ status, countdown, decisionStatus, decisionCountdown, busy, draw, drawKind, collection, revealed, onOpen, onKeepDecision, onDiscard, onReveal, onSound }: {
@@ -310,7 +290,7 @@ export function Boosters({ status, countdown, decisionStatus, decisionCountdown,
   return <>
     {tearing || busy ? <div className="yk-tearing-stage" role="status"><div className="yk-tearing-pack">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/assets/booster-pack.png" alt="" width={240} height={360} /></div><p className="mt-8 text-sm text-ink-2">Le sceau se brise…</p></div> : revealing ? <BoosterRevealWithNavigation key={draw[0].instanceId} cards={revealCards} revealed={revealed} onReveal={onReveal} onReturn={() => setShowDraw(false)} onNext={drawKind === "regular" ? () => start("regular") : undefined} nextDisabled={!status || status.available === 0 || busy} nextLabel={status?.available === 0 ? `Prochain dans ${countdown}` : "Prochain booster"} onDiscard={drawKind === "regular" ? onDiscard : undefined} decision={drawKind === "decision" ? { keptId, busy, karasReward: decisionKaras, onKeep: async id => { const reward = await onKeepDecision(id); setDecisionKaras(reward); setKeptId(id); return reward; } } : undefined} onSound={playSound} /> : <div className="yk-pack-grid">
+      <img src="/assets/booster-pack.png" alt="" width={240} height={360} /></div><p className="mt-8 text-sm text-ink-2">Le sceau se brise…</p></div> : revealing ? <BoosterReveal key={draw[0].instanceId} cards={revealCards} revealed={revealed} onReveal={onReveal} onReturn={() => setShowDraw(false)} onNext={drawKind === "regular" ? () => start("regular") : undefined} nextDisabled={!status || status.available === 0 || busy} nextLabel={status?.available === 0 ? `Prochain dans ${countdown}` : "Prochain booster"} onDiscard={drawKind === "regular" ? onDiscard : undefined} decision={drawKind === "decision" ? { keptId, busy, karasReward: decisionKaras, onKeep: async id => { const reward = await onKeepDecision(id); setDecisionKaras(reward); setKeptId(id); return reward; } } : undefined} onSound={playSound} /> : <div className="yk-pack-grid">
       <article className="yk-pack-panel"><div className="yk-pack-art-stage"><span className="yk-pack-badge"><StatusPill>{status ? `${status.available}/${status.maximum} en réserve` : "Réserve…"}</StatusPill></span><span className="yk-pack-orbit" />
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/assets/booster-pack.png" alt="Booster Régulier Yokkai Collec’" width={220} height={330} className="yk-pack-image" /></div><div className="yk-pack-body"><div className="yk-pack-title"><h2 className="font-display text-[26px] font-semibold">Booster Régulier</h2><StatusPill tone="info">5 cartes</StatusPill></div><p className="mt-3 text-sm leading-6 text-ink-2">Cinq cartes, cinq rencontres. Découvre ce que le destin te réserve.</p>
