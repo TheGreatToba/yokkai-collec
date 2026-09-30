@@ -1,5 +1,6 @@
 import { createClient } from "@/utils/supabase/client";
 import { cardSearchTerms } from "@/lib/ui/card-search";
+import { createPlayerSnapshotCache, PLAYER_SNAPSHOT_TTL, publishPlayerSnapshotInvalidation, subscribePlayerSnapshotInvalidation, type PlayerSnapshotScope } from "@/lib/data/player-state";
 
 export type Rarity = "C" | "R" | "SR" | "SSR" | "LR";
 export type Category = string;
@@ -61,8 +62,7 @@ export async function withLiveCardFranchises<T extends Card>(cards: T[]): Promis
 }
 
 // Memory-only caches avoid reloading the collection at every one-second UI tick.
-type CacheEntry = { expires: number; promise: Promise<unknown> };
-const cache = new Map<string, CacheEntry>();
+const cache = createPlayerSnapshotCache();
 let client: ReturnType<typeof createClient> | undefined;
 function db() {
   if (!client) {
@@ -91,20 +91,16 @@ async function assertPlayer(id: string) {
   if (await playerId() !== id) throw failure({ message: "AUTH_REQUIRED" });
 }
 
-function memo<T>(key: string, ttl: number, load: () => Promise<T>): Promise<T> {
-  const existing = cache.get(key);
-  if (existing && existing.expires > Date.now()) return existing.promise as Promise<T>;
-  const entry: CacheEntry = { expires: Infinity, promise: Promise.resolve() };
-  entry.promise = load().then((value) => {
-    entry.expires = Date.now() + ttl;
-    return value;
-  }, (error) => {
-    if (cache.get(key) === entry) cache.delete(key);
-    throw error;
-  });
-  cache.set(key, entry);
-  return entry.promise as Promise<T>;
+function clearPlayerSnapshotCaches(scopes: readonly PlayerSnapshotScope[]) {
+  for (const scope of scopes) cache.deleteScope(scope);
 }
+
+export function invalidatePlayerSnapshots(scopes: readonly PlayerSnapshotScope[]) {
+  clearPlayerSnapshotCaches(scopes);
+  publishPlayerSnapshotInvalidation(scopes);
+}
+
+subscribePlayerSnapshotInvalidation(clearPlayerSnapshotCaches);
 
 export async function getAllCards(): Promise<Card[]> {
   const cards: Card[] = [];
@@ -147,7 +143,7 @@ export async function getCataloguePage({ query = "", category = "", rarity = "",
 
 export async function getGameInfo(): Promise<GameInfo> {
   const id = await playerId();
-  const info = await memo<GameInfo>(`info:${id}`, 60000, async () => {
+  const info = await cache.memo<GameInfo>(`info:${id}`, PLAYER_SNAPSHOT_TTL.balance, async () => {
     const { data, error } = await db().rpc("get_game_info");
     if (error) throw failure(error);
     return data as GameInfo;
@@ -159,7 +155,7 @@ export async function getGameInfo(): Promise<GameInfo> {
 
 export async function getUserCollection(): Promise<CollectedCard[]> {
   const id = await playerId();
-  const collection = await memo<CollectedCard[]>(`collection:${id}`, 10000, async () => {
+  const collection = await cache.memo<CollectedCard[]>(`collection:${id}`, PLAYER_SNAPSHOT_TTL.collection, async () => {
     const cards: CollectedCard[] = [];
     let cursor: string | undefined;
     while (true) {
