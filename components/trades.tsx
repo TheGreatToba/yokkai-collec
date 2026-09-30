@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Avatar, Button, Chip, Karas, Modal, StatusPill } from "@/components/ui";
 import { YokaiCard } from "@/components/yokai-card";
 import { CardFranchise } from "@/components/card-franchise";
 import { getFriendships, type FriendUser } from "@/lib/data/friends";
-import { createTradeOffer, getTradeContext, listTradeOffers, respondTradeOffer, type TradeContext, type TradeOffer } from "@/lib/data/trades";
-import type { CollectedCard } from "@/lib/data/cards";
+import { createTradeOffer, getTradeContext, hasNewAcceptedTrade, listTradeOffers, respondTradeOffer, type TradeContext, type TradeOffer } from "@/lib/data/trades";
+import { invalidatePlayerSnapshots, type CollectedCard } from "@/lib/data/cards";
 
 function CardPicker({ cards, selected, onToggle }: { cards: CollectedCard[]; selected: Set<string>; onToggle: (id: string) => void }) {
   const [query, setQuery] = useState(""); const searchId = useId(); const normalized = query.trim().toLocaleLowerCase("fr-FR");
@@ -16,14 +16,24 @@ function CardPicker({ cards, selected, onToggle }: { cards: CollectedCard[]; sel
 function OfferCards({ cards }: { cards: CollectedCard[] }) { return cards.length ? <div className="yk-offer-cards">{cards.map(card => <span key={card.instanceId}><span><strong>{card.rarity}</strong> {card.name}{card.shiny ? " ✦" : ""}</span><CardFranchise card={card} className="block max-w-44 truncate text-left text-[10px] text-ink-3"/></span>)}</div> : <p className="mt-3 text-xs text-ink-3">Aucune carte</p>; }
 const labels = { pending: "En attente", accepted: "Acceptée", declined: "Refusée", countered: "Contre-offre envoyée" };
 
-export function TradesPanel() {
+export type TradesPanelAdapter = {
+  friendships: typeof getFriendships;
+  listOffers: typeof listTradeOffers;
+  context: typeof getTradeContext;
+  create: typeof createTradeOffer;
+  respond: typeof respondTradeOffer;
+};
+const defaultAdapter: TradesPanelAdapter = { friendships:getFriendships, listOffers:listTradeOffers, context:getTradeContext, create:createTradeOffer, respond:respondTradeOffer };
+export const TRADE_POLL_INTERVAL_MS = 3000;
+export function TradesPanel({adapter=defaultAdapter,pollIntervalMs=TRADE_POLL_INTERVAL_MS}:{adapter?:TradesPanelAdapter;pollIntervalMs?:number|null}={}) {
   const [friends, setFriends] = useState<FriendUser[]>([]); const [offers, setOffers] = useState<TradeOffer[]>([]); const [context, setContext] = useState<TradeContext>(); const [friendId, setFriendId] = useState(""); const [offered, setOffered] = useState<Set<string>>(new Set()); const [requested, setRequested] = useState<Set<string>>(new Set()); const [offeredKaras, setOfferedKaras] = useState("0"); const [requestedKaras, setRequestedKaras] = useState("0"); const [parent, setParent] = useState<string | null>(null); const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const [accepting, setAccepting] = useState<TradeOffer>();
-  async function reload() { const [relations, history] = await Promise.all([getFriendships(), listTradeOffers()]); setFriends(relations.friends); setOffers(history); }
-  useEffect(() => { let active = true; void Promise.all([getFriendships(), listTradeOffers()]).then(([relations, history]) => { if (active) { setFriends(relations.friends); setOffers(history); } }, e => { if (active) setError(e instanceof Error ? e.message : "Chargement impossible."); }); return () => { active = false; }; }, []);
-  async function chooseFriend(id: string, parentId: string | null = null) { setFriendId(id); setParent(parentId); setOffered(new Set()); setRequested(new Set()); setError(""); try { setContext(await getTradeContext(id)); } catch (e) { setError(e instanceof Error ? e.message : "Chargement impossible."); } }
+  const offersRef=useRef<TradeOffer[]>([]);const friendIdRef=useRef("");const contextRequest=useRef(0);
+  async function reload() { const [relations, history] = await Promise.all([adapter.friendships(), adapter.listOffers()]);offersRef.current=history;setFriends(relations.friends);setOffers(history); }
+  useEffect(() => { let active = true;let loading=true;void Promise.all([adapter.friendships(),adapter.listOffers()]).then(([relations,history])=>{if(active){offersRef.current=history;setFriends(relations.friends);setOffers(history);}},e=>{if(active)setError(e instanceof Error?e.message:"Chargement impossible.");}).finally(()=>{loading=false;});const refresh=async()=>{if(loading||document.visibilityState==="hidden")return;loading=true;try{const history=await adapter.listOffers();if(!active)return;const accepted=hasNewAcceptedTrade(offersRef.current,history);offersRef.current=history;setOffers(history);if(accepted){invalidatePlayerSnapshots(["collection","balance"]);const selectedFriend=friendIdRef.current;if(selectedFriend){const request=++contextRequest.current;const nextContext=await adapter.context(selectedFriend);if(active&&friendIdRef.current===selectedFriend&&contextRequest.current===request)setContext(nextContext);}}}catch(reason){if(process.env.NODE_ENV!=="production")console.error("[trades] automatic refresh failed",reason);}finally{loading=false;}};const timer=pollIntervalMs?window.setInterval(()=>void refresh(),pollIntervalMs):undefined;const onVisible=()=>{if(document.visibilityState==="visible")void refresh();};document.addEventListener("visibilitychange",onVisible);return()=>{active=false;if(timer!==undefined)window.clearInterval(timer);document.removeEventListener("visibilitychange",onVisible);};},[adapter,pollIntervalMs]);
+  async function chooseFriend(id: string, parentId: string | null = null) { friendIdRef.current=id;setFriendId(id);setParent(parentId);setOffered(new Set());setRequested(new Set());setError("");try{const request=++contextRequest.current;const nextContext=await adapter.context(id);if(friendIdRef.current===id&&contextRequest.current===request)setContext(nextContext);} catch (e) { setError(e instanceof Error ? e.message : "Chargement impossible."); } }
   function toggle(current: Set<string>, update: (next: Set<string>) => void, id: string) { const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); update(next); }
-  async function submit() { if (!context || busy) return; setBusy(true); setError(""); try { await createTradeOffer({ toUser: context.friend.id, offeredCardIds: [...offered], offeredKaras: Number(offeredKaras) || 0, requestedCardIds: [...requested], requestedKaras: Number(requestedKaras) || 0, parentOfferId: parent }); await reload(); setContext(undefined); setFriendId(""); setParent(null); } catch (e) { setError(e instanceof Error ? e.message : "Envoi impossible."); } finally { setBusy(false); } }
-  async function respond(id: string, action: "accept" | "decline") { setBusy(true); setError(""); try { await respondTradeOffer(id, action); setAccepting(undefined); await reload(); } catch (e) { setError(e instanceof Error ? e.message : "Action impossible."); } finally { setBusy(false); } }
+  async function submit() { if (!context || busy) return; setBusy(true); setError(""); try { await adapter.create({ toUser: context.friend.id, offeredCardIds: [...offered], offeredKaras: Number(offeredKaras) || 0, requestedCardIds: [...requested], requestedKaras: Number(requestedKaras) || 0, parentOfferId: parent }); await reload(); setContext(undefined);friendIdRef.current="";setFriendId("");setParent(null); } catch (e) { setError(e instanceof Error ? e.message : "Envoi impossible."); } finally { setBusy(false); } }
+  async function respond(id: string, action: "accept" | "decline") { setBusy(true); setError(""); try { await adapter.respond(id, action); setAccepting(undefined); await reload(); } catch (e) { setError(e instanceof Error ? e.message : "Action impossible."); } finally { setBusy(false); } }
   const incoming = offers.find(offer => offer.incoming && offer.status === "pending"); const hasContent = offered.size > 0 || requested.size > 0 || Number(offeredKaras) > 0 || Number(requestedKaras) > 0; const insufficient = !!context && Number(offeredKaras) > context.balance;
   return <div className="yk-social-stack">
     {incoming && <section className="yk-trade-incoming"><div><p className="eyebrow">Proposition reçue</p><h2>{incoming.fromPseudo} veut échanger</h2><p>Consultez les cartes proposées avant de répondre.</p></div><div className="yk-friend-action-buttons"><Button variant="secondary" disabled={busy} onClick={() => void respond(incoming.id, "decline")}>Refuser</Button><Button disabled={busy} onClick={() => setAccepting(incoming)}>Accepter</Button></div></section>}
