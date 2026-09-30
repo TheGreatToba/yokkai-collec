@@ -47,7 +47,7 @@ Défauts constatés pendant la refonte mais volontairement non corrigés dans le
 | Idée documentaire | Source |
 | --- | --- |
 | Trier côté serveur les cartes d’un reveal par rareté croissante | `docs/groupe-2-boosters.md` |
-| Rediriger automatiquement vers la Collection après validation d’un booster | `docs/groupe-2-boosters.md` |
+| Rediriger automatiquement vers la Collection après validation d’un booster | **Décision prise : non.** La redirection automatique a été jugée indésirable : le joueur reste sur l’écran de résultat et utilise lui-même le lien existant vers la Collection. |
 | Faire voler les cartes conservées vers la navigation et désintégrer les autres | `docs/groupe-2-boosters.md` |
 | Convertir automatiquement les quatre cartes non retenues du booster décisif en Karas | `docs/groupe-2-boosters.md` |
 | Mettre à jour en temps réel le chrono, l’historique et les offres d’une enchère | `docs/groupe-3-marche.md` |
