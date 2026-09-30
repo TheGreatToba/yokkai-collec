@@ -8,6 +8,9 @@ import { Button, Chip, Feedback, Karas, Modal, Pagination } from "@/components/u
 import { YokaiCard } from "@/components/yokai-card";
 import { CardShell } from "@/components/card-shell";
 import { CARD_PAGE_SIZES } from "@/lib/ui/pagination";
+import { COLLECTION_SORTS, isCollectionSort, sortCollection } from "@/lib/ui/collection-sort";
+import { matchesCardSearch } from "@/lib/ui/card-search";
+import { useCollectionSort } from "@/hooks/use-collection-sort";
 
 // Optional display metadata, separate from the existing business types.
 export type CollectionPresentation = { number?: string; isNew?: boolean; frozen?: { remaining: string }; marketValue?: number | null; destructionValue?: number };
@@ -42,6 +45,7 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
   const [shinyOnly, setShinyOnly] = useState(false);
   const [folder, setFolder] = useState<string | "unfiled" | "">("");
   const [page, setPage] = useState(1);
+  const [sort, setSort] = useCollectionSort();
   const [pageSize, setPageSize] = useState<number>(CARD_PAGE_SIZES[0]);
   const [folderName, setFolderName] = useState("");
   const [showFolderCreator, setShowFolderCreator] = useState(false);
@@ -70,10 +74,8 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const selected = cards.find(c => c.instanceId === selectedId);
   const selectedMeta = selected ? presentation[selected.instanceId] : undefined;
-  const normalizedQuery = query.trim().toLocaleLowerCase("fr-FR");
-  const filtered = cards.filter(c => (!normalizedQuery || [c.name,c.category,c.anime].some(value=>value?.toLocaleLowerCase("fr-FR").includes(normalizedQuery))) && (!category || c.category === category) && (!rarity || c.rarity === rarity) && (!shinyOnly || c.shiny)
-      && (!folder || (folder === "unfiled" ? !c.folderId : c.folderId === folder)))
-    .slice().sort((a,b) => rarityOrder.indexOf(a.rarity)-rarityOrder.indexOf(b.rarity) || Number(b.shiny)-Number(a.shiny));
+  const filtered = sortCollection(cards.filter(c => matchesCardSearch(query,[c.name,c.category,c.anime]) && (!category || c.category === category) && (!rarity || c.rarity === rarity) && (!shinyOnly || c.shiny)
+      && (!folder || (folder === "unfiled" ? !c.folderId : c.folderId === folder))), sort);
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const activePage = Math.min(page, pageCount);
   const visibleCards = filtered.slice((activePage - 1) * pageSize, activePage * pageSize);
@@ -152,7 +154,7 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
         <div className="yk-collection-toolbar">
           <button type="button" className="yk-mobile-filter-trigger" aria-expanded={filtersOpen} aria-controls="collection-filters" onClick={()=>setFiltersOpen(true)}><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filtres{(query||rarity||category||folder)?<span>•</span>:null}</button>
           <div className="yk-collection-toolbar-actions">
-            <div className="yk-sort-placeholder" aria-label="Tri non disponible dans cette phase"><span>Trier par :</span><strong>Plus récentes</strong><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="m7 10 5 5 5-5"/></svg></div>
+            <label className="yk-sort-control"><span>Trier par :</span><strong aria-hidden="true">{COLLECTION_SORTS.find(option=>option.value===sort)?.label}</strong><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="m7 10 5 5 5-5"/></svg><select aria-label="Trier la collection" value={sort} onChange={e=>{if(isCollectionSort(e.target.value)){setSort(e.target.value);setPage(1);}}}>{COLLECTION_SORTS.map(option=><option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
             {!readOnly&&<Button variant="secondary" className="yk-selection-mode" aria-pressed={selecting} onClick={()=>{setSelecting(!selecting);setSelection(new Set());}}><svg aria-hidden="true" className="yk-selection-mode-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="8.5"/>{selecting&&<path d="m8.5 12.2 2.3 2.3 4.7-4.9"/>}</svg><span className="yk-selection-mode-label">{selecting?"Quitter la sélection":"Sélection multiple"}</span></Button>}
           </div>
           <button type="button" role="switch" aria-checked={shinyOnly} className="yk-shiny-toggle" onClick={()=>{setShinyOnly(current=>!current);setPage(1);}}><span>Shiny uniquement</span><i/></button>

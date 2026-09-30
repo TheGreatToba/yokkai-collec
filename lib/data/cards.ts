@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/client";
+import { cardSearchTerms } from "@/lib/ui/card-search";
 
 export type Rarity = "C" | "R" | "SR" | "SSR" | "LR";
 export type Category = string;
@@ -136,8 +137,7 @@ export async function getCataloguePage({ query = "", category = "", rarity = "",
   const safePageSize = Math.min(60, Math.max(1, Math.trunc(pageSize)));
   const from = (safePage - 1) * safePageSize;
   let request = db().from("cards").select(cardFields, { count: "exact" });
-  const term = query.trim().replace(/[,%()]/g, " ");
-  if (term) request = request.or(`nom.ilike.%${term}%,franchise.ilike.%${term}%`);
+  for (const term of cardSearchTerms(query)) request = request.or(`nom.ilike.%${term}%,franchise.ilike.%${term}%`);
   if (category) request = request.eq("categorie", category);
   if (rarity) request = request.eq("rarete_base", rarity);
   const { data, error, count } = await request.order("nom").order("id").range(from, from + safePageSize - 1);

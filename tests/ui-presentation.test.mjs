@@ -114,7 +114,7 @@ test("le catalogue reprend la sidebar sans notion de possession ni action de mas
   assert.match(catalogue, /CatalogueFilterSection title="Catégorie"/);
   assert.match(catalogue, /<CardShell><YokaiCard/);
   assert.match(catalogue, /CARD_PAGE_SIZES\.map/);
-  assert.match(catalogue, /getCataloguePage\(\{query,category,rarity,page,pageSize\}\)[^]*?\[query,category,rarity,page,pageSize\]/);
+  assert.match(catalogue, /loadPage\(\{query,category,rarity,page,pageSize\}\)[^]*?\[query,category,rarity,page,pageSize,loadPage\]/);
   assert.match(catalogue, /Possesseurs actuels/);
   assert.match(catalogue, /Ajouter à ma wishlist/);
   assert.doesNotMatch(catalogue, /Dossier|Sélection multiple|Obtenue le|possédée/);
@@ -245,11 +245,58 @@ test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
   assert.match(html, /aria-pressed="true"[^>]*aria-label="Ne plus suivre cette enchère"[^>]*>.*?<span class="yk-watch-label">Suivi<\/span>/);
   assert.match(html, /aria-pressed="false"[^>]*aria-label="Suivre cette enchère"[^>]*>.*?<span class="yk-watch-label">Suivre<\/span>/);
   assert.match(html, /yk-market-timer yk-urgency-critical/);
-  assert.match(html, /<option value="asc">Prix croissant<\/option><option value="desc">Prix décroissant<\/option>/);
+  assert.match(html, /<aside id="market-filters" class="yk-collection-sidebar /);
+  assert.match(html, /id="market-query" type="search"/);
+  assert.match(html, /aria-pressed="true"><span class="yk-filter-check"><\/span><span>Fin imminente<\/span>/);
+  assert.match(html, /<span>Prix croissant<\/span>.*<span>Prix décroissant<\/span>/);
+  assert.match(html, /aria-controls="market-filters"/);
+  const search = render(MarketView, { lists: { ...lists, active: [auction("l", { card: { ...card, id: "l", name: "Luffy", anime: "One Piece", category: "Manga" } }), auction("z", { card: { ...card, id: "z", name: "Zoro", anime: "One Piece", category: "Manga" } })] } });
+  assert.match(search, /2 cartes aux enchères/);
+  assert.match(search, /<span>Manga<\/span>/);
+  assert.match(html, /disabled="" aria-describedby="market-popular-soon"><span class="yk-filter-check"><\/span><span>Les \+ populaires<\/span>/);
   assert.match(html, />Mes enchères</);
   const source = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
+  assert.match(source, /matchesCardSearch\(query,\[a\.card\.name,a\.card\.anime\]\)/);
+  assert.doesNotMatch(source, /terms\.every|const terms=/);
   assert.match(source, /\[\["mine","En cours"\],\["won","Gagnées"\],\["sold","Terminées"\]\]/);
   assert.doesNotMatch(source, /"Vendues"/);
+  // One sidebar for both tabs; Mes enchères swaps the price sort for a Statut section.
+  assert.match(source, /\{section==="mine"&&<CatalogueFilterSection title="Statut">/);
+  assert.match(source, /\{section==="browse"&&<CatalogueFilterSection title="Trier par">/);
+  // Same layout as Collection/Catalogue: the sidebar stays in normal page flow without its own scroll area.
+  assert.match(source, /<div className="yk-collection-layout">\s*<aside id="market-filters"/);
+  assert.match(source, /className="yk-market-filter-scroll"/);
+  assert.match(source, /className="yk-collection-toolbar yk-market-toolbar-band"/);
+  const marketCss = readFileSync(path.join(root, "styles/market.css"), "utf8");
+  const collectionCss = readFileSync(path.join(root, "styles/collection.css"), "utf8");
+  assert.doesNotMatch(collectionCss, /\.yk-collection-sidebar \{[^}]*position: sticky/);
+  assert.doesNotMatch(marketCss, /\.yk-market-filter-scroll \{[^}]*overflow-y: auto/);
+  assert.doesNotMatch(marketCss, /\.yk-market-sidebar \{[^}]*max-height:/);
+});
+
+test("la recherche du marché filtre en mémoire par nom et franchise", () => {
+  const source = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
+  assert.match(source, /const \[query,setQuery\]=useState\(""\)/);
+  assert.match(source, /matchesCardSearch\(query,\[a\.card\.name,a\.card\.anime\]\)/);
+  assert.match(source, /&&\(!rarity\|\|a\.card\.rarity===rarity\)/);
+  assert.match(source, /id="market-query" type="search" value=\{query\}/);
+  assert.match(source, /Aucune enchère ne correspond à votre recherche et vos filtres/);
+  assert.ok(existsSync(path.join(root, "app/design-system/market-search-preview/page.tsx")));
+});
+
+test("la recherche multi-termes partage une sémantique ET entre Collection, Catalogue et Marché", () => {
+  const { cardSearchTerms, matchesCardSearch } = load("lib/ui/card-search.ts");
+  assert.deepEqual([...cardSearchTerms("  LUFFY, One PIECE ")], ["luffy", "one", "piece"]);
+  assert.equal(matchesCardSearch("one piece luffy", ["Monkey D. Luffy", "One Piece"]), true);
+  assert.equal(matchesCardSearch("LUFFY ONE PIECE", ["Monkey D. Luffy", "One Piece"]), true);
+  assert.equal(matchesCardSearch("one piece naruto", ["Monkey D. Luffy", "One Piece"]), false);
+  const collection = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
+  const community = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
+  const cards = readFileSync(path.join(root, "lib/data/cards.ts"), "utf8");
+  assert.match(collection, /matchesCardSearch\(query,\[c\.name,c\.category,c\.anime\]\)/);
+  assert.match(community, /matchesCardSearch\(query,\[a\.card\.name,a\.card\.anime\]\)/);
+  assert.match(cards, /for \(const term of cardSearchTerms\(query\)\) request = request\.or/);
+  assert.ok(existsSync(path.join(root, "app/design-system/multi-term-search-preview/page.tsx")));
 });
 
 test("Phase 6 : détail d'enchère, solde, minute ajoutée, historique et issues", () => {
@@ -295,4 +342,42 @@ test("les six types de notifications ont un texte et une redirection", () => {
   for (const href of ["/marche/", "/amis", "/echanges?offre=", "/succes#"]) {
     assert.match(source, new RegExp(href.replace("?", "\\?")));
   }
+});
+
+test("les notifications se relisent à l'ouverture du panneau et au retour sur l'onglet", () => {
+  const hook = readFileSync(path.join(root, "hooks/use-notification-feed.ts"), "utf8");
+  const topbar = readFileSync(path.join(root, "components/topbar.tsx"), "utf8");
+  const community = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
+  assert.match(hook, /setInterval\(\(\) => void refresh\(\), POLL_INTERVAL_MS\)/);
+  assert.match(hook, /addEventListener\("visibilitychange"/);
+  assert.match(hook, /removeEventListener\("visibilitychange"/);
+  assert.match(hook, /inFlight\.current\) return/);
+  assert.match(topbar, /setPanel\("notifications"\);if\(notifications\)onRefreshNotifications\?\.\(\);else void feed\.refresh\(\);/);
+  assert.match(community, /onRefreshNotifications=\{\(\)=>void feed\.refresh\(\)\}/);
+  for (const source of [topbar, community]) assert.doesNotMatch(source, /getNotifications\(\)/);
+  assert.ok(existsSync(path.join(root, "app/design-system/notification-refresh-preview/page.tsx")));
+});
+
+test("tri de la Collection : rareté par défaut, dates, nom français et ordre stable", () => {
+  const { sortCollection, COLLECTION_SORTS, DEFAULT_COLLECTION_SORT, isCollectionSort } = load("lib/ui/collection-sort.ts");
+  const make = (instanceId, name, rarity, shiny, obtainedAt) => ({ ...card, instanceId, name, rarity, shiny, obtainedAt });
+  const cards = [make("a", "Écho", "SR", false, "2026-03-01T10:00:00Z"), make("b", "akira", "LR", false, "2026-01-15T10:00:00Z"), make("c", "Zorro", "SSR", true, "2026-05-10T10:00:00Z"), make("d", "Mochi", "SSR", false, "2026-05-10T10:00:00Z"), make("e", "Bashō", "C", false, "2026-07-01T10:00:00Z"), make("f", "Kitsune", "R", true, "2025-12-31T10:00:00Z")];
+  const names = sort => sortCollection(cards, sort).map(item => item.name).join(",");
+  assert.equal(DEFAULT_COLLECTION_SORT, "rarity");
+  assert.equal(COLLECTION_SORTS.map(option => option.label).join(" | "), "Rareté | Plus récentes | Plus anciennes | Nom (A → Z)");
+  assert.equal(names("rarity"), "akira,Zorro,Mochi,Écho,Kitsune,Bashō");
+  assert.equal(names("recent"), "Bashō,Zorro,Mochi,Écho,akira,Kitsune");
+  assert.equal(names("oldest"), "Kitsune,akira,Écho,Zorro,Mochi,Bashō");
+  assert.equal(names("name"), "akira,Bashō,Écho,Kitsune,Mochi,Zorro");
+  assert.equal(cards[0].name, "Écho", "le tri ne modifie pas le tableau reçu");
+  const twins = [make("z", "Double", "C", false, "2026-01-01T00:00:00Z"), make("y", "Double", "C", false, "2026-01-01T00:00:00Z")];
+  assert.equal(sortCollection(twins, "name").map(item => item.instanceId).join(), "y,z");
+  assert.ok(isCollectionSort("oldest")); assert.ok(!isCollectionSort("franchise")); assert.ok(!isCollectionSort(null));
+  const source = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
+  assert.match(source, /sortCollection\(cards\.filter\(/);
+  assert.match(source, /setSort\(e\.target\.value\);setPage\(1\);/);
+  assert.doesNotMatch(source, /yk-sort-placeholder|Tri non disponible/);
+  const css = readFileSync(path.join(root, "styles/collection.css"), "utf8");
+  assert.match(css, /\.yk-sort-control \{[^}]*white-space: nowrap;/, "les libellés longs restent sur une ligne");
+  assert.match(css, /\.yk-collection-toolbar-actions > \* \{[^}]*width: calc\(var\(--spacing\) \* 50\);/, "la largeur partagée des actions ne change pas");
 });

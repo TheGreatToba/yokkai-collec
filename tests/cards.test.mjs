@@ -75,7 +75,10 @@ function setup({ catalogue = [], collection = [], apiLimit = 500 } = {}) {
   };
   const context = { exports: {}, Date: class extends Date { static now() { return now; } },
     window: { get localStorage() { assert.fail("Must not access v0.1 localStorage"); } },
-    require: (name) => { assert.equal(name, "@/utils/supabase/client"); return { createClient: () => client }; },
+    require: (name) => {
+      if (name === "@/lib/ui/card-search") return { cardSearchTerms: query => query.replace(/[,%()]/g, " ").trim().toLocaleLowerCase("fr-FR").split(/\s+/).filter(Boolean) };
+      assert.equal(name, "@/utils/supabase/client"); return { createClient: () => client };
+    },
   };
   const source = ts.transpileModule(readFileSync(new URL("../lib/data/cards.ts", import.meta.url), "utf8"), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
