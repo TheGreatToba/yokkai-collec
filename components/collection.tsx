@@ -11,6 +11,7 @@ import { CARD_PAGE_SIZES } from "@/lib/ui/pagination";
 import { COLLECTION_SORTS, isCollectionSort, sortCollection } from "@/lib/ui/collection-sort";
 import { matchesCardSearch } from "@/lib/ui/card-search";
 import { useCollectionSort } from "@/hooks/use-collection-sort";
+import { getCardDiscovery } from "@/lib/data/wishlist";
 
 // Optional display metadata, separate from the existing business types.
 export type CollectionPresentation = { number?: string; isNew?: boolean; frozen?: { remaining: string }; marketValue?: number | null; destructionValue?: number };
@@ -28,7 +29,7 @@ function FilterIcon({ colorClass }: { colorClass: string }) {
   return <svg aria-hidden="true" className={colorClass} width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 2.45 6.1L21 10.5l-5.25 4.05L16 21l-4-3.55L8 21l.25-6.45L3 10.5l6.55-2.4L12 2Z"/></svg>;
 }
 
-export function CollectionView({ cards, categories, presentation = {}, readOnly = false, folders = [], onCreateFolder, onDeleteFolder, onMoveCard, onCreateAuction, onEvolve, onSetCustomImage, onDiscard, onDiscardMany }: {
+export function CollectionView({ cards, categories, presentation = {}, readOnly = false, folders = [], onCreateFolder, onDeleteFolder, onMoveCard, onCreateAuction, onEvolve, onSetCustomImage, onDiscard, onDiscardMany, loadCardDiscovery = getCardDiscovery }: {
   cards: CollectedCard[]; categories: string[]; presentation?: Record<string, CollectionPresentation>;
   totals?: Partial<Record<Rarity,number>>; readOnly?: boolean; folders?: Folder[];
   onCreateFolder?: (name: string) => Promise<void>; onDeleteFolder?: (folderId: string) => Promise<void>;
@@ -38,6 +39,7 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
   onSetCustomImage?: (instanceId: string, imageUrl: string | null) => Promise<void>;
   onDiscard?: (instanceId: string) => Promise<void>;
   onDiscardMany?: (instanceIds: string[]) => Promise<void>;
+  loadCardDiscovery?: (cardId: string) => Promise<{ marketValue: number | null }>;
 }) {
   const [category, setCategory] = useState("");
   const [query, setQuery] = useState("");
@@ -57,6 +59,8 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
   const [auctionOpen,setAuctionOpen]=useState(false);
   const [auctionDone,setAuctionDone]=useState(false);
   const [auctionError,setAuctionError]=useState("");
+  const [auctionSuggestion,setAuctionSuggestion]=useState<number | null>(null);
+  const [auctionSuggestionBusy,setAuctionSuggestionBusy]=useState(false);
   const [selecting, setSelecting] = useState(false);
   const [selection, setSelection] = useState<Set<string>>(new Set());
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -100,7 +104,14 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
     finally { setFolderBusy(false); }
   }
   async function auctionSelected(){if(!selected||!onCreateAuction||auctionBusy)return;setAuctionBusy(true);setAuctionError("");try{await onCreateAuction(selected.instanceId,Number(auctionPrice),Number(auctionDuration));setAuctionDone(true);}catch(error){setAuctionError(error instanceof Error?error.message:"Impossible de créer l’enchère.");}finally{setAuctionBusy(false);}}
-  function closeAuction(){if(auctionBusy)return;setAuctionOpen(false);setAuctionError("");if(auctionDone){setAuctionDone(false);setSelectedId(null);}}
+  async function openAuction(){
+    if(!selected)return;
+    setAuctionPrice("10");setAuctionError("");setAuctionDone(false);setAuctionSuggestion(null);setAuctionSuggestionBusy(true);setAuctionOpen(true);
+    try{const discovery=await loadCardDiscovery(selected.id);const value=discovery.marketValue;setAuctionSuggestion(value!=null&&Number.isFinite(value)&&value>0?Math.round(value):null);}
+    catch{setAuctionSuggestion(null);}
+    finally{setAuctionSuggestionBusy(false);}
+  }
+  function closeAuction(){if(auctionBusy)return;setAuctionOpen(false);setAuctionError("");setAuctionSuggestion(null);setAuctionSuggestionBusy(false);if(auctionDone){setAuctionDone(false);setSelectedId(null);}}
   async function saveCustomImage(imageUrl: string | null) {
     if (!selected || !onSetCustomImage || imageBusy) return;
     setImageBusy(true); setImageError("");
@@ -174,7 +185,7 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
         <header><div className="flex flex-wrap items-center gap-2"><span className={`text-sm font-bold tracking-widest ${rarityText[selected.rarity]}`}>{selected.rarity}{selected.shiny?" ✦ Shiny":""}</span>{selected.isEvolved&&<span className="text-[10px] font-semibold tracking-wider text-accent-gold">ÉVOLUÉE</span>}</div><h3 className="mt-1 font-display text-[28px] leading-tight">{selected.name}</h3></header>
         <dl className="yk-detail-facts"><div><dt>Catégorie</dt><dd>{selected.category}</dd></div><div><dt>Obtenue le</dt><dd>{formatDate(selected.obtainedAt,true)}</dd></div><div><dt>Exemplaires</dt><dd>{duplicates[selected.id]}</dd></div>{selectedMeta?.marketValue!=null&&<div><dt>Valeur de marché</dt><dd><Karas amount={selectedMeta.marketValue}/></dd></div>}</dl>
         {!readOnly&&(onCreateAuction||(selected.rarity==="SSR"&&!selected.shiny))&&<div className="yk-detail-actions">
-          {onCreateAuction&&<Button className="w-full" disabled={!!selectedMeta?.frozen} onClick={()=>{setAuctionError("");setAuctionDone(false);setAuctionOpen(true);}}>{selectedMeta?.frozen?"Déjà en vente":"Mettre aux enchères"}</Button>}
+          {onCreateAuction&&<Button className="w-full" disabled={!!selectedMeta?.frozen} onClick={()=>void openAuction()}>{selectedMeta?.frozen?"Déjà en vente":"Mettre aux enchères"}</Button>}
           {selected.rarity==="SSR"&&!selected.shiny&&<div className="yk-detail-evolve"><Button variant="secondary" className="w-full" disabled={evolvableCopies<3||evolving||!onEvolve} onClick={evolveSelected}>{evolving?"Évolution…":"Évoluer en Shiny (consomme 3 exemplaires)"}</Button><p><strong className="text-accent-neon">Évolution Shiny</strong> · {evolvableCopies} / 3 exemplaires SSR non-Shiny</p></div>}
           {evolutionError&&<p role="alert" className="text-xs text-danger">{evolutionError}</p>}
         </div>}
@@ -184,6 +195,6 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
     </div>}
     </Modal>
     <Modal open={discardConfirm&&!!selected} onClose={()=>{if(!discardBusy){setDiscardConfirm(false);setDiscardError("");}}} title="Détruire cette carte ?">{selected&&<><p className="text-sm leading-6 text-ink-2">La destruction de <strong className="text-ink">{selected.name}</strong> est définitive. Tu recevras <strong className="text-karas">{DESTRUCTION_KARAS[selected.rarity]} Kara{selected.rarity==="C"?"":"s"}</strong>.</p>{discardError&&<p role="alert" className="mt-4 text-sm text-danger">{discardError}</p>}<div className="mt-6 flex justify-end gap-3"><Button variant="secondary" disabled={discardBusy} onClick={()=>setDiscardConfirm(false)}>Annuler</Button><Button variant="danger" disabled={discardBusy} onClick={()=>void discardSelected()}>{discardBusy?"Destruction…":"Détruire"}</Button></div></>}</Modal>
-    <Modal open={auctionOpen&&!!selected} onClose={closeAuction} title={auctionDone?"Carte mise aux enchères":"Mettre aux enchères"} className="yk-auction-modal">{selected&&(auctionDone?<><Feedback tone="success" title="Carte mise aux enchères — verrouillée jusqu’à la fin de la vente">Elle apparaît dès maintenant sur le marché.</Feedback><div className="mt-6 flex flex-wrap justify-end gap-3"><Button variant="secondary" onClick={closeAuction}>Fermer</Button><Link href="/marche" className="yk-button yk-button-primary">Voir le marché</Link></div></>:<form onSubmit={event=>{event.preventDefault();if(Number(auctionPrice)>=10)void auctionSelected();}}><div className="yk-auction-modal-grid"><div className="yk-auction-modal-art"><YokaiCard {...selected} image={selected.image} fallbackImage={selected.catalogueImage}/></div><div className="min-w-0"><p className={`text-sm font-bold tracking-widest ${rarityText[selected.rarity]}`}>{selected.rarity}{selected.shiny?" ✦":""}</p><h3 className="mt-1 font-display text-2xl leading-tight">{selected.name}</h3><label className="mt-5 block text-xs font-semibold tracking-wider text-ink-3 uppercase" htmlFor="auction-price">Prix de départ</label><input id="auction-price" type="number" inputMode="numeric" min="10" value={auctionPrice} onChange={e=>setAuctionPrice(e.target.value)} aria-invalid={Number(auctionPrice)<10||undefined} className="auth-input mt-2"/><p className={`mt-2 text-xs ${Number(auctionPrice)<10?"text-danger-ink":"text-ink-3"}`}>Minimum 10 Karas.</p><fieldset className="mt-5"><legend className="mb-2 text-xs font-semibold tracking-wider text-ink-3 uppercase">Durée</legend><div className="grid grid-cols-3 gap-2">{[["15","15 min"],["30","30 min"],["60","1 h"],["240","4 h"],["720","12 h"],["1440","24 h"]].map(([value,label])=><Chip key={value} active={auctionDuration===value} className="justify-center" onClick={()=>setAuctionDuration(value)}>{label}</Chip>)}</div></fieldset></div></div><ul className="yk-auction-modal-notes"><li>La carte sera verrouillée jusqu’à la fin de la vente : impossible de l’échanger ou de la détruire.</li>{selected.customImageUrl&&<li>L’image personnalisée de cette carte sera réinitialisée.</li>}</ul>{auctionError&&<p role="alert" className="mt-4 text-sm text-danger">{auctionError}</p>}<div className="mt-6 flex flex-wrap justify-end gap-3"><Button variant="secondary" disabled={auctionBusy} onClick={closeAuction}>Annuler</Button><Button type="submit" disabled={auctionBusy||Number(auctionPrice)<10} aria-busy={auctionBusy||undefined}>{auctionBusy?"Publication…":"Mettre en vente"}</Button></div></form>)}</Modal>
+    <Modal open={auctionOpen&&!!selected} onClose={closeAuction} title={auctionDone?"Carte mise aux enchères":"Mettre aux enchères"} className="yk-auction-modal">{selected&&(auctionDone?<><Feedback tone="success" title="Carte mise aux enchères — verrouillée jusqu’à la fin de la vente">Elle apparaît dès maintenant sur le marché.</Feedback><div className="mt-6 flex flex-wrap justify-end gap-3"><Button variant="secondary" onClick={closeAuction}>Fermer</Button><Link href="/marche" className="yk-button yk-button-primary">Voir le marché</Link></div></>:<form onSubmit={event=>{event.preventDefault();if(Number(auctionPrice)>=10)void auctionSelected();}}><div className="yk-auction-modal-grid"><div className="yk-auction-modal-art"><YokaiCard {...selected} image={selected.image} fallbackImage={selected.catalogueImage}/></div><div className="min-w-0"><p className={`text-sm font-bold tracking-widest ${rarityText[selected.rarity]}`}>{selected.rarity}{selected.shiny?" ✦":""}</p><h3 className="mt-1 font-display text-2xl leading-tight">{selected.name}</h3><label className="mt-5 block text-xs font-semibold tracking-wider text-ink-3 uppercase" htmlFor="auction-price">Prix de départ</label><input id="auction-price" type="number" inputMode="numeric" min="10" value={auctionPrice} onChange={e=>setAuctionPrice(e.target.value)} aria-invalid={Number(auctionPrice)<10||undefined} className="auth-input mt-2"/><p className={`mt-2 text-xs ${Number(auctionPrice)<10?"text-danger-ink":"text-ink-3"}`}>Minimum 10 Karas.</p>{auctionSuggestionBusy?<p className="mt-3 text-xs text-ink-3">Recherche de la valeur de marché…</p>:auctionSuggestion!=null?<div className="yk-auction-suggestion"><span>Suggestion : <Karas amount={auctionSuggestion}/></span><button type="button" onClick={()=>setAuctionPrice(String(auctionSuggestion))}>Utiliser cette valeur</button></div>:null}<fieldset className="mt-5"><legend className="mb-2 text-xs font-semibold tracking-wider text-ink-3 uppercase">Durée</legend><div className="grid grid-cols-3 gap-2">{[["15","15 min"],["30","30 min"],["60","1 h"],["240","4 h"],["720","12 h"],["1440","24 h"]].map(([value,label])=><Chip key={value} active={auctionDuration===value} className="justify-center" onClick={()=>setAuctionDuration(value)}>{label}</Chip>)}</div></fieldset></div></div><ul className="yk-auction-modal-notes"><li>La carte sera verrouillée jusqu’à la fin de la vente : impossible de l’échanger ou de la détruire.</li>{selected.customImageUrl&&<li>L’image personnalisée de cette carte sera réinitialisée.</li>}</ul>{auctionError&&<p role="alert" className="mt-4 text-sm text-danger">{auctionError}</p>}<div className="mt-6 flex flex-wrap justify-end gap-3"><Button variant="secondary" disabled={auctionBusy} onClick={closeAuction}>Annuler</Button><Button type="submit" disabled={auctionBusy||Number(auctionPrice)<10} aria-busy={auctionBusy||undefined}>{auctionBusy?"Publication…":"Mettre en vente"}</Button></div></form>)}</Modal>
   </section>;
 }

@@ -236,6 +236,20 @@ test("la modale de détail groupe dossier sous la carte et destruction explicite
   assert.match(source, /setDiscardConfirm\(true\)/);
 });
 
+test("la mise en vente suggère la valeur de marché sans remplacer le prix par défaut", () => {
+  const source = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
+  assert.match(source, /loadCardDiscovery = getCardDiscovery/);
+  assert.match(source, /await loadCardDiscovery\(selected\.id\)/);
+  assert.match(source, /setAuctionPrice\("10"\)/);
+  assert.match(source, /value!=null&&Number\.isFinite\(value\)&&value>0/);
+  assert.match(source, /Suggestion : <Karas amount=\{auctionSuggestion\}/);
+  assert.match(source, /onClick=\{\(\)=>setAuctionPrice\(String\(auctionSuggestion\)\)\}>Utiliser cette valeur/);
+  const proof = readFileSync(path.join(root, "components/auction-suggestion-proof.tsx"), "utf8");
+  assert.match(proof, /marketValue: disabled \? null : 240/);
+  const preview = readFileSync(path.join(root, "app/design-system/auction-suggestion-preview/page.tsx"), "utf8");
+  assert.match(preview, /\(await searchParams\)\.disabled === "1"/);
+});
+
 test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
   const { MarketView } = load("components/community-views.tsx");
   const auction = (id, extra = {}) => ({ id, card: { ...card, id: `card-${id}` }, amount: 120, remaining: "00:12:00", remainingSeconds: 720, seller: "Kitsune", bids: 3, ...extra });
