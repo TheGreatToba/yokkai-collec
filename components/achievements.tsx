@@ -5,6 +5,7 @@ import { Topbar } from "@/components/topbar";
 import { Button, Karas, StatusPill, Toast } from "@/components/ui";
 import { getGameInfo } from "@/lib/data/cards";
 import { claimAchievement, getAchievements, type Achievement } from "@/lib/data/achievements";
+import { subscribePlayerSnapshotInvalidation } from "@/lib/data/player-state";
 
 function progressText(item: Achievement) {
   const value = `${item.progressCurrent.toLocaleString("fr-FR")}/${item.progressTarget.toLocaleString("fr-FR")}`;
@@ -31,6 +32,7 @@ export function AchievementsGallery({ items, busyId, onClaim }: { items: Achieve
 
 export function AchievementsPage({ account }: { account?: ReactNode }) {
   const [items, setItems] = useState<Achievement[]>([]); const [name, setName] = useState<string>(); const [balance, setBalance] = useState<number>(); const [busy, setBusy] = useState<string | null>(null); const [error, setError] = useState(""); const [toast, setToast] = useState("");
+  useEffect(() => { let active = true; const unsubscribe = subscribePlayerSnapshotInvalidation(scopes => { if (scopes.includes("balance")) void getGameInfo().then(game => { if (active) setBalance(game.karasBalance); }, () => undefined); }); return () => { active = false; unsubscribe(); }; }, []);
   useEffect(() => { let active = true; Promise.all([getAchievements(), getGameInfo()]).then(([achievements, game]) => { if (!active) return; setItems(achievements); setName(game.user.name); setBalance(game.karasBalance); setError(""); }, reason => { if (active) setError(reason instanceof Error ? reason.message : "Impossible de charger les succès."); }); return () => { active = false; }; }, []);
   async function claim(item: Achievement) { if (busy) return; setBusy(item.id); setError(""); try { const result = await claimAchievement(item.id); setBalance(result.balance); setItems(current => current.map(entry => entry.id === item.id ? { ...entry, claimedAt: result.claimedAt } : entry)); setToast(`Récompense réclamée : ${result.reward.toLocaleString("fr-FR")} Karas`); } catch (reason) { setError(reason instanceof Error ? reason.message : "Impossible de réclamer la récompense."); } finally { setBusy(null); } }
   return <div className="w-full"><Topbar view="achievements" account={account} name={name} karas={balance}/><main id="main-content" className="mx-auto w-full max-w-6xl px-6 py-10"><p className="eyebrow">Votre parcours de collectionneur</p><h1 className="yk-title mt-3">Succès</h1><p className="mt-4 max-w-xl text-sm leading-6 text-ink-2">Ouvrez, collectionnez et échangez. Chaque étape franchie débloque une récompense à réclamer.</p>{error && <p role="alert" className="yk-social-alert mt-6">{error}</p>}{!items.length && !error ? <p role="status" className="mt-10 text-sm text-ink-2">Chargement des succès…</p> : <AchievementsGallery items={items} busyId={busy} onClaim={claim}/>}</main><Toast message={toast} onDismiss={() => setToast("")}/></div>;

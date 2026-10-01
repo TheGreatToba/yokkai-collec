@@ -1,15 +1,37 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
-import { signIn, signUp } from "@/app/auth/actions";
-import type { AuthState } from "@/lib/auth/forms";
+import { useActionState, useEffect, useRef, useState } from "react";
+import { checkPseudoAvailabilityWhileTyping, signIn, signUp } from "@/app/auth/actions";
+import { pseudoValidationError, type AuthState } from "@/lib/auth/forms";
 
-export function AuthForm({ mode, confirmationError = false }: {
-  mode: "signin" | "signup"; confirmationError?: boolean;
+type PseudoAvailability = "idle" | "checking" | "available" | "taken";
+
+export function AuthForm({
+  mode,
+  confirmationError = false,
+  checkPseudoAvailability = checkPseudoAvailabilityWhileTyping,
+}: {
+  mode: "signin" | "signup";
+  confirmationError?: boolean;
+  checkPseudoAvailability?: (pseudo: string) => Promise<boolean | undefined>;
 }) {
   const signup = mode === "signup";
   const [state, action, pending] = useActionState<AuthState, FormData>(signup ? signUp : signIn, {});
+  const [pseudo, setPseudo] = useState(state.values?.pseudo ?? "");
+  const [pseudoAvailability, setPseudoAvailability] = useState<PseudoAvailability>("idle");
+  const pseudoRequest = useRef(0);
+  useEffect(() => {
+    if (!signup || pseudoValidationError(pseudo.trim())) return;
+    const request = pseudoRequest.current;
+    const timeout = window.setTimeout(async () => {
+      setPseudoAvailability("checking");
+      const available = await checkPseudoAvailability(pseudo.trim());
+      if (pseudoRequest.current !== request) return;
+      setPseudoAvailability(available === true ? "available" : available === false ? "taken" : "idle");
+    }, 450);
+    return () => window.clearTimeout(timeout);
+  }, [checkPseudoAvailability, pseudo, signup]);
   if (state.success) return <div role="status" className="yk-auth-success">
     <div className="yk-auth-success-panel">
       <span className="yk-auth-success-icon" aria-hidden="true">✓</span>
@@ -26,10 +48,17 @@ export function AuthForm({ mode, confirmationError = false }: {
       <legend className="sr-only">{signup ? "Créer un compte" : "Se connecter"}</legend>
       {signup && <div>
         <label htmlFor="pseudo" className="auth-label">Pseudo</label>
-        <input id="pseudo" name="pseudo" autoComplete="nickname" required
-          defaultValue={state.values?.pseudo} className="auth-input" placeholder="Votre nom de collectionneur"
-          aria-invalid={Boolean(state.fields?.pseudo)} aria-describedby={state.fields?.pseudo ? "pseudo-error" : "pseudo-help"} />
-        {!state.fields?.pseudo && <p id="pseudo-help" className="mt-2 text-xs text-white/50">3 à 30 caractères. Espaces internes, accents et emoji autorisés.</p>}
+        <input id="pseudo" name="pseudo" autoComplete="nickname" required value={pseudo}
+          onChange={event => {
+            pseudoRequest.current += 1;
+            setPseudo(event.target.value);
+            setPseudoAvailability("idle");
+          }}
+          className="auth-input" placeholder="Votre nom de collectionneur"
+          aria-invalid={Boolean(state.fields?.pseudo)}
+          aria-describedby={state.fields?.pseudo ? "pseudo-error" : pseudoAvailability !== "idle" ? "pseudo-availability" : "pseudo-help"} />
+        {!state.fields?.pseudo && pseudoAvailability === "idle" && <p id="pseudo-help" className="mt-2 text-xs text-white/50">3 à 30 caractères. Espaces internes, accents et emoji autorisés.</p>}
+        {!state.fields?.pseudo && pseudoAvailability !== "idle" && <p id="pseudo-availability" className={`mt-2 text-xs ${pseudoAvailability === "available" ? "text-lime-300" : pseudoAvailability === "taken" ? "text-red-200" : "text-white/50"}`} role="status">{pseudoAvailability === "checking" ? "Vérification…" : pseudoAvailability === "available" ? "Disponible" : "Déjà pris"}</p>}
         {state.fields?.pseudo && <p id="pseudo-error" className="mt-2 text-sm text-red-200" role="alert">{state.fields.pseudo}</p>}
       </div>}
       <div>

@@ -5,6 +5,7 @@ import { Topbar } from "@/components/topbar";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { createFolder, deleteFolder, discardPackCard, evolveSsrCard, getDecisionPackStatus, getFolders, getGameInfo, getPackStatus, getUserCollection, keepDecisionPackCard, moveCardToFolder, openBooster, openDecisionPack, setCardCustomImage, type CollectedCard, type DecisionPackStatus, type Folder, type PackStatus } from "@/lib/data/cards";
 import { createAuction } from "@/lib/data/market";
+import { subscribePlayerSnapshotInvalidation } from "@/lib/data/player-state";
 import { useSfx } from "@/hooks/use-sfx";
 
 type Info = Awaited<ReturnType<typeof getGameInfo>>;
@@ -33,6 +34,14 @@ export function Game({ view, account }: { view: "packs" | "collection"; account?
     void refresh();
     const interval = window.setInterval(refresh, 1000);
     return () => { active = false; clearInterval(interval); };
+  }, []);
+  useEffect(() => {
+    let active = true;
+    const unsubscribe = subscribePlayerSnapshotInvalidation(scopes => {
+      if (scopes.includes("balance")) void getGameInfo().then(game => { if (active) setInfo(game); }, () => undefined);
+      if (scopes.includes("collection")) void getUserCollection().then(cards => { if (active) setCollection(cards); }, () => undefined);
+    });
+    return () => { active = false; unsubscribe(); };
   }, []);
   async function open(kind: "regular" | "decision") {
     if (opening.current || (draw.length > 0 && revealed < draw.length)) return;

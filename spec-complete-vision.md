@@ -20,7 +20,7 @@ Streamer/Youtubeur, Influenceur, Politicien, Écrivain, Philosophe
 ## Boosters
 - **Regular Pack** : 10 cartes, régénéré toutes les 30 min
 - **Decision Pack** : 10 cartes proposées toutes les heures, le joueur n'en garde qu'**une seule**
-- Animation d'ouverture : cartes affichées dos face, révélées une par une au clic, dans l'ordre
+- Animation d'ouverture : un déclenchement global sur le paquet lance la séquence ; les cartes affichées dos face sont ensuite révélées successivement dans l'ordre, sans clic individuel
   de rareté croissante (les plus rares apparaissent en dernier)
 
 ## Compte & Profil

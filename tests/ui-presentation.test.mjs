@@ -236,6 +236,20 @@ test("la modale de détail groupe dossier sous la carte et destruction explicite
   assert.match(source, /setDiscardConfirm\(true\)/);
 });
 
+test("la mise en vente suggère la valeur de marché sans remplacer le prix par défaut", () => {
+  const source = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
+  assert.match(source, /loadCardDiscovery = getCardDiscovery/);
+  assert.match(source, /await loadCardDiscovery\(selected\.id\)/);
+  assert.match(source, /setAuctionPrice\("10"\)/);
+  assert.match(source, /value!=null&&Number\.isFinite\(value\)&&value>0/);
+  assert.match(source, /Suggestion : <Karas amount=\{auctionSuggestion\}/);
+  assert.match(source, /onClick=\{\(\)=>setAuctionPrice\(String\(auctionSuggestion\)\)\}>Utiliser cette valeur/);
+  const proof = readFileSync(path.join(root, "components/auction-suggestion-proof.tsx"), "utf8");
+  assert.match(proof, /marketValue: disabled \? null : 240/);
+  const preview = readFileSync(path.join(root, "app/design-system/auction-suggestion-preview/page.tsx"), "utf8");
+  assert.match(preview, /\(await searchParams\)\.disabled === "1"/);
+});
+
 test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
   const { MarketView } = load("components/community-views.tsx");
   const auction = (id, extra = {}) => ({ id, card: { ...card, id: `card-${id}` }, amount: 120, remaining: "00:12:00", remainingSeconds: 720, seller: "Kitsune", bids: 3, ...extra });
@@ -325,6 +339,22 @@ test("Phase 6 : la mise en vente confirme le verrouillage et signale la réiniti
   assert.match(source, /selected\.customImageUrl&&<li>L’image personnalisée de cette carte sera réinitialisée\.<\/li>/);
   assert.match(source, /\[\["15","15 min"\],\["30","30 min"\],\["60","1 h"\],\["240","4 h"\],\["720","12 h"\],\["1440","24 h"\]\]/);
   assert.match(source, /useState\("10"\)/);
+});
+
+test("l’inscription vérifie le pseudo après debounce sans remplacer la validation de soumission", () => {
+  const form = readFileSync(path.join(root, "components/auth-form.tsx"), "utf8");
+  assert.match(form, /window\.setTimeout\(async \(\) => \{/);
+  assert.match(form, /\}, 450\)/);
+  assert.match(form, /pseudoValidationError\(pseudo\.trim\(\)\)/);
+  assert.match(form, /pseudoRequest\.current \+= 1/);
+  assert.match(form, /if \(pseudoRequest\.current !== request\) return/);
+  assert.match(form, /Disponible/);
+  assert.match(form, /Déjà pris/);
+  assert.doesNotMatch(form, /disabled=\{[^}]*pseudoAvailability/);
+  const actions = readFileSync(path.join(root, "app/auth/actions.ts"), "utf8");
+  assert.match(actions, /export async function checkPseudoAvailabilityWhileTyping/);
+  assert.match(actions, /return await checkPseudoAvailability\(supabase, cleanPseudo\)/);
+  assert.match(actions, /export async function signUp[\s\S]*const pseudoAvailable = await checkPseudoAvailability\(supabase, input\.pseudo\)/);
 });
 
 test("les six types de notifications ont un texte et une redirection", () => {

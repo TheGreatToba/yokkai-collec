@@ -81,7 +81,7 @@ bg rgba(9,7,20,.86) + blur 12px, border-bottom #1D1844. Gauche : logo (carré 34
 ### 1. Boosters
 - **Sélection** : 2 panneaux (grid auto-fit min 420px), chacun = image du pack flottante (`yk-float 5s`) + nom Cinzel 26px + description + barre de recharge + CTA « Ouvrir » ou bouton désactivé « Disponible dans mm:ss ». Decision Pack : tag rose « Choix unique », visuel = même pack teinté `hue-rotate(-42deg) saturate(1.3)` (**à remplacer par un visuel dédié**). Ligne des taux par rareté en chips.
 - **Déchirure** : pack centré, tremblement puis scale 1.4 + fade + flash plein écran blanc→violet (700ms). Son « rumble » puis « tear ».
-- **Révélation** : paquet de 10 dos empilés (décalage 3px/-4px, rotation 1.3°/carte, luminosité décroissante), tap → la carte du dessus se soulève (`translateY(-18px) scale(1.08) rotate(3deg)`) et flip Y 700ms ; re-tap ou auto (1.1–1.6s) → elle descend dans la rangée de 5×2 emplacements (pointillés numérotés) avec `yk-drop`. Ordre imposé : rareté croissante. Badges NEW / « Doublon ×n ». « Tout révéler ▸▸ ». Compteur « Révélées x / 10 ». Bouton son on/off.
+- **Révélation** : un déclenchement global sur le paquet lance la séquence complète. Les cartes se révèlent ensuite successivement et rejoignent la rangée, sans clic individuel sur chaque carte. Ordre imposé : rareté croissante ; effets SR/SSR/LR et Shiny conservés. Badges NEW / « Doublon ×n ». Compteur de progression et bouton son on/off.
 - **Reveals spéciaux** :
   - SR : burst argent + tintement.
   - **SSR** : burst rose + 2 anneaux de choc + texte « SUPER SUPER RARE » (Cinzel 22px, glow rose) au-dessus du paquet.

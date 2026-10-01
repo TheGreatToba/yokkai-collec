@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
-import { authError, validateCredentials, type AuthState } from "@/lib/auth/forms";
+import { authError, pseudoValidationError, validateCredentials, type AuthState } from "@/lib/auth/forms";
 
 function errorCode(error: unknown) {
   if (typeof error !== "object" || error === null || !("code" in error)) return undefined;
@@ -50,6 +50,18 @@ async function checkPseudoAvailability(
     return undefined;
   }
   return data === true;
+}
+
+export async function checkPseudoAvailabilityWhileTyping(pseudo: string) {
+  const cleanPseudo = pseudo.trim();
+  if (pseudoValidationError(cleanPseudo)) return undefined;
+  try {
+    const supabase = createClient(await cookies());
+    return await checkPseudoAvailability(supabase, cleanPseudo);
+  } catch (error) {
+    logAuthErrorInDevelopment("sign-up", error);
+    return undefined;
+  }
 }
 
 function isTransientNetworkError(error: unknown) {

@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/client";
+import { invalidatePlayerSnapshots } from "@/lib/data/cards";
 
 export type Achievement = {
   id: string;
@@ -38,5 +39,7 @@ export async function getAchievements(): Promise<Achievement[]> {
 export async function claimAchievement(id: string): Promise<ClaimResult> {
   const { data, error } = await createClient().rpc("claim_achievement", { p_achievement_id: id });
   if (error) throw failure(error);
-  return data as ClaimResult;
+  const result = data as ClaimResult;
+  invalidatePlayerSnapshots(["balance"]);
+  return result;
 }

@@ -73,10 +73,18 @@ function setup({ catalogue = [], collection = [], apiLimit = 500 } = {}) {
       assert.fail(name);
     },
   };
-  const context = { exports: {}, Date: class extends Date { static now() { return now; } },
-    window: { get localStorage() { assert.fail("Must not access v0.1 localStorage"); } },
+  const TestDate = class extends Date { static now() { return now; } };
+  const testWindow = { get localStorage() { assert.fail("Must not access v0.1 localStorage"); } };
+  const playerStateContext = { exports: {}, Date: TestDate, window: testWindow, BroadcastChannel: undefined, Set, Map, Promise };
+  const playerStateSource = ts.transpileModule(readFileSync(new URL("../lib/data/player-state.ts", import.meta.url), "utf8"), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+  }).outputText;
+  vm.runInNewContext(playerStateSource, playerStateContext);
+  const context = { exports: {}, Date: TestDate,
+    window: testWindow,
     require: (name) => {
       if (name === "@/lib/ui/card-search") return { cardSearchTerms: query => query.replace(/[,%()]/g, " ").trim().toLocaleLowerCase("fr-FR").split(/\s+/).filter(Boolean) };
+      if (name === "@/lib/data/player-state") return playerStateContext.exports;
       assert.equal(name, "@/utils/supabase/client"); return { createClient: () => client };
     },
   };

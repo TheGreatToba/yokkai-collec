@@ -47,11 +47,11 @@ Défauts constatés pendant la refonte mais volontairement non corrigés dans le
 | Idée documentaire | Source |
 | --- | --- |
 | Trier côté serveur les cartes d’un reveal par rareté croissante | `docs/groupe-2-boosters.md` |
-| Rediriger automatiquement vers la Collection après validation d’un booster | `docs/groupe-2-boosters.md` |
+| Rediriger automatiquement vers la Collection après validation d’un booster | **Décision prise : non.** La redirection automatique a été jugée indésirable : le joueur reste sur l’écran de résultat et utilise lui-même le lien existant vers la Collection. |
 | Faire voler les cartes conservées vers la navigation et désintégrer les autres | `docs/groupe-2-boosters.md` |
 | Convertir automatiquement les quatre cartes non retenues du booster décisif en Karas | `docs/groupe-2-boosters.md` |
 | Mettre à jour en temps réel le chrono, l’historique et les offres d’une enchère | `docs/groupe-3-marche.md` |
-| Valider dynamiquement la disponibilité du pseudo avec un debounce de 300 ms | `docs/groupe-6-landingpage.md` |
+| Valider dynamiquement la disponibilité du pseudo avec un debounce | **Implémenté dans `feat/simple-wiring-2`** : vérification informative après 450 ms, uniquement pour un pseudo localement valide, avec abandon des réponses obsolètes. La validation définitive de `signUp` reste inchangée. Preuve : `/design-system/pseudo-availability-preview`. |
 | Rediriger après inscription et déclencher automatiquement un toast de bienvenue | `docs/groupe-6-landingpage.md` |
 | Rafraîchir silencieusement inventaire, solde et notifications après les actions | `docs/groupe-3-marche.md`, `docs/groupe-5-succes-wishlist-notifs.md` |
 | Créditer, débiter ou animer un roll-up de Karas à partir des scénarios de maquette | `docs/design_system.md`, `docs/groupe-1-collection-catalogue.md`, `docs/groupe-2-boosters.md`, `docs/groupe-5-succes-wishlist-notifs.md` |
@@ -62,10 +62,10 @@ Défauts constatés pendant la refonte mais volontairement non corrigés dans le
 | Faire de « Ajouter à ma collection » une validation réelle du Regular Pack ; aujourd’hui les cartes sont déjà enregistrées par `openBooster` à l’ouverture, le bouton est donc un lien vers la Collection (désactivé tant que les 5 cartes ne sont pas révélées) | Phase 5 · Boosters |
 | Afficher le gain « Détruire (+X Karas) » sous chaque carte ; nécessite d’exposer la valeur de destruction par carte avant l’action (`discardPackCard` ne renvoie que le solde final) | Phase 5 · Boosters, `docs/groupe-2-boosters.md` |
 | Annoncer le montant de Karas dans la modale de confirmation du Booster Décisif ; le montant n’est connu qu’après `keepDecisionPackCard` | Phase 5 · Boosters, `docs/groupe-2-boosters.md` |
-| Révéler en touchant directement chacune des 5 cartes de la rangée ; la révélation passe aujourd’hui par le paquet, qui porte le flip et les reveals SR/SSR/LR figés | Phase 5 · Boosters |
+| Révéler en touchant directement chacune des 5 cartes de la rangée | **Décision prise : non.** Le déclenchement global actuel est conservé : le joueur lance la révélation depuis le paquet, puis les cinq cartes sont révélées dans l’ordre avec leurs effets SR/SSR/LR. |
 | Trier le Marché par « Les plus populaires » ; nécessite une mesure de popularité (suivis, vues) exposée par `list_auctions` | Phase 6 · Marché, `docs/groupe-3-marche.md` |
 | Proposer « Obtenir des Karas » à côté de l’alerte de solde insuffisant ; aucun moyen d’acquérir des Karas n’existe en dehors du jeu | Phase 6 · Marché, `docs/groupe-3-marche.md` |
-| Suggérer un prix de départ recommandé dans la modale de vente ; nécessite une valeur de marché par carte | Phase 6 · Marché, `docs/groupe-3-marche.md` |
+| Suggérer un prix de départ recommandé dans la modale de vente | **Implémenté dans `feat/simple-wiring-2`** : la modale charge `getCardDiscovery()` à son ouverture, conserve 10 Karas par défaut et ne préremplit la suggestion qu’après un clic explicite. Aucune suggestion n’apparaît sans historique de vente. Preuve : `/design-system/auction-suggestion-preview`. |
 | Lancer des confettis ou un flash sur la ligne d’historique lors d’une nouvelle mise | Phase 6 · Marché, `docs/groupe-3-marche.md` |
 | Afficher dans le détail d’une carte de la Collection si elle est verrouillée (en enchère) ; `CollectedCard` n’expose aucun état de verrouillage et `Game` ne transmet pas `presentation.frozen` à `CollectionView`. Le composant gère déjà cet état (boutons Mettre aux enchères / Détruire désactivés) dès qu’il est fourni ; en attendant, c’est le serveur qui refuse l’action | Correctif modale de détail, maquette Gemini |
 | Afficher la valeur de marché dans le détail d’une carte de la Collection ; la ligne n’apparaît que si `presentation.marketValue` est fourni, ce que `Game` ne fait pas aujourd’hui | Correctif modale de détail, maquette Gemini |
