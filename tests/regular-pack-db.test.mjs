@@ -33,6 +33,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
   await db.exec(readFileSync(new URL("../supabase/migrations/20260928000003_pseudo_rules.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261001000000_auction_participation.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261001000001_market_popularity.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../supabase/migrations/20261001000002_booster_destruction_estimates.sql", import.meta.url), "utf8"));
   await db.query("insert into auth.users values ($1, '{\"pseudo\":\"Alice\"}'), ($2, '{\"pseudo\":\"Bob\"}'), ($3, '{\"pseudo\":\"Charlie\"}')", [alice, bob, charlie]);
   for (const rarity of ["C", "R", "SR", "SSR", "LR"]) {
     await db.query(`insert into public.cards (source_id, nom, categorie, franchise, rarete_base, image_url, source)
@@ -236,6 +237,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     const choices = await asUser(bob, () => rpc("open_decision_pack"));
     assert.equal(choices.length, 5);
     assert.ok(choices.every(card => ["SR", "SSR", "LR"].includes(card.rarity)));
+    assert.ok(choices.every(card => card.destructionValue === ({ SR:3, SSR:4, LR:5 })[card.rarity]));
     assert.ok(choices.every(card => !card.shiny || card.rarity === "LR"));
     assert.equal(await count(bob), 0);
     const resumed = await asUser(bob, () => rpc("open_decision_pack"));
@@ -243,9 +245,9 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     assert.ok(choices.every(card => card.anime === "Franchise"));
     const balanceBeforeChoice = Number((await db.query("select karas_balance from public.user_profiles where user_id=$1", [bob])).rows[0].karas_balance);
     const discardedChoices = choices.filter((_, index) => index !== 1);
+    const decisionReward = discardedChoices.reduce((sum, card) => sum + card.destructionValue, 0);
     const liveRarityChoice = discardedChoices[0];
     await db.query("update public.cards set rarete_base='C' where id=$1", [liveRarityChoice.id]);
-    const decisionReward = discardedChoices.reduce((sum, card) => sum + (card.id === liveRarityChoice.id ? 1 : ({ C: 1, R: 2, SR: 3, SSR: 4, LR: 5 })[card.rarity]), 0);
     const kept = (await asUser(bob, () => db.query("select public.keep_decision_pack_card($1) as value", [choices[1].instanceId]))).rows[0].value;
     assert.equal(await count(bob), 1);
     assert.equal(kept.id, choices[1].id);
@@ -272,6 +274,8 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     for (const [rarity, reward] of Object.entries({ C: 1, R: 2, SR: 3, SSR: 4, LR: 5 })) {
       const cardId = (await db.query("select id from public.cards where source_id=$1", [rarity])).rows[0].id;
       const copyId = (await db.query("insert into public.user_cards(user_id,card_id,rarity) values ($1,$2,$3::public.card_rarity) returning id", [bob, cardId, rarity])).rows[0].id;
+      const estimate = (await asUser(bob, () => db.query("select public.get_pack_destruction_values(array[$1]::uuid[]) as value", [copyId]))).rows[0].value;
+      assert.equal(estimate[copyId], reward);
       const before = Number((await db.query("select karas_balance from public.user_profiles where user_id=$1", [bob])).rows[0].karas_balance);
       await asUser(bob, () => db.query("select public.discard_regular_pack_card($1)", [copyId]));
       assert.equal(Number((await db.query("select karas_balance from public.user_profiles where user_id=$1", [bob])).rows[0].karas_balance), before + reward);

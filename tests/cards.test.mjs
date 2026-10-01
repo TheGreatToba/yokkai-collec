@@ -46,7 +46,7 @@ function setup({ catalogue = [], collection = [], apiLimit = 500 } = {}) {
       return query;
     },
     async rpc(name, args) {
-      if (!["evolve_ssr_card", "discard_collection_card", "discard_decision_pack_card"].includes(name)) assert.equal(args, undefined); // Draw parameters remain server-owned.
+      if (!["evolve_ssr_card", "discard_collection_card", "discard_decision_pack_card", "get_pack_destruction_values"].includes(name)) assert.equal(args, undefined); // Draw parameters remain server-owned.
       calls.push({ rpc: name });
       await rpcHook?.();
       if (rpcError) return { data: null, error: rpcError };
@@ -63,6 +63,10 @@ function setup({ catalogue = [], collection = [], apiLimit = 500 } = {}) {
           instanceId: row.id, obtainedAt: row.date_obtention, shiny: row.is_shiny, isEvolved: row.is_evolved,
           isFirstOwner: row.is_first_owner, folderId: row.folder_id })), error: null };
       }
+      if (name === "get_pack_destruction_values") return { data: Object.fromEntries(args.p_instance_ids.map(instanceId => {
+        const copy=collection.find(item=>item.id===instanceId&&item.user_id===user);
+        return [instanceId,{C:1,R:2,SR:3,SSR:4,LR:5}[copy.rarity]];
+      })), error:null };
       if (name === "discard_collection_card") {
         const index = collection.findIndex((copy) => copy.id === args.p_card_instance_id && copy.user_id === user);
         if (index < 0) return { data: null, error: { message: "CARD_NOT_OWNED" } };

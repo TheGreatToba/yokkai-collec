@@ -201,13 +201,13 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
   const { BoosterReveal, Boosters } = load("components/boosters.tsx");
   const cards = Array.from({ length: 5 }, (_, i) => ({ ...card, instanceId: `copy-${i}`, anime: "Spirit Realm" }));
   const regular = render(BoosterReveal, { cards, revealed: 2, onReveal() {}, onReturn() {}, async onDiscard() {} });
-  assert.equal((regular.match(/>Détruire</g) || []).length, 2);
+  assert.equal((regular.match(/>Défausser</g) || []).length, 2);
   assert.match(regular, /<button[^>]*disabled=""[^>]*>Ajouter à ma collection</);
   const regularDone = render(BoosterReveal, { cards, revealed: 5, onReveal() {}, onReturn() {}, async onDiscard() {} });
   assert.match(regularDone, /href="\/collection"[^>]*>Ajouter à ma collection</);
   const choosing = render(BoosterReveal, { cards, revealed: 5, onReveal() {}, onReturn() {}, decision: { async onKeep() { return 0; } } });
   assert.equal((choosing.match(/>Garder celle-ci</g) || []).length, 5);
-  assert.doesNotMatch(choosing, />Détruire</);
+  assert.doesNotMatch(choosing, /yk-slot-button">Défausser/);
   const selection = render(Boosters, {
     status: { available: 0, maximum: 5, nextPackAt: Date.now() + 60_000 }, countdown: "01:00",
     decisionStatus: { available: false, pending: [], nextPackAt: new Date().setHours(24, 30, 0, 0) }, decisionCountdown: "10:00:00",
@@ -220,6 +220,23 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
   assert.match(selection, /Revient demain à 00:30/);
   const source = readFileSync(path.join(root, "components/boosters.tsx"), "utf8");
   assert.match(source, /Garder cette carte et perdre les \{cards\.length - 1\} autres \?/);
+});
+
+test("les boosters annoncent les gains autoritaires avant confirmation", () => {
+  const { BoosterReveal } = load("components/boosters.tsx");
+  const values=[1,2,3,4,5];
+  const cards=values.map((destructionValue,i)=>({...card,instanceId:`copy-${i}`,destructionValue}));
+  const regular=render(BoosterReveal,{cards,revealed:5,onReveal(){},onReturn(){},async onDiscard(){}});
+  assert.equal((regular.match(/>Défausser</g)||[]).length,5);
+  assert.doesNotMatch(regular,/Défausser \(\+/);
+  const decision=render(BoosterReveal,{cards,revealed:5,onReveal(){},onReturn(){},decision:{async onKeep(){return 14;}}});
+  assert.equal((decision.match(/>Garder celle-ci</g)||[]).length,5);
+  assert.doesNotMatch(decision,/Garder celle-ci \(\+/);
+  const migration=readFileSync(path.join(root,"supabase/migrations/20261001000002_booster_destruction_estimates.sql"),"utf8");
+  assert.match(migration,/public\.card_destruction_value\(owned\.rarity\)/);
+  assert.match(migration,/sum\(public\.card_destruction_value\(other_choices\.rarity\)\)/);
+  assert.doesNotMatch(migration,/reward\s*:=\s*case/);
+  assert.ok(existsSync(path.join(root,"app/design-system/booster-karas-preview/page.tsx")));
 });
 
 test("la modale de détail groupe dossier sous la carte et destruction explicite en bas", () => {
