@@ -84,12 +84,13 @@ test("les modales imbriquées libèrent le scroll et la confirmation remplace le
 
 test("la destruction multiple est active et transmet tous les exemplaires sélectionnés", () => {
   const collection = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
+  const controls = readFileSync(path.join(root, "components/ui/index.tsx"), "utf8");
   const styles = readFileSync(path.join(root, "styles/collection.css"), "utf8");
   const game = readFileSync(path.join(root, "components/game.tsx"), "utf8");
   assert.match(collection, /onDiscardMany\(selectedCards\.map\(card => card\.instanceId\)\)/);
-  assert.match(collection, /bulkDiscardBusy\?"Destruction…":"Détruire la sélection"/);
+  assert.match(controls, /busy\?"Destruction…":"Détruire la sélection"/);
   assert.doesNotMatch(collection, /Destruction bientôt disponible/);
-  assert.ok(collection.indexOf('className="yk-selection-bar"') > collection.indexOf('className="yk-collection-grid"'));
+  assert.ok(collection.indexOf('<SelectionBar') > collection.indexOf('className={`yk-card-grid yk-collection-grid'));
   assert.match(styles.match(/\.yk-selection-bar \{[^}]+\}/)?.[0] ?? "", /position:\s*sticky/);
   assert.match(styles.match(/\.yk-selection-bar \{[^}]+\}/)?.[0] ?? "", /bottom:\s*var\(--layout-gutter-compact\)/);
   assert.match(game, /onDiscardMany=\{discardCollectionCards\}/);
@@ -145,7 +146,7 @@ test("barre d'outils Collection compacte sur mobile et tiroir fermé même en mo
   assert.ok(collection.indexOf('className="yk-mobile-filter-trigger"') > collection.indexOf('<div className="yk-collection-toolbar">'));
   // Mobile: "Sélection multiple" becomes an icon; the label stays available to screen readers.
   assert.match(css, /\.yk-collection-toolbar \.yk-selection-mode-label \{ position: absolute;/);
-  assert.match(collection, /className="yk-selection-mode" aria-pressed=\{selecting\}/);
+  assert.match(collection, /<SelectionModeButton active=\{selecting\}/);
   // The global reduced-motion reset drops transforms: the closed drawer and the Karas gem must keep theirs.
   assert.match(ui, /transform: none !important/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\) and \(max-width: 760px\) \{ \.yk-collection-sidebar:not\(\.yk-sidebar-open\) \{ transform: translateX\(-100%\) !important; \} \}/);
@@ -201,10 +202,13 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
   const { BoosterReveal, Boosters } = load("components/boosters.tsx");
   const cards = Array.from({ length: 5 }, (_, i) => ({ ...card, instanceId: `copy-${i}`, anime: "Spirit Realm" }));
   const regular = render(BoosterReveal, { cards, revealed: 2, onReveal() {}, onReturn() {}, async onDiscard() {} });
-  assert.equal((regular.match(/>Défausser</g) || []).length, 2);
+  assert.equal((regular.match(/>Défausser</g)||[]).length,2);
+  assert.doesNotMatch(regular, />Sélectionner</);
   assert.match(regular, /<button[^>]*disabled=""[^>]*>Ajouter à ma collection</);
   const regularDone = render(BoosterReveal, { cards, revealed: 5, onReveal() {}, onReturn() {}, async onDiscard() {} });
   assert.match(regularDone, /href="\/collection"[^>]*>Ajouter à ma collection</);
+  assert.match(regularDone, />Sélectionner</);
+  assert.equal((regularDone.match(/>Défausser</g)||[]).length,5);
   const choosing = render(BoosterReveal, { cards, revealed: 5, onReveal() {}, onReturn() {}, decision: { async onKeep() { return 0; } } });
   assert.equal((choosing.match(/>Garder celle-ci</g) || []).length, 5);
   assert.doesNotMatch(choosing, /yk-slot-button">Défausser/);
@@ -219,7 +223,10 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
   assert.match(selection, /1 carte à garder parmi 5/);
   assert.match(selection, /Revient demain à 00:30/);
   const source = readFileSync(path.join(root, "components/boosters.tsx"), "utf8");
+  const boosterStyles = readFileSync(path.join(root, "styles/boosters.css"), "utf8");
   assert.match(source, /Garder cette carte et perdre les \{cards\.length - 1\} autres \?/);
+  assert.match(boosterStyles,/\.yk-reveal-selection-mode \{[^}]*width: auto;[^}]*min-height: 32px;/);
+  assert.match(boosterStyles,/@media \(max-width: 40rem\) \{[\s\S]*\.yk-reveal-progress \{ grid-column: 1; grid-row: 2; justify-self: start; \}[\s\S]*\.yk-reveal-selection-mode \{ grid-column: 2; grid-row: 2; \}/);
 });
 
 test("les boosters annoncent les gains autoritaires avant confirmation", () => {
@@ -227,11 +234,15 @@ test("les boosters annoncent les gains autoritaires avant confirmation", () => {
   const values=[1,2,3,4,5];
   const cards=values.map((destructionValue,i)=>({...card,instanceId:`copy-${i}`,destructionValue}));
   const regular=render(BoosterReveal,{cards,revealed:5,onReveal(){},onReturn(){},async onDiscard(){}});
-  assert.equal((regular.match(/>Défausser</g)||[]).length,5);
+  assert.match(regular,/>Sélectionner</);
   assert.doesNotMatch(regular,/Défausser \(\+/);
   const decision=render(BoosterReveal,{cards,revealed:5,onReveal(){},onReturn(){},decision:{async onKeep(){return 14;}}});
   assert.equal((decision.match(/>Garder celle-ci</g)||[]).length,5);
   assert.doesNotMatch(decision,/Garder celle-ci \(\+/);
+  const source=readFileSync(path.join(root,"components/boosters.tsx"),"utf8");
+  assert.match(source,/selectedCards\.reduce\(\(sum,card\)=>sum\+card\.destructionValue!/);
+  assert.match(source,/Tu recevras <strong className="text-karas">\{selectedValue\}/);
+  assert.match(source,/if\(destroyingAll\)onReturn\(\)/);
   const migration=readFileSync(path.join(root,"supabase/migrations/20261001000002_booster_destruction_estimates.sql"),"utf8");
   assert.match(migration,/public\.card_destruction_value\(owned\.rarity\)/);
   assert.match(migration,/sum\(public\.card_destruction_value\(other_choices\.rarity\)\)/);

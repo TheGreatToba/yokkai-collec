@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import type { Card, CollectedCard, DecisionPackStatus, PackStatus } from "@/lib/data/cards";
-import { Button, Modal, StatusPill } from "@/components/ui";
+import { Button, Modal, SelectionBar, SelectionModeButton, StatusPill } from "@/components/ui";
 import { CardBack, YokaiCard } from "@/components/yokai-card";
 import type { SfxName } from "@/hooks/use-sfx";
 
@@ -22,9 +22,9 @@ function decisionReturnLabel(nextPackAt: number) {
 }
 type Decision = { onKeep: (instanceId: string) => Promise<number>; keptId?: string; busy?: boolean; karasReward?: number };
 
-export function BoosterReveal({ cards, revealed, onReveal, onReturn, onNext, nextDisabled = false, nextLabel = "Prochain booster", decision, onDiscard, onSound }: {
+export function BoosterReveal({ cards, revealed, onReveal, onReturn, onNext, nextDisabled = false, nextLabel = "Prochain booster", decision, onDiscard, onComplete, onSound }: {
   cards: RevealCard[]; revealed: number; onReveal: (index: number) => void;
-  onReturn: () => void; onNext?: () => void; nextDisabled?: boolean; nextLabel?: string; decision?: Decision; onDiscard?: (instanceId: string) => Promise<void>; onSound?: (sound: Sound) => void;
+  onReturn: () => void; onNext?: () => void; nextDisabled?: boolean; nextLabel?: string; decision?: Decision; onDiscard?: (instanceId: string) => Promise<void>; onComplete?: () => void; onSound?: (sound: Sound) => void;
 }) {
   const [faceUp, setFaceUp] = useState(false);
   const [revealLocked, setRevealLocked] = useState(false);
@@ -33,9 +33,13 @@ export function BoosterReveal({ cards, revealed, onReveal, onReturn, onNext, nex
   const [confirm, setConfirm] = useState(false);
   const [error, setError] = useState("");
   const [confirming, setConfirming] = useState(false);
+  const [discarded, setDiscarded] = useState(() => new Set(cards.filter(card => card.discarded).map(card => card.instanceId)));
+  const [selecting, setSelecting] = useState(false);
+  const [selection, setSelection] = useState(() => new Set<string>());
+  const [bulkConfirm, setBulkConfirm] = useState(false);
+  const [bulkDiscarding, setBulkDiscarding] = useState(false);
   const [discarding, setDiscarding] = useState<string | null>(null);
   const [discardCandidate, setDiscardCandidate] = useState<RevealCard | null>(null);
-  const [discarded, setDiscarded] = useState(() => new Set(cards.filter(card => card.discarded).map(card => card.instanceId)));
   const keepLock = useRef(false);
   const revealTimer = useRef<number | null>(null);
   const next = useRef<HTMLButtonElement>(null);
@@ -45,6 +49,9 @@ export function BoosterReveal({ cards, revealed, onReveal, onReturn, onNext, nex
   const done = revealed >= cards.length;
   // Summary counts only the cards that stay in the collection (not destroyed, not lost in a Decision Pack).
   const keptCards = cards.filter(c => !discarded.has(c.instanceId) && (!decision?.keptId || decision.keptId === c.instanceId));
+  const visibleCards = decision ? cards : cards.filter(card => !discarded.has(card.instanceId));
+  const selectedCards = cards.filter(card => selection.has(card.instanceId) && !discarded.has(card.instanceId));
+  const selectedValue = selectedCards.length && selectedCards.every(card=>card.destructionValue!=null) ? selectedCards.reduce((sum,card)=>sum+card.destructionValue!,0) : undefined;
   const choosing = !!decision && done && !decision.keptId;
   const chosen = cards.find(c => c.instanceId === pick && !discarded.has(c.instanceId));
   const decisionReward = (keptId:string) => {const lost=cards.filter(card=>card.instanceId!==keptId&&!discarded.has(card.instanceId));return lost.every(card=>card.destructionValue!=null)?lost.reduce((sum,card)=>sum+card.destructionValue!,0):undefined;};
@@ -83,15 +90,28 @@ export function BoosterReveal({ cards, revealed, onReveal, onReturn, onNext, nex
     catch (e) { setError(e instanceof Error ? e.message : "Impossible de confirmer ce choix."); }
     finally { keepLock.current = false; setConfirming(false); }
   }
-  async function discard(instanceId: string) {
-    if (!onDiscard || discarding || discarded.has(instanceId)) return;
-    setDiscarding(instanceId); setError("");
-    try { await onDiscard(instanceId); setDiscarded(current => new Set(current).add(instanceId)); if (pick === instanceId) setPick(null); setDiscardCandidate(null); }
-    catch (e) { setError(e instanceof Error ? e.message : "Impossible de détruire cette carte."); }
-    finally { setDiscarding(null); }
+  function toggleSelection(instanceId:string) {setSelection(current=>{const next=new Set(current);if(next.has(instanceId))next.delete(instanceId);else next.add(instanceId);return next;});}
+  async function discard(instanceId:string) {
+    if(!onDiscard||discarding||discarded.has(instanceId))return;
+    setDiscarding(instanceId);setError("");
+    try{await onDiscard(instanceId);setDiscarded(current=>new Set(current).add(instanceId));setDiscardCandidate(null);}
+    catch(e){setError(e instanceof Error?e.message:"Impossible de détruire cette carte.");}
+    finally{setDiscarding(null);}
+  }
+  async function discardSelection() {
+    if (!onDiscard || !selectedCards.length || bulkDiscarding) return;
+    const destroyingAll=selectedCards.length===visibleCards.length;
+    setBulkDiscarding(true); setError("");
+    try {
+      for(const card of selectedCards){await onDiscard(card.instanceId);setDiscarded(current=>new Set(current).add(card.instanceId));setSelection(current=>{const next=new Set(current);next.delete(card.instanceId);return next;});}
+      setBulkConfirm(false);setSelecting(false);
+      if(destroyingAll)onReturn();
+    } catch (e) { setError(e instanceof Error ? e.message : "Impossible de détruire la sélection."); }
+    finally { setBulkDiscarding(false); }
   }
   return <section aria-label="Cartes du pack" className="yk-reveal-screen">
-    <header className="yk-reveal-header"><div><p className="eyebrow">{decision ? "Booster Décisif" : "Booster Régulier"}</p><h2 className="mt-2 font-display text-2xl">{decision ? choosing ? "Fais ton choix décisif" : "Un seul choix" : "Révèle tes cartes"}</h2><p role="status" aria-atomic="true" className="mt-2 text-sm text-ink-2">{choosing ? "Toutes les cartes sont révélées · garde celle de ton choix" : done ? `${revealed} cartes révélées` : `Touche le paquet pour retourner chaque carte · ${revealed} / ${cards.length}`}</p></div>
+    <header className="yk-reveal-header"><div className="yk-reveal-copy"><p className="eyebrow">{decision ? "Booster Décisif" : "Booster Régulier"}</p><h2 className="mt-2 font-display text-2xl">{decision ? choosing ? "Fais ton choix décisif" : "Un seul choix" : "Révèle tes cartes"}</h2><p role="status" aria-atomic="true" className="mt-2 text-sm text-ink-2">{choosing ? "Toutes les cartes sont révélées · garde celle de ton choix" : done ? `${revealed} cartes révélées` : `Touche le paquet pour retourner chaque carte · ${revealed} / ${cards.length}`}</p></div>
+      {done&&!decision&&visibleCards.length>0&&<SelectionModeButton active={selecting} inactiveLabel="Sélectionner" activeLabel="Annuler" className="yk-reveal-selection-mode" onClick={()=>{setSelecting(current=>!current);setSelection(new Set());}}/>}
       <ol className="yk-reveal-progress" aria-hidden="true">{cards.map((card, i) => <li key={card.instanceId} className={i < revealed ? "yk-progress-done" : i === revealed ? "yk-progress-current" : undefined} />)}</ol></header>
     {!done && <div className={`yk-reveal-stage ${faceUp && current?.rarity === "SSR" ? "yk-reveal-ssr" : ""} ${faceUp && current?.rarity === "SR" ? "yk-reveal-sr" : ""} ${faceUp && current?.rarity === "LR" ? "yk-reveal-lr" : ""} ${faceUp && current?.shiny ? "yk-reveal-shiny" : ""}`}>
       {faceUp && current?.rarity === "SSR" && <p className="yk-callout yk-ssr-callout">✦ Rareté Exceptionnelle ✦</p>}
@@ -238,23 +258,25 @@ export function BoosterReveal({ cards, revealed, onReveal, onReturn, onNext, nex
       <p className="mt-8 text-center text-xs text-ink-3">{revealLocked ? "L’énergie s’accumule…" : faceUp ? "Touchez pour ranger la carte" : "Touchez le paquet pour révéler une carte"}</p>
     </div>}
     {choosing && <div className="yk-decision-banner"><p className="font-display text-lg text-karas">Choisis ta carte décisive</p><p className="mt-1 text-sm text-ink-2">Une seule rejoindra ta collection — les {cards.length - 1} autres seront perdues.</p></div>}
-    <ol className={`yk-reveal-grid ${choosing ? "yk-reveal-grid-choosing" : ""}`}>{cards.map((card,i) => {
+    <ol className={`yk-reveal-grid ${choosing ? "yk-reveal-grid-choosing" : ""}`}>{visibleCards.map((card,i) => {
       const isDiscarded = discarded.has(card.instanceId);
       const lost = isDiscarded || (!!decision?.keptId && decision.keptId !== card.instanceId);
       const kept = decision?.keptId === card.instanceId;
       return <li key={card.instanceId} style={{ "--slot-i": i } as CSSProperties} className={`yk-reveal-slot ${i < revealed ? "yk-filled" : ""} ${i === revealed && !done ? "yk-slot-next" : ""} ${pick === card.instanceId && choosing ? "yk-picked" : ""} ${lost ? "yk-lost" : ""} ${kept ? "yk-kept" : ""}`}>
-        {i < revealed ? <><button type="button" disabled={!choosing || confirming || isDiscarded} aria-pressed={choosing ? pick === card.instanceId : undefined} aria-label={choosing ? `Choisir ${card.name}` : `${card.name}, ${card.rarity}`} onClick={() => setPick(card.instanceId)} className="yk-reveal-card block w-full rounded-card text-left disabled:cursor-default" style={choosing && pick && pick !== card.instanceId ? {opacity:.55} : undefined}><YokaiCard {...card} />{lost && <span className="yk-lost-stamp">{isDiscarded ? "DÉTRUITE" : "PERDUE"}</span>}</button>
-          <div className="yk-reveal-actions">{kept ? <StatusPill>GARDÉE</StatusPill> : choosing ? <Button variant={pick === card.instanceId ? "primary" : "secondary"} disabled={decision.busy || confirming} onClick={() => { setPick(card.instanceId); setConfirm(true); }} className="yk-slot-button">Garder celle-ci</Button> : !isDiscarded && onDiscard ? <Button variant="danger" disabled={!!discarding} onClick={() => setDiscardCandidate(card)} className="yk-slot-button">{discarding === card.instanceId ? "Défausse…" : "Défausser"}</Button> : lost ? null : card.isNew ? <StatusPill>NEW</StatusPill> : card.copies && card.copies > 1 ? <span className="text-[10px] text-ink-3">Doublon ×{card.copies}</span> : null}</div></> : <span className="yk-slot-placeholder"><span className="yk-slot-number">{String(i + 1).padStart(2,"0")}</span><span className="yk-slot-hint">{i === revealed ? "Suivante" : "En attente"}</span></span>}
+        {i < revealed ? <><button type="button" disabled={(!choosing&&!selecting)||confirming||isDiscarded} aria-pressed={choosing?pick===card.instanceId:selecting?selection.has(card.instanceId):undefined} aria-label={choosing?`Choisir ${card.name}`:selecting?`Sélectionner ${card.name}, ${card.rarity}`:`${card.name}, ${card.rarity}`} onClick={()=>choosing?setPick(card.instanceId):selecting?toggleSelection(card.instanceId):undefined} className={`yk-reveal-card block w-full rounded-card text-left disabled:cursor-default ${selecting&&selection.has(card.instanceId)?"yk-selected-card":""}`} style={choosing&&pick&&pick!==card.instanceId?{opacity:.55}:undefined}><YokaiCard {...card}/>{selecting&&<span className={`yk-selection-check ${selection.has(card.instanceId)?"yk-checked":""}`}>{selection.has(card.instanceId)?"✓":""}</span>}{lost&&<span className="yk-lost-stamp">{isDiscarded?"DÉTRUITE":"PERDUE"}</span>}</button>
+          <div className="yk-reveal-actions">{kept?<StatusPill>GARDÉE</StatusPill>:choosing?<Button variant={pick===card.instanceId?"primary":"secondary"} disabled={decision.busy||confirming} onClick={()=>{setPick(card.instanceId);setConfirm(true);}} className="yk-slot-button">Garder celle-ci</Button>:!selecting&&onDiscard?<Button variant="danger" disabled={!!discarding} onClick={()=>setDiscardCandidate(card)} className="yk-slot-button">{discarding===card.instanceId?"Défausse…":"Défausser"}</Button>:!selecting&&(card.isNew?<StatusPill>NEW</StatusPill>:card.copies&&card.copies>1?<span className="text-[10px] text-ink-3">Doublon ×{card.copies}</span>:null)}</div></> : <span className="yk-slot-placeholder"><span className="yk-slot-number">{String(i + 1).padStart(2,"0")}</span><span className="yk-slot-hint">{i === revealed ? "Suivante" : "En attente"}</span></span>}
       </li>;
     })}</ol>
+    {selecting&&<SelectionBar count={selectedCards.length} value={selectedValue} busy={bulkDiscarding} error={error} onAll={()=>setSelection(new Set(visibleCards.map(card=>card.instanceId)))} onNone={()=>setSelection(new Set())} onDestroy={()=>setBulkConfirm(true)} onClose={()=>{setSelecting(false);setSelection(new Set());setError("");}}/>}
     {error && <p role="alert" className="mt-5 text-center text-sm text-danger">{error}</p>}
     {!done && !decision && <div className="yk-reveal-footer"><Button disabled>Ajouter à ma collection</Button><p className="text-xs text-ink-3">Révèle les {cards.length} cartes pour valider ton booster.</p></div>}
-    {done && !choosing && <div className={`yk-reveal-summary ${decision ? "yk-reveal-summary-decision" : ""}`}><h2 className="font-display text-2xl">{decision ? `Carte ajoutée à ta collection · +${decision.karasReward ?? 0} Karas depuis les cartes non conservées` : "L’invocation est complète"}</h2><div className="my-5 flex flex-wrap justify-center gap-2">{[...new Set(keptCards.map(c => c.rarity))].map(r => <StatusPill key={r}>{r} ×{keptCards.filter(c=>c.rarity===r).length}</StatusPill>)}</div>{cards.every(c => c.isNew !== undefined) && <p className="mb-5 text-sm text-ink-2">{keptCards.filter(c => c.isNew).length} nouvelle(s) carte(s)</p>}<div className="flex flex-wrap justify-center gap-3">{onNext&&<button type="button" ref={nextBooster} disabled={nextDisabled} onClick={onNext} className="yk-button yk-button-primary">{nextLabel}</button>}<Link ref={completeLink} href="/collection" className={`yk-button ${onNext ? "yk-button-secondary" : "yk-button-primary"}`}>{decision ? "Voir ma collection" : "Ajouter à ma collection"}</Link><Button variant="secondary" onClick={onReturn}>Retour aux boosters</Button></div></div>}
+    {done && !choosing && <div className={`yk-reveal-summary ${decision ? "yk-reveal-summary-decision" : ""}`}><h2 className="font-display text-2xl">{decision ? `Carte ajoutée à ta collection · +${decision.karasReward ?? 0} Karas depuis les cartes non conservées` : "L’invocation est complète"}</h2><div className="my-5 flex flex-wrap justify-center gap-2">{[...new Set(keptCards.map(c => c.rarity))].map(r => <StatusPill key={r}>{r} ×{keptCards.filter(c=>c.rarity===r).length}</StatusPill>)}</div>{cards.every(c => c.isNew !== undefined) && <p className="mb-5 text-sm text-ink-2">{keptCards.filter(c => c.isNew).length} nouvelle(s) carte(s)</p>}<div className="flex flex-wrap justify-center gap-3">{onNext&&<button type="button" ref={nextBooster} disabled={nextDisabled} onClick={onNext} className="yk-button yk-button-primary">{nextLabel}</button>}{onComplete?<Button variant={onNext?"secondary":"primary"} onClick={onComplete}>{decision?"Voir ma collection":"Ajouter à ma collection"}</Button>:<Link ref={completeLink} href="/collection" className={`yk-button ${onNext ? "yk-button-secondary" : "yk-button-primary"}`}>{decision ? "Voir ma collection" : "Ajouter à ma collection"}</Link>}<Button variant="secondary" onClick={onReturn}>Retour aux boosters</Button></div></div>}
     <Modal open={!!spot} onClose={() => setSpot(null)} title={spot?.shiny ? "✦ Invocation Shiny ✦" : "Invocation légendaire"} className={`yk-invocation ${spot?.shiny ? "yk-invocation-shiny" : ""}`}>
       {spot && <div className="relative z-10 flex flex-col items-center gap-6"><div className="yk-invoked-card"><YokaiCard {...spot} /></div><h3 className="font-display text-[clamp(28px,4vw,44px)]">{spot.name}</h3>{spot.isNew && <StatusPill>NEW</StatusPill>}<Button variant="secondary" onClick={() => setSpot(null)}>Toucher pour continuer</Button></div>}
     </Modal>
     <Modal open={confirm} onClose={() => { if (!confirming) setConfirm(false); }} title={`Garder ${chosen?.name || "cette carte"} ?`}>{chosen && <><div className="mx-auto w-40"><YokaiCard {...chosen} /></div><p className="mt-6 text-center font-semibold text-ink">Garder cette carte et perdre les {cards.length - 1} autres ?</p>{decisionReward(chosen.instanceId)!=null&&<p className="mt-2 text-center text-sm text-karas">+{decisionReward(chosen.instanceId)} Karas depuis les cartes non conservées</p>}<p className="mb-6 mt-2 text-center text-xs text-ink-3">Ce choix est définitif.</p>{error && <p role="alert" className="mb-4 text-center text-danger">{error}</p>}<div className="flex flex-wrap justify-center gap-3"><Button variant="secondary" disabled={confirming} onClick={() => setConfirm(false)}>Revenir au choix</Button><Button disabled={decision?.busy || confirming} aria-busy={confirming || undefined} onClick={keep}>{confirming ? "Confirmation…" : "Garder cette carte"}</Button></div></>}</Modal>
-    <Modal open={!!discardCandidate} onClose={() => { if (!discarding) setDiscardCandidate(null); }} title="Défausser cette carte ?">{discardCandidate && <><div className="mx-auto w-32"><YokaiCard {...discardCandidate} /></div><p className="mb-6 mt-5 text-center text-sm text-ink-2">{discardCandidate.name} sera retirée de ta collection.{discardCandidate.destructionValue!=null&&<> Tu recevras <strong className="text-karas">{discardCandidate.destructionValue} Kara{discardCandidate.destructionValue===1?"":"s"}</strong>.</>}</p><div className="flex flex-wrap justify-center gap-3"><Button variant="secondary" disabled={!!discarding} onClick={() => setDiscardCandidate(null)}>Annuler</Button><Button variant="danger" disabled={!!discarding} aria-busy={!!discarding || undefined} onClick={() => void discard(discardCandidate.instanceId)}>{discarding ? "Défausse…" : "Défausser"}</Button></div></>}</Modal>
+    <Modal open={!!discardCandidate} onClose={()=>{if(!discarding)setDiscardCandidate(null);}} title="Défausser cette carte ?">{discardCandidate&&<><div className="mx-auto w-32"><YokaiCard {...discardCandidate}/></div><p className="mb-6 mt-5 text-center text-sm text-ink-2">{discardCandidate.name} sera retirée de ta collection.{discardCandidate.destructionValue!=null&&<> Tu recevras <strong className="text-karas">{discardCandidate.destructionValue} Kara{discardCandidate.destructionValue===1?"":"s"}</strong>.</>}</p><div className="flex flex-wrap justify-center gap-3"><Button variant="secondary" disabled={!!discarding} onClick={()=>setDiscardCandidate(null)}>Annuler</Button><Button variant="danger" disabled={!!discarding} onClick={()=>void discard(discardCandidate.instanceId)}>{discarding?"Défausse…":"Défausser"}</Button></div></>}</Modal>
+    <Modal open={bulkConfirm} onClose={()=>{if(!bulkDiscarding)setBulkConfirm(false);}} title="Détruire la sélection ?"><p className="text-sm leading-6 text-ink-2">La destruction de <strong className="text-ink">{selectedCards.length} carte{selectedCards.length===1?"":"s"}</strong> est définitive.{selectedValue!=null&&<> Tu recevras <strong className="text-karas">{selectedValue} Kara{selectedValue===1?"":"s"}</strong>.</>}</p>{error&&<p role="alert" className="mt-4 text-sm text-danger">{error}</p>}<div className="mt-6 flex justify-end gap-3"><Button variant="secondary" disabled={bulkDiscarding} onClick={()=>setBulkConfirm(false)}>Annuler</Button><Button variant="danger" disabled={bulkDiscarding||selectedValue==null} onClick={()=>void discardSelection()}>{bulkDiscarding?"Destruction…":"Détruire la sélection"}</Button></div></Modal>
   </section>;
 }
 
