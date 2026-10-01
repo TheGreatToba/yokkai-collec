@@ -31,6 +31,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
   await db.exec(readFileSync(new URL("../supabase/migrations/20260927000003_achievement_completed_notifications.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20260928000002_pseudo_availability.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20260928000003_pseudo_rules.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../supabase/migrations/20261001000000_auction_participation.sql", import.meta.url), "utf8"));
   await db.query("insert into auth.users values ($1, '{\"pseudo\":\"Alice\"}'), ($2, '{\"pseudo\":\"Bob\"}'), ($3, '{\"pseudo\":\"Charlie\"}')", [alice, bob, charlie]);
   for (const rarity of ["C", "R", "SR", "SSR", "LR"]) {
     await db.query(`insert into public.cards (source_id, nom, categorie, franchise, rarete_base, image_url, source)
@@ -320,6 +321,11 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     await asUser(bob, () => db.query("select public.place_bid($1,20)", [auctionId]));
     assert.equal(Number((await db.query("select karas_balance from public.user_profiles where user_id=$1", [bob])).rows[0].karas_balance), 80);
     await asUser(charlie, () => db.query("select public.place_bid($1,30)", [auctionId]));
+    const bobAuctions = (await asUser(bob, () => db.query("select public.list_auctions() as value"))).rows[0].value;
+    const bobParticipation = bobAuctions.find(item => item.id === auctionId);
+    assert.equal(bobParticipation.hasBid, true);
+    assert.equal(bobParticipation.buyerId, charlie);
+    assert.equal((await asUser(alice, () => db.query("select public.list_auctions() as value"))).rows[0].value.find(item => item.id === auctionId).hasBid, false);
     const outbidNotification = (await asUser(bob, () => db.query("select public.list_notifications() as value"))).rows[0].value.find(item => item.type === "outbid");
     assert.deepEqual({referenceId:outbidNotification.referenceId,cardName:outbidNotification.cardName},{referenceId:auctionId,cardName:"LR"});
     assert.equal(Number((await db.query("select karas_balance from public.user_profiles where user_id=$1", [bob])).rows[0].karas_balance), 100);

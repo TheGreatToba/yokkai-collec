@@ -333,6 +333,18 @@ test("Phase 6 : détail d'enchère, solde, minute ajoutée, historique et issues
   assert.match(presentAuction(raw, "me").history[0].time, /^\d{2}:\d{2}$/);
 });
 
+test("Mes enchères conserve les participations surenchéries exposées par list_auctions", () => {
+  const { buildAuctionLists, presentAuction } = load("components/community-views.tsx");
+  const raw = { id:"outbid",card,amount:120,endsAt:new Date(Date.now()+60_000).toISOString(),status:"active",seller:"Kitsune",sellerId:"seller",buyerId:"rival",hasBid:true,bids:2,watched:false };
+  assert.equal(presentAuction(raw,"viewer").status,"outbid");
+  assert.deepEqual(buildAuctionLists([raw],"viewer").mine.map(item=>item.id),["outbid"]);
+  assert.deepEqual(buildAuctionLists([{...raw,hasBid:false}],"viewer").mine,[]);
+  const migration=readFileSync(path.join(root,"supabase/migrations/20261001000000_auction_participation.sql"),"utf8");
+  assert.match(migration,/where b\.bidder_id=player_id/);
+  assert.match(migration,/bids_bidder_auction_idx on public\.bids\(bidder_id,auction_id\)/);
+  assert.ok(existsSync(path.join(root,"app/design-system/auction-participation-preview/page.tsx")));
+});
+
 test("Phase 6 : la mise en vente confirme le verrouillage et signale la réinitialisation d'image", () => {
   const source = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
   assert.match(source, /Carte mise aux enchères — verrouillée jusqu’à la fin de la vente/);

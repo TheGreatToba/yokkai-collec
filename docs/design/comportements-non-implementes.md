@@ -21,6 +21,7 @@ Manques qui touchent l’usage réel du jeu, et pas seulement l’habillage. Cha
 - **Impact** : un joueur peut perdre le fil de ses propres mises et manquer l’occasion de surenchérir avant la fin. Seule la notification « Tu as été surenchéri » (lien direct vers l’enchère) permet aujourd’hui de la retrouver ; la page détail affiche bien le statut « Surenchéri », mais uniquement une fois ouverte.
 - **Cause** : `list_auctions` n’expose que le meilleur enchérisseur (`buyerId`), pas la liste des participants ni la participation du joueur courant.
 - **Piste** : exposer les participants (ou un indicateur « a misé » pour le joueur courant) via `list_auctions`, ou ajouter une RPC dédiée du type « mes enchères en tant qu’enchérisseur ». L’interface pourra alors les ajouter à « En cours » avec le statut « Surenchéri », déjà prévu dans `AuctionStatus`.
+- **Statut** : implémenté dans `feat/server-logic`. `list_auctions` expose `hasBid` depuis les seules mises du joueur courant, accélérées par l’index `(bidder_id, auction_id)`. « Mes enchères › En cours » conserve désormais les participations surenchéries et affiche « En tête » ou « Surenchéri ». Preuve au clic et contre-preuve : `/design-system/auction-participation-preview` et sa variante `?disabled=1`.
 - **Source** : Phase 6 · Marché, `docs/groupe-3-marche.md` (§ 4.1 « Ventes actives + Enchères posées en tant qu’acheteur »).
 
 ## Bugs connus à traiter

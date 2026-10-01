@@ -1,7 +1,7 @@
 import { createClient } from "@/utils/supabase/client";
 import { invalidatePlayerSnapshots, withLiveCardFranchises, type Card } from "@/lib/data/cards";
 
-export type AuctionData = { id:string; card:Card & {shiny?:boolean;catalogueImage?:string}; amount:number; endsAt:string; status:"active"|"sold"|"expired"; seller:string; sellerId:string; buyerId?:string|null; bids:number; watched:boolean };
+export type AuctionData = { id:string; card:Card & {shiny?:boolean;catalogueImage?:string}; amount:number; endsAt:string; status:"active"|"sold"|"expired"; seller:string; sellerId:string; buyerId?:string|null; hasBid?:boolean; bids:number; watched:boolean };
 export type AuctionDetail = AuctionData & { winner?:string|null; balance:number; history:{id:string;name:string;amount:number;createdAt:string;mine:boolean}[] };
 export function auctionReconciliationScopes(previous:readonly AuctionData[],next:readonly AuctionData[],viewer?:string){if(!viewer)return[];const current=new Map(next.map(auction=>[auction.id,auction]));const scopes=new Set<"balance"|"collection">();for(const before of previous){if(before.status!=="active")continue;const after=current.get(before.id);if(before.buyerId===viewer&&(!after||after.buyerId!==viewer))scopes.add("balance");if(!after||after.status==="active")continue;if(after.sellerId===viewer)scopes.add("balance");if(after.status==="sold"&&after.buyerId===viewer)scopes.add("collection");}return[...scopes];}
 let client: ReturnType<typeof createClient> | undefined;
