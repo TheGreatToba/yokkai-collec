@@ -32,6 +32,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
   await db.exec(readFileSync(new URL("../supabase/migrations/20260928000002_pseudo_availability.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20260928000003_pseudo_rules.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261001000000_auction_participation.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../supabase/migrations/20261001000001_market_popularity.sql", import.meta.url), "utf8"));
   await db.query("insert into auth.users values ($1, '{\"pseudo\":\"Alice\"}'), ($2, '{\"pseudo\":\"Bob\"}'), ($3, '{\"pseudo\":\"Charlie\"}')", [alice, bob, charlie]);
   for (const rarity of ["C", "R", "SR", "SSR", "LR"]) {
     await db.query(`insert into public.cards (source_id, nom, categorie, franchise, rarete_base, image_url, source)
@@ -301,6 +302,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
 
   await t.test("enchères : gel, mises, remboursement, anti-snipe, suivi et règlement", async () => {
     const cardId = (await db.query("select id from public.cards where source_id='LR'")).rows[0].id;
+    await db.query("update public.cards set favoris_count=321 where id=$1", [cardId]);
     const copyId = (await db.query("insert into public.user_cards (user_id,card_id,rarity,is_first_owner) values ($1,$2,'LR',true) returning id", [alice, cardId])).rows[0].id;
     await db.query("update public.user_profiles set karas_balance=100 where user_id in ($1,$2)", [bob, charlie]);
 
@@ -310,6 +312,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     const listed = (await asUser(bob, () => db.query("select public.list_auctions() as value"))).rows[0].value.find(item => item.id === auctionId);
     assert.equal(listed.card.image, "https://storage.example/card.png");
     assert.equal(listed.card.anime, "Franchise");
+    assert.equal(listed.popularity, 321);
     assert.equal("customImageUrl" in listed.card, false);
     const publicDetail = (await asUser(bob, () => db.query("select public.get_auction($1) as value", [auctionId]))).rows[0].value;
     assert.equal(publicDetail.card.image, "https://storage.example/card.png");

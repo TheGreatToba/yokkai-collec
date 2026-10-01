@@ -267,7 +267,7 @@ test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
   const search = render(MarketView, { lists: { ...lists, active: [auction("l", { card: { ...card, id: "l", name: "Luffy", anime: "One Piece", category: "Manga" } }), auction("z", { card: { ...card, id: "z", name: "Zoro", anime: "One Piece", category: "Manga" } })] } });
   assert.match(search, /2 cartes aux enchères/);
   assert.match(search, /<span>Manga<\/span>/);
-  assert.match(html, /disabled="" aria-describedby="market-popular-soon"><span class="yk-filter-check"><\/span><span>Les \+ populaires<\/span>/);
+  assert.match(html, /aria-pressed="false"><span class="yk-filter-check"><\/span><span>Les \+ populaires<\/span>/);
   assert.match(html, />Mes enchères</);
   const source = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
   assert.match(source, /matchesCardSearch\(query,\[a\.card\.name,a\.card\.anime\]\)/);
@@ -296,6 +296,17 @@ test("la recherche du marché filtre en mémoire par nom et franchise", () => {
   assert.match(source, /id="market-query" type="search" value=\{query\}/);
   assert.match(source, /Aucune enchère ne correspond à votre recherche et vos filtres/);
   assert.ok(existsSync(path.join(root, "app/design-system/market-search-preview/page.tsx")));
+});
+
+test("le Marché trie par favoris_count puis fin et identifiant", () => {
+  const { compareMarketAuctions } = load("components/community-views.tsx");
+  const auction=(id,popularity,remainingSeconds)=>({id,card,amount:100,remaining:"",remainingSeconds,seller:"",bids:0,popularity});
+  const values=[auction("b",900,200),auction("z",120,50),auction("c",900,100),auction("a",900,100)];
+  assert.deepEqual(values.toSorted((a,b)=>compareMarketAuctions(a,b,"popular")).map(item=>item.id),["a","c","b","z"]);
+  const migration=readFileSync(path.join(root,"supabase/migrations/20261001000001_market_popularity.sql"),"utf8");
+  assert.match(migration,/'popularity',coalesce\(c\.favoris_count,0\)/);
+  assert.doesNotMatch(migration,/join public\.auction_watchers/);
+  assert.ok(existsSync(path.join(root,"app/design-system/market-popularity-preview/page.tsx")));
 });
 
 test("la recherche multi-termes partage une sémantique ET entre Collection, Catalogue et Marché", () => {
