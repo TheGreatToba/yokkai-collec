@@ -6,7 +6,7 @@ export type Rarity = "C" | "R" | "SR" | "SSR" | "LR";
 export type Category = string;
 export type Card = { id: string; name: string; category: Category; anime?: string; rarity: Rarity; image: string; wishlisted?: boolean };
 export type CataloguePage = { cards: Card[]; total: number };
-export type CollectedCard = Card & { instanceId: string; obtainedAt: string; shiny: boolean; isEvolved: boolean; isFirstOwner: boolean; folderId: string | null; catalogueImage: string; customImageUrl: string | null };
+export type CollectedCard = Card & { instanceId: string; obtainedAt: string; shiny: boolean; isEvolved: boolean; isFirstOwner: boolean; folderId: string | null; catalogueImage: string; customImageUrl: string | null; destructionValue?: number };
 export type Folder = { id: string; name: string };
 export type PackStatus = { available: number; maximum: number; nextPackAt: number | null };
 export type DecisionPackStatus = { available: boolean; nextPackAt: number; pending: (CollectedCard & { discarded?: boolean })[] };
@@ -59,6 +59,18 @@ export async function withLiveCardFranchises<T extends Card>(cards: T[]): Promis
   const rows = results.flatMap(result => result.data as {id:string;franchise:string|null}[]);
   const franchises = new Map(rows.map(row => [row.id, row.franchise?.trim() || undefined]));
   return cards.map(card => ({ ...card, anime: franchises.get(card.id) }));
+}
+
+async function withPackDestructionValues<T extends Card & {instanceId:string}>(cards:T[]):Promise<(T & {destructionValue:number})[]> {
+  if(!cards.length)return [];
+  const {data,error}=await db().rpc("get_pack_destruction_values",{p_instance_ids:cards.map(card=>card.instanceId)});
+  if(error)throw failure(error);
+  const values=data as Record<string,number>;
+  return cards.map(card=>{
+    const destructionValue=values[card.instanceId];
+    if(!Number.isInteger(destructionValue))throw failure({message:"DESTRUCTION_VALUE_MISSING"});
+    return {...card,destructionValue};
+  });
 }
 
 // Memory-only caches avoid reloading the collection at every one-second UI tick.
@@ -198,7 +210,7 @@ export async function getDecisionPackStatus(): Promise<DecisionPackStatus> {
   const status = data as DecisionPackStatus & { serverNow: number };
   return { available: status.available,
     nextPackAt: Date.now() + status.nextPackAt - status.serverNow,
-    pending: await withLiveCardFranchises(status.pending) };
+    pending: await withPackDestructionValues(await withLiveCardFranchises(status.pending)) };
 }
 
 export async function openBooster(): Promise<CollectedCard[]> {
@@ -208,7 +220,7 @@ export async function openBooster(): Promise<CollectedCard[]> {
     const { data, error } = await db().rpc("open_regular_pack");
     if (error) throw failure(error);
     await assertPlayer(id);
-    return (await withLiveCardFranchises(data as CollectedCard[])).sort((a, b) => rank[a.rarity] - rank[b.rarity]);
+    return (await withPackDestructionValues(await withLiveCardFranchises(data as CollectedCard[]))).sort((a, b) => rank[a.rarity] - rank[b.rarity]);
   } finally {
     // The server may have committed even if the response was lost.
     cache.delete(`collection:${id}`);
@@ -232,7 +244,7 @@ export async function openDecisionPack(): Promise<DecisionPackStatus["pending"]>
   const { data, error } = await db().rpc("open_decision_pack");
   if (error) throw failure(error);
   await assertPlayer(id);
-  return withLiveCardFranchises(data as DecisionPackStatus["pending"]);
+  return withPackDestructionValues(await withLiveCardFranchises(data as DecisionPackStatus["pending"]));
 }
 
 export async function keepDecisionPackCard(choiceId: string): Promise<DecisionPackChoice> {
