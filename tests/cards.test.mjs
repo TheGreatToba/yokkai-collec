@@ -52,7 +52,7 @@ function setup({ catalogue = [], collection = [], apiLimit = 500 } = {}) {
       if (rpcError) return { data: null, error: rpcError };
       if (name === "get_game_info") return { data: { user: { id: user, name: user },
         categories: ["Anime/Manga"], rarities: ["C", "R", "SR", "SSR", "LR"],
-        dropRates: [{ rarity: "C", percent: 59 }, { rarity: "R", percent: 25 }, { rarity: "SR", percent: 10 }, { rarity: "SSR", percent: 5 }, { rarity: "LR", percent: 1 }], shinyRate: 5, karasBalance }, error: null };
+        dropRates: [{ rarity: "C", percent: 71.9 }, { rarity: "R", percent: 20 }, { rarity: "SR", percent: 7 }, { rarity: "SSR", percent: 1 }, { rarity: "LR", percent: 0.1 }], shinyRate: 0.1, karasBalance }, error: null };
       if (name === "get_regular_pack_status") return { data: { available: 1, maximum: 5,
         serverNow: 1000000, nextPackAt: 1000000 + 60000 }, error: null };
       if (name === "open_regular_pack") {
@@ -149,12 +149,12 @@ test("cache court, expiration et aucune réutilisation entre comptes", async () 
   await assert.rejects(api.getUserCollection(), /Connectez-vous/);
 });
 
-test("infos réelles, taux inchangés et copies défensives", async () => {
+test("infos réelles, nouveaux taux et copies défensives", async () => {
   const { api, calls } = setup();
   const info = await api.getGameInfo();
   assert.equal(info.user.id, "alice");
-  assert.deepEqual(Array.from(info.dropRates, (r) => r.percent), [59, 25, 10, 5, 1]);
-  assert.equal(info.shinyRate, 5);
+  assert.deepEqual(Array.from(info.dropRates, (r) => r.percent), [71.9, 20, 7, 1, 0.1]);
+  assert.equal(info.shinyRate, 0.1);
   assert.equal(info.karasBalance, 0);
   info.user.name = "mutated";
   info.categories.push("fake");

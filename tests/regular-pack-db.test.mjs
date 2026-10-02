@@ -35,6 +35,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
   await db.exec(readFileSync(new URL("../supabase/migrations/20261001000001_market_popularity.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261001000002_booster_destruction_estimates.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261002000001_drop_rates_v2.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../supabase/migrations/20261002000003_drop_rates_rebalance.sql", import.meta.url), "utf8"));
   await db.query("insert into auth.users values ($1, '{\"pseudo\":\"Alice\"}'), ($2, '{\"pseudo\":\"Bob\"}'), ($3, '{\"pseudo\":\"Charlie\"}')", [alice, bob, charlie]);
   for (const rarity of ["C", "R", "SR", "SSR", "LR"]) {
     await db.query(`insert into public.cards (source_id, nom, categorie, franchise, rarete_base, image_url, source)
@@ -54,8 +55,8 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     assert.equal(info.user.id, alice);
     assert.equal(info.user.name, "Alice");
     assert.deepEqual(info.categories, ["Anime/Manga"]);
-    assert.deepEqual(info.dropRates.map((r) => r.percent), [59, 25, 10, 5, 1]);
-    assert.equal(info.shinyRate, 5);
+    assert.deepEqual(info.dropRates.map((r) => r.percent), [71.9, 20, 7, 1, 0.1]);
+    assert.equal(info.shinyRate, 0.1);
     assert.equal(info.karasBalance, 0);
     const status = await asUser(alice, () => rpc("get_regular_pack_status"));
     assert.equal(status.available, 5);
@@ -120,8 +121,8 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
 
   await t.test("5 exemplaires indépendants par pack, LR et Shiny valides, puis blocage", async () => {
     const regularPackDefinition = (await db.query("select pg_get_functiondef('public.open_regular_pack()'::regprocedure) as value")).rows[0].value;
-    assert.match(regularPackDefinition, /rarete_base\s*=\s*'LR'\s+and\s+random\(\)\s*<\s*(?:0)?\.01/i);
-    assert.match(regularPackDefinition, /roll<\.699 then 1 when roll<\.899 then 2 when roll<\.969 then 3 when roll<\.999 then 4 else 5/);
+    assert.match(regularPackDefinition, /rarete_base\s*=\s*'LR'\s+and\s+random\(\)\s*<\s*(?:0)?\.001/i);
+    assert.match(regularPackDefinition, /roll<\.719 then 1 when roll<\.919 then 2 when roll<\.989 then 3 when roll<\.999 then 4 else 5/);
     assert.doesNotMatch(regularPackDefinition, /rarete_base\s+in\s*\(\s*'SSR'\s*,\s*'LR'/i);
     const draw = await asUser(alice, () => rpc("open_regular_pack"));
     assert.equal(draw.length, 5);
@@ -231,8 +232,10 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
 
   await t.test("Decision Pack quotidien : cinq SR minimum, choix persistant et une seule carte gardée", async () => {
     const decisionPackDefinition = (await db.query("select pg_get_functiondef('public.open_decision_pack()'::regprocedure) as value")).rows[0].value;
-    assert.match(decisionPackDefinition, /rarete_base\s*=\s*'LR'\s+and\s+random\(\)\s*<\s*(?:0)?\.01/i);
-    assert.match(decisionPackDefinition, /roll<\.938 then 1 when roll<\.998 then 2 else 3/);
+    assert.match(decisionPackDefinition, /rarities\s+public\.card_rarity\[\]\s*:=\s*array\['SR',\s*'SSR',\s*'LR'\]/i);
+    assert.doesNotMatch(decisionPackDefinition, /array\['C'|array\['R'/i);
+    assert.match(decisionPackDefinition, /rarete_base\s*=\s*'LR'\s+and\s+random\(\)\s*<\s*(?:0)?\.001/i);
+    assert.match(decisionPackDefinition, /roll<\.978 then 1 when roll<\.998 then 2 else 3/);
     assert.doesNotMatch(decisionPackDefinition, /rarete_base\s+in\s*\(\s*'SSR'\s*,\s*'LR'/i);
     const initial = await asUser(bob, () => rpc("get_decision_pack_status"));
     assert.equal(initial.available, true);
