@@ -11,7 +11,7 @@ test("card-tokens reste la source de verite des couleurs R et SR", () => {
   const globals = readFileSync(path.join(root, "app/globals.css"), "utf8");
 
   assert.match(tokens, /--rarity-r:\s*#E8EDF5/);
-  assert.match(tokens, /--rarity-sr:\s*#F4AD78/);
+  assert.match(tokens, /--rarity-sr:\s*#C9A8E0/);
   assert.match(tokens, /\.yk-rarity-R[^}]*--card-badge:\s*linear-gradient\(160deg,#FFFFFF,#AEB6C6\)/s);
   assert.match(tokens, /\.yk-rarity-SR[^}]*--card-badge:\s*var\(--rarity-sr\)/s);
   assert.match(tailwind, /'rarity-r':\s*'var\(--rarity-r\)'/);
