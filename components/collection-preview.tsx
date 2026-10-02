@@ -42,10 +42,10 @@ export function CollectionPreviewClient({ cards: initialCards }: { cards: Collec
     onCreateFolder={async name => { record(`folder:${name}`); setFolders(current => [...current, { id: `folder-${current.length}`, name }]); }}
     onMoveCard={async (instanceId, folderId) => { record(`move:${instanceId}:${folderId}`); update(instanceId, { folderId }); }}
     onCreateAuction={async (instanceId, price, duration) => { record(`auction:${instanceId}:${price}:${duration}`); }}
-    onEvolve={async instanceId => {
-      record(`evolve:${instanceId}`);
-      const source = cards.find(card => card.instanceId === instanceId)!;
-      const consumed = new Set(cards.filter(card => card.id === source.id && card.rarity === "SSR" && !card.shiny).slice(0, 3).map(card => card.instanceId));
+    onEvolve={async instanceIds => {
+      record(`evolve:${instanceIds.join(",")}`);
+      const source = cards.find(card => card.instanceId === instanceIds[0])!;
+      const consumed = new Set(instanceIds);
       const evolved = { ...source, instanceId: `${source.instanceId}-shiny`, shiny: true, isEvolved: true };
       setCards(current => [evolved, ...current.filter(card => !consumed.has(card.instanceId))]);
       return evolved;

@@ -78,7 +78,7 @@ test("les modales imbriquées libèrent le scroll et la confirmation remplace le
   assert.match(modal, /modalLockCount = Math\.max\(0, modalLockCount - 1\)/);
   assert.match(modal, /if \(modalLockCount === 0\) document\.body\.style\.overflow = bodyOverflowBeforeModal/);
   assert.match(modal, /onClose=\{\(\) => \{ if \(open\) onClose\(\); \}\}/);
-  assert.match(collection, /open=\{!!selected&&!discardConfirm&&!auctionOpen\}/);
+  assert.match(collection, /open=\{!!selected&&!discardConfirm&&!auctionOpen&&!evolveConfirm\}/);
   assert.match(collection, /open=\{auctionOpen&&!!selected\}/);
 });
 
@@ -172,6 +172,9 @@ test("la collection annonce l'évolution de trois SSR non-Shiny en Shiny", () =>
   assert.match(source, /Évolution Shiny/);
   assert.match(source, /Évoluer en Shiny \(consomme 3 exemplaires\)/);
   assert.doesNotMatch(source, /Évolution LR|Évoluer en LR/);
+  assert.match(source, /Confirmer l’évolution Shiny/);
+  assert.match(source, /Image : \{card\.customImageUrl\?"personnalisée \(sera perdue\)":"d’origine"\}/);
+  assert.match(source, /onEvolve\(evolutionCards\.map\(card=>card\.instanceId\)\)/);
 });
 
 test("le Decision Pack confirmé affiche une carte gardée et quatre perdues", () => {

@@ -54,8 +54,8 @@ export function Game({ view, account }: { view: "packs" | "collection"; account?
     } catch (e) { setError(e instanceof Error ? e.message : "Impossible d’ouvrir le pack."); }
     finally { opening.current = false; setBusy(false); }
   }
-  async function evolve(instanceId: string) {
-    const evolved = await evolveSsrCard(instanceId);
+  async function evolve(instanceIds: string[]) {
+    const evolved = await evolveSsrCard(instanceIds);
     setCollection(await getUserCollection());
     return evolved;
   }

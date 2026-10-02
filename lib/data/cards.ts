@@ -227,10 +227,10 @@ export async function openBooster(): Promise<CollectedCard[]> {
   }
 }
 
-export async function evolveSsrCard(instanceId: string): Promise<CollectedCard> {
+export async function evolveSsrCard(instanceIds: string[]): Promise<CollectedCard> {
   const id = await playerId();
   try {
-    const { data, error } = await db().rpc("evolve_ssr_card", { p_card_instance_id: instanceId });
+    const { data, error } = await db().rpc("evolve_ssr_card", { p_card_instance_ids: instanceIds });
     if (error) throw failure(error);
     await assertPlayer(id);
     return (await withLiveCardFranchises([data as CollectedCard]))[0];
