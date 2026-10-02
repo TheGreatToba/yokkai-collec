@@ -1,3 +1,13 @@
+# Workflow d'équipe — à lire en premier
+
+Deux devs travaillent en parallèle sur ce repo. Détails complets : [docs/COLLABORATION.md](docs/COLLABORATION.md).
+
+Règles non négociables :
+- Toujours lancer `git status` et `git fetch origin` avant de commencer une tâche.
+- Ne jamais pousser directement sur `master` : partir d'une branche `<initiales>/<description>` créée depuis `origin/master`.
+- Ouvrir une Pull Request pour toute tâche, même petite.
+- Indiquer dans la PR les migrations Supabase qu'elle contient et si elles sont déjà appliquées sur le VPS ou non.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know
