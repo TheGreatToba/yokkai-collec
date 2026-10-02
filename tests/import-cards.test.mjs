@@ -10,7 +10,8 @@ import { cardNameCategoryKey, downloadImage, imagePath, importCards, planNameCat
 const row = (id = "1") => ({ source_id: id, nom: "Personnage", categorie: "Anime/Manga",
   franchise: "", franchise_romaji: "", image_url: `https://s4.anilist.co/${id}.png`,
   favoris_count: "12", rarete_base: "C", source: "anilist" });
-const image = () => new Response(new Uint8Array([137, 80, 78, 71]), {
+const validPng = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64");
+const image = () => new Response(validPng, {
   headers: { "content-type": "image/png" },
 });
 const silent = () => {};
@@ -127,7 +128,9 @@ test("lots, échec image ignoré, erreurs journalisées et reprise sans doublons
     batchSize: 2, concurrency: 2, log: silent, sleep: async () => {},
     onFailure: async (entry) => errors.push(entry),
     fetchImage: async (url, init) => {
-      assert.deepEqual(init.headers, { "User-Agent": "Yokkai-Collec/0.1" });
+      assert.match(init.headers.Accept, /^image\//);
+      assert.match(init.headers["User-Agent"], /Yokkai-Collec-Image-Importer/);
+      assert.equal(init.redirect, "follow");
       requests++;
       if (url.endsWith("2.png")) return new Response("missing", { status: 404 });
       return image();

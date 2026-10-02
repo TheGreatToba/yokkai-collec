@@ -60,8 +60,8 @@ export function validateCard(row) {
   return card;
 }
 
-function failure(message, status) {
-  return Object.assign(new Error(message), { status });
+function failure(message, status, details = {}) {
+  return Object.assign(new Error(message), { status, ...details });
 }
 
 export async function retry(operation, attempts = 3, sleep = delay) {
@@ -73,20 +73,34 @@ export async function retry(operation, attempts = 3, sleep = delay) {
       const transient = [0, 408, 429].includes(status) || status >= 500 ||
         error.name === "TimeoutError" || error.name === "AbortError" || error instanceof TypeError;
       if (!transient || attempt >= attempts) throw error;
-      await sleep(Math.min(1000 * 2 ** (attempt - 1), 10000));
+      const backoff = Math.min(1000 * 2 ** (attempt - 1), 10000);
+      await sleep(Math.max(backoff, Number(error.retryAfterMs) || 0));
     }
   }
 }
 
 export async function downloadImage(url, fetchImage = fetch, timeoutMs = 30000) {
   // Never forward the Supabase client's authorization headers to image hosts.
+  const source = new URL(url);
+  const headers = {
+    Accept: "image/avif,image/webp,image/apng,image/jpeg,image/png,image/gif,image/*;q=0.8,*/*;q=0.1",
+    "User-Agent": "Mozilla/5.0 (compatible; Yokkai-Collec-Image-Importer/0.2; +https://yokkai.fr)",
+  };
+  if (["static.wikia.nocookie.net", "vignette.wikia.nocookie.net"].includes(source.hostname)) {
+    headers.Referer = "https://www.fandom.com/";
+  }
   const response = await fetchImage(url, {
-    headers: { "User-Agent": "Yokkai-Collec/0.1" },
+    headers,
+    redirect: "follow",
     signal: AbortSignal.timeout(timeoutMs),
   });
   if (!response.ok) {
     await response.body?.cancel();
-    throw failure(`Téléchargement HTTP ${response.status}`, response.status);
+    const retryAfter = response.headers.get("retry-after");
+    const retryAfterMs = retryAfter && /^\d+$/.test(retryAfter) ? Number(retryAfter) * 1000 : 0;
+    throw failure(`Téléchargement HTTP ${response.status}`, response.status, {
+      finalUrl: response.url || url, retryAfterMs,
+    });
   }
   const contentType = response.headers.get("content-type")?.split(";")[0].trim().toLowerCase();
   if (!MIME_TYPES.includes(contentType)) {
@@ -114,7 +128,29 @@ export async function downloadImage(url, fetchImage = fetch, timeoutMs = 30000) 
     reader.releaseLock();
   }
   if (!size) throw new Error("Image vide.");
-  return { bytes: Buffer.concat(chunks), contentType };
+  const bytes = Buffer.concat(chunks);
+  validateImageBytes(bytes, contentType);
+  return { bytes, contentType, finalUrl: response.url || url };
+}
+
+export function validateImageBytes(bytes, contentType) {
+  let valid = false;
+  if (contentType === "image/png") {
+    valid = bytes.length >= 24 && bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])) &&
+      bytes.subarray(12, 16).toString("ascii") === "IHDR" && bytes.readUInt32BE(16) > 0 && bytes.readUInt32BE(20) > 0 &&
+      bytes.includes(Buffer.from("IEND"));
+  } else if (contentType === "image/jpeg") {
+    valid = bytes.length >= 4 && bytes[0] === 0xff && bytes[1] === 0xd8 &&
+      bytes[bytes.length - 2] === 0xff && bytes[bytes.length - 1] === 0xd9;
+  } else if (contentType === "image/gif") {
+    const signature = bytes.subarray(0, 6).toString("ascii");
+    valid = bytes.length >= 14 && ["GIF87a", "GIF89a"].includes(signature) &&
+      bytes.readUInt16LE(6) > 0 && bytes.readUInt16LE(8) > 0 && bytes[bytes.length - 1] === 0x3b;
+  } else if (contentType === "image/webp") {
+    valid = bytes.length >= 16 && bytes.subarray(0, 4).toString("ascii") === "RIFF" &&
+      bytes.subarray(8, 12).toString("ascii") === "WEBP" && bytes.readUInt32LE(4) + 8 === bytes.length;
+  }
+  if (!valid) throw new Error(`Contenu ${contentType} invalide ou non décodable.`);
 }
 
 export function imagePath(card) {
@@ -154,7 +190,7 @@ export function planNameCategoryImport(rows, existing) {
   return { updates, inserts };
 }
 
-async function checked(request) {
+export async function checked(request) {
   const result = await request;
   if (result.error) throw Object.assign(new Error(result.error.message), {
     status: result.error.statusCode ?? result.status,
