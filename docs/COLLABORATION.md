@@ -9,10 +9,18 @@ Deux développeurs travaillent en parallèle sur ce repo, chacun avec ses propre
 npm run setup
 ```
 
-Ça active le hook `.githooks/pre-push`, qui refuse tout push direct sur `master`. Le repo étant
-privé sur un compte GitHub gratuit, `master` n'est **pas** protégée côté GitHub : ce hook local
-est le seul garde-fou automatique. Vérifier : `git config core.hooksPath` doit afficher
-`.githooks`.
+Ça active le hook `.githooks/pre-push`, qui refuse tout push direct sur `master`. Vérifier :
+`git config core.hooksPath` doit afficher `.githooks`.
+
+> **État actuel : `master` n'est PAS protégée côté GitHub.** La protection de branche n'est pas
+> disponible pour un repo privé sur le plan gratuit. La discipline repose donc uniquement sur :
+>
+> - le hook pre-push local, que **chaque dev doit installer** (`npm run setup`) ;
+> - le respect du workflow PR décrit ci-dessous.
+>
+> Le hook se contourne avec `git push --no-verify` : ne jamais le faire vers `master`.
+> Si le repo passe en GitHub Pro, la protection de branche (« Require a pull request before
+> merging ») pourra être activée dans Settings > Branches — ce document sera alors mis à jour.
 
 ## 1. Jamais de commit direct sur `master`
 
@@ -23,7 +31,8 @@ git fetch origin
 git checkout -b <branche> origin/master
 ```
 
-On ne pousse jamais sur `master` (le hook pre-push le bloque) : on y merge via Pull Request.
+On ne pousse jamais sur `master` : on y merge via Pull Request. Rien ne l'empêche côté GitHub
+pour l'instant (voir § 0), seul le hook pre-push local le bloque.
 
 ## 2. Nom de branche : `<initiales>/<description-courte>`
 
