@@ -9,7 +9,9 @@ Deux développeurs travaillent en parallèle sur ce repo, chacun avec ses propre
 npm run setup
 ```
 
-Ça active le hook `.githooks/pre-push`, qui refuse tout push direct sur `master`. Vérifier :
+Ça active le hook `.githooks/pre-push`, qui refuse tout push direct sur `master`. Le premier
+`npm install` le fait aussi automatiquement (script `prepare`) ; `npm run setup` reste utile si
+les dépendances étaient déjà installées. Vérifier :
 `git config core.hooksPath` doit afficher `.githooks`.
 
 > **État actuel : `master` n'est PAS protégée côté GitHub.** La protection de branche n'est pas
