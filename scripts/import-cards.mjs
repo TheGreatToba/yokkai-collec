@@ -12,6 +12,7 @@ const COLUMNS = ["source_id", "nom", "categorie", "franchise", "franchise_romaji
   "image_url", "favoris_count", "rarete_base", "source"];
 const MAX_IMAGE_BYTES = 6 * 1024 * 1024;
 const MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const IMGUR_HOSTS = new Set(["imgur.com", "www.imgur.com", "i.imgur.com", "m.imgur.com"]);
 
 export async function* readCards(path) {
   const input = createReadStream(path);
@@ -64,6 +65,47 @@ function failure(message, status, details = {}) {
   return Object.assign(new Error(message), { status, ...details });
 }
 
+export function retryAfterMilliseconds(value, now = Date.now()) {
+  if (!value) return 0;
+  if (/^\d+(?:\.\d+)?$/.test(value.trim())) return Math.ceil(Number(value) * 1000);
+  const date = Date.parse(value);
+  return Number.isNaN(date) ? 0 : Math.max(0, date - now);
+}
+
+export function createImageRequestLimiter(fetchImage = fetch, {
+  sleep = delay,
+  now = Date.now,
+  imgurIntervalMs = 2000,
+  imgurCooldownMs = 60000,
+} = {}) {
+  const states = new Map();
+  return async (input, init) => {
+    const hostname = new URL(typeof input === "string" || input instanceof URL ? input : input.url)
+      .hostname.toLowerCase();
+    if (!IMGUR_HOSTS.has(hostname)) return fetchImage(input, init);
+
+    const state = states.get(hostname) ?? { tail: Promise.resolve(), nextRequestAt: 0 };
+    states.set(hostname, state);
+    const previous = state.tail;
+    let release;
+    state.tail = new Promise((resolve) => { release = resolve; });
+    await previous;
+    try {
+      const wait = Math.max(0, state.nextRequestAt - now());
+      if (wait) await sleep(wait);
+      state.nextRequestAt = now() + imgurIntervalMs;
+      const response = await fetchImage(input, init);
+      if (response.status === 429) {
+        const serverDelay = retryAfterMilliseconds(response.headers.get("retry-after"), now());
+        state.nextRequestAt = Math.max(state.nextRequestAt, now() + (serverDelay || imgurCooldownMs));
+      }
+      return response;
+    } finally {
+      release();
+    }
+  };
+}
+
 export async function retry(operation, attempts = 3, sleep = delay) {
   for (let attempt = 1; ; attempt++) {
     try {
@@ -96,8 +138,7 @@ export async function downloadImage(url, fetchImage = fetch, timeoutMs = 30000) 
   });
   if (!response.ok) {
     await response.body?.cancel();
-    const retryAfter = response.headers.get("retry-after");
-    const retryAfterMs = retryAfter && /^\d+$/.test(retryAfter) ? Number(retryAfter) * 1000 : 0;
+    const retryAfterMs = retryAfterMilliseconds(response.headers.get("retry-after"));
     throw failure(`Téléchargement HTTP ${response.status}`, response.status, {
       finalUrl: response.url || url, retryAfterMs,
     });
@@ -234,6 +275,7 @@ export async function compareNameCategoryImport({ rows, client }) {
 
 export async function applyNameCategoryImport({ plan, client, bucket = "card-images",
   concurrency = 5, fetchImage = fetch, log = console.log, onFailure = async () => {}, sleep = delay }) {
+  const limitedFetch = createImageRequestLimiter(fetchImage, { sleep });
   const work = [
     ...plan.updates.map((item, index) => ({ ...item, kind: "update", index: index + 1 })),
     ...plan.inserts.map((card, index) => ({ card, kind: "insert", index: plan.updates.length + index + 1 })),
@@ -247,7 +289,7 @@ export async function applyNameCategoryImport({ plan, client, bucket = "card-ima
         const item = work[cursor++];
         let image;
         try {
-          image = await retry(() => downloadImage(item.card.image_url, fetchImage), 3, sleep);
+          image = await retry(() => downloadImage(item.card.image_url, limitedFetch), 3, sleep);
         } catch (error) {
           stats.skipped++;
           const entry = { record: item.index, source: item.card.source,
@@ -299,6 +341,7 @@ export async function importCards({ rows, client, bucket = "card-images", batchS
   concurrency = 5, limit = Infinity, dryRun = false, fetchImage = fetch,
   log = console.log, onFailure = async () => {}, sleep = delay }) {
   const stats = { read: 0, imported: 0, valid: 0, skipped: 0, duplicates: 0, batches: 0 };
+  const limitedFetch = createImageRequestLimiter(fetchImage, { sleep });
   const started = Date.now();
   let batch = [];
   async function skip(row, index, stage, error) {
@@ -337,7 +380,7 @@ export async function importCards({ rows, client, bucket = "card-images", batchS
           if (dryRun) continue;
           let image;
           try {
-            image = await retry(() => downloadImage(card.image_url, fetchImage), 3, sleep);
+            image = await retry(() => downloadImage(card.image_url, limitedFetch), 3, sleep);
           } catch (error) {
             await skip(row, index, "image", error);
             continue;

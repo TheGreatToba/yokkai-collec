@@ -5,7 +5,8 @@ import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { parse } from "csv-parse";
 import { createClient } from "@supabase/supabase-js";
-import { checked, downloadImage, imagePath, retry, validateImageBytes } from "./import-cards.mjs";
+import { checked, createImageRequestLimiter, downloadImage, imagePath, retry,
+  validateImageBytes } from "./import-cards.mjs";
 
 const REQUIRED = ["record", "operation", "id", "nom", "categorie", "franchise", "rarete",
   "ancienne_rarete", "image_url", "erreur_initiale", "code_http_initial", "source", "source_id",
@@ -101,6 +102,7 @@ async function validateStored(client, bucket, row, publicUrl) {
 }
 
 async function processRows({ client, bucket, rows, concurrency, logPath }) {
+  const limitedFetch = createImageRequestLimiter();
   const stats = { selected: rows.length, validated: 0, downloaded: 0, updated: 0, inserted: 0,
     already: 0, skipped: 0, http403: 0, http404: 0, http429: 0, otherHttp: 0, validation: 0, format: 0 };
   const successes = [];
@@ -131,7 +133,7 @@ async function processRows({ client, bucket, rows, concurrency, logPath }) {
         } catch {}
       }
       let image;
-      try { image = await retry(() => downloadImage(row.image_url)); stats.downloaded++; }
+      try { image = await retry(() => downloadImage(row.image_url, limitedFetch)); stats.downloaded++; }
       catch (error) { await fail(errorEntry(row, error.message.includes("invalide") ? "format" : "download", error)); continue; }
       try {
         await retry(() => checked(client.storage.from(bucket).upload(row.path, image.bytes, {
