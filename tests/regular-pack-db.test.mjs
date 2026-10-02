@@ -36,6 +36,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
   await db.exec(readFileSync(new URL("../supabase/migrations/20261001000002_booster_destruction_estimates.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261002000001_drop_rates_v2.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261002000003_drop_rates_rebalance.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../supabase/migrations/20261002000004_get_game_info_security.sql", import.meta.url), "utf8"));
   await db.query("insert into auth.users values ($1, '{\"pseudo\":\"Alice\"}'), ($2, '{\"pseudo\":\"Bob\"}'), ($3, '{\"pseudo\":\"Charlie\"}')", [alice, bob, charlie]);
   for (const rarity of ["C", "R", "SR", "SSR", "LR"]) {
     await db.query(`insert into public.cards (source_id, nom, categorie, franchise, rarete_base, image_url, source)
@@ -51,6 +52,8 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
   const deadline = async (id) => (await db.query("select next_regular_pack_at::text as value from public.user_profiles where user_id=$1", [id])).rows[0].value;
 
   await t.test("profil créé par trigger, informations réelles et réserve initiale pleine", async () => {
+    // Match production hardening: profiles are private, but the narrow RPC stays usable.
+    await db.exec("revoke all on table public.user_profiles from public, anon, authenticated");
     const info = await asUser(alice, () => rpc("get_game_info"));
     assert.equal(info.user.id, alice);
     assert.equal(info.user.name, "Alice");
@@ -58,6 +61,8 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     assert.deepEqual(info.dropRates.map((r) => r.percent), [71.9, 20, 7, 1, 0.1]);
     assert.equal(info.shinyRate, 0.1);
     assert.equal(info.karasBalance, 0);
+    assert.equal((await db.query("select prosecdef from pg_proc where oid='public.get_game_info()'::regprocedure")).rows[0].prosecdef, true);
+    await db.exec("grant select on table public.user_profiles to authenticated");
     const status = await asUser(alice, () => rpc("get_regular_pack_status"));
     assert.equal(status.available, 5);
     assert.equal(status.maximum, 5);
