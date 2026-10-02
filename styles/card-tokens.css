@@ -1,4 +1,9 @@
 /* Visual tokens extracted from the supplied YokaiCard reference. */
+:root {
+  --rarity-r: #E8EDF5;
+  --rarity-sr: #F4AD78;
+}
+
 .yk-rarity-C {
   --card-frame: linear-gradient(160deg,#737A8F,#3A3E4F);
   --card-inset: 1.5px;
@@ -19,25 +24,6 @@
   --card-spark: transparent;
 }
 .yk-rarity-R {
-  --card-frame: linear-gradient(160deg,#F2B888,#B06C3E 45%,#5A3016 75%,#D89464);
-  --card-inset: 2px;
-  --card-bg: radial-gradient(120% 75% at 50% 35%, #4A2A18 0%, #140C12 62%, #04000B 100%);
-  --card-ring: rgba(208,138,85,.25);
-  --card-line: transparent;
-  --card-badge: #D08A55;
-  --card-badge-ink: #04000B;
-  --card-badge-border: #D08A55;
-  --card-number: var(--color-ink-2);
-  --card-foil: linear-gradient(125deg, transparent 40%, rgba(255,210,170,.10) 50%, transparent 60%);
-  --card-foil-size: 100% 100%;
-  --card-glow: 0 8px 26px rgba(208,138,85,.22);
-  --card-glow-color: transparent;
-  --card-pulse: none;
-  --card-spin: none;
-  --card-sweep: none;
-  --card-spark: transparent;
-}
-.yk-rarity-SR {
   --card-frame: linear-gradient(160deg,#FFFFFF,#A9B1C2 30%,#5E6678 55%,#E8EDF5 80%,#8D95A7);
   --card-inset: 2px;
   --card-bg: radial-gradient(120% 75% at 50% 35%, #3A4052 0%, #10111F 62%, #04000B 100%);
@@ -45,11 +31,30 @@
   --card-line: transparent;
   --card-badge: linear-gradient(160deg,#FFFFFF,#AEB6C6);
   --card-badge-ink: #04000B;
-  --card-badge-border: #E8EDF5;
+  --card-badge-border: var(--rarity-r);
   --card-number: var(--color-ink-2);
   --card-foil: linear-gradient(125deg, transparent 30%, rgba(255,255,255,.14) 45%, transparent 55%, rgba(255,255,255,.08) 70%, transparent 80%);
   --card-foil-size: 100% 100%;
   --card-glow: 0 10px 30px rgba(220,226,236,.2);
+  --card-glow-color: transparent;
+  --card-pulse: none;
+  --card-spin: none;
+  --card-sweep: none;
+  --card-spark: transparent;
+}
+.yk-rarity-SR {
+  --card-frame: linear-gradient(160deg,#FFD3AD,#D98A52 45%,#7A4322 75%,#E9A06F);
+  --card-inset: 2px;
+  --card-bg: radial-gradient(120% 75% at 50% 35%, #603820 0%, #1C1014 62%, #04000B 100%);
+  --card-ring: rgba(244,173,120,.3);
+  --card-line: transparent;
+  --card-badge: var(--rarity-sr);
+  --card-badge-ink: #04000B;
+  --card-badge-border: var(--rarity-sr);
+  --card-number: var(--color-ink-2);
+  --card-foil: linear-gradient(125deg, transparent 40%, rgba(255,224,196,.14) 50%, transparent 60%);
+  --card-foil-size: 100% 100%;
+  --card-glow: 0 8px 26px rgba(244,173,120,.28);
   --card-glow-color: transparent;
   --card-pulse: none;
   --card-spin: none;

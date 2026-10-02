@@ -10,7 +10,7 @@ const config = {
         'veil-strong': '#2E276D', focus: '#5244B5', ink: '#F2F0FF', 'ink-2': '#A29DBE', 'ink-3': '#625C83', disabled: '#3E385D',
         'accent-gold': '#E8C26A', 'accent-neon': '#A77BFF', 'accent-cyan': '#3FE0D0',
         karas: '#FFCC33', success: '#00E699', warning: '#FF9900', danger: '#FF3355', 'danger-ink': '#FF7188',
-        'rarity-c': '#9097AB', 'rarity-r': '#D08A55', 'rarity-sr': '#E8EDF5', 'rarity-ssr': '#FF5FA8', 'rarity-lr': '#E8C26A',
+        'rarity-c': '#9097AB', 'rarity-r': 'var(--rarity-r)', 'rarity-sr': 'var(--rarity-sr)', 'rarity-ssr': '#FF5FA8', 'rarity-lr': '#E8C26A',
       },
       borderRadius: { badge: '4px', input: '8px', card: '12px', panel: '14px', modal: '14px', pill: '24px' },
       boxShadow: { card: '0 8px 24px -4px rgba(4,0,11,.8),0 0 0 1px #1D1844', hover: '0 12px 32px -4px rgba(4,0,11,.95),0 0 12px rgba(82,68,181,.4)', modal: '0 20px 50px rgba(0,0,0,.9)', gold: '0 0 30px rgba(232,194,106,.35)', inset: 'inset 0 2px 6px rgba(0,0,0,.6)', interactive: '0 0 16px rgba(82,68,181,.5)', focus: '0 0 10px rgba(82,68,181,.3)', tab: '0 2px 8px rgba(0,0,0,.5)', toast: '0 10px 25px rgba(0,0,0,.8)', chip: '0 0 8px rgba(82,68,181,.4)' },
