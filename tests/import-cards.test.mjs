@@ -4,8 +4,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
-import { cardNameCategoryKey, downloadImage, imagePath, importCards, planNameCategoryImport,
-  prepareStorage, readCards, retry, validateCard } from "../scripts/import-cards.mjs";
+import { cardNameCategoryKey, createImageRequestLimiter, downloadImage, imagePath, importCards,
+  planNameCategoryImport, prepareStorage, readCards, retry, retryAfterMilliseconds,
+  validateCard } from "../scripts/import-cards.mjs";
 
 const row = (id = "1") => ({ source_id: id, nom: "Personnage", categorie: "Anime/Manga",
   franchise: "", franchise_romaji: "", image_url: `https://s4.anilist.co/${id}.png`,
@@ -227,4 +228,44 @@ test("préflight : schéma requis puis création du bucket public, bucket exista
   const missing = fakeClient({ schemaError: { message: "missing table" } });
   await assert.rejects(prepareStorage(missing, "card-images"), /missing table/);
   assert.equal(missing.created.length, 0);
+});
+
+test("Retry-After accepte les secondes et les dates HTTP", () => {
+  const now = Date.parse("2026-10-02T20:00:00Z");
+  assert.equal(retryAfterMilliseconds("2.5", now), 2500);
+  assert.equal(retryAfterMilliseconds("Fri, 02 Oct 2026 20:00:07 GMT", now), 7000);
+  assert.equal(retryAfterMilliseconds("invalide", now), 0);
+});
+
+test("Imgur est serialise et refroidi apres un 429", async () => {
+  let clock = 0;
+  const waits = [];
+  const starts = [];
+  let requests = 0;
+  const limitedFetch = createImageRequestLimiter(async () => {
+    starts.push(clock);
+    requests++;
+    return requests === 1
+      ? new Response(null, { status: 429 })
+      : image();
+  }, {
+    now: () => clock,
+    sleep: async (milliseconds) => { waits.push(milliseconds); clock += milliseconds; },
+    imgurIntervalMs: 2000,
+    imgurCooldownMs: 60000,
+  });
+  const responses = await Promise.all([
+    limitedFetch("https://i.imgur.com/a.png"),
+    limitedFetch("https://i.imgur.com/b.png"),
+  ]);
+  assert.deepEqual(responses.map(({ status }) => status), [429, 200]);
+  assert.deepEqual(starts, [0, 60000]);
+  assert.deepEqual(waits, [60000]);
+});
+
+test("le limiteur ne ralentit pas les autres domaines", async () => {
+  const limitedFetch = createImageRequestLimiter(async () => image(), {
+    sleep: async () => assert.fail("pause inattendue"),
+  });
+  assert.equal((await limitedFetch("https://s4.anilist.co/a.png")).status, 200);
 });
