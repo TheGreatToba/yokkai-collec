@@ -3,6 +3,17 @@
 Deux développeurs travaillent en parallèle sur ce repo, chacun avec ses propres agents de code
 (Claude Code, Codex…). Ces règles valent pour les humains **et** pour les agents.
 
+## 0. Prérequis : installer le hook git (une fois, après le clone)
+
+```bash
+npm run setup
+```
+
+Ça active le hook `.githooks/pre-push`, qui refuse tout push direct sur `master`. Le repo étant
+privé sur un compte GitHub gratuit, `master` n'est **pas** protégée côté GitHub : ce hook local
+est le seul garde-fou automatique. Vérifier : `git config core.hooksPath` doit afficher
+`.githooks`.
+
 ## 1. Jamais de commit direct sur `master`
 
 Toute tâche part d'une branche créée depuis un `master` à jour :
@@ -12,7 +23,7 @@ git fetch origin
 git checkout -b <branche> origin/master
 ```
 
-`master` est protégée sur GitHub : on n'y pousse pas, on y merge via Pull Request.
+On ne pousse jamais sur `master` (le hook pre-push le bloque) : on y merge via Pull Request.
 
 ## 2. Nom de branche : `<initiales>/<description-courte>`
 
