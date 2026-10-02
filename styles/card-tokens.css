@@ -1,7 +1,7 @@
 /* Visual tokens extracted from the supplied YokaiCard reference. */
 :root {
   --rarity-r: #E8EDF5;
-  --rarity-sr: #F4AD78;
+  --rarity-sr: #C9A8E0;
 }
 
 .yk-rarity-C {
@@ -43,18 +43,18 @@
   --card-spark: transparent;
 }
 .yk-rarity-SR {
-  --card-frame: linear-gradient(160deg,#FFD3AD,#D98A52 45%,#7A4322 75%,#E9A06F);
+  --card-frame: linear-gradient(160deg,#EADCF3,#C9A8E0 45%,#76538F 75%,#D9BFEA);
   --card-inset: 2px;
-  --card-bg: radial-gradient(120% 75% at 50% 35%, #603820 0%, #1C1014 62%, #04000B 100%);
-  --card-ring: rgba(244,173,120,.3);
+  --card-bg: radial-gradient(120% 75% at 50% 35%, #463052 0%, #15101B 62%, #04000B 100%);
+  --card-ring: rgba(201,168,224,.3);
   --card-line: transparent;
   --card-badge: var(--rarity-sr);
   --card-badge-ink: #04000B;
   --card-badge-border: var(--rarity-sr);
   --card-number: var(--color-ink-2);
-  --card-foil: linear-gradient(125deg, transparent 40%, rgba(255,224,196,.14) 50%, transparent 60%);
+  --card-foil: linear-gradient(125deg, transparent 40%, rgba(234,220,243,.14) 50%, transparent 60%);
   --card-foil-size: 100% 100%;
-  --card-glow: 0 8px 26px rgba(244,173,120,.28);
+  --card-glow: 0 8px 26px rgba(201,168,224,.28);
   --card-glow-color: transparent;
   --card-pulse: none;
   --card-spin: none;
