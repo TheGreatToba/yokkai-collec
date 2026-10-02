@@ -238,8 +238,8 @@ Les fonctions SQL du jeu sont appelées par RPC :
   et consomme un pack dans la même transaction. Elle n'accepte aucun paramètre :
   le navigateur ne choisit ni le joueur, ni la rareté, ni les cartes, ni l'heure.
 
-Les taux sont C 59 %, R 25 %, SR 10 %, SSR 5 %, LR 1 %, avec choix uniforme parmi
-les cartes de la rareté tirée. Seule une LR reçoit un second jet Shiny à 5 % ; une
+Les taux sont C 71,9 %, R 20 %, SR 7 %, SSR 1 %, LR 0,1 %, avec choix uniforme parmi
+les cartes de la rareté tirée. Seule une LR reçoit un second jet Shiny à 0,1 % ; une
 SSR Shiny s’obtient exclusivement en faisant évoluer trois SSR non-Shiny identiques.
 Un index `(rarete_base, id)` permet de tirer
 par décalage aléatoire sans trier tout le catalogue aléatoirement. Si une des
@@ -255,7 +255,8 @@ peuvent les consommer. Les écritures directes du navigateur restent interdites.
 Le Decision Pack possède un délai indépendant de 24 heures. Son tirage est
 persisté dans `decision_packs` et `decision_pack_choices` jusqu’au choix final,
 ce qui empêche un rechargement de relancer les cinq propositions. Chaque carte
-est au minimum SR : SR 94 %, SSR 5 %, LR 1 %. `keep_decision_pack_card()` crée
+est au minimum SR : SR 97,8 %, SSR 2 %, LR 0,2 %. Les raretés C et R sont
+entièrement absentes du pool. `keep_decision_pack_card()` crée
 exactement un exemplaire dans la collection. Les RPC de destruction suppriment un
 exemplaire Regular ou marquent un choix Decision comme détruit ; la dernière
 proposition Decision restante ne peut pas être jetée.
