@@ -96,12 +96,11 @@ test("la destruction multiple est active et transmet tous les exemplaires sélec
   assert.match(game, /onDiscardMany=\{discardCollectionCards\}/);
 });
 
-test("la collection d'un autre joueur ne propose pas de sélection ou d'édition", () => {
+test("la collection d'un ami montre ses images personnalisées sans proposer d'édition", () => {
   const { CollectionView } = load("components/collection.tsx");
   const html = render(CollectionView, { cards: [{...card,image:"https://i.imgur.com/private.png",catalogueImage:"/catalogue.png"}], categories: ["Test"], readOnly: true });
   assert.match(html, /Carte de test/);
-  assert.match(html, /catalogue\.png/);
-  assert.doesNotMatch(html, /private\.png/);
+  assert.match(html, /private\.png/);
   assert.doesNotMatch(html, /Sélection multiple|Détruire la sélection|Modifier le profil/);
 });
 
