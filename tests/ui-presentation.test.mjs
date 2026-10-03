@@ -194,11 +194,25 @@ test("le Decision Pack confirmé affiche une carte gardée et quatre perdues", (
 
 test("la collection pagine par multiples de 6 pour remplir la grille", () => {
   const { CollectionView } = load("components/collection.tsx");
-  const cards = Array.from({ length: 30 }, (_, i) => ({ ...card, instanceId: `copy-${i}`, folderId: null }));
+  const cards = Array.from({ length: 30 }, (_, i) => ({ ...card, id: `card-${i}`, instanceId: `copy-${i}`, folderId: null }));
   const html = render(CollectionView, { cards, categories: [], folders: [], async onMoveCard() {}, async onCreateAuction() {}, async onEvolve() {}, async onSetCustomImage() {}, async onDiscard() {}, async onDiscardMany() {} });
   assert.equal((html.match(/class="yk-collection-card[ "]/g) || []).length, 24);
   assert.match(html, /<option value="24"[^>]*>24<\/option><option value="36"[^>]*>36<\/option><option value="48"[^>]*>48<\/option>/);
   assert.doesNotMatch(html, /Cartes par page \(non disponible/);
+});
+
+test("les copies normales et Shiny forment des tuiles distinctes avec badge de quantité", () => {
+  const { CollectionView } = load("components/collection.tsx");
+  const copies = [
+    {...card,instanceId:"normal-1",folderId:null,shiny:false},
+    {...card,instanceId:"normal-2",folderId:"favorites",shiny:false,customImageUrl:"https://i.imgur.com/custom.png",image:"/custom.png"},
+    {...card,instanceId:"shiny-1",folderId:null,shiny:true},
+  ];
+  const html=render(CollectionView,{cards:copies,categories:[],folders:[{id:"favorites",name:"Favoris"}],async onDiscardMany(){},async onEvolve(){}});
+  assert.equal((html.match(/class="yk-collection-card[ "]/g)||[]).length,2);
+  assert.match(html,/×(?:<!-- -->)?2/);
+  assert.match(html,/×(?:<!-- -->)?1/);
+  assert.match(html,/custom\.png/);
 });
 
 test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
@@ -255,16 +269,33 @@ test("les boosters annoncent les gains autoritaires avant confirmation", () => {
 
 test("la modale de détail groupe dossier sous la carte et destruction explicite en bas", () => {
   const source = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
-  const modal = source.slice(source.indexOf('title="Détail de la carte"'), source.indexOf('title="Détruire cette carte ?"'));
+  const modal = source.slice(source.indexOf('title="Détail de la carte"'), source.indexOf('title="Détruire des exemplaires ?"'));
   assert.ok(modal.indexOf("yk-detail-art") < modal.indexOf("yk-detail-folder"));
   assert.ok(modal.indexOf("yk-detail-folder") < modal.indexOf("yk-detail-info"));
   assert.ok(modal.indexOf("yk-detail-actions") < modal.indexOf("yk-detail-image"));
   assert.ok(modal.indexOf("yk-detail-image") < modal.indexOf("yk-detail-danger"));
-  assert.match(modal, /Détruire la carte \(\+\{DESTRUCTION_KARAS\[selected\.rarity\]\}/);
+  assert.match(modal, /Détruire des exemplaires/);
   assert.match(modal, /Revenir à l’image d’origine/);
   assert.match(modal, /selectedMeta\?\.marketValue!=null&&/);
   assert.doesNotMatch(modal, /aria-label=\{`Détruire \$\{selected\.name\}`\}/);
   assert.match(source, /setDiscardConfirm\(true\)/);
+  assert.match(source, /setDiscardQuantity\(destructibleCards\.length\)/);
+  assert.match(source, /\{discardValue\} Kara/);
+});
+
+test("la Collection groupe les tuiles et sélectionne tous les exemplaires disponibles", () => {
+  const source = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
+  assert.match(source, /const groups = groupCollection\(filtered\)/);
+  assert.match(source, /visibleGroups\.map\(group=>/);
+  assert.match(source, /×\{group\.cards\.length\}/);
+  assert.match(source, /toggleGroup\(group\.cards\)/);
+  assert.match(source, /count=\{selectedCards\.length\}/);
+  assert.match(source, /frozenCount>0/);
+  assert.match(source, /Dernier exemplaire obtenu le/);
+  assert.match(source, /yk-copy-picker/);
+  assert.match(source, /itemLabel="exemplaire"/);
+  assert.match(source, /toggleEvolutionCard/);
+  assert.match(source, /Choisis précisément trois exemplaires/);
 });
 
 test("la mise en vente suggère la valeur de marché sans remplacer le prix par défaut", () => {
