@@ -94,6 +94,8 @@ test("la destruction multiple est active et transmet tous les exemplaires sélec
   assert.match(styles.match(/\.yk-selection-bar \{[^}]+\}/)?.[0] ?? "", /position:\s*sticky/);
   assert.match(styles.match(/\.yk-selection-bar \{[^}]+\}/)?.[0] ?? "", /bottom:\s*var\(--layout-gutter-compact\)/);
   assert.match(game, /onDiscardMany=\{discardCollectionCards\}/);
+  assert.match(collection, /presentation\[card\.instanceId\]\?\.destructionValue\?\?DESTRUCTION_KARAS\[card\.rarity\]/);
+  assert.doesNotMatch(collection, /const valueKnown = selectedCards/);
 });
 
 test("la collection d'un ami montre ses images personnalisées sans proposer d'édition", () => {

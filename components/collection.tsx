@@ -102,8 +102,9 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
   const evolvableCards = selected ? consumableCopies(cards.filter(c => c.id === selected.id && c.rarity === "SSR" && !c.shiny),isFrozen) : [];
   const evolutionCards = evolvableCards.filter(card=>evolutionSelection.has(card.instanceId));
   const evolvableCopies = evolvableCards.length;
-  const valueKnown = selectedCards.length > 0 && selectedCards.every(c=>presentation[c.instanceId]?.destructionValue != null);
-  const selectedValue = valueKnown ? selectedCards.reduce((sum,c)=>sum+presentation[c.instanceId].destructionValue!,0) : undefined;
+  const selectedValue = selectedCards.length > 0
+    ? selectedCards.reduce((sum,card)=>sum+(presentation[card.instanceId]?.destructionValue??DESTRUCTION_KARAS[card.rarity]),0)
+    : undefined;
   function toggleGroup(groupCards: CollectedCard[]) { setSelection(current=>{ const next=new Set(current);const eligible=groupCards.filter(card=>!presentation[card.instanceId]?.frozen);const all=eligible.length>0&&eligible.every(card=>next.has(card.instanceId));for(const card of eligible){if(all)next.delete(card.instanceId);else next.add(card.instanceId);}return next;}); }
   function toggleEvolutionCard(instanceId:string) { setEvolutionSelection(current=>{const next=new Set(current);if(next.has(instanceId))next.delete(instanceId);else if(next.size<5)next.add(instanceId);return next;}); }
   async function evolveSelected() {
