@@ -41,6 +41,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
   await db.exec(readFileSync(new URL("../supabase/migrations/20261003000001_friend_collection.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261003000003_friend_collection_custom_images.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261003000002_evolve_ssr_five_copies.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../supabase/migrations/20261003000007_cancel_auction_without_bids.sql", import.meta.url), "utf8"));
   await db.query("insert into auth.users values ($1, '{\"pseudo\":\"Alice\"}'), ($2, '{\"pseudo\":\"Bob\"}'), ($3, '{\"pseudo\":\"Charlie\"}')", [alice, bob, charlie]);
   for (const rarity of ["C", "R", "SR", "SSR", "LR"]) {
     await db.query(`insert into public.cards (source_id, nom, categorie, franchise, rarete_base, image_url, source)
@@ -332,6 +333,12 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
 
   await t.test("enchères : gel, mises, remboursement, anti-snipe, suivi et règlement", async () => {
     const cardId = (await db.query("select id from public.cards where source_id='LR'")).rows[0].id;
+    const cancellableCopy = (await db.query("insert into public.user_cards (user_id,card_id,rarity) values ($1,$2,'LR') returning id", [alice, cardId])).rows[0].id;
+    const cancellableAuction = (await asUser(alice, () => db.query("select public.create_auction($1,10,15) as id", [cancellableCopy]))).rows[0].id;
+    await assert.rejects(asUser(bob, () => db.query("select public.cancel_auction($1)", [cancellableAuction])), /AUCTION_NOT_OWNER/);
+    assert.equal((await asUser(alice, () => db.query("select public.cancel_auction($1) as value", [cancellableAuction]))).rows[0].value, true);
+    assert.equal((await db.query("select status from public.auctions where id=$1", [cancellableAuction])).rows[0].status, "expired");
+    assert.equal(Number((await db.query("select count(*) as count from public.user_cards where id=$1", [cancellableCopy])).rows[0].count), 1);
     await db.query("update public.cards set favoris_count=321 where id=$1", [cardId]);
     const copyId = (await db.query("insert into public.user_cards (user_id,card_id,rarity,is_first_owner) values ($1,$2,'LR',true) returning id", [alice, cardId])).rows[0].id;
     await db.query("update public.user_profiles set karas_balance=100 where user_id in ($1,$2)", [bob, charlie]);
@@ -352,6 +359,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     await assert.rejects(asUser(alice, () => db.query("select public.place_bid($1,20)", [auctionId])), /SELLER_CANNOT_BID/);
 
     await asUser(bob, () => db.query("select public.place_bid($1,20)", [auctionId]));
+    await assert.rejects(asUser(alice, () => db.query("select public.cancel_auction($1)", [auctionId])), /AUCTION_HAS_BIDS/);
     assert.equal(Number((await db.query("select karas_balance from public.user_profiles where user_id=$1", [bob])).rows[0].karas_balance), 80);
     await asUser(charlie, () => db.query("select public.place_bid($1,30)", [auctionId]));
     const bobAuctions = (await asUser(bob, () => db.query("select public.list_auctions() as value"))).rows[0].value;

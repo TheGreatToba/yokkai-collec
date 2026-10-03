@@ -215,3 +215,12 @@ test("erreurs DB explicites, requêtes réessayables et aucune relance automatiq
   queryError(null);
   assert.equal((await api.getUserCollection()).length, 0);
 });
+
+test("une carte aux enchères affiche une erreur métier lors de sa destruction", async () => {
+  const { api, rpcError } = setup();
+  rpcError({ message: "CARD_FROZEN", code: "P0001" });
+  await assert.rejects(
+    api.discardPackCard("000001", "regular"),
+    /Cette carte est placée aux enchères, elle ne peut pas être détruite\./,
+  );
+});

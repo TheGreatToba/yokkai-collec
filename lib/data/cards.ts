@@ -34,6 +34,7 @@ function failure(error: { message?: string; code?: string }) {
     DECISION_CHOICE_UNAVAILABLE: "Cette carte du Decision Pack n’est plus disponible.",
     DECISION_LAST_CHOICE: "La dernière carte doit être conservée.",
     CARD_NOT_OWNED: "Cette carte n’est plus dans votre collection.",
+    CARD_FROZEN: "Cette carte est placée aux enchères, elle ne peut pas être détruite.",
     FOLDER_NAME_TAKEN: "Un dossier porte déjà ce nom.",
     FOLDER_NOT_FOUND: "Ce dossier n’existe plus.",
   };
