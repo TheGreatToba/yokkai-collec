@@ -8,7 +8,9 @@ export async function AccountMenu() {
     <Link href="/connexion">Connexion</Link>
     <Link href="/inscription" className="rounded-lg border border-lime-300/40 px-3 py-2 text-lime-300">S’inscrire</Link>
   </div>;
-  const pseudo = await getCurrentPseudo(user.id);
+  const storedPseudo = await getCurrentPseudo(user.id);
+  const metadataPseudo = typeof user.user_metadata?.pseudo === "string" ? user.user_metadata.pseudo.trim() : "";
+  const pseudo = storedPseudo ?? (metadataPseudo || null);
   return <div className="flex flex-wrap items-center gap-3" aria-label="Mon compte">
     <span className="max-w-40 truncate text-sm text-lime-300" title={pseudo ?? undefined}>{pseudo ?? "Compte connecté"}</span>
     <SignOutButton />

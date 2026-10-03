@@ -76,10 +76,10 @@ export function Topbar({ view, account, name, karas, notifications, notification
           </section></>}
         </div>
         <span className="yk-balance" title={karas == null ? "Chargement du solde" : "Mon solde"}>{karas == null ? <span role="status" aria-label="Chargement du solde Karas" className="yk-balance-skeleton" /> : <Karas amount={karas} />}</span>
-        <Link href="/profil" aria-label="Mon profil" className="rounded-full"><Avatar name={name || "Compte"} image={avatarUrl} /></Link>
-        <button type="button" aria-label="Options du compte" aria-haspopup="dialog" className="px-1 py-3 text-xs text-ink-3" onClick={() => setPanel("account")}>⌄</button>
+        <Link href="/profil" aria-label="Voir mon profil" title="Voir mon profil" className="inline-flex rounded-full"><Avatar name={name || "Compte"} image={avatarUrl} /></Link>
+        <button type="button" aria-label="Ouvrir le menu du compte" title="Menu du compte" aria-haspopup="dialog" className="yk-icon-button" onClick={() => setPanel("account")}><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21H9.6v-.09A1.7 1.7 0 0 0 8.5 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3V9.6h.09A1.7 1.7 0 0 0 4.6 8.5a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.09A1.7 1.7 0 0 0 15.5 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.16.38.38.72.68 1 .3.28.7.42 1.1.4H21v4h-.09A1.7 1.7 0 0 0 19.4 15Z"/></svg></button>
       </div>
     </header>
-    <Modal open={panel === "account"} onClose={() => setPanel(null)} title="Mon compte"><div className="flex items-center gap-4"><Avatar name={name || "Compte"} image={avatarUrl} size={64} /><div>{account || <p className="text-ink-2">Connectez-vous pour retrouver votre compte.</p>}</div></div></Modal>
+    <Modal open={panel === "account"} onClose={() => setPanel(null)} title="Mon compte"><div className="flex items-center gap-4"><Avatar name={name || "Compte"} image={avatarUrl} size={64} /><div className="space-y-3"><Link href="/profil" className="yk-button yk-button-primary inline-flex" onClick={()=>setPanel(null)}>Voir mon profil</Link>{account || <p className="text-ink-2">Connectez-vous pour retrouver votre compte.</p>}</div></div></Modal>
   </>;
 }

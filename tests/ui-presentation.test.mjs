@@ -176,6 +176,15 @@ test("le profil invalide l’avatar partagé et la Topbar le recharge", () => {
   assert.match(topbar, /image=\{avatarUrl\}/);
 });
 
+test("l’avatar mène au profil et le menu de compte propose le même accès", () => {
+  const topbar = readFileSync(path.join(root, "components/topbar.tsx"), "utf8");
+  const account = readFileSync(path.join(root, "components/account-menu.tsx"), "utf8");
+  assert.match(topbar, /href="\/profil" aria-label="Voir mon profil"/);
+  assert.match(topbar, />Voir mon profil<\/Link>/);
+  assert.match(topbar, /aria-label="Ouvrir le menu du compte"/);
+  assert.match(account, /user\.user_metadata\?\.pseudo/);
+});
+
 test("la destruction groupée demande une confirmation chiffrée", () => {
   const source = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
   assert.match(source, /setBulkDiscardConfirm\(true\)/);
