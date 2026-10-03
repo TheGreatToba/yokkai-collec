@@ -28,7 +28,7 @@ export function notificationItem(notification:AppNotification):NotificationItem 
   if(notification.type==="achievement_completed")return {...common,title:"Succès débloqué",text:`Nouveau succès : ${notification.achievementName??"un succès"}.`,href:`/succes#${notification.referenceId}`,kind:"mission"};
   return {...common,title:"Carte en wishlist aux enchères",text:`${notification.cardName??"Une carte"} de ta wishlist vient d’être mise aux enchères — clique pour voir.`,href:`/marche/${notification.referenceId}`,kind:"wishlist"};
 }
-export function Topbar({ view, account, name, karas, notifications, notificationError: externalNotificationError, onRetryNotifications, onRefreshNotifications, onReadAll, onOpenNotification }: {
+export function Topbar({ view, account, name: providedName, karas, notifications, notificationError: externalNotificationError, onRetryNotifications, onRefreshNotifications, onReadAll, onOpenNotification }: {
   view: "packs" | "collection" | "profile" | "friends" | "market" | "auction" | "trades" | "search" | "wishlist" | "admin" | "achievements"; account?: ReactNode; name?: string; collection?: CollectedCard[];
   karas?: number; notifications?: NotificationItem[]; notificationError?: string; onRetryNotifications?: () => void; onRefreshNotifications?: () => void; onReadAll?: () => void; onOpenNotification?: (id:string,href:string)=>Promise<void>;
 }) {
@@ -37,12 +37,14 @@ export function Topbar({ view, account, name, karas, notifications, notification
   const [panel, setPanel] = useState<"notifications" | "account" | null>(null);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [avatarUrl,setAvatarUrl]=useState<string>();
+  const [profileName,setProfileName]=useState<string>();
   const feed=useNotificationFeed(!notifications);
   const loaded=feed.notifications?.map(notificationItem);
   const shown=notifications??loaded;
   const visibleNotificationError=externalNotificationError??feed.error;
   const unread = shown?.filter(n => !n.read).length;
-  useEffect(()=>{let active=true;const refreshAvatar=()=>void getProfile().then(profile=>{if(active)setAvatarUrl(profile.avatarUrl??undefined);},()=>undefined);refreshAvatar();const unsubscribe=subscribePlayerSnapshotInvalidation(scopes=>{if(scopes.includes("profile"))refreshAvatar();});return()=>{active=false;unsubscribe();};},[]);
+  const name=providedName||profileName;
+  useEffect(()=>{let active=true;const refreshProfile=()=>void getProfile().then(profile=>{if(active){setAvatarUrl(profile.avatarUrl??undefined);setProfileName(profile.pseudo);}},()=>undefined);refreshProfile();const unsubscribe=subscribePlayerSnapshotInvalidation(scopes=>{if(scopes.includes("profile"))refreshProfile();});return()=>{active=false;unsubscribe();};},[]);
   useEffect(()=>{if(!panel)return;const panelId=`${panel}-panel`;const closeOnOutsidePointer=(event:PointerEvent)=>{const target=event.target as Element|null;if(target?.closest(`#${panelId},[aria-controls="${panelId}"]`))return;setPanel(null);};document.addEventListener("pointerdown",closeOnOutsidePointer);return()=>document.removeEventListener("pointerdown",closeOnOutsidePointer);},[panel]);
   async function readAll(){if(onReadAll)await onReadAll();else{await markNotificationRead();feed.setNotifications(current=>current?.map(n=>({...n,readAt:n.readAt??new Date().toISOString()})));}}
   function toggleNotifications(){if(panel==="notifications"){setPanel(null);return;}setPanel("notifications");if(notifications)onRefreshNotifications?.();else void feed.refresh();}
