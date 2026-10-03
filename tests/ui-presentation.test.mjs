@@ -188,6 +188,8 @@ test("l’avatar ouvre un menu profil compact avec résumé et actions", () => {
   assert.match(topbar, />Paramètres<\/Link>/);
   assert.match(topbar, />Mes succès<\/Link>/);
   assert.match(topbar, /toLocaleString\("fr-FR"\).*Karas/);
+  assert.match(topbar, /className="yk-account-karas"/);
+  assert.doesNotMatch(topbar, /yk-mobile-account/);
   assert.doesNotMatch(topbar, /Gère ton profil et ta session/);
   assert.doesNotMatch(topbar, />Fermer<\/button>/);
   assert.doesNotMatch(topbar, /<Modal open=\{panel === "account"\}/);
@@ -195,6 +197,8 @@ test("l’avatar ouvre un menu profil compact avec résumé et actions", () => {
   assert.match(css, /width: min\(280px/);
   assert.match(css, /background: #0f0c1d/);
   assert.match(css, /box-shadow: 0 12px 32px -4px rgba\(4,0,11,\.95\)/);
+  assert.match(css, /\.yk-account-karas \{ display: none; \}/);
+  assert.match(css, /max-width: 620px[^]*\.yk-account-karas \{ display: block; \}/);
 });
 
 test("la destruction groupée demande une confirmation chiffrée", () => {
