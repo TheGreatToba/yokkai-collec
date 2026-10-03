@@ -43,6 +43,17 @@ test("un CSV admin sans source_id bascule en source manuelle pour obtenir un ide
   assert.match(actions, /row\.image_url \?\? row\.image \?\? row\.image_source/);
 });
 
+test("les erreurs d'import CSV affichent le nom de la carte avec sa ligne", async () => {
+  const actions = await read("app/admin/cards/actions.ts");
+  const importStart = actions.indexOf("function importCardsAction");
+  const updateStart = actions.indexOf("function updateCardAction");
+  const csvImport = actions.slice(importStart, updateStart);
+  assert.match(csvImport, /rows\[failure\.record - 1\]\?\.nom\.trim\(\)/);
+  assert.match(csvImport, /Carte « \$\{cardName\} »/);
+  assert.match(csvImport, /\(ligne \$\{failure\.record\}\): \$\{failure\.message\}/);
+  assert.match(csvImport, /Carte sans nom/);
+});
+
 test("le menu Admin suit Succès et dépend du rôle admin", async () => {
   const topbar = await read("components/topbar.tsx");
   const adminLink = topbar.indexOf('href="/admin/cards"');
