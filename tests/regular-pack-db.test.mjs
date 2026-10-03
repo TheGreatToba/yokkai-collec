@@ -39,6 +39,8 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
   await db.exec(readFileSync(new URL("../supabase/migrations/20261002000004_get_game_info_security.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261002000005_evolve_ssr_explicit_instances.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261003000001_friend_collection.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../supabase/migrations/20261003000003_friend_collection_custom_images.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../supabase/migrations/20261003000002_evolve_ssr_five_copies.sql", import.meta.url), "utf8"));
   await db.query("insert into auth.users values ($1, '{\"pseudo\":\"Alice\"}'), ($2, '{\"pseudo\":\"Bob\"}'), ($3, '{\"pseudo\":\"Charlie\"}')", [alice, bob, charlie]);
   for (const rarity of ["C", "R", "SR", "SSR", "LR"]) {
     await db.query(`insert into public.cards (source_id, nom, categorie, franchise, rarete_base, image_url, source)
@@ -172,10 +174,10 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     assert.ok(after.nextPackAt - after.serverNow <= 15 * 60000);
   });
 
-  await t.test("évolution atomique : trois SSR non-Shiny identiques deviennent une SSR Shiny", async () => {
+  await t.test("évolution atomique : cinq SSR non-Shiny identiques deviennent une SSR Shiny", async () => {
     await db.query("delete from public.user_cards where user_id=$1", [alice]);
     await db.query(`insert into public.user_cards (user_id, card_id, rarity, is_shiny)
-      select $1, cards.id, 'SSR', false from public.cards cross join generate_series(1,3)
+      select $1, cards.id, 'SSR', false from public.cards cross join generate_series(1,5)
       where source_id='SSR'`, [alice]);
     const instances = (await db.query("select id from public.user_cards where user_id=$1 order by id", [alice])).rows.map(row=>row.id);
     const evolved = await asUser(alice, () => (db.query("select public.evolve_ssr_card($1::uuid[]) as value", [instances])).then(r => r.rows[0].value));
@@ -190,7 +192,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
       (user_id,card_id,date_obtention,rarity,is_shiny,custom_image_url)
       select $1,cards.id,clock_timestamp()+copy.n*interval '1 minute','SSR',false,
         case when copy.n=1 then 'https://i.imgur.com/preserved.png' else null end
-      from public.cards cards cross join generate_series(1,4) copy(n)
+      from public.cards cards cross join generate_series(1,6) copy(n)
       where source_id='SSR' returning id,custom_image_url`, [alice])).rows;
     const chosen = explicit.filter(row=>!row.custom_image_url).map(row=>row.id);
     await asUser(alice, () => db.query("select public.evolve_ssr_card($1::uuid[])", [chosen]));
@@ -198,19 +200,19 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     assert.deepEqual(preserved, [explicit.find(row=>row.custom_image_url)]);
     await db.query("delete from public.user_cards where user_id=$1", [alice]);
     await db.query(`insert into public.user_cards (user_id, card_id, rarity)
-      select $1, cards.id, 'SSR' from public.cards cross join generate_series(1,2)
+      select $1, cards.id, 'SSR' from public.cards cross join generate_series(1,4)
       where source_id='SSR'`, [alice]);
     const insufficient = (await db.query("select id from public.user_cards where user_id=$1", [alice])).rows.map(row=>row.id);
-    await assert.rejects(asUser(alice, () => db.query("select public.evolve_ssr_card($1::uuid[])", [insufficient])), /THREE_DISTINCT_SSR_COPIES_REQUIRED/);
-    assert.equal(await count(alice), 2);
+    await assert.rejects(asUser(alice, () => db.query("select public.evolve_ssr_card($1::uuid[])", [insufficient])), /FIVE_DISTINCT_SSR_COPIES_REQUIRED/);
+    assert.equal(await count(alice), 4);
     await db.query("delete from public.user_cards where user_id=$1", [alice]);
     await db.query(`insert into public.user_cards (user_id, card_id, rarity, is_shiny, is_evolved)
       select $1, cards.id, 'SSR', copy.shiny, copy.shiny
-      from public.cards cross join (values (false),(false),(true)) as copy(shiny)
+      from public.cards cross join (values (false),(false),(false),(false),(true)) as copy(shiny)
       where source_id='SSR'`, [alice]);
     const withShiny = (await db.query("select id from public.user_cards where user_id=$1", [alice])).rows.map(row=>row.id);
     await assert.rejects(asUser(alice, () => db.query("select public.evolve_ssr_card($1::uuid[])", [withShiny])), /INVALID_SSR_COPIES/);
-    assert.equal(await count(alice), 3);
+    assert.equal(await count(alice), 5);
     await db.query("delete from public.user_cards where user_id=$1", [alice]);
   });
 
@@ -429,6 +431,8 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     assert.equal(customized.image,"https://i.imgur.com/private.png");
     assert.equal(customized.customImageUrl,"https://i.imgur.com/private.png");
     assert.ok(friendCollection.every(card=>card.folderId===null));
+    assert.ok(friendCollection.every(card=>card.folderId===null));
+    assert.ok(friendCollection.some(card=>card.id===friendCardId&&card.image==="https://i.imgur.com/private.png"&&card.customImageUrl==="https://i.imgur.com/private.png"));
     await assert.rejects(asUser(charlie,()=>db.query("select public.get_friend_collection($1)",[alice])),/FRIENDS_ONLY/);
 
     const declinedId = (await asUser(alice, () => db.query("select public.send_friend_request($1) as id", [charlie]))).rows[0].id;
@@ -489,6 +493,6 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
       await assert.rejects(asUser(null, () => rpc(name)), /AUTH_REQUIRED/);
       await assert.rejects(asUser("00000000-0000-0000-0000-000000000099", () => rpc(name)), /PROFILE_MISSING/);
     }
-    await assert.rejects(asUser(null, () => db.query("select public.evolve_ssr_card(array[gen_random_uuid(),gen_random_uuid(),gen_random_uuid()])"), "anon"), /permission denied/);
+    await assert.rejects(asUser(null, () => db.query("select public.evolve_ssr_card(array[gen_random_uuid(),gen_random_uuid(),gen_random_uuid(),gen_random_uuid(),gen_random_uuid()])"), "anon"), /permission denied/);
   });
 });

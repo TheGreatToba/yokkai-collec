@@ -35,3 +35,11 @@ export function preservationOrder(cards: CollectedCard[]): CollectedCard[] {
   return [...cards].sort((a,b)=>Number(!!a.customImageUrl)-Number(!!b.customImageUrl)
     ||Date.parse(a.obtainedAt)-Date.parse(b.obtainedAt)||a.instanceId.localeCompare(b.instanceId));
 }
+
+export function consumableCopies(cards: CollectedCard[], isFrozen: (instanceId: string) => boolean): CollectedCard[] {
+  return preservationOrder(cards.filter(card=>!isFrozen(card.instanceId)));
+}
+
+export function consumptionPlan(cards: CollectedCard[], quantity: number, isFrozen: (instanceId: string) => boolean): CollectedCard[] {
+  return consumableCopies(cards,isFrozen).slice(0,Math.max(0,quantity));
+}

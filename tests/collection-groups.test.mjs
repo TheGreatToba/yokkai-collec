@@ -8,7 +8,7 @@ const context={exports:{}};
 vm.runInNewContext(ts.transpileModule(readFileSync(new URL("../lib/ui/collection-groups.ts",import.meta.url),"utf8"),{
   compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020},
 }).outputText,context);
-const {collectionGroupKey,groupCollection,preservationOrder}=context.exports;
+const {collectionGroupKey,consumableCopies,consumptionPlan,groupCollection,preservationOrder}=context.exports;
 
 const copy=(instanceId,{id="card-a",rarity="SSR",shiny=false,obtainedAt="2026-01-01T00:00:00Z",customImageUrl=null,folderId=null}={})=>({
   id,instanceId,name:"Carte",category:"Anime",rarity,shiny,obtainedAt,customImageUrl,folderId,image:"/card.png",catalogueImage:"/card.png",isEvolved:false,isFirstOwner:false,
@@ -35,4 +35,45 @@ test("un groupe garde tous les dossiers et affiche la copie personnalisée la pl
 test("destruction et évolution préservent les images perso puis prennent les plus anciennes",()=>{
   const cards=[copy("custom-old",{obtainedAt:"2025-01-01T00:00:00Z",customImageUrl:"https://i.imgur.com/custom.png"}),copy("plain-new",{obtainedAt:"2026-03-01T00:00:00Z"}),copy("plain-old",{obtainedAt:"2026-01-01T00:00:00Z"}),copy("plain-mid",{obtainedAt:"2026-02-01T00:00:00Z"})];
   assert.deepEqual(Array.from(preservationOrder(cards),card=>card.instanceId),["plain-old","plain-mid","plain-new","custom-old"]);
+});
+
+test("une copie en enchère est exclue de la sélection et de la destruction",()=>{
+  const cards=[
+    copy("plain-old",{obtainedAt:"2026-01-01T00:00:00Z"}),
+    copy("auction",{obtainedAt:"2026-01-02T00:00:00Z"}),
+    copy("plain-new",{obtainedAt:"2026-01-03T00:00:00Z"}),
+    copy("custom",{obtainedAt:"2026-01-04T00:00:00Z",customImageUrl:"https://i.imgur.com/custom.png"}),
+  ];
+  const frozen=id=>id==="auction";
+  assert.deepEqual(Array.from(consumableCopies(cards,frozen),card=>card.instanceId),["plain-old","plain-new","custom"]);
+  assert.deepEqual(Array.from(consumptionPlan(cards,4,frozen),card=>card.instanceId),["plain-old","plain-new","custom"]);
+});
+
+test("détruire 2 copies sur 4 retire les deux ordinaires les plus anciennes et laisse un groupe x2",()=>{
+  const cards=[
+    copy("custom-old",{obtainedAt:"2026-01-01T00:00:00Z",customImageUrl:"https://i.imgur.com/custom.png"}),
+    copy("plain-new",{obtainedAt:"2026-01-04T00:00:00Z"}),
+    copy("plain-old",{obtainedAt:"2026-01-02T00:00:00Z"}),
+    copy("plain-mid",{obtainedAt:"2026-01-03T00:00:00Z"}),
+  ];
+  const destroyed=consumptionPlan(cards,2,()=>false);
+  assert.deepEqual(Array.from(destroyed,card=>card.instanceId),["plain-old","plain-mid"]);
+  const destroyedIds=new Set(destroyed.map(card=>card.instanceId));
+  const [survivingGroup]=groupCollection(cards.filter(card=>!destroyedIds.has(card.instanceId)));
+  assert.equal(survivingGroup.cards.length,2);
+  assert.deepEqual(new Set(survivingGroup.cards.map(card=>card.instanceId)),new Set(["custom-old","plain-new"]));
+});
+
+test("la proposition d'évolution choisit exactement 3 copies disponibles et préserve l'image perso",()=>{
+  const cards=[
+    copy("custom-old",{obtainedAt:"2026-01-01T00:00:00Z",customImageUrl:"https://i.imgur.com/custom.png"}),
+    copy("plain-new",{obtainedAt:"2026-01-05T00:00:00Z"}),
+    copy("auction-old",{obtainedAt:"2026-01-02T00:00:00Z"}),
+    copy("plain-old",{obtainedAt:"2026-01-03T00:00:00Z"}),
+    copy("plain-mid",{obtainedAt:"2026-01-04T00:00:00Z"}),
+  ];
+  const proposed=consumableCopies(cards,id=>id==="auction-old").slice(0,3);
+  assert.deepEqual(Array.from(proposed,card=>card.instanceId),["plain-old","plain-mid","plain-new"]);
+  assert.ok(!proposed.some(card=>card.customImageUrl));
+  assert.ok(!proposed.some(card=>card.instanceId==="auction-old"));
 });

@@ -1,8 +1,9 @@
-export type PlayerSnapshotScope = "balance" | "collection";
+export type PlayerSnapshotScope = "balance" | "collection" | "profile";
 
 export const PLAYER_SNAPSHOT_TTL = {
   balance: 60_000,
   collection: 10_000,
+  profile: 0,
 } as const;
 
 type CacheEntry = { expires: number; promise: Promise<unknown> };
@@ -27,7 +28,7 @@ export function createPlayerSnapshotCache(now: () => number = Date.now) {
     delete(key: string) { entries.delete(key); },
     clear() { entries.clear(); },
     deleteScope(scope: PlayerSnapshotScope) {
-      const prefix = scope === "balance" ? "info:" : "collection:";
+      const prefix = scope === "balance" ? "info:" : scope === "collection" ? "collection:" : "profile:";
       for (const key of entries.keys()) if (key.startsWith(prefix)) entries.delete(key);
     },
   };
@@ -52,7 +53,7 @@ function getChannel() {
   if (channel || typeof window === "undefined" || typeof BroadcastChannel === "undefined") return channel;
   channel = new BroadcastChannel(channelName);
   channel.addEventListener("message", event => {
-    if (Array.isArray(event.data)) notify(event.data.filter(scope => scope === "balance" || scope === "collection"));
+    if (Array.isArray(event.data)) notify(event.data.filter(scope => scope === "balance" || scope === "collection" || scope === "profile"));
   });
   return channel;
 }
