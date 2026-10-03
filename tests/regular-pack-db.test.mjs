@@ -427,6 +427,10 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     await db.query("insert into public.user_cards(user_id,card_id,rarity,custom_image_url) values($1,$2,'C','https://i.imgur.com/private.png')",[alice,friendCardId]);
     const friendCollection = (await asUser(bob, () => db.query("select public.get_friend_collection($1) as value",[alice]))).rows[0].value;
     assert.ok(friendCollection.some(card=>card.id===friendCardId));
+    const customized = friendCollection.find(card=>card.customImageUrl);
+    assert.equal(customized.image,"https://i.imgur.com/private.png");
+    assert.equal(customized.customImageUrl,"https://i.imgur.com/private.png");
+    assert.ok(friendCollection.every(card=>card.folderId===null));
     assert.ok(friendCollection.every(card=>card.folderId===null));
     assert.ok(friendCollection.some(card=>card.id===friendCardId&&card.image==="https://i.imgur.com/private.png"&&card.customImageUrl==="https://i.imgur.com/private.png"));
     await assert.rejects(asUser(charlie,()=>db.query("select public.get_friend_collection($1)",[alice])),/FRIENDS_ONLY/);

@@ -10,7 +10,8 @@ begin
   end if;
   return (select coalesce(jsonb_agg(jsonb_build_object(
     'instanceId',uc.id,'id',c.id,'name',c.nom,'category',c.categorie,'anime',c.franchise,
-    'rarity',c.rarete_base,'image',c.image_url,'catalogueImage',c.image_url,'customImageUrl',null,
+    'rarity',c.rarete_base,'image',coalesce(uc.custom_image_url,c.image_url),'catalogueImage',c.image_url,
+    'customImageUrl',uc.custom_image_url,
     'obtainedAt',uc.date_obtention,'shiny',uc.is_shiny,'isEvolved',uc.is_evolved,
     'isFirstOwner',uc.is_first_owner,'folderId',null
   ) order by uc.date_obtention desc,uc.id),'[]'::jsonb)
