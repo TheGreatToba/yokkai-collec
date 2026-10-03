@@ -38,6 +38,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
   await db.exec(readFileSync(new URL("../supabase/migrations/20261002000003_drop_rates_rebalance.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261002000004_get_game_info_security.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261002000005_evolve_ssr_explicit_instances.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../supabase/migrations/20261003000001_friend_collection.sql", import.meta.url), "utf8"));
   await db.query("insert into auth.users values ($1, '{\"pseudo\":\"Alice\"}'), ($2, '{\"pseudo\":\"Bob\"}'), ($3, '{\"pseudo\":\"Charlie\"}')", [alice, bob, charlie]);
   for (const rarity of ["C", "R", "SR", "SSR", "LR"]) {
     await db.query(`insert into public.cards (source_id, nom, categorie, franchise, rarete_base, image_url, source)
@@ -420,6 +421,12 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     assert.equal((await asUser(alice, () => db.query("select public.respond_friend_request($1,true) as value", [requestId]))).rows[0].value, true);
     assert.equal((await asUser(alice, () => db.query("select public.get_friendships() as value"))).rows[0].value.friends[0].pseudo, "Bob");
     assert.equal((await asUser(bob, () => db.query("select public.get_public_profile($1) as value", [alice]))).rows[0].value.friendshipStatus, "accepted");
+    const friendCardId = (await db.query("select id from public.cards where source_id='C'")).rows[0].id;
+    await db.query("insert into public.user_cards(user_id,card_id,rarity,custom_image_url) values($1,$2,'C','https://i.imgur.com/private.png')",[alice,friendCardId]);
+    const friendCollection = (await asUser(bob, () => db.query("select public.get_friend_collection($1) as value",[alice]))).rows[0].value;
+    assert.ok(friendCollection.some(card=>card.id===friendCardId));
+    assert.ok(friendCollection.every(card=>card.image==="https://storage.example/card.png"&&card.customImageUrl===null&&card.folderId===null));
+    await assert.rejects(asUser(charlie,()=>db.query("select public.get_friend_collection($1)",[alice])),/FRIENDS_ONLY/);
 
     const declinedId = (await asUser(alice, () => db.query("select public.send_friend_request($1) as id", [charlie]))).rows[0].id;
     assert.equal((await asUser(charlie, () => db.query("select public.respond_friend_request($1,false) as value", [declinedId]))).rows[0].value, false);
