@@ -83,6 +83,13 @@ test("la resynchronisation admin peut cibler les catégories existantes", async 
   assert.match(adminMigration, /card_categories_admin_all[\s\S]+is_current_user_admin/i);
 });
 
+test("un remplacement d’image admin peut relire l’objet nécessaire à l’upsert", async () => {
+  const migration = await read("supabase/migrations/20261003000005_admin_card_images_select.sql");
+  assert.match(migration, /create policy card_images_admin_select/i);
+  assert.match(migration, /on storage\.objects for select to authenticated/i);
+  assert.match(migration, /bucket_id = 'card-images'[\s\S]+is_current_user_admin/i);
+});
+
 test("un admin peut rechercher une carte par son nom dans tout le catalogue", async () => {
   const page = await read("app/admin/cards/page.tsx");
   assert.match(page, /searchParams:\s*Promise<\{ q\?: string \}>/);
