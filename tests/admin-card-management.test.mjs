@@ -76,6 +76,13 @@ test("la licence est facultative lors de l’ajout et de la modification d’une
   assert.doesNotMatch(actions, /!patch\.franchise/);
 });
 
+test("la resynchronisation admin peut cibler les catégories existantes", async () => {
+  const migration = await read("supabase/migrations/20261003000004_admin_card_categories_select.sql");
+  assert.match(migration, /grant select on table public\.card_categories to authenticated/i);
+  const adminMigration = await read("supabase/migrations/20261003000000_admin_card_management.sql");
+  assert.match(adminMigration, /card_categories_admin_all[\s\S]+is_current_user_admin/i);
+});
+
 test("un admin peut rechercher une carte par son nom dans tout le catalogue", async () => {
   const page = await read("app/admin/cards/page.tsx");
   assert.match(page, /searchParams:\s*Promise<\{ q\?: string \}>/);
