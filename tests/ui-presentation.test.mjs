@@ -286,7 +286,7 @@ test("les copies normales et Shiny forment des tuiles distinctes avec badge de q
   const html=render(CollectionView,{cards:copies,categories:[],folders:[{id:"favorites",name:"Favoris"}],async onDiscardMany(){},async onEvolve(){}});
   assert.equal((html.match(/class="yk-collection-card[ "]/g)||[]).length,2);
   assert.match(html,/×(?:<!-- -->)?2/);
-  assert.match(html,/×(?:<!-- -->)?1/);
+  assert.doesNotMatch(html,/×(?:<!-- -->)?1/);
   assert.match(html,/custom\.png/);
 });
 
@@ -372,7 +372,7 @@ test("la Collection groupe les tuiles et sélectionne tous les exemplaires dispo
   const source = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
   assert.match(source, /const groups = groupCollection\(filtered\)/);
   assert.match(source, /visibleGroups\.map\(group=>/);
-  assert.match(source, /×\{group\.cards\.length\}/);
+  assert.match(source, /group\.cards\.length>1&&<span[^>]*>×\{group\.cards\.length\}/);
   assert.match(source, /toggleGroup\(group\.cards\)/);
   assert.match(source, /count=\{selectedCards\.length\}/);
   assert.match(source, /frozenCount>0/);
