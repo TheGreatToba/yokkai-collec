@@ -146,6 +146,29 @@ test("mobile : vitrine du profil sur la grille partagée et page Amis sans débo
   assert.match(friends, /const liveFriendsPanel: FriendsPanelAdapter = \{ friendships: getFriendships, search: searchUsers, respond: respondFriendRequest \}/);
 });
 
+test("le sélecteur de cartes mises en avant recherche et remonte la sélection", () => {
+  const source = readFileSync(path.join(root, "components/profile.tsx"), "utf8");
+  assert.match(source, /id="featured-query"/);
+  assert.match(source, /matchesCardSearch\(featuredQuery/);
+  assert.match(source, /Number\(selected\.has\(b\.instanceId\)\)-Number\(selected\.has\(a\.instanceId\)\)/);
+});
+
+test("le profil invalide l’avatar partagé et la Topbar le recharge", () => {
+  const profile = readFileSync(path.join(root, "lib/data/profile.ts"), "utf8");
+  const topbar = readFileSync(path.join(root, "components/topbar.tsx"), "utf8");
+  assert.match(profile, /publishPlayerSnapshotInvalidation\(\["profile"\]\)/);
+  assert.match(topbar, /scopes\.includes\("profile"\)/);
+  assert.match(topbar, /image=\{avatarUrl\}/);
+});
+
+test("la destruction groupée demande une confirmation chiffrée", () => {
+  const source = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
+  assert.match(source, /setBulkDiscardConfirm\(true\)/);
+  assert.match(source, /Action irréversible\./);
+  assert.match(source, /selectedCards\.length/);
+  assert.match(source, /selectedValue\?\?"…"/);
+});
+
 test("barre d'outils Collection compacte sur mobile et tiroir fermé même en mouvement réduit", () => {
   const collection = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
   const css = readFileSync(path.join(root, "styles/collection.css"), "utf8");
@@ -175,10 +198,10 @@ test("Collection, Catalogue et Marché partagent une seule échelle de colonnes"
   }
 });
 
-test("la collection annonce l'évolution de trois SSR non-Shiny en Shiny", () => {
+test("la collection annonce l'évolution de cinq SSR non-Shiny en Shiny", () => {
   const source = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
   assert.match(source, /Évolution Shiny/);
-  assert.match(source, /Évoluer en Shiny \(consomme 3 exemplaires\)/);
+  assert.match(source, /Évoluer en Shiny \(\{evolvableCopies\}\/5\)/);
   assert.doesNotMatch(source, /Évolution LR|Évoluer en LR/);
   assert.match(source, /Confirmer l’évolution Shiny/);
   assert.match(source, /Image : \{card\.customImageUrl\?"personnalisée \(sera perdue\)":"d’origine"\}/);
@@ -303,7 +326,7 @@ test("la Collection groupe les tuiles et sélectionne tous les exemplaires dispo
   assert.match(source, /yk-copy-picker/);
   assert.match(source, /itemLabel="exemplaire"/);
   assert.match(source, /toggleEvolutionCard/);
-  assert.match(source, /Choisis précisément trois exemplaires/);
+  assert.match(source, /Choisis précisément cinq exemplaires/);
 });
 
 test("la mise en vente suggère la valeur de marché sans remplacer le prix par défaut", () => {
