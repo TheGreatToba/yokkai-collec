@@ -172,16 +172,19 @@ test("le profil invalide l’avatar partagé et la Topbar le recharge", () => {
   const profile = readFileSync(path.join(root, "lib/data/profile.ts"), "utf8");
   const topbar = readFileSync(path.join(root, "components/topbar.tsx"), "utf8");
   assert.match(profile, /publishPlayerSnapshotInvalidation\(\["profile"\]\)/);
+  assert.match(topbar, /refreshAvatar\(\);const unsubscribe/);
   assert.match(topbar, /scopes\.includes\("profile"\)/);
   assert.match(topbar, /image=\{avatarUrl\}/);
 });
 
-test("l’avatar mène au profil et le menu de compte propose le même accès", () => {
+test("l’avatar est le seul contrôle visible et ouvre la modale de compte", () => {
   const topbar = readFileSync(path.join(root, "components/topbar.tsx"), "utf8");
   const account = readFileSync(path.join(root, "components/account-menu.tsx"), "utf8");
-  assert.match(topbar, /href="\/profil" aria-label="Voir mon profil"/);
+  assert.match(topbar, /aria-label="Ouvrir mon compte"/);
+  assert.match(topbar, /onClick=\{\(\)=>setPanel\("account"\)\}/);
+  assert.match(topbar, /panel === "account"/);
   assert.match(topbar, />Voir mon profil<\/Link>/);
-  assert.match(topbar, /aria-label="Ouvrir le menu du compte"/);
+  assert.doesNotMatch(topbar, /Menu du compte/);
   assert.match(account, /user\.user_metadata\?\.pseudo/);
 });
 
