@@ -82,8 +82,9 @@ test("un admin peut filtrer les cartes avec une liste de catégories", async () 
   assert.match(page, /rpc\("list_admin_card_categories"\)/);
   assert.match(page, /name="category"/);
   assert.match(page, /Toutes les catégories/);
-  assert.match(page, /id="admin-card-category"[^>]+sm:w-64 sm:flex-none/);
-  assert.match(page, /aria-label="Nom de la carte"[^>]+min-w-0 flex-1/);
+  assert.match(page, /sm:grid-cols-\[minmax\(0,3fr\)_minmax\(14rem,2fr\)_auto_auto\]/);
+  assert.match(page, /id="admin-card-category"[^>]+w-full min-w-0/);
+  assert.match(page, /aria-label="Nom de la carte"[^>]+w-full min-w-0/);
   assert.match(page, /cardsQuery\.eq\("categorie", selectedCategory\)/);
   assert.doesNotMatch(page, /name="q"[^>]+required/);
   assert.match(migration, /select distinct categorie as category/i);
