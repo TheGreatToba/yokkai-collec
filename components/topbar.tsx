@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import type { CollectedCard } from "@/lib/data/cards";
-import { Avatar, Karas, Modal } from "@/components/ui";
+import { Avatar, Karas } from "@/components/ui";
 import "@/styles/topbar.css";
 import { markNotificationRead, type AppNotification } from "@/lib/data/notifications";
 import { useSfx } from "@/hooks/use-sfx";
@@ -76,9 +76,8 @@ export function Topbar({ view, account, name, karas, notifications, notification
           </section></>}
         </div>
         <span className="yk-balance" title={karas == null ? "Chargement du solde" : "Mon solde"}>{karas == null ? <span role="status" aria-label="Chargement du solde Karas" className="yk-balance-skeleton" /> : <Karas amount={karas} />}</span>
-        <button type="button" aria-label="Ouvrir mon compte" title="Mon compte" aria-haspopup="dialog" className="inline-flex rounded-full" onClick={()=>setPanel("account")}><Avatar name={name || "Compte"} image={avatarUrl} /></button>
+        <div className="relative"><button type="button" aria-label="Ouvrir mon compte" title="Mon compte" aria-expanded={panel==="account"} aria-controls="account-panel" className="inline-flex rounded-full" onClick={()=>setPanel(current=>current==="account"?null:"account")}><Avatar name={name || "Compte"} image={avatarUrl} /></button>{panel==="account"&&<><button type="button" tabIndex={-1} aria-label="Fermer le compte" className="yk-notification-backdrop" onClick={()=>setPanel(null)}/><section id="account-panel" aria-label="Mon compte" className="yk-notifications yk-account-panel" onKeyDown={event=>{if(event.key==="Escape")setPanel(null);}}><header className="yk-notification-head"><div><h2>Mon compte</h2><p>Gère ton profil et ta session</p></div><button type="button" aria-label="Fermer le compte" onClick={()=>setPanel(null)}>Fermer</button></header><div className="yk-account-panel-body"><div className="yk-account-identity"><Avatar name={name||"Compte"} image={avatarUrl} size={56}/>{account||<p className="text-sm text-ink-2">Connecte-toi pour retrouver ton compte.</p>}</div><Link href="/profil" className="yk-button yk-button-primary w-full justify-center" onClick={()=>setPanel(null)}>Voir mon profil</Link></div></section></>}</div>
       </div>
     </header>
-    <Modal open={panel === "account"} onClose={() => setPanel(null)} title="Mon compte"><div className="flex items-center gap-4"><Avatar name={name || "Compte"} image={avatarUrl} size={64} /><div className="space-y-3"><Link href="/profil" className="yk-button yk-button-primary inline-flex" onClick={()=>setPanel(null)}>Voir mon profil</Link>{account || <p className="text-ink-2">Connectez-vous pour retrouver votre compte.</p>}</div></div></Modal>
   </>;
 }

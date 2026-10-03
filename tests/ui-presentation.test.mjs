@@ -177,15 +177,18 @@ test("le profil invalide l’avatar partagé et la Topbar le recharge", () => {
   assert.match(topbar, /image=\{avatarUrl\}/);
 });
 
-test("l’avatar est le seul contrôle visible et ouvre la modale de compte", () => {
+test("l’avatar ouvre un panneau de compte aligné sur celui des notifications", () => {
   const topbar = readFileSync(path.join(root, "components/topbar.tsx"), "utf8");
   const account = readFileSync(path.join(root, "components/account-menu.tsx"), "utf8");
+  const css = readFileSync(path.join(root, "styles/topbar.css"), "utf8");
   assert.match(topbar, /aria-label="Ouvrir mon compte"/);
-  assert.match(topbar, /onClick=\{\(\)=>setPanel\("account"\)\}/);
-  assert.match(topbar, /panel === "account"/);
+  assert.match(topbar, /panel==="account"/);
+  assert.match(topbar, /className="yk-notifications yk-account-panel"/);
   assert.match(topbar, />Voir mon profil<\/Link>/);
   assert.doesNotMatch(topbar, /Menu du compte/);
+  assert.doesNotMatch(topbar, /<Modal open=\{panel === "account"\}/);
   assert.match(account, /user\.user_metadata\?\.pseudo/);
+  assert.match(css, /\.yk-account-panel-body/);
 });
 
 test("la destruction groupée demande une confirmation chiffrée", () => {

@@ -36,6 +36,14 @@
 .yk-notification-state.is-error>span:first-child { border-color: var(--color-danger); color: var(--color-danger); }
 .yk-notification-state strong { color: var(--color-ink); font-family: var(--font-display); }
 .yk-notification-state p { color: var(--color-ink-2); font-size: var(--text-xs); }
+.yk-account-panel { width: min(360px,calc(100vw - 32px)); }
+.yk-account-panel-body { display: grid; gap: calc(var(--spacing) * 4); padding: calc(var(--spacing) * 5); }
+.yk-account-identity { display: flex; align-items: center; gap: calc(var(--spacing) * 4); min-width: 0; }
+.yk-account-session { display: grid; min-width: 0; flex: 1; gap: var(--spacing); }
+.yk-account-session-label { color: var(--color-ink-3); font-size: var(--text-xs); }
+.yk-account-session strong { overflow: hidden; color: var(--color-ink); font-size: var(--text-sm); text-overflow: ellipsis; white-space: nowrap; }
+.yk-account-session form { margin-top: calc(var(--spacing) * 2); }
+.yk-account-session p { color: var(--color-ink-3); font-size: var(--text-xs); }
 @keyframes yk-topbar-panel-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
 @media (max-width: 1180px) { .yk-topbar { gap: 10px; padding-inline: var(--layout-gutter-compact); } .yk-primary-nav > * { padding-inline: 8px; font-size: 12px; } .yk-brand > span:last-child { display: none; } }
 @media (max-width: 900px) {

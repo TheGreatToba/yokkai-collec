@@ -11,9 +11,10 @@ export async function AccountMenu() {
   const storedPseudo = await getCurrentPseudo(user.id);
   const metadataPseudo = typeof user.user_metadata?.pseudo === "string" ? user.user_metadata.pseudo.trim() : "";
   const pseudo = storedPseudo ?? (metadataPseudo || null);
-  return <div className="flex flex-wrap items-center gap-3" aria-label="Mon compte">
-    <span className="max-w-40 truncate text-sm text-lime-300" title={pseudo ?? undefined}>{pseudo ?? "Compte connecté"}</span>
+  return <div className="yk-account-session" aria-label="Session du compte">
+    <span className="yk-account-session-label">Connecté en tant que</span>
+    <strong title={pseudo ?? undefined}>{pseudo ?? "Compte connecté"}</strong>
     <SignOutButton />
-    {!pseudo && <p role="status" className="w-full text-xs text-white/60">Votre pseudo est momentanément indisponible.</p>}
+    {!pseudo && <p role="status">Votre pseudo est momentanément indisponible.</p>}
   </div>;
 }
