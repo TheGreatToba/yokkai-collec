@@ -92,8 +92,24 @@ test("un remplacement d’image admin peut relire l’objet nécessaire à l’u
 
 test("un admin peut rechercher une carte par son nom dans tout le catalogue", async () => {
   const page = await read("app/admin/cards/page.tsx");
-  assert.match(page, /searchParams:\s*Promise<\{ q\?: string \}>/);
+  assert.match(page, /searchParams:\s*Promise<\{ q\?: string; category\?: string \}>/);
   assert.match(page, /\.ilike\("nom", `%\$\{searchQuery\}%`\)/);
   assert.match(page, /name="q"/);
   assert.match(page, /Rechercher une carte du catalogue/);
+});
+
+test("un admin peut filtrer les cartes avec une liste de catégories", async () => {
+  const page = await read("app/admin/cards/page.tsx");
+  const migration = await read("supabase/migrations/20261003000006_admin_card_category_filter.sql");
+  assert.match(page, /searchParams:\s*Promise<\{ q\?: string; category\?: string \}>/);
+  assert.match(page, /rpc\("list_admin_card_categories"\)/);
+  assert.match(page, /name="category"/);
+  assert.match(page, /Toutes les catégories/);
+  assert.match(page, /sm:grid-cols-\[minmax\(0,3fr\)_minmax\(14rem,2fr\)_auto_auto\]/);
+  assert.match(page, /id="admin-card-category"[^>]+w-full min-w-0/);
+  assert.match(page, /aria-label="Nom de la carte"[^>]+w-full min-w-0/);
+  assert.match(page, /cardsQuery\.eq\("categorie", selectedCategory\)/);
+  assert.doesNotMatch(page, /name="q"[^>]+required/);
+  assert.match(migration, /select distinct categorie as category/i);
+  assert.match(migration, /if not public\.is_current_user_admin\(\)/i);
 });
