@@ -385,11 +385,12 @@ test("la mise en vente suggère la valeur de marché sans remplacer le prix par 
 
 test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
   const { MarketView } = load("components/community-views.tsx");
-  const auction = (id, extra = {}) => ({ id, card: { ...card, id: `card-${id}` }, amount: 120, remaining: "00:12:00", remainingSeconds: 720, seller: "Kitsune", bids: 3, ...extra });
+  const auction = (id, extra = {}) => ({ id, card: { ...card, id: `card-${id}` }, amount: 120, remaining: "00:12:00", remainingSeconds: 720, seller: "Kitsune", sellerAvatarUrl: "https://cdn.example/kitsune.png", bids: 3, ...extra });
   const lists = { active: [auction("a", { wishlist: true }), auction("b", { remainingSeconds: 120, remaining: "00:02:00" })], mine: [], won: [], sold: [] };
   const html = render(MarketView, { lists, activeSales: "0", async onToggleWatch() {} });
   assert.equal((html.match(/class="yk-market-tile"/g) || []).length, 2);
   assert.match(html, /aria-pressed="true"[^>]*aria-label="Ne plus suivre cette enchère"[^>]*>.*?<span class="yk-watch-label">Suivi<\/span>/);
+  assert.match(html, /https:\/\/cdn\.example\/kitsune\.png/);
   assert.match(html, /aria-pressed="false"[^>]*aria-label="Suivre cette enchère"[^>]*>.*?<span class="yk-watch-label">Suivre<\/span>/);
   assert.match(html, /yk-market-timer yk-urgency-critical/);
   assert.match(html, /<aside id="market-filters" class="yk-collection-sidebar /);

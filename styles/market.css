@@ -20,6 +20,8 @@
 @media (prefers-reduced-motion: reduce) { .yk-market-tile:hover { transform: none; } }
 .yk-market-tile-link { display: block; min-width: 0; border-radius: var(--radius-card); }
 .yk-market-tile-meta { display: grid; gap: calc(var(--spacing) * 1.5); margin-top: calc(var(--spacing) * 3); }
+.yk-market-seller,.yk-auction-seller { display: inline-flex; min-width: 0; align-items: center; gap: calc(var(--spacing) * 2); }
+.yk-market-seller { color: var(--color-ink-2); font-size: 12px; font-weight: 600; }
 /* Timer · status · price on one line when the tile is wide enough; the status drops below on narrow tiles. */
 .yk-market-tile-line { display: grid; grid-template-columns: auto minmax(0,1fr) auto; grid-template-areas: "timer state price"; align-items: center; gap: calc(var(--spacing) * 1.5); }
 .yk-market-tile-line > .yk-market-timer { grid-area: timer; }

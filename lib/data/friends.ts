@@ -1,7 +1,7 @@
 import { createClient } from "@/utils/supabase/client";
 
 export type FriendshipStatus = "none"|"incoming"|"outgoing"|"accepted"|"self";
-export type FriendUser = {id:string;pseudo:string;status?:FriendshipStatus;requestId?:string;createdAt?:string};
+export type FriendUser = {id:string;pseudo:string;avatarUrl?:string|null;status?:FriendshipStatus;requestId?:string;createdAt?:string};
 export type Friendships = {friends:FriendUser[];incoming:FriendUser[];outgoing:FriendUser[]};
 export type PublicProfile = {id:string;pseudo:string;friendshipStatus:FriendshipStatus};
 let client:ReturnType<typeof createClient>|undefined;

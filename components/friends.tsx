@@ -27,7 +27,7 @@ export function FriendAction({ userId, status, onChanged, adapter = liveFriendAc
   </div>;
 }
 
-function Person({ person, actions }: { person: FriendUser; actions?: ReactNode }) { return <li className="yk-social-person"><Avatar name={person.pseudo} /><Link href={`/profil/${encodeURIComponent(person.pseudo)}`}><strong>{person.pseudo}</strong><small>Voir le profil</small></Link>{actions}</li>; }
+function Person({ person, actions }: { person: FriendUser; actions?: ReactNode }) { return <li className="yk-social-person"><Avatar name={person.pseudo} image={person.avatarUrl??undefined} /><Link href={`/profil/${encodeURIComponent(person.pseudo)}`}><strong>{person.pseudo}</strong><small>Voir le profil</small></Link>{actions}</li>; }
 type FriendsTab = "friends" | "incoming" | "outgoing";
 const emptyCopy: Record<FriendsTab, { title: string; text: string }> = { friends: { title: "Votre cercle est encore vide", text: "Recherchez un pseudo pour inviter votre premier ami." }, incoming: { title: "Aucune demande reçue", text: "Les nouvelles invitations apparaîtront ici." }, outgoing: { title: "Aucune demande envoyée", text: "Vos invitations en attente apparaîtront ici." } };
 

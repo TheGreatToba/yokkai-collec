@@ -42,6 +42,8 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
   await db.exec(readFileSync(new URL("../supabase/migrations/20261003000003_friend_collection_custom_images.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261003000002_evolve_ssr_five_copies.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261003000007_cancel_auction_without_bids.sql", import.meta.url), "utf8"));
+  await db.exec("alter table public.user_profiles add column avatar_url text");
+  await db.exec(readFileSync(new URL("../supabase/migrations/20261003000008_social_avatars.sql", import.meta.url), "utf8"));
   await db.query("insert into auth.users values ($1, '{\"pseudo\":\"Alice\"}'), ($2, '{\"pseudo\":\"Bob\"}'), ($3, '{\"pseudo\":\"Charlie\"}')", [alice, bob, charlie]);
   for (const rarity of ["C", "R", "SR", "SSR", "LR"]) {
     await db.query(`insert into public.cards (source_id, nom, categorie, franchise, rarete_base, image_url, source)
@@ -332,6 +334,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
   });
 
   await t.test("enchères : gel, mises, remboursement, anti-snipe, suivi et règlement", async () => {
+    await db.query("update public.user_profiles set avatar_url=$1 where user_id=$2", ["https://cdn.example/alice.png", alice]);
     const cardId = (await db.query("select id from public.cards where source_id='LR'")).rows[0].id;
     const cancellableCopy = (await db.query("insert into public.user_cards (user_id,card_id,rarity) values ($1,$2,'LR') returning id", [alice, cardId])).rows[0].id;
     const cancellableAuction = (await asUser(alice, () => db.query("select public.create_auction($1,10,15) as id", [cancellableCopy]))).rows[0].id;
@@ -350,6 +353,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     assert.equal(listed.card.image, "https://storage.example/card.png");
     assert.equal(listed.card.anime, "Franchise");
     assert.equal(listed.popularity, 321);
+    assert.equal(listed.sellerAvatarUrl, "https://cdn.example/alice.png");
     assert.equal("customImageUrl" in listed.card, false);
     const publicDetail = (await asUser(bob, () => db.query("select public.get_auction($1) as value", [auctionId]))).rows[0].value;
     assert.equal(publicDetail.card.image, "https://storage.example/card.png");
@@ -387,6 +391,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     const detail = (await asUser(charlie, () => db.query("select public.get_auction($1) as value", [auctionId]))).rows[0].value;
     assert.equal(detail.card.anime, "Franchise");
     assert.deepEqual(detail.history.map((bid) => bid.amount), [40, 30, 20]);
+    assert.equal(detail.history[0].avatarUrl, null);
 
     await db.query("update public.auctions set ends_at=clock_timestamp()-interval '1 second' where id=$1", [auctionId]);
     await asUser(charlie, () => db.query("select public.list_auctions()"));
@@ -414,10 +419,12 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
   });
 
   await t.test("amis : recherche, demande, droits de réponse, acceptation et refus", async () => {
+    await db.query("update public.user_profiles set avatar_url=$1 where user_id=$2", ["https://cdn.example/alice.png", alice]);
     const shortSearch = (await asUser(bob, () => db.query("select public.search_users('A') as value"))).rows[0].value;
     assert.deepEqual(shortSearch, []);
     const search = (await asUser(bob, () => db.query("select public.search_users('ali') as value"))).rows[0].value;
     assert.deepEqual(search.map(({pseudo,status})=>({pseudo,status})), [{pseudo:"Alice",status:"none"}]);
+    assert.equal(search[0].avatarUrl, "https://cdn.example/alice.png");
 
     const requestId = (await asUser(bob, () => db.query("select public.send_friend_request($1) as id", [alice]))).rows[0].id;
     const friendNotification = (await asUser(alice, () => db.query("select public.list_notifications() as value"))).rows[0].value.find(item => item.type === "friend_request");
@@ -430,6 +437,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
 
     assert.equal((await asUser(alice, () => db.query("select public.respond_friend_request($1,true) as value", [requestId]))).rows[0].value, true);
     assert.equal((await asUser(alice, () => db.query("select public.get_friendships() as value"))).rows[0].value.friends[0].pseudo, "Bob");
+    assert.equal((await asUser(bob, () => db.query("select public.get_friendships() as value"))).rows[0].value.friends[0].avatarUrl, "https://cdn.example/alice.png");
     assert.equal((await asUser(bob, () => db.query("select public.get_public_profile($1) as value", [alice]))).rows[0].value.friendshipStatus, "accepted");
     const friendCardId = (await db.query("select id from public.cards where source_id='C'")).rows[0].id;
     await db.query("insert into public.user_cards(user_id,card_id,rarity,custom_image_url) values($1,$2,'C','https://i.imgur.com/private.png')",[alice,friendCardId]);
@@ -461,6 +469,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     const tradeNotification=(await asUser(bob,()=>db.query("select public.list_notifications() as value"))).rows[0].value.find(item=>item.type==="trade_offer_received"&&item.referenceId===offerId);
     assert.equal(tradeNotification.actorPseudo,"Alice");
     const inbox=(await asUser(bob,()=>db.query("select public.list_trade_offers() as value"))).rows[0].value;
+    assert.equal(inbox[0].fromAvatarUrl,"https://cdn.example/alice.png");
     assert.equal(inbox[0].offeredCards[0].instanceId,aliceCard);
     assert.equal(inbox[0].offeredCards[0].anime,"Franchise");
     await assert.rejects(asUser(alice,()=>db.query("select public.respond_trade_offer($1,'accept')",[offerId])),/TRADE_NOT_PENDING/);
