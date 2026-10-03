@@ -43,7 +43,7 @@ function CardRow({ card }: { card: Card }) {
         <input name="id" type="hidden" value={card.id}/>
         <label className="grid gap-1 text-xs text-slate-300">Nom<input className="rounded-lg border border-white/15 bg-slate-950 p-2 text-white" defaultValue={card.nom} name="nom" required/></label>
         <label className="grid gap-1 text-xs text-slate-300">Saga<input className="rounded-lg border border-white/15 bg-slate-950 p-2 text-white" defaultValue={card.categorie} name="categorie" required/></label>
-        <label className="grid gap-1 text-xs text-slate-300">Licence<input className="rounded-lg border border-white/15 bg-slate-950 p-2 text-white" defaultValue={card.franchise} name="franchise" required/></label>
+        <label className="grid gap-1 text-xs text-slate-300">Licence (facultatif)<input className="rounded-lg border border-white/15 bg-slate-950 p-2 text-white" defaultValue={card.franchise} name="franchise"/></label>
         <label className="grid gap-1 text-xs text-slate-300">Rareté<select className="rounded-lg border border-white/15 bg-slate-950 p-2 text-white" defaultValue={card.rarete_base} name="rarete_base">{["C", "R", "SR", "SSR", "LR"].map((rarity) => <option key={rarity}>{rarity}</option>)}</select></label>
         <label className="grid gap-1 text-xs text-slate-300 xl:col-span-2">Nouvelle URL d’image (facultatif)<input className="rounded-lg border border-white/15 bg-slate-950 p-2 text-white" name="image_url" placeholder="Conserver l’image actuelle" type="url"/></label>
         <label className="grid gap-1 text-xs text-slate-300 xl:col-span-2">ou nouveau fichier (facultatif)<input accept="image/jpeg,image/png,image/webp,image/gif" className="rounded-lg border border-white/15 bg-slate-950 p-2 text-white" name="image_file" type="file"/></label>
@@ -72,7 +72,7 @@ export function AdminCardManager({ cards, searchQuery = "" }: { cards: Card[]; s
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="grid gap-1 text-sm">Nom<input className="rounded-lg bg-slate-950 p-3" name="nom" required/></label>
             <label className="grid gap-1 text-sm">Catégorie<input className="rounded-lg bg-slate-950 p-3" name="categorie" required/></label>
-            <label className="grid gap-1 text-sm">Licence<input className="rounded-lg bg-slate-950 p-3" name="franchise" required/></label>
+            <label className="grid gap-1 text-sm">Licence (facultatif)<input className="rounded-lg bg-slate-950 p-3" name="franchise"/></label>
             <label className="grid gap-1 text-sm">Rareté<select className="rounded-lg bg-slate-950 p-3" defaultValue="C" name="rarete_base">{["C", "R", "SR", "SSR", "LR"].map((rarity) => <option key={rarity}>{rarity}</option>)}</select></label>
           </div>
           <label className="grid gap-1 text-sm">URL HTTPS de l’image<input className="rounded-lg bg-slate-950 p-3" name="image_url" type="url"/></label>

@@ -67,6 +67,29 @@ test("une carte existante accepte une nouvelle image par URL ou fichier", async 
   assert.match(ui, />Saga</);
 });
 
+test("la licence est facultative lors de l’ajout et de la modification d’une carte", async () => {
+  const actions = await read("app/admin/cards/actions.ts");
+  const ui = await read("app/admin/cards/admin-card-manager.tsx");
+  assert.doesNotMatch(ui, /name="franchise" required/);
+  assert.equal(ui.match(/Licence \(facultatif\)/g)?.length, 2);
+  assert.match(actions, /if \(!patch\.nom \|\| !patch\.categorie\)/);
+  assert.doesNotMatch(actions, /!patch\.franchise/);
+});
+
+test("la resynchronisation admin peut cibler les catégories existantes", async () => {
+  const migration = await read("supabase/migrations/20261003000004_admin_card_categories_select.sql");
+  assert.match(migration, /grant select on table public\.card_categories to authenticated/i);
+  const adminMigration = await read("supabase/migrations/20261003000000_admin_card_management.sql");
+  assert.match(adminMigration, /card_categories_admin_all[\s\S]+is_current_user_admin/i);
+});
+
+test("un remplacement d’image admin peut relire l’objet nécessaire à l’upsert", async () => {
+  const migration = await read("supabase/migrations/20261003000005_admin_card_images_select.sql");
+  assert.match(migration, /create policy card_images_admin_select/i);
+  assert.match(migration, /on storage\.objects for select to authenticated/i);
+  assert.match(migration, /bucket_id = 'card-images'[\s\S]+is_current_user_admin/i);
+});
+
 test("un admin peut rechercher une carte par son nom dans tout le catalogue", async () => {
   const page = await read("app/admin/cards/page.tsx");
   assert.match(page, /searchParams:\s*Promise<\{ q\?: string \}>/);

@@ -197,7 +197,7 @@ export async function updateCardAction(
       franchise: value(form, "franchise"),
       rarete_base: value(form, "rarete_base"),
     };
-    if (!patch.nom || !patch.categorie || !patch.franchise) throw new Error("Tous les champs sont requis.");
+    if (!patch.nom || !patch.categorie) throw new Error("Le nom et la catégorie sont requis.");
     if (!["C", "R", "SR", "SSR", "LR"].includes(patch.rarete_base)) throw new Error("Rareté invalide.");
     const client = createClient(await cookies());
     const { data: current, error: readError } = await client.from("cards")
