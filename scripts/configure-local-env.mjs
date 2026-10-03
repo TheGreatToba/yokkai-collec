@@ -24,7 +24,7 @@ if (api.hostname !== "127.0.0.1" && api.hostname !== "localhost") {
 const contents = [
   `NEXT_PUBLIC_SUPABASE_URL=${values.API_URL}`,
   `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${values.PUBLISHABLE_KEY}`,
-  "NEXT_PUBLIC_SITE_URL=http://localhost:3000",
+  "NEXT_PUBLIC_SITE_URL=http://127.0.0.1:3000",
   `SUPABASE_SECRET_KEY=${values.SECRET_KEY}`,
   "MAINTENANCE_MODE=false",
   "",
