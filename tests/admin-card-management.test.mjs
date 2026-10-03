@@ -25,12 +25,14 @@ test("chaque mutation de carte réautorise l'admin côté serveur et journalise 
   assert.match(actions, /admin_audit_logs/g);
 });
 
-test("la clé service-role reste dans un module server-only", async () => {
-  const adminClient = await read("utils/supabase/admin.ts");
-  assert.match(adminClient, /^import "server-only";/);
-  assert.match(adminClient, /SUPABASE_(?:SECRET_KEY|SERVICE_ROLE_KEY)/);
+test("l'application admin utilise la session authentifiée sans clé service-role", async () => {
+  const actions = await read("app/admin/cards/actions.ts");
+  const page = await read("app/admin/cards/page.tsx");
   const ui = await read("app/admin/cards/admin-card-manager.tsx");
-  assert.doesNotMatch(ui, /SERVICE_ROLE|SECRET_KEY/);
+  assert.doesNotMatch(actions + page + ui, /SERVICE_ROLE|SECRET_KEY|createAdminClient/);
+  const migration = await read("supabase/migrations/20261003000000_admin_card_management.sql");
+  assert.match(migration, /cards_admin_update/);
+  assert.match(migration, /card_images_admin_insert/);
 });
 
 test("un CSV admin sans source_id bascule en source manuelle pour obtenir un identifiant stable", async () => {

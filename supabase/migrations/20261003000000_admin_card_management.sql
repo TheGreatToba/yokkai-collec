@@ -39,4 +39,57 @@ $$;
 revoke all on function public.is_current_user_admin() from public, anon;
 grant execute on function public.is_current_user_admin() to authenticated;
 
+-- Admin catalogue writes use the authenticated session and remain protected by
+-- RLS. The web application never receives the service-role key.
+grant insert, update, delete on table public.cards, public.card_categories to authenticated;
+create policy cards_admin_insert on public.cards for insert to authenticated
+  with check ((select public.is_current_user_admin()));
+create policy cards_admin_update on public.cards for update to authenticated
+  using ((select public.is_current_user_admin()))
+  with check ((select public.is_current_user_admin()));
+create policy cards_admin_delete on public.cards for delete to authenticated
+  using ((select public.is_current_user_admin()));
+create policy card_categories_admin_all on public.card_categories for all to authenticated
+  using ((select public.is_current_user_admin()))
+  with check ((select public.is_current_user_admin()));
+
+grant insert on table public.admin_audit_logs to authenticated;
+grant usage, select on sequence public.admin_audit_logs_id_seq to authenticated;
+create policy admin_audit_logs_insert_self on public.admin_audit_logs for insert to authenticated
+  with check (
+    admin_user_id = (select auth.uid())
+    and (select public.is_current_user_admin())
+  );
+
+insert into storage.buckets (id,name,public,file_size_limit,allowed_mime_types)
+values ('card-images','card-images',true,6291456,array['image/jpeg','image/png','image/webp','image/gif'])
+on conflict (id) do update set public=true,file_size_limit=excluded.file_size_limit,
+  allowed_mime_types=excluded.allowed_mime_types;
+
+create policy card_images_admin_insert on storage.objects for insert to authenticated
+  with check (bucket_id='card-images' and (select public.is_current_user_admin()));
+create policy card_images_admin_update on storage.objects for update to authenticated
+  using (bucket_id='card-images' and (select public.is_current_user_admin()))
+  with check (bucket_id='card-images' and (select public.is_current_user_admin()));
+
+create or replace function public.admin_card_reference_counts(p_card_id uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if not public.is_current_user_admin() then
+    raise exception 'ADMIN_REQUIRED' using errcode='P0001';
+  end if;
+  return jsonb_build_object(
+    'owned', (select count(*) from public.user_cards where card_id=p_card_id),
+    'choices', (select count(*) from public.decision_pack_choices where card_id=p_card_id)
+  );
+end;
+$$;
+revoke all on function public.admin_card_reference_counts(uuid) from public, anon;
+grant execute on function public.admin_card_reference_counts(uuid) to authenticated;
+
 commit;

@@ -1,8 +1,9 @@
 import { AccountMenu } from "@/components/account-menu";
 import { Topbar } from "@/components/topbar";
+import { cookies } from "next/headers";
 import { requireAdminPage } from "@/lib/auth/admin";
 import { getCurrentPseudo } from "@/lib/auth/session";
-import { createAdminClient } from "@/utils/supabase/admin";
+import { createClient } from "@/utils/supabase/server";
 import { AdminCardManager } from "./admin-card-manager";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +15,7 @@ export default async function AdminCardsPage({
 }) {
   const admin = await requireAdminPage();
   const name = await getCurrentPseudo(admin.id);
-  const client = createAdminClient();
+  const client = createClient(await cookies());
   const { q } = await searchParams;
   const searchQuery = q?.trim().slice(0, 100) ?? "";
   let cardsQuery = client.from("cards")

@@ -2,13 +2,13 @@
 
 import { parse } from "csv-parse/sync";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { requireAdminAction } from "@/lib/auth/admin";
-import { createAdminClient } from "@/utils/supabase/admin";
+import { createClient } from "@/utils/supabase/server";
 import {
   downloadImage,
   imagePath,
   importCards,
-  prepareStorage,
   validateCard,
   validateImageBytes,
 } from "@/scripts/import-cards.mjs";
@@ -63,7 +63,9 @@ async function imageForCard(form: FormData, card: ReturnType<typeof validateCard
   return downloadImage(card.image_url);
 }
 
-async function syncCategory(client: ReturnType<typeof createAdminClient>, cardId: string, category: string) {
+type AuthenticatedClient = ReturnType<typeof createClient>;
+
+async function syncCategory(client: AuthenticatedClient, cardId: string, category: string) {
   const { error: deleteError } = await client.from("card_categories").delete().eq("card_id", cardId);
   if (deleteError) throw deleteError;
   const { error: insertError } = await client.from("card_categories").insert({
@@ -79,9 +81,8 @@ export async function createCardAction(
 ): Promise<AdminActionState> {
   try {
     const admin = await requireAdminAction();
-    const client = createAdminClient();
+    const client = createClient(await cookies());
     const card = cardInput(form);
-    await prepareStorage(client, "card-images");
     const image = await imageForCard(form, card);
     const path = imagePath(card);
     const { error: uploadError } = await client.storage.from("card-images").upload(path, image.bytes, {
@@ -146,8 +147,7 @@ export async function importCardsAction(
         source: sourceId ? (row.source || "manual") : "manual",
       };
     });
-    const client = createAdminClient();
-    await prepareStorage(client, "card-images");
+    const client = createClient(await cookies());
     const failures: string[] = [];
     const stats = await importCards({
       rows,
@@ -199,7 +199,7 @@ export async function updateCardAction(
     };
     if (!patch.nom || !patch.categorie || !patch.franchise) throw new Error("Tous les champs sont requis.");
     if (!["C", "R", "SR", "SSR", "LR"].includes(patch.rarete_base)) throw new Error("Rareté invalide.");
-    const client = createAdminClient();
+    const client = createClient(await cookies());
     const { data: current, error: readError } = await client.from("cards")
       .select("id,source,source_id,image_url")
       .eq("id", id)
@@ -249,15 +249,17 @@ export async function deleteCardAction(
     const admin = await requireAdminAction();
     const id = value(form, "id");
     if (!/^[0-9a-f-]{36}$/i.test(id)) throw new Error("Identifiant de carte invalide.");
-    const client = createAdminClient();
+    const client = createClient(await cookies());
     const { data: card, error: readError } = await client.from("cards").select("*").eq("id", id).single();
     if (readError) throw readError;
-    const [{ count: owned }, { count: choices }] = await Promise.all([
-      client.from("user_cards").select("id", { count: "exact", head: true }).eq("card_id", id),
-      client.from("decision_pack_choices").select("id", { count: "exact", head: true }).eq("card_id", id),
-    ]);
-    if ((owned ?? 0) + (choices ?? 0) > 0) {
-      throw new Error(`Suppression refusée : ${(owned ?? 0)} copie(s) possédée(s), ${(choices ?? 0)} choix actif(s).`);
+    const { data: references, error: referenceError } = await client.rpc("admin_card_reference_counts", {
+      p_card_id: id,
+    });
+    if (referenceError) throw referenceError;
+    const owned = Number(references?.owned ?? 0);
+    const choices = Number(references?.choices ?? 0);
+    if (owned + choices > 0) {
+      throw new Error(`Suppression refusée : ${owned} copie(s) possédée(s), ${choices} choix actif(s).`);
     }
     const { error: deleteError } = await client.from("cards").delete().eq("id", id);
     if (deleteError) throw deleteError;
