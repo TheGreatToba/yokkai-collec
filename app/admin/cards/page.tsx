@@ -46,7 +46,7 @@ export default async function AdminCardsPage({
           <form className="mt-4 flex flex-col gap-3 sm:flex-row" method="get">
             <input aria-label="Nom de la carte" className="min-w-0 flex-1 rounded-xl border border-white/15 bg-slate-950 px-4 py-3 text-white" defaultValue={searchQuery} maxLength={100} name="q" placeholder="Exemple : Luffy"/>
             <label className="sr-only" htmlFor="admin-card-category">Catégorie</label>
-            <select id="admin-card-category" aria-label="Catégorie" className="rounded-xl border border-white/15 bg-slate-950 px-4 py-3 text-white" defaultValue={selectedCategory} name="category">
+            <select id="admin-card-category" aria-label="Catégorie" className="w-full min-w-0 rounded-xl border border-white/15 bg-slate-950 px-4 py-3 text-white sm:w-64 sm:flex-none" defaultValue={selectedCategory} name="category">
               <option value="">Toutes les catégories</option>
               {categories.map((item) => <option key={item} value={item}>{item}</option>)}
             </select>
