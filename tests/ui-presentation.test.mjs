@@ -311,6 +311,16 @@ test("les boosters annoncent les gains autoritaires avant confirmation", () => {
   assert.ok(existsSync(path.join(root,"app/design-system/booster-karas-preview/page.tsx")));
 });
 
+test("une carte révélée peut être mise directement sur le marché", () => {
+  const boosters = readFileSync(path.join(root, "components/boosters.tsx"), "utf8");
+  const game = readFileSync(path.join(root, "components/game.tsx"), "utf8");
+  assert.match(boosters, /Mettre cette carte sur le marché/);
+  assert.match(boosters, /onAuction\(auctionCandidate\.instanceId,price,Number\(auctionDuration\)\)/);
+  assert.match(boosters, /auctioned\.has\(card\.instanceId\)\?<StatusPill tone="info">EN VENTE/);
+  assert.match(boosters, /visibleCards\.filter\(card=>!auctioned\.has\(card\.instanceId\)\)/);
+  assert.match(game, /onAuction=\{auctionCard\}/);
+});
+
 test("la modale de détail groupe dossier sous la carte et destruction explicite en bas", () => {
   const source = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
   const modal = source.slice(source.indexOf('title="Détail de la carte"'), source.indexOf('title="Détruire des exemplaires ?"'));
