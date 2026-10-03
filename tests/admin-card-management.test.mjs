@@ -67,6 +67,16 @@ test("une carte existante accepte une nouvelle image par URL ou fichier", async 
   assert.match(ui, />Saga</);
 });
 
+test("le remplacement d'une image admin utilise une nouvelle URL pour contourner les caches", async () => {
+  const actions = await read("app/admin/cards/actions.ts");
+  const updateStart = actions.indexOf("function updateCardAction");
+  const deleteStart = actions.indexOf("function deleteCardAction");
+  const update = actions.slice(updateStart, deleteStart);
+  assert.match(actions, /import \{ randomUUID \} from "node:crypto"/);
+  assert.match(update, /`\$\{imagePath\(imageCard\)\}-\$\{randomUUID\(\)\}`/);
+  assert.match(update, /patch\.image_url = client\.storage\.from\("card-images"\)\.getPublicUrl\(path\)\.data\.publicUrl/);
+});
+
 test("la licence est facultative lors de l’ajout et de la modification d’une carte", async () => {
   const actions = await read("app/admin/cards/actions.ts");
   const ui = await read("app/admin/cards/admin-card-manager.tsx");
