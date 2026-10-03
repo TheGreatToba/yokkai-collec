@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { CollectedCard } from "@/lib/data/cards";
 import { Avatar, Karas, Modal } from "@/components/ui";
 import "@/styles/topbar.css";
@@ -9,6 +9,8 @@ import { markNotificationRead, type AppNotification } from "@/lib/data/notificat
 import { useSfx } from "@/hooks/use-sfx";
 import { useNotificationFeed } from "@/hooks/use-notification-feed";
 import { useIsAdmin } from "@/hooks/use-is-admin";
+import { getProfile } from "@/lib/data/profile";
+import { subscribePlayerSnapshotInvalidation } from "@/lib/data/player-state";
 
 export type NotificationItem = { id: string; title: string; text: string; time: string; read: boolean; href?: string; kind: "wishlist" | "outbid" | "trade" | "pack" | "won" | "sold" | "friend" | "mission" };
 const notificationStyle = {
@@ -34,11 +36,13 @@ export function Topbar({ view, account, name, karas, notifications, notification
   const isAdmin = useIsAdmin();
   const [panel, setPanel] = useState<"notifications" | "account" | null>(null);
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [avatarUrl,setAvatarUrl]=useState<string>();
   const feed=useNotificationFeed(!notifications);
   const loaded=feed.notifications?.map(notificationItem);
   const shown=notifications??loaded;
   const visibleNotificationError=externalNotificationError??feed.error;
   const unread = shown?.filter(n => !n.read).length;
+  useEffect(()=>subscribePlayerSnapshotInvalidation(scopes=>{if(scopes.includes("profile"))void getProfile().then(profile=>setAvatarUrl(profile.avatarUrl??undefined),()=>undefined);}),[]);
   async function readAll(){if(onReadAll)await onReadAll();else{await markNotificationRead();feed.setNotifications(current=>current?.map(n=>({...n,readAt:n.readAt??new Date().toISOString()})));}}
   function toggleNotifications(){if(panel==="notifications"){setPanel(null);return;}setPanel("notifications");if(notifications)onRefreshNotifications?.();else void feed.refresh();}
   return <>
@@ -72,10 +76,10 @@ export function Topbar({ view, account, name, karas, notifications, notification
           </section></>}
         </div>
         <span className="yk-balance" title={karas == null ? "Chargement du solde" : "Mon solde"}>{karas == null ? <span role="status" aria-label="Chargement du solde Karas" className="yk-balance-skeleton" /> : <Karas amount={karas} />}</span>
-        <Link href="/profil" aria-label="Mon profil" className="rounded-full"><Avatar name={name || "Compte"} /></Link>
+        <Link href="/profil" aria-label="Mon profil" className="rounded-full"><Avatar name={name || "Compte"} image={avatarUrl} /></Link>
         <button type="button" aria-label="Options du compte" aria-haspopup="dialog" className="px-1 py-3 text-xs text-ink-3" onClick={() => setPanel("account")}>⌄</button>
       </div>
     </header>
-    <Modal open={panel === "account"} onClose={() => setPanel(null)} title="Mon compte"><div className="flex items-center gap-4"><Avatar name={name || "Compte"} size={64} /><div>{account || <p className="text-ink-2">Connectez-vous pour retrouver votre compte.</p>}</div></div></Modal>
+    <Modal open={panel === "account"} onClose={() => setPanel(null)} title="Mon compte"><div className="flex items-center gap-4"><Avatar name={name || "Compte"} image={avatarUrl} size={64} /><div>{account || <p className="text-ink-2">Connectez-vous pour retrouver votre compte.</p>}</div></div></Modal>
   </>;
 }
