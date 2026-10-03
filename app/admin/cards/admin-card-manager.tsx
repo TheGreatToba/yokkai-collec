@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
+import { Button, Modal } from "@/components/ui";
 import {
   createCardAction,
   deleteCardAction,
@@ -37,6 +38,7 @@ function SubmitButton({ children }: { children: React.ReactNode }) {
 function CardRow({ card }: { card: Card }) {
   const [updateState, updateAction, updating] = useActionState(updateCardAction, initialState);
   const [deleteState, deleteAction, deleting] = useActionState(deleteCardAction, initialState);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
   return (
     <article className="rounded-2xl border border-white/10 bg-slate-900/70 p-4">
       <form action={updateAction} className="grid gap-3 md:grid-cols-2 xl:grid-cols-6 xl:items-end">
@@ -51,12 +53,19 @@ function CardRow({ card }: { card: Card }) {
       </form>
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
         <a className="max-w-xl truncate text-xs text-cyan-300 underline" href={card.image_url} rel="noreferrer" target="_blank">{card.image_url}</a>
-        <form action={deleteAction}>
-          <input name="id" type="hidden" value={card.id}/>
-          <button className="rounded-lg border border-red-400/40 px-3 py-2 text-sm text-red-200 disabled:opacity-50" disabled={deleting}>{deleting ? "…" : "Supprimer"}</button>
-        </form>
+        <button className="rounded-lg border border-red-400/40 px-3 py-2 text-sm text-red-200 disabled:opacity-50" disabled={deleting} type="button" onClick={()=>setDeleteConfirm(true)}>Supprimer</button>
       </div>
-      <Feedback state={updateState.message ? updateState : deleteState}/>
+      <Feedback state={updateState}/>
+      <Modal open={deleteConfirm} onClose={()=>{if(!deleting)setDeleteConfirm(false);}} title="Supprimer cette carte ?">
+        <p className="text-sm leading-6 text-ink-2">Tu es sur le point de supprimer définitivement <strong className="text-ink">{card.nom}</strong> du catalogue.</p>
+        <p className="mt-3 text-sm text-danger-ink">Cette action est irréversible.</p>
+        <Feedback state={deleteState}/>
+        <form action={deleteAction} className="mt-6 flex justify-end gap-3">
+          <input name="id" type="hidden" value={card.id}/>
+          <Button variant="secondary" disabled={deleting} onClick={()=>setDeleteConfirm(false)}>Annuler</Button>
+          <Button variant="danger" disabled={deleting} type="submit">{deleting ? "Suppression…" : "Confirmer la suppression"}</Button>
+        </form>
+      </Modal>
     </article>
   );
 }
