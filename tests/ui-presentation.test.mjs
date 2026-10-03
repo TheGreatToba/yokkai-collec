@@ -177,18 +177,24 @@ test("le profil invalide l’avatar partagé et la Topbar le recharge", () => {
   assert.match(topbar, /image=\{avatarUrl\}/);
 });
 
-test("l’avatar ouvre un panneau de compte aligné sur celui des notifications", () => {
+test("l’avatar ouvre un menu profil compact avec résumé et actions", () => {
   const topbar = readFileSync(path.join(root, "components/topbar.tsx"), "utf8");
   const account = readFileSync(path.join(root, "components/account-menu.tsx"), "utf8");
   const css = readFileSync(path.join(root, "styles/topbar.css"), "utf8");
   assert.match(topbar, /aria-label="Ouvrir mon compte"/);
   assert.match(topbar, /panel==="account"/);
-  assert.match(topbar, /className="yk-notifications yk-account-panel"/);
+  assert.match(topbar, /className="yk-account-panel"/);
   assert.match(topbar, />Voir mon profil<\/Link>/);
-  assert.doesNotMatch(topbar, /Menu du compte/);
+  assert.match(topbar, />Paramètres<\/Link>/);
+  assert.match(topbar, />Mes succès<\/Link>/);
+  assert.match(topbar, /toLocaleString\("fr-FR"\).*Karas/);
+  assert.doesNotMatch(topbar, /Gère ton profil et ta session/);
+  assert.doesNotMatch(topbar, />Fermer<\/button>/);
   assert.doesNotMatch(topbar, /<Modal open=\{panel === "account"\}/);
-  assert.match(account, /user\.user_metadata\?\.pseudo/);
-  assert.match(css, /\.yk-account-panel-body/);
+  assert.match(account, /<SignOutButton \/>/);
+  assert.match(css, /width: min\(280px/);
+  assert.match(css, /background: #0f0c1d/);
+  assert.match(css, /box-shadow: 0 12px 32px -4px rgba\(4,0,11,\.95\)/);
 });
 
 test("la destruction groupée demande une confirmation chiffrée", () => {
