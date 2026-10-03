@@ -193,3 +193,85 @@ test("la migration NBA range les cartes dans SPORT avec la licence NBA", async (
   ]);
   await db.close();
 });
+
+test("les catégories existantes et futures sont normalisées en majuscules", async () => {
+  const migration = await read("supabase/migrations/20261004000001_uppercase_card_categories.sql");
+  const db = new PGlite();
+  await db.exec(`
+    create schema if not exists public;
+    create table public.cards (id uuid primary key, categorie text not null, franchise text);
+    create table public.card_categories (
+      card_id uuid not null references public.cards(id) on delete cascade,
+      categorie text not null,
+      primary key (card_id, categorie)
+    );
+    insert into public.cards (id, categorie) values
+      ('00000000-0000-0000-0000-000000000001', 'Anime/Manga'),
+      ('00000000-0000-0000-0000-000000000002', ' sport ');
+    insert into public.card_categories (card_id, categorie) values
+      ('00000000-0000-0000-0000-000000000001', 'Anime/Manga'),
+      ('00000000-0000-0000-0000-000000000001', 'ANIME/MANGA'),
+      ('00000000-0000-0000-0000-000000000002', ' sport ');
+  `);
+  await db.exec(migration);
+
+  assert.deepEqual((await db.query("select categorie from public.cards order by id")).rows, [
+    { categorie: "ANIME/MANGA" },
+    { categorie: "SPORT" },
+  ]);
+  assert.deepEqual((await db.query("select card_id, categorie from public.card_categories order by card_id")).rows, [
+    { card_id: "00000000-0000-0000-0000-000000000001", categorie: "ANIME/MANGA" },
+    { card_id: "00000000-0000-0000-0000-000000000002", categorie: "SPORT" },
+  ]);
+
+  await db.exec(`
+    insert into public.cards (id, categorie) values
+      ('00000000-0000-0000-0000-000000000003', ' nouvelle catégorie ');
+    insert into public.card_categories (card_id, categorie) values
+      ('00000000-0000-0000-0000-000000000003', ' nouvelle catégorie ');
+  `);
+  assert.deepEqual((await db.query("select categorie from public.cards where id='00000000-0000-0000-0000-000000000003'")).rows, [
+    { categorie: "NOUVELLE CATÉGORIE" },
+  ]);
+  assert.deepEqual((await db.query("select categorie from public.card_categories where card_id='00000000-0000-0000-0000-000000000003'")).rows, [
+    { categorie: "NOUVELLE CATÉGORIE" },
+  ]);
+  await db.close();
+});
+
+test("la catégorie ARTISTE est renommée ARTIST et reste normalisée à l'import", async () => {
+  const uppercaseMigration = await read("supabase/migrations/20261004000001_uppercase_card_categories.sql");
+  const artistMigration = await read("supabase/migrations/20261004000002_rename_artiste_category.sql");
+  const db = new PGlite();
+  await db.exec(`
+    create schema if not exists public;
+    create table public.cards (id uuid primary key, categorie text not null, franchise text);
+    create table public.card_categories (
+      card_id uuid not null references public.cards(id) on delete cascade,
+      categorie text not null,
+      primary key (card_id, categorie)
+    );
+    insert into public.cards (id, categorie) values
+      ('00000000-0000-0000-0000-000000000001', 'Artiste');
+    insert into public.card_categories (card_id, categorie) values
+      ('00000000-0000-0000-0000-000000000001', 'Artiste');
+  `);
+  await db.exec(uppercaseMigration);
+  await db.exec(artistMigration);
+
+  assert.deepEqual((await db.query("select categorie from public.cards order by id")).rows, [
+    { categorie: "ARTIST" },
+  ]);
+  assert.deepEqual((await db.query("select categorie from public.card_categories order by card_id")).rows, [
+    { categorie: "ARTIST" },
+  ]);
+
+  await db.exec(`
+    insert into public.cards (id, categorie) values
+      ('00000000-0000-0000-0000-000000000002', ' artiste ');
+  `);
+  assert.deepEqual((await db.query("select categorie from public.cards where id='00000000-0000-0000-0000-000000000002'")).rows, [
+    { categorie: "ARTIST" },
+  ]);
+  await db.close();
+});
