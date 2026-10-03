@@ -43,11 +43,12 @@ test("un CSV admin sans source_id bascule en source manuelle pour obtenir un ide
   assert.match(actions, /row\.image_url \?\? row\.image \?\? row\.image_source/);
 });
 
-test("le menu Admin suit Succès et dépend du rôle admin", async () => {
+test("le menu Admin dépend du rôle et Succès reste dans le menu profil", async () => {
   const topbar = await read("components/topbar.tsx");
   const adminLink = topbar.indexOf('href="/admin/cards"');
   const achievementsLink = topbar.indexOf('href="/succes"');
-  assert.ok(achievementsLink > 0 && achievementsLink < adminLink);
+  assert.ok(adminLink > 0 && achievementsLink > adminLink);
+  assert.equal((topbar.match(/href="\/succes"/g) ?? []).length, 1);
   assert.match(topbar.slice(adminLink - 100, adminLink), /isAdmin/);
   const hook = await read("hooks/use-is-admin.ts");
   assert.match(hook, /rpc\("is_current_user_admin"\)/);

@@ -57,7 +57,6 @@ export function Topbar({ view, account, name, karas, notifications, notification
         <Link href="/echanges" aria-current={view === "trades" ? "page" : undefined}>Échanges</Link>
         <Link href="/amis" aria-current={view === "friends" ? "page" : undefined}>Amis</Link>
         <Link href="/wishlist" aria-current={view === "wishlist" ? "page" : undefined}>Wishlist</Link>
-        <Link href="/succes" aria-current={view === "achievements" ? "page" : undefined}>Succès</Link>
         {isAdmin && <Link href="/admin/cards" aria-current={view === "admin" ? "page" : undefined}>Admin</Link>}
       </nav>
       <div className="yk-topbar-actions">

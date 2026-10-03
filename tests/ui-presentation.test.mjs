@@ -187,6 +187,7 @@ test("l’avatar ouvre un menu profil compact avec résumé et actions", () => {
   assert.match(topbar, />Voir mon profil<\/Link>/);
   assert.match(topbar, />Paramètres<\/Link>/);
   assert.match(topbar, />Mes succès<\/Link>/);
+  assert.doesNotMatch(topbar, /aria-current=\{view === "achievements"/);
   assert.match(topbar, /toLocaleString\("fr-FR"\).*Karas/);
   assert.match(topbar, /className="yk-account-karas"/);
   assert.doesNotMatch(topbar, /yk-mobile-account/);
