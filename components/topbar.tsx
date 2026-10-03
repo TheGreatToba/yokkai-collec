@@ -8,6 +8,7 @@ import "@/styles/topbar.css";
 import { markNotificationRead, type AppNotification } from "@/lib/data/notifications";
 import { useSfx } from "@/hooks/use-sfx";
 import { useNotificationFeed } from "@/hooks/use-notification-feed";
+import { useIsAdmin } from "@/hooks/use-is-admin";
 
 export type NotificationItem = { id: string; title: string; text: string; time: string; read: boolean; href?: string; kind: "wishlist" | "outbid" | "trade" | "pack" | "won" | "sold" | "friend" | "mission" };
 const notificationStyle = {
@@ -26,10 +27,11 @@ export function notificationItem(notification:AppNotification):NotificationItem 
   return {...common,title:"Carte en wishlist aux enchères",text:`${notification.cardName??"Une carte"} de ta wishlist vient d’être mise aux enchères — clique pour voir.`,href:`/marche/${notification.referenceId}`,kind:"wishlist"};
 }
 export function Topbar({ view, account, name, karas, notifications, notificationError: externalNotificationError, onRetryNotifications, onRefreshNotifications, onReadAll, onOpenNotification }: {
-  view: "packs" | "collection" | "profile" | "friends" | "market" | "auction" | "trades" | "search" | "wishlist" | "achievements"; account?: ReactNode; name?: string; collection?: CollectedCard[];
+  view: "packs" | "collection" | "profile" | "friends" | "market" | "auction" | "trades" | "search" | "wishlist" | "admin" | "achievements"; account?: ReactNode; name?: string; collection?: CollectedCard[];
   karas?: number; notifications?: NotificationItem[]; notificationError?: string; onRetryNotifications?: () => void; onRefreshNotifications?: () => void; onReadAll?: () => void; onOpenNotification?: (id:string,href:string)=>Promise<void>;
 }) {
   const sound = useSfx();
+  const isAdmin = useIsAdmin();
   const [panel, setPanel] = useState<"notifications" | "account" | null>(null);
   const [mobileMenu, setMobileMenu] = useState(false);
   const feed=useNotificationFeed(!notifications);
@@ -52,6 +54,7 @@ export function Topbar({ view, account, name, karas, notifications, notification
         <Link href="/amis" aria-current={view === "friends" ? "page" : undefined}>Amis</Link>
         <Link href="/wishlist" aria-current={view === "wishlist" ? "page" : undefined}>Wishlist</Link>
         <Link href="/succes" aria-current={view === "achievements" ? "page" : undefined}>Succès</Link>
+        {isAdmin && <Link href="/admin/cards" aria-current={view === "admin" ? "page" : undefined}>Admin</Link>}
         <Link href="/profil" className="yk-mobile-account" aria-current={view === "profile" ? "page" : undefined}>Mon compte</Link>
       </nav>
       <div className="yk-topbar-actions">
