@@ -107,10 +107,13 @@ test("la collection d'un autre joueur ne propose pas de sélection ou d'édition
 
 test("le compteur de cartes d'un ami ouvre sa collection complète en lecture seule", () => {
   const profile = readFileSync(path.join(root, "components/profile.tsx"), "utf8");
+  const communityCss = readFileSync(path.join(root, "styles/community.css"), "utf8");
   assert.match(profile, /profile\.friendshipStatus==="accepted"\?<button/);
   assert.match(profile, /getFriendCollection\(friendId\)/);
   assert.match(profile, /<CollectionView cards=\{friendCards\} categories=\{categories\} readOnly\/>/);
   assert.match(profile, /Voir la collection/);
+  assert.match(profile, /className="yk-friend-collection-modal"/);
+  assert.match(communityCss, /\.yk-modal\.yk-friend-collection-modal \{ width: min\(1400px,calc\(100% - 32px\)\); \}/);
 });
 
 test("le catalogue reprend la sidebar sans notion de possession ni action de masse", () => {
