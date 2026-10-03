@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
-import {usePathname} from "next/navigation";
+import {usePathname,useSearchParams} from "next/navigation";
 import {useEffect,useMemo,useState} from "react";
 import {Avatar,Button,Modal,Toast} from "@/components/ui";
 import {YokaiCard} from "@/components/yokai-card";
@@ -28,7 +28,8 @@ function Editor({profile,collection,onSaved,onClose}:{profile:Profile;collection
 }
 
 export function ProfileExperience({identifier,collection,joined}:{identifier?:string;collection?:CollectedCard[];joined?:string}) {
-  const [profile,setProfile]=useState<Profile>();const [wishlist,setWishlist]=useState<WishlistCard[]>([]);const [error,setError]=useState("");const [editing,setEditing]=useState(false);const [toast,setToast]=useState("");
+  const searchParams=useSearchParams();
+  const [profile,setProfile]=useState<Profile>();const [wishlist,setWishlist]=useState<WishlistCard[]>([]);const [error,setError]=useState("");const [editing,setEditing]=useState(searchParams.get("edition")==="1");const [toast,setToast]=useState("");
   const [collectionOpen,setCollectionOpen]=useState(false);const [friendCards,setFriendCards]=useState<CollectedCard[]>();const [collectionError,setCollectionError]=useState("");
   useEffect(()=>{let active=true;void Promise.all([getProfile(identifier),getWishlist(identifier)]).then(([p,w])=>{if(active){setProfile(p);setWishlist(w);}},e=>{if(active)setError(e instanceof Error?e.message:"Profil indisponible.");});return()=>{active=false;};},[identifier]);
   if(error)return <div className="yk-empty-state"><p>{error}</p></div>;if(!profile)return <div className="yk-empty-state"><p>Chargement du profil…</p></div>;

@@ -54,11 +54,12 @@ test("les erreurs d'import CSV affichent le nom de la carte avec sa ligne", asyn
   assert.match(csvImport, /Carte sans nom/);
 });
 
-test("le menu Admin suit Succès et dépend du rôle admin", async () => {
+test("le menu Admin dépend du rôle et Succès reste dans le menu profil", async () => {
   const topbar = await read("components/topbar.tsx");
   const adminLink = topbar.indexOf('href="/admin/cards"');
   const achievementsLink = topbar.indexOf('href="/succes"');
-  assert.ok(achievementsLink > 0 && achievementsLink < adminLink);
+  assert.ok(adminLink > 0 && achievementsLink > adminLink);
+  assert.equal((topbar.match(/href="\/succes"/g) ?? []).length, 1);
   assert.match(topbar.slice(adminLink - 100, adminLink), /isAdmin/);
   const hook = await read("hooks/use-is-admin.ts");
   assert.match(hook, /rpc\("is_current_user_admin"\)/);

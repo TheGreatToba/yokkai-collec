@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import type { CollectedCard } from "@/lib/data/cards";
-import { Avatar, Karas, Modal } from "@/components/ui";
+import { Avatar, Karas } from "@/components/ui";
 import "@/styles/topbar.css";
 import { markNotificationRead, type AppNotification } from "@/lib/data/notifications";
 import { useSfx } from "@/hooks/use-sfx";
@@ -42,7 +42,8 @@ export function Topbar({ view, account, name, karas, notifications, notification
   const shown=notifications??loaded;
   const visibleNotificationError=externalNotificationError??feed.error;
   const unread = shown?.filter(n => !n.read).length;
-  useEffect(()=>subscribePlayerSnapshotInvalidation(scopes=>{if(scopes.includes("profile"))void getProfile().then(profile=>setAvatarUrl(profile.avatarUrl??undefined),()=>undefined);}),[]);
+  useEffect(()=>{let active=true;const refreshAvatar=()=>void getProfile().then(profile=>{if(active)setAvatarUrl(profile.avatarUrl??undefined);},()=>undefined);refreshAvatar();const unsubscribe=subscribePlayerSnapshotInvalidation(scopes=>{if(scopes.includes("profile"))refreshAvatar();});return()=>{active=false;unsubscribe();};},[]);
+  useEffect(()=>{if(!panel)return;const panelId=`${panel}-panel`;const closeOnOutsidePointer=(event:PointerEvent)=>{const target=event.target as Element|null;if(target?.closest(`#${panelId},[aria-controls="${panelId}"]`))return;setPanel(null);};document.addEventListener("pointerdown",closeOnOutsidePointer);return()=>document.removeEventListener("pointerdown",closeOnOutsidePointer);},[panel]);
   async function readAll(){if(onReadAll)await onReadAll();else{await markNotificationRead();feed.setNotifications(current=>current?.map(n=>({...n,readAt:n.readAt??new Date().toISOString()})));}}
   function toggleNotifications(){if(panel==="notifications"){setPanel(null);return;}setPanel("notifications");if(notifications)onRefreshNotifications?.();else void feed.refresh();}
   return <>
@@ -52,14 +53,12 @@ export function Topbar({ view, account, name, karas, notifications, notification
       <nav id="primary-navigation" aria-label="Navigation principale" className="yk-primary-nav">
         <Link href="/boosters" aria-current={view === "packs" ? "page" : undefined}>Boosters</Link>
         <Link href="/collection" aria-current={view === "collection" ? "page" : undefined}>Collection</Link>
-        <Link href="/recherche" aria-current={view === "search" ? "page" : undefined}>Catalogue</Link>
         <Link href="/marche" aria-current={view === "market" || view === "auction" ? "page" : undefined}>Marché</Link>
         <Link href="/echanges" aria-current={view === "trades" ? "page" : undefined}>Échanges</Link>
         <Link href="/amis" aria-current={view === "friends" ? "page" : undefined}>Amis</Link>
         <Link href="/wishlist" aria-current={view === "wishlist" ? "page" : undefined}>Wishlist</Link>
-        <Link href="/succes" aria-current={view === "achievements" ? "page" : undefined}>Succès</Link>
+        <Link href="/recherche" aria-current={view === "search" ? "page" : undefined}>Catalogue</Link>
         {isAdmin && <Link href="/admin/cards" aria-current={view === "admin" ? "page" : undefined}>Admin</Link>}
-        <Link href="/profil" className="yk-mobile-account" aria-current={view === "profile" ? "page" : undefined}>Mon compte</Link>
       </nav>
       <div className="yk-topbar-actions">
         <button type="button" className="yk-icon-button yk-menu-toggle" aria-label={mobileMenu ? "Fermer le menu" : "Ouvrir le menu"} aria-expanded={mobileMenu} aria-controls="primary-navigation" onClick={() => setMobileMenu(open => !open)}><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d={mobileMenu ? "M6 6l12 12M18 6 6 18" : "M4 7h16M4 12h16M4 17h16"}/></svg></button>
@@ -76,10 +75,8 @@ export function Topbar({ view, account, name, karas, notifications, notification
           </section></>}
         </div>
         <span className="yk-balance" title={karas == null ? "Chargement du solde" : "Mon solde"}>{karas == null ? <span role="status" aria-label="Chargement du solde Karas" className="yk-balance-skeleton" /> : <Karas amount={karas} />}</span>
-        <Link href="/profil" aria-label="Mon profil" className="rounded-full"><Avatar name={name || "Compte"} image={avatarUrl} /></Link>
-        <button type="button" aria-label="Options du compte" aria-haspopup="dialog" className="px-1 py-3 text-xs text-ink-3" onClick={() => setPanel("account")}>⌄</button>
+        <div className="relative"><button type="button" aria-label="Ouvrir mon compte" title="Mon compte" aria-expanded={panel==="account"} aria-controls="account-panel" className="yk-account-trigger" onClick={()=>setPanel(current=>current==="account"?null:"account")}><Avatar name={name || "Compte"} image={avatarUrl} /><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m7 10 5 5 5-5"/></svg></button>{panel==="account"&&<><button type="button" tabIndex={-1} aria-label="Fermer le compte" className="yk-notification-backdrop yk-account-backdrop" onClick={()=>setPanel(null)}/><section id="account-panel" aria-label="Menu du profil" className="yk-account-panel" onKeyDown={event=>{if(event.key==="Escape")setPanel(null);}}><p className="yk-account-overline">Profil utilisateur</p><div className="yk-account-summary"><Avatar name={name||"Compte"} image={avatarUrl} size={40}/><div><strong>{name||"Compte"}</strong><span>@{name||"compte"} · Chasseur</span>{karas!=null&&<small className="yk-account-karas">{karas.toLocaleString("fr-FR")} Karas</small>}</div></div><nav aria-label="Actions du profil" className="yk-account-actions"><Link href="/profil" className="yk-account-action" onClick={()=>setPanel(null)}><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Voir mon profil</Link><Link href="/profil?edition=1" className="yk-account-action" onClick={()=>setPanel(null)}><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21H9.6v-.1A1.7 1.7 0 0 0 8.5 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3V9.6h.1A1.7 1.7 0 0 0 4.6 8.5a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.1A1.7 1.7 0 0 0 15.5 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.14.38.35.72.6 1 .3.3.68.44 1.1.44h.1v4h-.1A1.7 1.7 0 0 0 19.4 15Z"/></svg>Paramètres</Link><Link href="/succes" className="yk-account-action" onClick={()=>setPanel(null)}><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M8 3h8v6a4 4 0 0 1-8 0V3ZM10 17h4M12 13v4M8 21h8M8 6H4v2a4 4 0 0 0 4 4M16 6h4v2a4 4 0 0 1-4 4"/></svg>Mes succès</Link></nav><div className="yk-account-separator"/>{account||<p className="yk-account-unavailable">Session indisponible.</p>}</section></>}</div>
       </div>
     </header>
-    <Modal open={panel === "account"} onClose={() => setPanel(null)} title="Mon compte"><div className="flex items-center gap-4"><Avatar name={name || "Compte"} image={avatarUrl} size={64} /><div>{account || <p className="text-ink-2">Connectez-vous pour retrouver votre compte.</p>}</div></div></Modal>
   </>;
 }

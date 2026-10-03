@@ -172,8 +172,37 @@ test("le profil invalide l’avatar partagé et la Topbar le recharge", () => {
   const profile = readFileSync(path.join(root, "lib/data/profile.ts"), "utf8");
   const topbar = readFileSync(path.join(root, "components/topbar.tsx"), "utf8");
   assert.match(profile, /publishPlayerSnapshotInvalidation\(\["profile"\]\)/);
+  assert.match(topbar, /refreshAvatar\(\);const unsubscribe/);
   assert.match(topbar, /scopes\.includes\("profile"\)/);
   assert.match(topbar, /image=\{avatarUrl\}/);
+});
+
+test("l’avatar ouvre un menu profil compact avec résumé et actions", () => {
+  const topbar = readFileSync(path.join(root, "components/topbar.tsx"), "utf8");
+  const account = readFileSync(path.join(root, "components/account-menu.tsx"), "utf8");
+  const css = readFileSync(path.join(root, "styles/topbar.css"), "utf8");
+  assert.match(topbar, /aria-label="Ouvrir mon compte"/);
+  assert.match(topbar, /panel==="account"/);
+  assert.match(topbar, /className="yk-account-panel"/);
+  assert.match(topbar, />Voir mon profil<\/Link>/);
+  assert.match(topbar, />Paramètres<\/Link>/);
+  assert.match(topbar, />Mes succès<\/Link>/);
+  assert.doesNotMatch(topbar, /aria-current=\{view === "achievements"/);
+  assert.match(topbar, /toLocaleString\("fr-FR"\).*Karas/);
+  assert.match(topbar, /className="yk-account-karas"/);
+  assert.doesNotMatch(topbar, /yk-mobile-account/);
+  assert.ok(topbar.indexOf('href="/wishlist"') < topbar.indexOf('href="/recherche" aria-current'));
+  assert.match(topbar, /document\.addEventListener\("pointerdown",closeOnOutsidePointer\)/);
+  assert.match(topbar, /closest\(`#\$\{panelId\},\[aria-controls=/);
+  assert.doesNotMatch(topbar, /Gère ton profil et ta session/);
+  assert.doesNotMatch(topbar, />Fermer<\/button>/);
+  assert.doesNotMatch(topbar, /<Modal open=\{panel === "account"\}/);
+  assert.match(account, /<SignOutButton \/>/);
+  assert.match(css, /width: min\(280px/);
+  assert.match(css, /background: #0f0c1d/);
+  assert.match(css, /box-shadow: 0 12px 32px -4px rgba\(4,0,11,\.95\)/);
+  assert.match(css, /\.yk-account-karas \{ display: none; \}/);
+  assert.match(css, /max-width: 620px[^]*\.yk-account-karas \{ display: block; \}/);
 });
 
 test("la destruction groupée demande une confirmation chiffrée", () => {
@@ -370,11 +399,12 @@ test("la mise en vente suggère la valeur de marché sans remplacer le prix par 
 
 test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
   const { MarketView } = load("components/community-views.tsx");
-  const auction = (id, extra = {}) => ({ id, card: { ...card, id: `card-${id}` }, amount: 120, remaining: "00:12:00", remainingSeconds: 720, seller: "Kitsune", bids: 3, ...extra });
+  const auction = (id, extra = {}) => ({ id, card: { ...card, id: `card-${id}` }, amount: 120, remaining: "00:12:00", remainingSeconds: 720, seller: "Kitsune", sellerAvatarUrl: "https://cdn.example/kitsune.png", bids: 3, ...extra });
   const lists = { active: [auction("a", { wishlist: true }), auction("b", { remainingSeconds: 120, remaining: "00:02:00" })], mine: [], won: [], sold: [] };
   const html = render(MarketView, { lists, activeSales: "0", async onToggleWatch() {} });
   assert.equal((html.match(/class="yk-market-tile"/g) || []).length, 2);
   assert.match(html, /aria-pressed="true"[^>]*aria-label="Ne plus suivre cette enchère"[^>]*>.*?<span class="yk-watch-label">Suivi<\/span>/);
+  assert.match(html, /https:\/\/cdn\.example\/kitsune\.png/);
   assert.match(html, /aria-pressed="false"[^>]*aria-label="Suivre cette enchère"[^>]*>.*?<span class="yk-watch-label">Suivre<\/span>/);
   assert.match(html, /yk-market-timer yk-urgency-critical/);
   assert.match(html, /<aside id="market-filters" class="yk-collection-sidebar /);
