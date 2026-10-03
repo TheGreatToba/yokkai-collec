@@ -12,7 +12,7 @@ import { COLLECTION_SORTS, isCollectionSort, sortCollection } from "@/lib/ui/col
 import { matchesCardSearch } from "@/lib/ui/card-search";
 import { useCollectionSort } from "@/hooks/use-collection-sort";
 import { getCardDiscovery } from "@/lib/data/wishlist";
-import { collectionGroupKey, groupCollection, preservationOrder } from "@/lib/ui/collection-groups";
+import { collectionGroupKey, consumableCopies, consumptionPlan, groupCollection } from "@/lib/ui/collection-groups";
 
 // Optional display metadata, separate from the existing business types.
 export type CollectionPresentation = { number?: string; isNew?: boolean; frozen?: { remaining: string }; marketValue?: number | null; destructionValue?: number };
@@ -90,10 +90,11 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
   const visibleGroups = groups.slice((activePage - 1) * pageSize, activePage * pageSize);
   const selectedCards = cards.filter(c => selection.has(c.instanceId) && !presentation[c.instanceId]?.frozen);
   const selectedGroup = selected ? groupCollection(cards.filter(card=>collectionGroupKey(card)===collectionGroupKey(selected)))[0] : undefined;
-  const destructibleCards = preservationOrder((selectedGroup?.cards??[]).filter(card=>!presentation[card.instanceId]?.frozen)).slice(0,onDiscardMany?undefined:1);
-  const discardCards = destructibleCards.slice(0,Math.min(discardQuantity,destructibleCards.length));
+  const isFrozen = (instanceId:string) => !!presentation[instanceId]?.frozen;
+  const destructibleCards = consumableCopies(selectedGroup?.cards??[],isFrozen).slice(0,onDiscardMany?undefined:1);
+  const discardCards = consumptionPlan(selectedGroup?.cards??[],Math.min(discardQuantity,destructibleCards.length),isFrozen).slice(0,onDiscardMany?undefined:1);
   const discardValue = discardCards.reduce((sum,card)=>sum+(presentation[card.instanceId]?.destructionValue??DESTRUCTION_KARAS[card.rarity]),0);
-  const evolvableCards = selected ? preservationOrder(cards.filter(c => c.id === selected.id && c.rarity === "SSR" && !c.shiny && !presentation[c.instanceId]?.frozen)) : [];
+  const evolvableCards = selected ? consumableCopies(cards.filter(c => c.id === selected.id && c.rarity === "SSR" && !c.shiny),isFrozen) : [];
   const evolutionCards = evolvableCards.filter(card=>evolutionSelection.has(card.instanceId));
   const evolvableCopies = evolvableCards.length;
   const valueKnown = selectedCards.length > 0 && selectedCards.every(c=>presentation[c.instanceId]?.destructionValue != null);
