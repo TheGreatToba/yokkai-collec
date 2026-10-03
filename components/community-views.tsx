@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { animation } from "@/lib/ui/animations";
 import { getCataloguePage, getGameInfo, getUserCollection, invalidatePlayerSnapshots, type Card, type CollectedCard, type Rarity } from "@/lib/data/cards";
@@ -182,7 +183,8 @@ export function SearchView({loadPage=getCataloguePage,previewCategories}: {loadP
 }
 
 export function TradesView() {
-  return <><div className="my-8 rounded-panel border border-accent-neon/25 bg-accent-neon/10 p-5"><p className="text-sm text-accent-neon">Échange tes cartes et tes Karas uniquement avec tes amis.</p></div><TradesPanel/></>;
+  const searchParams=useSearchParams();
+  return <><div className="my-8 rounded-panel border border-accent-neon/25 bg-accent-neon/10 p-5"><p className="text-sm text-accent-neon">Échange tes cartes et tes Karas uniquement avec tes amis.</p></div><TradesPanel initialFriendId={searchParams.get("ami")??undefined} initialRequestedCardId={searchParams.get("carte")??undefined}/></>;
 }
 export function WishlistView({previewCards,onRemove}:{previewCards?:WishlistCard[];onRemove?:(id:string)=>Promise<unknown>}={}) { const [cards,setCards]=useState<WishlistCard[]|undefined>(previewCards);const [error,setError]=useState("");useEffect(()=>{if(previewCards)return;let active=true;void getWishlist().then(value=>{if(active)setCards(value);},e=>{if(active)setError(e instanceof Error?e.message:"Wishlist indisponible.");});return()=>{active=false;};},[previewCards]);async function remove(id:string){try{await (onRemove?onRemove(id):toggleWishlist(id));setCards(current=>current?.filter(card=>card.id!==id));}catch(e){setError(e instanceof Error?e.message:"Suppression impossible.");}}return <>{cards&&cards.length>0&&<div className="yk-wishlist-head"><div><p className="font-display text-xl">{cards.length} carte{cards.length>1?"s":""} suivie{cards.length>1?"s":""}</p><p className="mt-2 text-sm text-ink-2">Recevez une alerte dès qu’une de ces cartes est mise aux enchères.</p></div><Link href="/recherche" className="yk-button yk-button-secondary">Découvrir des cartes</Link></div>}{error&&<p role="alert" className="yk-social-alert mb-5">{error}</p>}{cards===undefined?<Unavailable>Chargement de votre wishlist…</Unavailable>:cards.length===0?<div className="yk-wishlist-empty"><span aria-hidden="true">☆</span><h2>Ta wishlist est vide</h2><p>Ajoute des cartes depuis la recherche ou ta collection pour les retrouver ici.</p><Link href="/recherche" className="yk-button yk-button-secondary">Explorer le catalogue</Link></div>:<div className="yk-card-grid yk-wishlist-grid">{cards.map(card=><article key={card.id} className="yk-wishlist-item"><CardShell><YokaiCard {...card}/></CardShell><Button variant="secondary" onClick={()=>void remove(card.id)} aria-label={`Retirer ${card.name} de la wishlist`}>♡ Retirer</Button></article>)}</div>}</>; }
 
