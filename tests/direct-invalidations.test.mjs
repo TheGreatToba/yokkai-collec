@@ -33,6 +33,13 @@ test("mise : seul le solde est invalidé après succès",async()=>{
   assert.deepEqual(proof.invalidations,[["balance"]]);
 });
 
+test("retrait d'une vente : la Collection est invalidée après succès",async()=>{
+  const proof=load("../lib/data/market.ts",{results:{cancel_auction:true}});
+  await proof.api.cancelAuction("auction-1");
+  assert.deepEqual(proof.invalidations,[["collection"]]);
+  assert.deepEqual(proof.order,["rpc:cancel_auction","invalidate:collection"]);
+});
+
 test("échange : seule une acceptation effective invalide Collection et solde",async()=>{
   const accepted=load("../lib/data/trades.ts",{results:{respond_trade_offer:true}});
   assert.equal(await accepted.api.respondTradeOffer("trade-1","accept"),true);
@@ -56,6 +63,7 @@ test("aucune mutation en erreur ne publie d'invalidation",async()=>{
   for(const [file,method,args,rpc] of [
     ["../lib/data/market.ts","createAuction",["card-1",10,60],"create_auction"],
     ["../lib/data/market.ts","placeBid",["auction-1",20],"place_bid"],
+    ["../lib/data/market.ts","cancelAuction",["auction-1"],"cancel_auction"],
     ["../lib/data/trades.ts","respondTradeOffer",["trade-1","accept"],"respond_trade_offer"],
     ["../lib/data/achievements.ts","claimAchievement",["first"],"claim_achievement"],
   ]) {

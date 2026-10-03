@@ -454,6 +454,11 @@ test("Phase 6 : détail d'enchère, solde, minute ajoutée, historique et issues
   assert.ok(live.indexOf("yk-auction-history") > live.indexOf("yk-auction-panel"));
   assert.match(render(AuctionView, { auction: { ...base, finished: true, status: "won" } }), /Enchère remportée !/);
   assert.match(render(AuctionView, { auction: { ...base, finished: true, status: "lost", winner: "Oni" } }), /Enchère perdue[^]*Remportée par Oni/);
+  const ownSale = { ...base, bids: 0, nextBid: undefined, status: "mine" };
+  assert.equal((render(AuctionView, { auction: ownSale, async onCancel() {} }).match(/Retirer la carte de la vente/g)??[]).length,2);
+  const bidSale=render(AuctionView, { auction: { ...ownSale, bids: 1 }, async onCancel() {} });
+  assert.equal((bidSale.match(/Retirer la carte de la vente/g)??[]).length,1);
+  assert.match(bidSale, /ne peut plus être retirée car une mise a déjà été placée/);
   const raw = { id: "a", card, amount: 120, endsAt: new Date(Date.now() + 60_000).toISOString(), status: "active", seller: "Kitsune", sellerId: "s", buyerId: "x", bids: 2, watched: false, balance: 50,
     history: [{ id: "h1", name: "Oni", amount: 120, createdAt: "2026-09-29T12:32:00Z", mine: false }, { id: "h2", name: "Moi", amount: 110, createdAt: "2026-09-29T12:30:00Z", mine: true }] };
   assert.equal(presentAuction(raw, "me").status, "outbid");
