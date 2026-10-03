@@ -39,6 +39,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
   await db.exec(readFileSync(new URL("../supabase/migrations/20261002000004_get_game_info_security.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261002000005_evolve_ssr_explicit_instances.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261003000001_friend_collection.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../supabase/migrations/20261003000003_friend_collection_custom_images.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261003000002_evolve_ssr_five_copies.sql", import.meta.url), "utf8"));
   await db.query("insert into auth.users values ($1, '{\"pseudo\":\"Alice\"}'), ($2, '{\"pseudo\":\"Bob\"}'), ($3, '{\"pseudo\":\"Charlie\"}')", [alice, bob, charlie]);
   for (const rarity of ["C", "R", "SR", "SSR", "LR"]) {
@@ -426,7 +427,8 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     await db.query("insert into public.user_cards(user_id,card_id,rarity,custom_image_url) values($1,$2,'C','https://i.imgur.com/private.png')",[alice,friendCardId]);
     const friendCollection = (await asUser(bob, () => db.query("select public.get_friend_collection($1) as value",[alice]))).rows[0].value;
     assert.ok(friendCollection.some(card=>card.id===friendCardId));
-    assert.ok(friendCollection.every(card=>card.image==="https://storage.example/card.png"&&card.customImageUrl===null&&card.folderId===null));
+    assert.ok(friendCollection.every(card=>card.folderId===null));
+    assert.ok(friendCollection.some(card=>card.id===friendCardId&&card.image==="https://i.imgur.com/private.png"&&card.customImageUrl==="https://i.imgur.com/private.png"));
     await assert.rejects(asUser(charlie,()=>db.query("select public.get_friend_collection($1)",[alice])),/FRIENDS_ONLY/);
 
     const declinedId = (await asUser(alice, () => db.query("select public.send_friend_request($1) as id", [charlie]))).rows[0].id;
