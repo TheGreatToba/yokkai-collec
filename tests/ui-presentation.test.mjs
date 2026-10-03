@@ -378,7 +378,8 @@ test("la Collection groupe les tuiles et sélectionne tous les exemplaires dispo
   assert.match(source, /toggleGroup\(group\.cards\)/);
   assert.match(source, /count=\{selectedCards\.length\}/);
   assert.match(source, /frozenCount>0/);
-  assert.match(source, /Dernier exemplaire obtenu le/);
+  assert.match(source, />Obtenu le<\/p>/);
+  assert.doesNotMatch(source, /Dernier exemplaire obtenu le/);
   assert.match(source, /yk-copy-picker/);
   assert.match(source, /itemLabel="exemplaire"/);
   assert.match(source, /toggleEvolutionCard/);
