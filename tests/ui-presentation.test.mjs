@@ -105,6 +105,14 @@ test("la collection d'un autre joueur ne propose pas de sélection ou d'édition
   assert.doesNotMatch(html, /Sélection multiple|Détruire la sélection|Modifier le profil/);
 });
 
+test("le compteur de cartes d'un ami ouvre sa collection complète en lecture seule", () => {
+  const profile = readFileSync(path.join(root, "components/profile.tsx"), "utf8");
+  assert.match(profile, /profile\.friendshipStatus==="accepted"\?<button/);
+  assert.match(profile, /getFriendCollection\(friendId\)/);
+  assert.match(profile, /<CollectionView cards=\{friendCards\} categories=\{categories\} readOnly\/>/);
+  assert.match(profile, /Voir la collection/);
+});
+
 test("le catalogue reprend la sidebar sans notion de possession ni action de masse", () => {
   const source = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
   const layout = readFileSync(path.join(root, "app/layout.tsx"), "utf8");
