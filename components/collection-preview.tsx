@@ -37,6 +37,11 @@ export function CollectionPreviewClient({ cards: initialCards }: { cards: Collec
   const update = (instanceId: string, patch: Partial<CollectedCard>) => setCards(current => current.map(card => card.instanceId === instanceId ? { ...card, ...patch } : card));
   return <CollectionView
     cards={cards}
+    presentation={{
+      "preview-evolve-2": { frozen: { remaining: "12 min" }, destructionValue: 4 },
+      "preview-evolve-0": { destructionValue: 4 }, "preview-evolve-1": { destructionValue: 4 },
+      "preview-evolve-3": { destructionValue: 4 }, "preview-evolve-4": { destructionValue: 4 },
+    }}
     categories={["Anime", "Manga"]}
     folders={folders}
     onCreateFolder={async name => { record(`folder:${name}`); setFolders(current => [...current, { id: `folder-${current.length}`, name }]); }}

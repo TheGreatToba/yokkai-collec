@@ -74,6 +74,16 @@
 .yk-detail-actions { display: grid; gap: calc(var(--spacing) * 2.5); }
 .yk-detail-evolve { display: grid; gap: calc(var(--spacing) * 1.5); }
 .yk-detail-evolve p,.yk-detail-hint { color: var(--color-ink-3); font-size: var(--text-xs); line-height: 1.5; }
+.yk-group-frozen { position: absolute; left: calc(var(--spacing) * 2); bottom: calc(var(--spacing) * 2); border-radius: var(--radius-badge); background: color-mix(in srgb,var(--color-void) 90%,transparent); padding: calc(var(--spacing) * 1) calc(var(--spacing) * 2); color: var(--color-ink-2); font-size: 10px; }
+.yk-copy-picker { display: grid; gap: calc(var(--spacing) * 2); }
+.yk-copy-picker > div { display: flex; flex-wrap: wrap; gap: calc(var(--spacing) * 1.5); }
+.yk-copy-picker button { min-width: calc(var(--spacing) * 9); border: 1px solid var(--color-veil); border-radius: var(--radius-badge); padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2); color: var(--color-ink-2); font-size: var(--text-xs); }
+.yk-copy-picker button[aria-pressed="true"] { border-color: var(--color-accent-neon); color: var(--color-ink); box-shadow: 0 0 0 1px var(--color-accent-neon); }
+.yk-quantity-picker { margin-top: calc(var(--spacing) * 5); display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--spacing) * 2); }
+.yk-quantity-picker button,.yk-quantity-picker output { min-width: calc(var(--spacing) * 10); border: 1px solid var(--color-veil); border-radius: var(--radius-input); padding: calc(var(--spacing) * 2); text-align: center; }
+.yk-quantity-picker button:last-child { margin-left: auto; min-width: auto; }
+.yk-evolution-copy { width: 100%; border: 1px solid var(--color-veil); border-radius: var(--radius-panel); padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4); text-align: left; }
+.yk-evolution-copy[aria-pressed="true"] { border-color: var(--color-accent-neon); background: color-mix(in srgb,var(--color-accent-neon) 8%,transparent); box-shadow: 0 0 0 1px var(--color-accent-neon); }
 .yk-detail-image { display: grid; gap: calc(var(--spacing) * 2); }
 .yk-detail-image-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: calc(var(--spacing) * 2); }
 .yk-detail-link { color: var(--color-accent-neon); text-decoration: underline; text-underline-offset: 3px; transition: color var(--duration-fast) var(--ease-standard); }

@@ -22,11 +22,11 @@ const cards: CollectedCard[] = Array.from({ length: 40 }, (_, index) => ({
   folderId: null,
   customImageUrl: null,
 }));
-// Three non-Shiny copies of one SSR so the Shiny evolution can be exercised; one carries a custom image.
-cards.push(...Array.from({ length: 3 }, (_, index): CollectedCard => ({
+// Five non-Shiny copies exercise grouping, folders, custom art, a frozen copy and explicit evolution selection.
+cards.push(...Array.from({ length: 5 }, (_, index): CollectedCard => ({
   id: "preview-evolve", instanceId: `preview-evolve-${index}`, name: "Jorogumo", category: "Anime", anime: "Spirit Realm", rarity: "SSR",
   image: index === 0 ? "/assets/card-back.png" : "/assets/booster-pack.png", catalogueImage: "/assets/booster-pack.png",
-  obtainedAt: new Date(2026, 8, 25 - index).toISOString(), shiny: false, isEvolved: false, isFirstOwner: false, folderId: null,
+  obtainedAt: new Date(2026, 8, 25 - index).toISOString(), shiny: false, isEvolved: false, isFirstOwner: false, folderId: index === 1 ? "favorites" : null,
   customImageUrl: index === 0 ? "https://i.imgur.com/preview.png" : null,
 })));
 
