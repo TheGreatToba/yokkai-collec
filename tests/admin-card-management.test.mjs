@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { PGlite } from "@electric-sql/pglite";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
@@ -144,4 +145,51 @@ test("un admin peut filtrer les cartes avec une liste de catégories", async () 
   assert.doesNotMatch(page, /name="q"[^>]+required/);
   assert.match(migration, /select distinct categorie as category/i);
   assert.match(migration, /if not public\.is_current_user_admin\(\)/i);
+});
+
+test("la migration NBA range les cartes dans SPORT avec la licence NBA", async () => {
+  const migration = await read("supabase/migrations/20261004000000_migrate_nba_cards_to_sport.sql");
+  const nbaCsv = await read("data/nba_clean.csv");
+
+  assert.match(migration, /upper\(btrim\(categorie\)\) = 'NBA'/i);
+  assert.match(migration, /set categorie = 'SPORT',[\s\S]+franchise = 'NBA'/i);
+  assert.match(migration, /insert into public\.card_categories[\s\S]+select card_id, 'SPORT'/i);
+  assert.match(migration, /delete from public\.card_categories[\s\S]+upper\(btrim\(categorie\)\) = 'NBA'/i);
+  assert.doesNotMatch(nbaCsv, /^,[^,\r\n]+,NBA,/m);
+  assert.match(nbaCsv, /,SPORT,NBA,,/);
+
+  const db = new PGlite();
+  await db.exec(`
+    create schema if not exists public;
+    create table public.cards (id uuid primary key, categorie text not null, franchise text);
+    create table public.card_categories (
+      card_id uuid not null references public.cards(id) on delete cascade,
+      categorie text not null,
+      primary key (card_id, categorie)
+    );
+    insert into public.cards (id, categorie, franchise) values
+      ('00000000-0000-0000-0000-000000000001', ' NBA ', null),
+      ('00000000-0000-0000-0000-000000000002', 'AUTRE', 'Ancienne licence'),
+      ('00000000-0000-0000-0000-000000000003', 'MUSIQUE', null);
+    insert into public.card_categories (card_id, categorie) values
+      ('00000000-0000-0000-0000-000000000001', 'NBA'),
+      ('00000000-0000-0000-0000-000000000001', 'SPORT'),
+      ('00000000-0000-0000-0000-000000000002', 'nba'),
+      ('00000000-0000-0000-0000-000000000003', 'MUSIQUE');
+  `);
+  await db.exec(migration);
+
+  const cards = await db.query("select id, categorie, franchise from public.cards order by id");
+  assert.deepEqual(cards.rows, [
+    { id: "00000000-0000-0000-0000-000000000001", categorie: "SPORT", franchise: "NBA" },
+    { id: "00000000-0000-0000-0000-000000000002", categorie: "SPORT", franchise: "NBA" },
+    { id: "00000000-0000-0000-0000-000000000003", categorie: "MUSIQUE", franchise: null },
+  ]);
+  const categories = await db.query("select card_id, categorie from public.card_categories order by card_id, categorie");
+  assert.deepEqual(categories.rows, [
+    { card_id: "00000000-0000-0000-0000-000000000001", categorie: "SPORT" },
+    { card_id: "00000000-0000-0000-0000-000000000002", categorie: "SPORT" },
+    { card_id: "00000000-0000-0000-0000-000000000003", categorie: "MUSIQUE" },
+  ]);
+  await db.close();
 });
