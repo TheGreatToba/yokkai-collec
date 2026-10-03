@@ -191,6 +191,9 @@ test("l’avatar ouvre un menu profil compact avec résumé et actions", () => {
   assert.match(topbar, /toLocaleString\("fr-FR"\).*Karas/);
   assert.match(topbar, /className="yk-account-karas"/);
   assert.doesNotMatch(topbar, /yk-mobile-account/);
+  assert.ok(topbar.indexOf('href="/wishlist"') < topbar.indexOf('href="/recherche" aria-current'));
+  assert.match(topbar, /document\.addEventListener\("pointerdown",closeOnOutsidePointer\)/);
+  assert.match(topbar, /closest\(`#\$\{panelId\},\[aria-controls=/);
   assert.doesNotMatch(topbar, /Gère ton profil et ta session/);
   assert.doesNotMatch(topbar, />Fermer<\/button>/);
   assert.doesNotMatch(topbar, /<Modal open=\{panel === "account"\}/);

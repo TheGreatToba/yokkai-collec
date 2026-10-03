@@ -43,6 +43,7 @@ export function Topbar({ view, account, name, karas, notifications, notification
   const visibleNotificationError=externalNotificationError??feed.error;
   const unread = shown?.filter(n => !n.read).length;
   useEffect(()=>{let active=true;const refreshAvatar=()=>void getProfile().then(profile=>{if(active)setAvatarUrl(profile.avatarUrl??undefined);},()=>undefined);refreshAvatar();const unsubscribe=subscribePlayerSnapshotInvalidation(scopes=>{if(scopes.includes("profile"))refreshAvatar();});return()=>{active=false;unsubscribe();};},[]);
+  useEffect(()=>{if(!panel)return;const panelId=`${panel}-panel`;const closeOnOutsidePointer=(event:PointerEvent)=>{const target=event.target as Element|null;if(target?.closest(`#${panelId},[aria-controls="${panelId}"]`))return;setPanel(null);};document.addEventListener("pointerdown",closeOnOutsidePointer);return()=>document.removeEventListener("pointerdown",closeOnOutsidePointer);},[panel]);
   async function readAll(){if(onReadAll)await onReadAll();else{await markNotificationRead();feed.setNotifications(current=>current?.map(n=>({...n,readAt:n.readAt??new Date().toISOString()})));}}
   function toggleNotifications(){if(panel==="notifications"){setPanel(null);return;}setPanel("notifications");if(notifications)onRefreshNotifications?.();else void feed.refresh();}
   return <>
@@ -52,11 +53,11 @@ export function Topbar({ view, account, name, karas, notifications, notification
       <nav id="primary-navigation" aria-label="Navigation principale" className="yk-primary-nav">
         <Link href="/boosters" aria-current={view === "packs" ? "page" : undefined}>Boosters</Link>
         <Link href="/collection" aria-current={view === "collection" ? "page" : undefined}>Collection</Link>
-        <Link href="/recherche" aria-current={view === "search" ? "page" : undefined}>Catalogue</Link>
         <Link href="/marche" aria-current={view === "market" || view === "auction" ? "page" : undefined}>Marché</Link>
         <Link href="/echanges" aria-current={view === "trades" ? "page" : undefined}>Échanges</Link>
         <Link href="/amis" aria-current={view === "friends" ? "page" : undefined}>Amis</Link>
         <Link href="/wishlist" aria-current={view === "wishlist" ? "page" : undefined}>Wishlist</Link>
+        <Link href="/recherche" aria-current={view === "search" ? "page" : undefined}>Catalogue</Link>
         {isAdmin && <Link href="/admin/cards" aria-current={view === "admin" ? "page" : undefined}>Admin</Link>}
       </nav>
       <div className="yk-topbar-actions">
