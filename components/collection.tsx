@@ -2,6 +2,7 @@
 /* eslint-disable react/no-unescaped-entities */
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import type { CollectedCard, Folder, Rarity } from "@/lib/data/cards";
 import { Button, Chip, Feedback, Karas, Modal, Pagination, SelectionBar, SelectionModeButton } from "@/components/ui";
@@ -30,9 +31,9 @@ function FilterIcon({ colorClass }: { colorClass: string }) {
   return <svg aria-hidden="true" className={colorClass} width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 2.45 6.1L21 10.5l-5.25 4.05L16 21l-4-3.55L8 21l.25-6.45L3 10.5l6.55-2.4L12 2Z"/></svg>;
 }
 
-export function CollectionView({ cards, categories, presentation = {}, readOnly = false, folders = [], onCreateFolder, onDeleteFolder, onMoveCard, onCreateAuction, onEvolve, onSetCustomImage, onDiscard, onDiscardMany, loadCardDiscovery = getCardDiscovery }: {
+export function CollectionView({ cards, categories, presentation = {}, readOnly = false, tradeHref, folders = [], onCreateFolder, onDeleteFolder, onMoveCard, onCreateAuction, onEvolve, onSetCustomImage, onDiscard, onDiscardMany, loadCardDiscovery = getCardDiscovery }: {
   cards: CollectedCard[]; categories: string[]; presentation?: Record<string, CollectionPresentation>;
-  totals?: Partial<Record<Rarity,number>>; readOnly?: boolean; folders?: Folder[];
+  totals?: Partial<Record<Rarity,number>>; readOnly?: boolean; tradeHref?: (card: CollectedCard) => string; folders?: Folder[];
   onCreateFolder?: (name: string) => Promise<void>; onDeleteFolder?: (folderId: string) => Promise<void>;
   onMoveCard?: (instanceId: string, folderId: string | null) => Promise<void>;
   onCreateAuction?: (instanceId:string,startingPrice:number,durationMinutes:number)=>Promise<void>;
@@ -42,6 +43,9 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
   onDiscardMany?: (instanceIds: string[]) => Promise<void>;
   loadCardDiscovery?: (cardId: string) => Promise<{ marketValue: number | null }>;
 }) {
+  const pathname=usePathname();
+  const profileIdentifier=pathname?.startsWith("/profil/")?decodeURIComponent(pathname.slice("/profil/".length)):undefined;
+  const resolvedTradeHref=tradeHref??(readOnly&&profileIdentifier?(card:CollectedCard)=>`/echanges?ami=${encodeURIComponent(profileIdentifier)}&carte=${encodeURIComponent(card.instanceId)}`:undefined);
   const [category, setCategory] = useState("");
   const [query, setQuery] = useState("");
   const [rarity, setRarity] = useState<Rarity | "">("");
@@ -200,6 +204,7 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
         <header><div className="flex flex-wrap items-center gap-2"><span className={`text-sm font-bold tracking-widest ${rarityText[selected.rarity]}`}>{selected.rarity}{selected.shiny?" ✦ Shiny":""}</span>{selected.isEvolved&&<span className="text-[10px] font-semibold tracking-wider text-accent-gold">ÉVOLUÉE</span>}</div><h3 className="mt-1 font-display text-[28px] leading-tight">{selected.name}</h3></header>
         {(selectedGroup?.cards.length??0)>1&&<div className="yk-copy-picker"><span className="yk-section-title">Exemplaire affiché</span><div>{selectedGroup?.cards.map((card,index)=><button type="button" key={card.instanceId} aria-pressed={card.instanceId===selected.instanceId} onClick={()=>setSelectedId(card.instanceId)}>{index+1}{card.customImageUrl?" ✦":""}{presentation[card.instanceId]?.frozen?" 🔒":""}</button>)}</div></div>}
         <dl className="yk-detail-facts"><div><dt>Catégorie</dt><dd>{selected.category}</dd></div><div><dt>Obtenue le</dt><dd>{formatDate(selected.obtainedAt,true)}</dd></div><div><dt>Exemplaires</dt><dd>{selectedGroup?.cards.length??1}</dd></div>{selectedMeta?.marketValue!=null&&<div><dt>Valeur de marché</dt><dd><Karas amount={selectedMeta.marketValue}/></dd></div>}</dl>
+        {resolvedTradeHref&&<Link className="yk-button yk-button-primary mt-6 flex w-full justify-center" href={resolvedTradeHref(selected)}>Proposer un échange</Link>}
         {!readOnly&&(onCreateAuction||(selected.rarity==="SSR"&&!selected.shiny))&&<div className="yk-detail-actions">
           {onCreateAuction&&<Button className="w-full" disabled={!!selectedMeta?.frozen} onClick={()=>void openAuction()}>{selectedMeta?.frozen?"Déjà en vente":"Mettre aux enchères"}</Button>}
           {selected.rarity==="SSR"&&!selected.shiny&&<div className="yk-detail-evolve"><Button variant="secondary" className="w-full" disabled={evolvableCopies<3||evolving||!onEvolve} onClick={()=>{setEvolutionSelection(new Set(evolvableCards.slice(0,3).map(card=>card.instanceId)));setEvolutionError("");setEvolveConfirm(true);}}>Évoluer en Shiny (consomme 3 exemplaires)</Button><p><strong className="text-accent-neon">Évolution Shiny</strong> · {evolvableCopies} / 3 exemplaires SSR non-Shiny disponibles · images personnalisées préservées si possible, puis plus anciens d’abord</p></div>}

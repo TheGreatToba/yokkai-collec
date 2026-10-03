@@ -115,6 +115,17 @@ test("le compteur de cartes d'un ami ouvre sa collection complète en lecture se
   assert.match(communityCss, /\.yk-modal\.yk-friend-collection-modal \{ width: min\(1400px,calc\(100% - 32px\)\); \}/);
 });
 
+test("une carte d'ami ouvre une proposition d'échange présélectionnée et extensible", () => {
+  const collection = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
+  const trades = readFileSync(path.join(root, "components/trades.tsx"), "utf8");
+  const community = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
+  assert.match(collection, /\/echanges\?ami=.*&carte=/);
+  assert.match(collection, /Proposer un échange/);
+  assert.match(community, /initialRequestedCardId=\{searchParams\.get\("carte"\)/);
+  assert.match(trades, /setRequested\(new Set\(\[initialRequestedCardId\]\)\)/);
+  assert.match(trades, /function toggle\(current: Set<string>/);
+});
+
 test("le catalogue reprend la sidebar sans notion de possession ni action de masse", () => {
   const source = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
   const layout = readFileSync(path.join(root, "app/layout.tsx"), "utf8");
