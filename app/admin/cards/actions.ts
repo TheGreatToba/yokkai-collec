@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { parse } from "csv-parse/sync";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
@@ -214,7 +215,10 @@ export async function updateCardAction(
         image_url: imageUrl || current.image_url,
       } as ReturnType<typeof validateCard>;
       const image = await imageForCard(form, imageCard);
-      const path = imagePath(imageCard);
+      // A replacement must get a new public URL. Overwriting the stable import
+      // path leaves browsers and the Storage CDN serving the previous image
+      // until cacheControl expires.
+      const path = `${imagePath(imageCard)}-${randomUUID()}`;
       const { error: uploadError } = await client.storage.from("card-images").upload(path, image.bytes, {
         contentType: image.contentType,
         upsert: true,
