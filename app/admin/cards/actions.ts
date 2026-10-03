@@ -158,7 +158,9 @@ export async function importCardsAction(
       concurrency: 2,
       log: () => {},
       onFailure: async (failure: { record: number; message: string }) => {
-        failures.push(`Ligne ${failure.record}: ${failure.message}`);
+        const cardName = rows[failure.record - 1]?.nom.trim();
+        const cardLabel = cardName ? `Carte « ${cardName} »` : "Carte sans nom";
+        failures.push(`${cardLabel} (ligne ${failure.record}): ${failure.message}`);
       },
     });
     const { error: auditError } = await client.from("admin_audit_logs").insert({
