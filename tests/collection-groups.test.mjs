@@ -10,8 +10,8 @@ vm.runInNewContext(ts.transpileModule(readFileSync(new URL("../lib/ui/collection
 }).outputText,context);
 const {collectionGroupKey,consumableCopies,consumptionPlan,groupCollection,preservationOrder}=context.exports;
 
-const copy=(instanceId,{id="card-a",rarity="SSR",shiny=false,obtainedAt="2026-01-01T00:00:00Z",customImageUrl=null,folderId=null}={})=>({
-  id,instanceId,name:"Carte",category:"Anime",rarity,shiny,obtainedAt,customImageUrl,folderId,image:"/card.png",catalogueImage:"/card.png",isEvolved:false,isFirstOwner:false,
+const copy=(instanceId,{id="card-a",rarity="SSR",shiny=false,obtainedAt="2026-01-01T00:00:00Z",customImageUrl=null,folderId=null,isFirstOwner=false}={})=>({
+  id,instanceId,name:"Carte",category:"Anime",rarity,shiny,obtainedAt,customImageUrl,folderId,image:"/card.png",catalogueImage:"/card.png",isEvolved:false,isFirstOwner,
 });
 
 test("les groupes distinguent card_id, rareté et Shiny",()=>{
@@ -28,8 +28,17 @@ test("un groupe garde tous les dossiers et affiche la copie personnalisée la pl
   const [group]=groupCollection([old,custom,latest]);
   assert.equal(group.cards.length,3);
   assert.equal(group.representative.instanceId,"custom");
-  assert.equal(group.latestObtainedAt,latest.obtainedAt);
+  assert.equal(group.firstObtainedAt,old.obtainedAt);
   assert.deepEqual(new Set(group.cards.map(card=>card.folderId)),new Set(["favorites",null,"trade"]));
+});
+
+test("un groupe LR conserve le statut de premier propriétaire quelle que soit la copie représentative",()=>{
+  const first=copy("first",{rarity:"LR",obtainedAt:"2026-01-01T00:00:00Z",folderId:"favorites",isFirstOwner:true});
+  const custom=copy("custom",{rarity:"LR",obtainedAt:"2026-02-01T00:00:00Z",customImageUrl:"https://i.imgur.com/custom.png"});
+  const [group]=groupCollection([custom,first]);
+  assert.equal(group.representative.instanceId,"custom");
+  assert.equal(group.firstObtainedAt,first.obtainedAt);
+  assert.equal(group.isFirstOwner,true);
 });
 
 test("destruction et évolution préservent les images perso puis prennent les plus anciennes",()=>{

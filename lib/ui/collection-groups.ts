@@ -4,7 +4,8 @@ export type CollectionGroup = {
   key: string;
   cards: CollectedCard[];
   representative: CollectedCard;
-  latestObtainedAt: string;
+  firstObtainedAt: string;
+  isFirstOwner: boolean;
 };
 
 export const collectionGroupKey = (card: Pick<CollectedCard,"id"|"rarity"|"shiny">) =>
@@ -25,7 +26,8 @@ export function groupCollection(cards: CollectedCard[]): CollectionGroup[] {
       key,
       cards: ordered,
       representative: ordered.find(card=>card.customImageUrl)??ordered[0],
-      latestObtainedAt: ordered[0].obtainedAt,
+      firstObtainedAt: ordered[ordered.length-1].obtainedAt,
+      isFirstOwner: ordered.some(card=>card.rarity==="LR"&&card.isFirstOwner),
     };
   });
 }

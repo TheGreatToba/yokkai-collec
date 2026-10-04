@@ -168,14 +168,12 @@ test("le sélecteur de cartes mises en avant recherche et remonte la sélection"
   assert.match(source, /Number\(selected\.has\(b\.instanceId\)\)-Number\(selected\.has\(a\.instanceId\)\)/);
 });
 
-test("le profil invalide l’identité partagée et la Topbar recharge avatar et pseudo", () => {
+test("le profil invalide l’avatar partagé et la Topbar le recharge", () => {
   const profile = readFileSync(path.join(root, "lib/data/profile.ts"), "utf8");
   const topbar = readFileSync(path.join(root, "components/topbar.tsx"), "utf8");
   assert.match(profile, /publishPlayerSnapshotInvalidation\(\["profile"\]\)/);
-  assert.match(topbar, /refreshProfile\(\);const unsubscribe/);
+  assert.match(topbar, /refreshAvatar\(\);const unsubscribe/);
   assert.match(topbar, /scopes\.includes\("profile"\)/);
-  assert.match(topbar, /setProfileName\(profile\.pseudo\)/);
-  assert.match(topbar, /const name=providedName\|\|profileName/);
   assert.match(topbar, /image=\{avatarUrl\}/);
 });
 
@@ -378,8 +376,9 @@ test("la Collection groupe les tuiles et sélectionne tous les exemplaires dispo
   assert.match(source, /toggleGroup\(group\.cards\)/);
   assert.match(source, /count=\{selectedCards\.length\}/);
   assert.match(source, /frozenCount>0/);
-  assert.match(source, />Obtenu le<\/p>/);
   assert.doesNotMatch(source, /Dernier exemplaire obtenu le/);
+  assert.match(source, />Obtenu le <time dateTime=\{historyGroup\.firstObtainedAt\}>\{formatDate\(historyGroup\.firstObtainedAt\)\}<\/time>/);
+  assert.match(source, /Premier propriétaire, obtenu le \{formatDate\(historyGroup\.firstObtainedAt\)\}/);
   assert.match(source, /yk-copy-picker/);
   assert.match(source, /itemLabel="exemplaire"/);
   assert.match(source, /toggleEvolutionCard/);
