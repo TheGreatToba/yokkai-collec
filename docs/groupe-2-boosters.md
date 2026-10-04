@@ -100,7 +100,7 @@ YOKKAI COLLEC' - OUVERTURE BOOSTER RÉGULIER
    (+ 10 K)        (+ 25 K)        (+ 75 K)
 
 ----------------------------------------------------------------------------------------------------
-                               [  AJOUTER À MA COLLECTION (2/5 retenues)  ]
+                                     [  VOIR MA COLLECTION  ]
 ====================================================================================================
 
 ```
@@ -128,13 +128,12 @@ YOKKAI COLLEC' - OUVERTURE BOOSTER RÉGULIER
 
 * Clic sur `Détruire` : La carte passe à `40% opacité`, un overlay rouge discret avec mention `DÉTRUITE` apparaît, et le bouton se transforme en `Conserver`.
 
-5. **Validation Finale ("Ajouter à ma collection")** :
+5. **Navigation finale ("Voir ma collection")** :
 
-* Le bouton principal passe de désactivé à **Actif** lorsque toutes les cartes ont été retournées.
-* Au clic :
-* Les cartes conservées glissent vers le haut (Fly-out vers le menu Collection).
-* Les cartes détruites se désintègrent et déclenchent l'animation **Crédit de Karas** (+X Karas ajoutés au solde global).
-* Redirection automatique vers la page Collection.
+* Les cinq cartes rejoignent `user_cards` dès l’ouverture du Regular Pack ; le reveal ne crée aucun état en attente de confirmation.
+* La destruction individuelle, la sélection multiple et la mise aux enchères agissent donc sur des cartes déjà présentes dans la Collection.
+* Le panneau récapitulatif et son lien « Voir ma collection » apparaissent uniquement lorsque toutes les cartes ont été retournées.
+* Aucune redirection automatique n’est déclenchée à la fin du reveal.
 
 
 

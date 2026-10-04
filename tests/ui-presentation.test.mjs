@@ -172,7 +172,7 @@ test("le profil invalide l’avatar partagé et la Topbar le recharge", () => {
   const profile = readFileSync(path.join(root, "lib/data/profile.ts"), "utf8");
   const topbar = readFileSync(path.join(root, "components/topbar.tsx"), "utf8");
   assert.match(profile, /publishPlayerSnapshotInvalidation\(\["profile"\]\)/);
-  assert.match(topbar, /refreshAvatar\(\);const unsubscribe/);
+  assert.match(topbar, /refreshProfile\(\);const unsubscribe/);
   assert.match(topbar, /scopes\.includes\("profile"\)/);
   assert.match(topbar, /image=\{avatarUrl\}/);
 });
@@ -296,9 +296,9 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
   const regular = render(BoosterReveal, { cards, revealed: 2, onReveal() {}, onReturn() {}, async onDiscard() {} });
   assert.equal((regular.match(/>Défausser</g)||[]).length,2);
   assert.doesNotMatch(regular, />Sélectionner</);
-  assert.match(regular, /<button[^>]*disabled=""[^>]*>Ajouter à ma collection</);
+  assert.doesNotMatch(regular, /Voir ma collection|yk-reveal-summary/);
   const regularDone = render(BoosterReveal, { cards, revealed: 5, onReveal() {}, onReturn() {}, async onDiscard() {} });
-  assert.match(regularDone, /href="\/collection"[^>]*>Ajouter à ma collection</);
+  assert.match(regularDone, /href="\/collection"[^>]*>Voir ma collection</);
   assert.match(regularDone, />Sélectionner</);
   assert.equal((regularDone.match(/>Défausser</g)||[]).length,5);
   const choosing = render(BoosterReveal, { cards, revealed: 5, onReveal() {}, onReturn() {}, decision: { async onKeep() { return 0; } } });

@@ -43,8 +43,8 @@ async function regularScenario(disabled=false,width=1280){
   if(!disabled){
     await click(page,"dialog[open]","Détruire la sélection");
     for(let attempt=0;attempt<50;attempt++){if(await page.evaluate("document.querySelectorAll('[data-proof=regular] .yk-reveal-slot').length===3"))break;await new Promise(resolve=>setTimeout(resolve,50));}
-    const afterDestroy=await page.evaluate(`(()=>{const root=document.querySelector('[data-proof=regular]');const audit=root.querySelector('[data-proof-audit]');return{cards:root.querySelectorAll('.yk-reveal-slot').length,balance:audit.dataset.balance,owned:audit.dataset.owned,addVisible:[...root.querySelectorAll('button')].some(node=>node.textContent.includes('Ajouter à ma collection'))};})()`);
-    await click(page,"[data-proof=regular]","Ajouter à ma collection");
+    const afterDestroy=await page.evaluate(`(()=>{const root=document.querySelector('[data-proof=regular]');const audit=root.querySelector('[data-proof-audit]');return{cards:root.querySelectorAll('.yk-reveal-slot').length,balance:audit.dataset.balance,owned:audit.dataset.owned,continueVisible:[...root.querySelectorAll('button')].some(node=>node.textContent.includes('Continuer'))};})()`);
+    await click(page,"[data-proof=regular]","Continuer");
     const completed=await page.evaluate("document.querySelector('[data-proof-audit]').dataset.completed");
     const mobile=await page.evaluate("({width:innerWidth,scrollWidth:document.documentElement.scrollWidth})");
     const individualAfterMode=await page.evaluate("[...document.querySelector('[data-proof=regular]').querySelectorAll('button')].filter(node=>node.textContent.trim()==='Défausser').length");
