@@ -1,2 +1,7 @@
 import { CommunityPage } from "@/components/community-page";
-export default function Page() { return <CommunityPage screen="profile"/>; }
+import { redirect } from "next/navigation";
+
+export default async function Page({searchParams}:{searchParams:Promise<{edition?:string}>}) {
+  if ((await searchParams).edition === "1") redirect("/parametres");
+  return <CommunityPage screen="profile"/>;
+}
