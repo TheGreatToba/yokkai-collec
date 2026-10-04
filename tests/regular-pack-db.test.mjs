@@ -48,6 +48,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
   await db.exec(readFileSync(new URL("../supabase/migrations/20261004000007_regular_pack_10_minutes_ssr_half_percent.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261004000008_restore_regular_pack_status_security.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261004000010_card_owners_friend_groups.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../supabase/migrations/20261004000014_remove_friend.sql", import.meta.url), "utf8"));
   await db.query("insert into auth.users values ($1, '{\"pseudo\":\"Alice\"}'), ($2, '{\"pseudo\":\"Bob\"}'), ($3, '{\"pseudo\":\"Charlie\"}')", [alice, bob, charlie]);
   for (const rarity of ["C", "R", "SR", "SSR", "LR"]) {
     await db.query(`insert into public.cards (source_id, nom, categorie, franchise, rarete_base, image_url, source)
@@ -465,6 +466,13 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     const declinedId = (await asUser(alice, () => db.query("select public.send_friend_request($1) as id", [charlie]))).rows[0].id;
     assert.equal((await asUser(charlie, () => db.query("select public.respond_friend_request($1,false) as value", [declinedId]))).rows[0].value, false);
     assert.equal(Number((await db.query("select count(*) as count from public.friendships where id=$1", [declinedId])).rows[0].count), 0);
+    const removableId = (await asUser(alice, () => db.query("select public.send_friend_request($1) as id", [charlie]))).rows[0].id;
+    await asUser(charlie, () => db.query("select public.respond_friend_request($1,true)", [removableId]));
+    await assert.rejects(asUser(bob, () => db.query("select public.remove_friend($1)", [charlie])), /FRIENDSHIP_NOT_FOUND/);
+    assert.equal((await asUser(alice, () => db.query("select public.remove_friend($1) as value", [charlie]))).rows[0].value, true);
+    assert.equal(Number((await db.query("select count(*) as count from public.friendships where id=$1", [removableId])).rows[0].count), 0);
+    assert.equal((await asUser(charlie, () => db.query("select public.get_public_profile($1) as value", [alice]))).rows[0].value.friendshipStatus, "none");
+    await assert.rejects(asUser(alice, () => db.query("select public.remove_friend($1)", [charlie])), /FRIENDSHIP_NOT_FOUND/);
     await assert.rejects(asUser(bob, () => db.query("select * from public.friendships")), /permission denied/);
   });
 

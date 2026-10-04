@@ -47,3 +47,11 @@ test("amis : les dÃ©tails techniques ne sont pas journalisÃ©s en production"
   await assert.rejects(api.getFriendships(),/pas autoris/i);
   assert.equal(logs.length,0);
 });
+
+test("amis : supprimer un ami appelle la RPC avec le bon utilisateur",async()=>{
+  const {api,calls}=setup(async()=>({data:true,error:null}));
+  assert.equal(await api.removeFriend("friend-id"),true);
+  assert.equal(calls.length,1);
+  assert.equal(calls[0].name,"remove_friend");
+  assert.equal(calls[0].args.p_friend_id,"friend-id");
+});
