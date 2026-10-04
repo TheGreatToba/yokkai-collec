@@ -275,3 +275,37 @@ test("la catégorie ARTISTE est renommée ARTIST et reste normalisée à l'impor
   ]);
   await db.close();
 });
+
+test("les noms de cartes existants et futurs sont normalisés en majuscules", async () => {
+  const migration = await read("supabase/migrations/20261004000003_uppercase_card_names.sql");
+  const db = new PGlite();
+  await db.exec(`
+    create schema if not exists public;
+    create table public.cards (
+      id uuid primary key,
+      nom text not null,
+      source text not null,
+      source_id text not null,
+      unique (source, source_id)
+    );
+    insert into public.cards (id, nom, source, source_id) values
+      ('00000000-0000-0000-0000-000000000001', 'Satoru Gojō', 'test', '1'),
+      ('00000000-0000-0000-0000-000000000002', ' déjà en MAJUSCULE ', 'test', '2');
+  `);
+  await db.exec(migration);
+
+  assert.deepEqual((await db.query("select nom from public.cards order by id")).rows, [
+    { nom: "SATORU GOJŌ" },
+    { nom: "DÉJÀ EN MAJUSCULE" },
+  ]);
+
+  await db.exec(`
+    insert into public.cards (id, nom, source, source_id) values
+      ('00000000-0000-0000-0000-000000000003', ' nouvelle carte ', 'test', '3');
+    update public.cards set nom = 'nom modifié' where id = '00000000-0000-0000-0000-000000000003';
+  `);
+  assert.deepEqual((await db.query("select nom from public.cards where id='00000000-0000-0000-0000-000000000003'")).rows, [
+    { nom: "NOM MODIFIÉ" },
+  ]);
+  await db.close();
+});
