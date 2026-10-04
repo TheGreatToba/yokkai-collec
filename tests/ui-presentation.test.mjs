@@ -368,6 +368,18 @@ test("la modale de détail groupe dossier sous la carte et destruction explicite
   assert.match(source, /\{discardValue\} Kara/);
 });
 
+test("les cartes verrouillees sont exclues des actions sensibles", () => {
+  const source = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
+  assert.match(source, /filter\(card=>!card\.locked&&!presentation\[card\.instanceId\]\?\.frozen\)/);
+  assert.match(source, /filter\(c=>!c\.locked&&!presentation\[c\.instanceId\]\?\.frozen\)/);
+  assert.match(source, /Verrouiller la carte/);
+  assert.match(source, /Déverrouiller la carte/);
+  assert.match(source, /selected\.locked\?"Carte verrouillée"/);
+  assert.match(source, /Cartes verrouillées/);
+  assert.match(source, /folder === LOCKED_FOLDER \? !!c\.locked/);
+  assert.match(source, /folder!==LOCKED_FOLDER/);
+});
+
 test("la Collection groupe les tuiles et sélectionne tous les exemplaires disponibles", () => {
   const source = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
   assert.match(source, /const groups = groupCollection\(filtered\)/);

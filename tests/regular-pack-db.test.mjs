@@ -44,6 +44,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
   await db.exec(readFileSync(new URL("../supabase/migrations/20261003000007_cancel_auction_without_bids.sql", import.meta.url), "utf8"));
   await db.exec("alter table public.user_profiles add column avatar_url text");
   await db.exec(readFileSync(new URL("../supabase/migrations/20261003000008_social_avatars.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../supabase/migrations/20261004000005_lock_collection_cards.sql", import.meta.url), "utf8"));
   await db.query("insert into auth.users values ($1, '{\"pseudo\":\"Alice\"}'), ($2, '{\"pseudo\":\"Bob\"}'), ($3, '{\"pseudo\":\"Charlie\"}')", [alice, bob, charlie]);
   for (const rarity of ["C", "R", "SR", "SSR", "LR"]) {
     await db.query(`insert into public.cards (source_id, nom, categorie, franchise, rarete_base, image_url, source)
@@ -502,6 +503,17 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     await assert.rejects(asUser(bob, () => db.query("update public.user_profiles set next_regular_pack_at=now()")), /permission denied/);
     await assert.rejects(asUser(bob, () => db.query("insert into public.user_cards (user_id,card_id) select $1,id from public.cards limit 1", [bob])), /permission denied/);
     await assert.rejects(asUser(bob, () => db.query("update public.cards set rarete_base='C'")), /permission denied/);
+  });
+
+  await t.test("verrouillage : vente, échange et suppression sont bloqués", async () => {
+    const cardId = (await db.query("select id from public.cards where source_id='R'")).rows[0].id;
+    const instanceId = (await db.query("insert into public.user_cards(user_id,card_id,rarity) values($1,$2,'R') returning id",[alice,cardId])).rows[0].id;
+    assert.equal((await asUser(alice,()=>db.query("select public.set_collection_card_locked($1,true) as value",[instanceId]))).rows[0].value,true);
+    await assert.rejects(asUser(alice,()=>db.query("select public.create_auction($1,10,60)",[instanceId])),/CARD_LOCKED/);
+    await assert.rejects(asUser(alice,()=>db.query("select public.create_trade_offer($1,$2,0,'{}',0,null)",[bob,[instanceId]])),/CARD_LOCKED/);
+    await assert.rejects(db.query("delete from public.user_cards where id=$1",[instanceId]),/CARD_LOCKED/);
+    await asUser(alice,()=>db.query("select public.set_collection_card_locked($1,false)",[instanceId]));
+    assert.equal((await db.query("delete from public.user_cards where id=$1 returning id",[instanceId])).rows[0].id,instanceId);
   });
 
   await t.test("RPC réservées aux comptes et refus d'un profil manquant", async () => {

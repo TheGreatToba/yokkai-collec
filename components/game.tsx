@@ -3,7 +3,7 @@ import { CollectionView } from "@/components/collection";
 import { Boosters } from "@/components/boosters";
 import { Topbar } from "@/components/topbar";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { createFolder, deleteFolder, discardPackCard, evolveSsrCard, getDecisionPackStatus, getFolders, getGameInfo, getPackStatus, getUserCollection, keepDecisionPackCard, moveCardToFolder, openBooster, openDecisionPack, setCardCustomImage, type CollectedCard, type DecisionPackStatus, type Folder, type PackStatus } from "@/lib/data/cards";
+import { createFolder, deleteFolder, discardPackCard, evolveSsrCard, getDecisionPackStatus, getFolders, getGameInfo, getPackStatus, getUserCollection, keepDecisionPackCard, moveCardToFolder, openBooster, openDecisionPack, setCardCustomImage, setCollectionCardLocked, type CollectedCard, type DecisionPackStatus, type Folder, type PackStatus } from "@/lib/data/cards";
 import { createAuction } from "@/lib/data/market";
 import { subscribePlayerSnapshotInvalidation } from "@/lib/data/player-state";
 import { useSfx } from "@/hooks/use-sfx";
@@ -93,6 +93,7 @@ export function Game({ view, account }: { view: "packs" | "collection"; account?
   async function addFolder(name: string) { const folder = await createFolder(name); setFolders(current => [...current, folder].sort((a,b)=>a.name.localeCompare(b.name,"fr"))); }
   async function removeFolder(folderId: string) { await deleteFolder(folderId); const [nextFolders,cards]=await Promise.all([getFolders(),getUserCollection()]);setFolders(nextFolders);setCollection(cards); }
   async function moveCard(instanceId: string, folderId: string | null) { await moveCardToFolder(instanceId,folderId);setCollection(await getUserCollection()); }
+  async function lockCard(instanceId:string,locked:boolean){await setCollectionCardLocked(instanceId,locked);setCollection(await getUserCollection());}
   async function auctionCard(instanceId:string,price:number,duration:number){await createAuction(instanceId,price,duration);setCollection(await getUserCollection());}
   async function customizeCard(instanceId:string,imageUrl:string|null){await setCardCustomImage(instanceId,imageUrl);setCollection(await getUserCollection());}
   const revealCard = useCallback((index: number) => setRevealed(current => current === index ? current + 1 : current), []);
@@ -106,7 +107,7 @@ export function Game({ view, account }: { view: "packs" | "collection"; account?
     {error && <p role="alert" className="my-6 rounded-lg border border-danger/40 bg-danger/10 p-4 text-sm text-danger-ink">{error}</p>}{!status && !error && <p role="status" className="mt-10">Chargement…</p>}
     {view === "packs" && <Boosters status={status} countdown={countdown} decisionStatus={decisionStatus} decisionCountdown={decisionCountdown} busy={busy} draw={draw} drawKind={drawKind} collection={collection} revealed={revealed} onOpen={open} onKeepDecision={keepDecision} onDiscard={discard} onAuction={auctionCard} onReveal={revealCard} onSound={sound.play} />}
 
-    {view === "collection" && status && <CollectionView cards={collection} categories={info?.categories || []} folders={folders} onCreateFolder={addFolder} onDeleteFolder={removeFolder} onMoveCard={moveCard} onCreateAuction={auctionCard} onEvolve={evolve} onSetCustomImage={customizeCard} onDiscard={discardCollectionCard} onDiscardMany={discardCollectionCards} />}
+    {view === "collection" && status && <CollectionView cards={collection} categories={info?.categories || []} folders={folders} onCreateFolder={addFolder} onDeleteFolder={removeFolder} onMoveCard={moveCard} onSetLocked={lockCard} onCreateAuction={auctionCard} onEvolve={evolve} onSetCustomImage={customizeCard} onDiscard={discardCollectionCard} onDiscardMany={discardCollectionCards} />}
 
     </main><footer className={`mx-auto mt-6 flex w-full ${view === "collection" ? "max-w-[var(--layout-collection-max)]" : "max-w-6xl"} flex-wrap justify-between gap-3 border-t border-veil px-6 py-6 text-xs text-ink-3`}><span>Yokkai Collec’ · v0.2</span><span>Collection sauvegardée sur votre compte</span></footer>
   </div>;

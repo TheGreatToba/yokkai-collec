@@ -6,7 +6,7 @@ export type Rarity = "C" | "R" | "SR" | "SSR" | "LR";
 export type Category = string;
 export type Card = { id: string; name: string; category: Category; anime?: string; rarity: Rarity; image: string; wishlisted?: boolean };
 export type CataloguePage = { cards: Card[]; total: number };
-export type CollectedCard = Card & { instanceId: string; obtainedAt: string; shiny: boolean; isEvolved: boolean; isFirstOwner: boolean; folderId: string | null; catalogueImage: string; customImageUrl: string | null; destructionValue?: number };
+export type CollectedCard = Card & { instanceId: string; obtainedAt: string; shiny: boolean; isEvolved: boolean; isFirstOwner: boolean; locked?: boolean; folderId: string | null; catalogueImage: string; customImageUrl: string | null; destructionValue?: number };
 export type Folder = { id: string; name: string };
 export type PackStatus = { available: number; maximum: number; nextPackAt: number | null };
 export type DecisionPackStatus = { available: boolean; nextPackAt: number; pending: (CollectedCard & { discarded?: boolean })[] };
@@ -16,7 +16,7 @@ type GameInfo = {
   dropRates: { rarity: Rarity; percent: number }[]; shinyRate: number; karasBalance: number;
 };
 type CardRow = { id: string; nom: string; categorie: string; franchise?: string | null; rarete_base: Rarity; image_url: string };
-type OwnedRow = { id: string; date_obtention: string; is_shiny: boolean; is_evolved: boolean; is_first_owner: boolean; folder_id: string | null; custom_image_url: string | null; cards: CardRow };
+type OwnedRow = { id: string; date_obtention: string; is_shiny: boolean; is_evolved: boolean; is_first_owner: boolean; is_locked: boolean; folder_id: string | null; custom_image_url: string | null; cards: CardRow };
 const cardFields = "id,nom,categorie,franchise,rarete_base,image_url";
 const rank: Record<Rarity, number> = { C: 0, R: 1, SR: 2, SSR: 3, LR: 4 };
 const PAGE_SIZE = 500;
@@ -35,6 +35,7 @@ function failure(error: { message?: string; code?: string }) {
     DECISION_LAST_CHOICE: "La dernière carte doit être conservée.",
     CARD_NOT_OWNED: "Cette carte n’est plus dans votre collection.",
     CARD_FROZEN: "Cette carte est placée aux enchères, elle ne peut pas être détruite.",
+    CARD_LOCKED: "Cette carte est verrouillée. Déverrouillez-la avant cette action.",
     FOLDER_NAME_TAKEN: "Un dossier porte déjà ce nom.",
     FOLDER_NOT_FOUND: "Ce dossier n’existe plus.",
   };
@@ -172,7 +173,7 @@ export async function getUserCollection(): Promise<CollectedCard[]> {
     const cards: CollectedCard[] = [];
     let cursor: string | undefined;
     while (true) {
-      let query = db().from("user_cards").select(`id,date_obtention,is_shiny,is_evolved,is_first_owner,folder_id,custom_image_url,cards!inner(${cardFields})`)
+      let query = db().from("user_cards").select(`id,date_obtention,is_shiny,is_evolved,is_first_owner,is_locked,folder_id,custom_image_url,cards!inner(${cardFields})`)
         .eq("user_id", id).order("id").limit(PAGE_SIZE);
       if (cursor) query = query.gt("id", cursor);
       const { data, error } = await query;
@@ -182,7 +183,7 @@ export async function getUserCollection(): Promise<CollectedCard[]> {
       cards.push(...rows.map((row) => ({ ...cardFromRow(row.cards), image: row.custom_image_url || row.cards.image_url,
         catalogueImage: row.cards.image_url, customImageUrl: row.custom_image_url, instanceId: row.id,
         obtainedAt: row.date_obtention, shiny: row.is_shiny, isEvolved: row.is_evolved,
-        isFirstOwner: row.is_first_owner, folderId: row.folder_id })));
+        isFirstOwner: row.is_first_owner, locked: row.is_locked, folderId: row.folder_id })));
       cursor = rows[rows.length - 1].id;
     }
     return cards.sort((a, b) => rank[b.rarity] - rank[a.rarity] ||
@@ -307,6 +308,12 @@ export async function moveCardToFolder(instanceId: string, folderId: string | nu
   const { error } = await db().rpc("move_card_to_folder", { p_card_instance_id: instanceId, p_folder_id: folderId });
   if (error) throw failure(error);
   await assertPlayer(id); cache.delete(`collection:${id}`);
+}
+
+export async function setCollectionCardLocked(instanceId: string, locked: boolean): Promise<void> {
+  const { error } = await db().rpc("set_collection_card_locked", { p_card_instance_id: instanceId, p_locked: locked });
+  if (error) throw failure(error);
+  invalidatePlayerSnapshots(["collection"]);
 }
 
 export async function setCardCustomImage(instanceId: string, imageUrl: string | null): Promise<CollectedCard> {
