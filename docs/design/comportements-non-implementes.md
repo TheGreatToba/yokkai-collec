@@ -48,7 +48,7 @@ Défauts constatés pendant la refonte mais volontairement non corrigés dans le
 | Idée documentaire | Source |
 | --- | --- |
 | Trier côté serveur les cartes d’un reveal par rareté croissante | `docs/groupe-2-boosters.md` |
-| Rediriger automatiquement vers la Collection après validation d’un booster | **Décision prise : non.** La redirection automatique a été jugée indésirable : le joueur reste sur l’écran de résultat et utilise lui-même le lien existant vers la Collection. |
+| Rediriger automatiquement vers la Collection après le reveal d’un booster | **Décision prise : non.** La redirection automatique a été jugée indésirable : le joueur reste sur l’écran de résultat et utilise lui-même le lien existant vers la Collection. |
 | Faire voler les cartes conservées vers la navigation et désintégrer les autres | `docs/groupe-2-boosters.md` |
 | Convertir automatiquement les quatre cartes non retenues du booster décisif en Karas | `docs/groupe-2-boosters.md` |
 | Mettre à jour en temps réel le chrono, l’historique et les offres d’une enchère | `docs/groupe-3-marche.md` |
@@ -60,7 +60,7 @@ Défauts constatés pendant la refonte mais volontairement non corrigés dans le
 | Déduire de nouveaux états de notification, d’amitié ou d’échange non fournis par les données actuelles | `docs/groupe-4-social.md`, `docs/groupe-5-succes-wishlist-notifs.md` |
 | Filtrer la Collection par « Type de carte » ; nécessite un type persistant associé à chaque carte du catalogue, exposé par les lectures Collection | Référence visuelle de révision Phase 3 |
 | Filtrer la Collection par mode d’acquisition ; nécessite une provenance persistante par exemplaire (booster, échange, marché, évolution, etc.) et son exposition dans les données Collection | Référence visuelle de révision Phase 3 |
-| Faire de « Ajouter à ma collection » une validation réelle du Regular Pack ; aujourd’hui les cartes sont déjà enregistrées par `openBooster` à l’ouverture, le bouton est donc un lien vers la Collection (désactivé tant que les 5 cartes ne sont pas révélées) | Phase 5 · Boosters |
+| Créer une validation réelle à la fin du Regular Pack | **Décision prise : non, les cartes rejoignent la collection à l’ouverture.** `openBooster` les enregistre immédiatement ; après le reveal, « Voir ma collection » est uniquement un lien vers la Collection. |
 | Afficher le gain de défausse avant l’action | **Implémenté dans `feat/server-logic`** : `get_pack_destruction_values` expose la valeur autoritaire issue de `card_destruction_value`; après les cinq reveals, le mode sélection partagé avec la Collection additionne les valeurs dans une confirmation groupée, puis retire immédiatement les cartes détruites. Preuve : `/design-system/booster-karas-preview`. |
 | Annoncer le montant de Karas dans la modale de confirmation du Booster Décisif | **Implémenté dans `feat/server-logic`** : l’estimation additionne les quatre valeurs autoritaires et `keep_decision_pack_card` crédite les mêmes raretés figées dans `decision_pack_choices`, supprimant tout écart lors d’un changement de rareté catalogue. Preuve et contre-preuve : `/design-system/booster-karas-preview` et `?disabled=1`. |
 | Révéler en touchant directement chacune des 5 cartes de la rangée | **Décision prise : non.** Le déclenchement global actuel est conservé : le joueur lance la révélation depuis le paquet, puis les cinq cartes sont révélées dans l’ordre avec leurs effets SR/SSR/LR. |

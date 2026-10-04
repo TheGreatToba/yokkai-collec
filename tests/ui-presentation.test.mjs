@@ -298,9 +298,10 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
   const regular = render(BoosterReveal, { cards, revealed: 2, onReveal() {}, onReturn() {}, async onDiscard() {} });
   assert.equal((regular.match(/>Défausser</g)||[]).length,2);
   assert.doesNotMatch(regular, />Sélectionner</);
-  assert.match(regular, /<button[^>]*disabled=""[^>]*>Ajouter à ma collection</);
+  assert.match(regular, /<button[^>]*disabled=""[^>]*>Voir ma collection</);
+  assert.match(regular, /Révèle les (?:<!-- -->)?5(?:<!-- -->)? cartes pour afficher le récapitulatif/);
   const regularDone = render(BoosterReveal, { cards, revealed: 5, onReveal() {}, onReturn() {}, async onDiscard() {} });
-  assert.match(regularDone, /href="\/collection"[^>]*>Ajouter à ma collection</);
+  assert.match(regularDone, /href="\/collection"[^>]*>Voir ma collection</);
   assert.match(regularDone, />Sélectionner</);
   assert.equal((regularDone.match(/>Défausser</g)||[]).length,5);
   const choosing = render(BoosterReveal, { cards, revealed: 5, onReveal() {}, onReturn() {}, decision: { async onKeep() { return 0; } } });
