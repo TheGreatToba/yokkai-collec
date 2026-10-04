@@ -10,6 +10,16 @@ import ts from "typescript";
 
 const require = createRequire(import.meta.url);
 const root = path.resolve(import.meta.dirname, "..");
+
+test("les échanges réutilisent les cartes standard sans écraser leurs textes internes", () => {
+  const source = readFileSync(path.join(root, "components/trades.tsx"), "utf8");
+  const css = readFileSync(path.join(root, "styles/community.css"), "utf8");
+  assert.match(source, /function OfferCards[\s\S]*?return <ReviewCards cards=\{cards\}\/>/);
+  assert.match(source, /<YokaiCard \{\.\.\.card\} image=\{card\.customImageUrl\?\?card\.image\}/);
+  assert.match(css, /\.yk-trade-review-cards>div>div>span\s*\{/);
+  assert.doesNotMatch(css, /\.yk-trade-review-cards\s+span\s*\{/);
+  assert.doesNotMatch(source, /className="yk-offer-cards"/);
+});
 const modules = new Map();
 function load(relative) {
   const filename = path.join(root, relative);
@@ -77,7 +87,8 @@ test("les modales imbriquées libèrent le scroll et la confirmation remplace le
   const collection = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
   assert.match(modal, /modalLockCount = Math\.max\(0, modalLockCount - 1\)/);
   assert.match(modal, /if \(modalLockCount === 0\) document\.body\.style\.overflow = bodyOverflowBeforeModal/);
-  assert.match(modal, /onClose=\{\(\) => \{ if \(open\) onClose\(\); \}\}/);
+  assert.match(modal, /onClose=\{\(\) => \{ if \(open && !ref\.current\?\.open\) onClose\(\); \}\}/);
+  assert.doesNotMatch(modal, /onClose=\{\(\) => \{ if \(open\) onClose\(\); \}\}/);
   assert.match(collection, /open=\{!!selected&&!discardConfirm&&!auctionOpen&&!evolveConfirm\}/);
   assert.match(collection, /open=\{auctionOpen&&!!selected\}/);
 });
@@ -125,7 +136,7 @@ test("une carte d'ami ouvre une proposition d'échange présélectionnée et ext
   assert.match(collection, /Proposer un échange/);
   assert.match(community, /initialRequestedCardId=\{searchParams\.get\("carte"\)/);
   assert.match(trades, /setRequested\(new Set\(\[initialRequestedCardId\]\)\)/);
-  assert.match(trades, /function toggle\(current: Set<string>/);
+  assert.match(trades, /selectGroupQuantity\(selected,group\.cards,quantity[+-]1\)/);
 });
 
 test("le catalogue reprend la sidebar sans notion de possession ni action de masse", () => {

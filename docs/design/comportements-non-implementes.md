@@ -45,6 +45,18 @@ Défauts constatés pendant la refonte mais volontairement non corrigés dans le
 
 ## Contrôles et idées de maquette non câblés
 
+### Échanges · Animation de résolution
+
+Le glissement croisé des cartes à l’acceptation décrit dans la maquette est volontairement différé. Aucune animation de résolution n’est incluse dans la refonte du parcours.
+
+### Échanges · Valeur estimée
+
+Le calcul d’une valeur estimée d’échange est volontairement exclu : beaucoup de cartes n’ont pas d’historique de marché et une requête par carte serait coûteuse. Le récapitulatif présente uniquement les cartes et les Karas de chaque côté.
+
+### Comportement de l’image personnalisée au transfert par échange
+
+**Décision prise : conservée, volontairement différente des enchères (un échange est un don entre amis).** L’image personnalisée reste visible par le destinataire. Le dossier, lui, est remis à zéro au transfert (`folder_id = NULL`).
+
 | Idée documentaire | Source |
 | --- | --- |
 | Trier côté serveur les cartes d’un reveal par rareté croissante | `docs/groupe-2-boosters.md` |

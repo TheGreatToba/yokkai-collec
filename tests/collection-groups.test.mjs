@@ -8,7 +8,7 @@ const context={exports:{}};
 vm.runInNewContext(ts.transpileModule(readFileSync(new URL("../lib/ui/collection-groups.ts",import.meta.url),"utf8"),{
   compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020},
 }).outputText,context);
-const {collectionGroupKey,consumableCopies,consumptionPlan,groupCollection,preservationOrder}=context.exports;
+const {collectionGroupKey,consumableCopies,consumptionPlan,groupCollection,preservationOrder,pruneUnavailableSelection,selectGroupQuantity}=context.exports;
 
 const copy=(instanceId,{id="card-a",rarity="SSR",shiny=false,obtainedAt="2026-01-01T00:00:00Z",customImageUrl=null,folderId=null,isFirstOwner=false}={})=>({
   id,instanceId,name:"Carte",category:"Anime",rarity,shiny,obtainedAt,customImageUrl,folderId,image:"/card.png",catalogueImage:"/card.png",isEvolved:false,isFirstOwner,
@@ -85,4 +85,59 @@ test("la proposition d'évolution choisit exactement 3 copies disponibles et pr�
   assert.deepEqual(Array.from(proposed,card=>card.instanceId),["plain-old","plain-mid","plain-new"]);
   assert.ok(!proposed.some(card=>card.customImageUrl));
   assert.ok(!proposed.some(card=>card.instanceId==="auction-old"));
+});
+
+test("un échange choisit les plus anciennes copies ordinaires avant les images personnalisées",()=>{
+  const cards=[
+    copy("custom-old",{obtainedAt:"2026-01-01T00:00:00Z",customImageUrl:"https://i.imgur.com/custom.png"}),
+    copy("plain-new",{obtainedAt:"2026-01-04T00:00:00Z"}),
+    copy("plain-old",{obtainedAt:"2026-01-02T00:00:00Z"}),
+    copy("plain-mid",{obtainedAt:"2026-01-03T00:00:00Z"}),
+  ];
+  assert.deepEqual([...selectGroupQuantity(new Set(),cards,2)],["plain-old","plain-mid"]);
+  assert.ok(!selectGroupQuantity(new Set(),cards,2).has("custom-old"));
+});
+
+test("un échange conserve l'ordre ancien vers récent quand toutes les copies sont personnalisées",()=>{
+  const cards=[
+    copy("custom-new",{obtainedAt:"2026-01-03T00:00:00Z",customImageUrl:"https://i.imgur.com/new.png"}),
+    copy("custom-old",{obtainedAt:"2026-01-01T00:00:00Z",customImageUrl:"https://i.imgur.com/old.png"}),
+    copy("custom-mid",{obtainedAt:"2026-01-02T00:00:00Z",customImageUrl:"https://i.imgur.com/mid.png"}),
+  ];
+  assert.deepEqual([...selectGroupQuantity(new Set(),cards,2)],["custom-old","custom-mid"]);
+});
+
+test("une quantité hors limites est bornée sans inventer d'identifiant",()=>{
+  const cards=[copy("one"),copy("two")];
+  assert.deepEqual([...selectGroupQuantity(new Set(["outside"]),cards,0)],["outside"]);
+  const selected=selectGroupQuantity(new Set(),cards,99);
+  assert.deepEqual(new Set(selected),new Set(["one","two"]));
+  assert.ok([...selected].every(id=>cards.some(card=>card.instanceId===id)));
+});
+
+test("diminuer une quantité retire exactement les derniers identifiants ajoutés",()=>{
+  const cards=[copy("new",{obtainedAt:"2026-01-03T00:00:00Z"}),copy("old",{obtainedAt:"2026-01-01T00:00:00Z"}),copy("mid",{obtainedAt:"2026-01-02T00:00:00Z"})];
+  const two=selectGroupQuantity(new Set(),cards,2);
+  const three=selectGroupQuantity(two,cards,3);
+  const backToTwo=selectGroupQuantity(three,cards,2);
+  assert.deepEqual([...two],["old","mid"]);
+  assert.deepEqual([...three],["old","mid","new"]);
+  assert.deepEqual([...backToTwo],["old","mid"]);
+});
+
+test("la sélection reste unique, bornée au groupe et séparée entre normal et Shiny",()=>{
+  const normal=[copy("normal-a"),copy("normal-b")];
+  const shiny=[copy("shiny-a",{shiny:true}),copy("shiny-b",{shiny:true})];
+  const selected=selectGroupQuantity(selectGroupQuantity(new Set(),normal,2),shiny,1);
+  assert.equal(selected.size,3);
+  assert.deepEqual(new Set([...selected].filter(id=>id.startsWith("normal"))),new Set(["normal-a","normal-b"]));
+  assert.deepEqual(new Set([...selected].filter(id=>id.startsWith("shiny"))),new Set(["shiny-a"]));
+  assert.equal(groupCollection([...normal,...shiny]).length,2);
+});
+
+test("une instance disparue du contexte est retirée avant l'envoi",()=>{
+  const result=pruneUnavailableSelection(new Set(["available","auctioned"]),[copy("available")]);
+  assert.deepEqual([...result.selected],["available"]);
+  assert.deepEqual(Array.from(result.removed),["auctioned"]);
+  assert.deepEqual(Array.from(pruneUnavailableSelection(result.selected,[copy("available")]).removed),[]);
 });
