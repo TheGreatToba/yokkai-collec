@@ -1,7 +1,7 @@
 import { createClient } from "@/utils/supabase/client";
 import { withLiveCardFranchises, type Card } from "@/lib/data/cards";
 
-export type CardOwner={id:string;pseudo:string;copies:number};
+export type CardOwner={id:string;pseudo:string;copies:number;isFriend:boolean};
 export type CardDiscovery={card:Card;marketValue:number|null;activeAuctionId:string|null;wishlisted:boolean;ownerCount:number;owners:CardOwner[]};
 export type WishlistCard=Card&{createdAt:string};
 let client:ReturnType<typeof createClient>|undefined;
