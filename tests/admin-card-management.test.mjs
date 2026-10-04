@@ -336,3 +336,14 @@ test("les noms de cartes existants et futurs sont normalisés en majuscules", as
   ]);
   await db.close();
 });
+
+test("la migration supprime uniquement DJ CONDOR et toutes ses copies", async () => {
+  const migration = await read("supabase/migrations/20261004000004_remove_dj_condor.sql");
+  assert.match(migration, /nom = 'DJ CONDOR'/);
+  assert.match(migration, /id = '7681348b-0143-4079-86f0-3626dda7cc21'/);
+  assert.match(migration, /source_id = '41782'/);
+  assert.match(migration, /if matching_cards <> 1 then/);
+  assert.match(migration, /delete from public\.user_cards where card_id = target_id/);
+  assert.match(migration, /delete from public\.cards where id = target_id/);
+  assert.match(migration, /if linked_auctions <> 0 then/);
+});
