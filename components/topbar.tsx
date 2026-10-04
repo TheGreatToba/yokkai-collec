@@ -29,7 +29,7 @@ export function notificationItem(notification:AppNotification):NotificationItem 
   return {...common,title:"Carte en wishlist aux enchères",text:`${notification.cardName??"Une carte"} de ta wishlist vient d’être mise aux enchères — clique pour voir.`,href:`/marche/${notification.referenceId}`,kind:"wishlist"};
 }
 export function Topbar({ view, account, name: providedName, karas, notifications, notificationError: externalNotificationError, onRetryNotifications, onRefreshNotifications, onReadAll, onOpenNotification }: {
-  view: "packs" | "collection" | "profile" | "friends" | "market" | "auction" | "trades" | "search" | "wishlist" | "admin" | "achievements"; account?: ReactNode; name?: string; collection?: CollectedCard[];
+  view: "packs" | "collection" | "profile" | "friends" | "market" | "auction" | "trades" | "search" | "wishlist" | "admin" | "achievements" | "settings"; account?: ReactNode; name?: string; collection?: CollectedCard[];
   karas?: number; notifications?: NotificationItem[]; notificationError?: string; onRetryNotifications?: () => void; onRefreshNotifications?: () => void; onReadAll?: () => void; onOpenNotification?: (id:string,href:string)=>Promise<void>;
 }) {
   const sound = useSfx();
