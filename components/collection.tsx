@@ -21,6 +21,7 @@ const rarityOrder: Rarity[] = ["LR","SSR","SR","R","C"];
 const rarityText = { C:"text-rarity-c", R:"text-rarity-r", SR:"text-rarity-sr", SSR:"text-rarity-ssr", LR:"text-rarity-lr" };
 // Karas credited by a single destruction, as already announced in the confirmation modal.
 const DESTRUCTION_KARAS: Record<Rarity, number> = { C:1, R:2, SR:3, SSR:4, LR:5 };
+const LOCKED_FOLDER = "__locked__";
 const formatDate = (value: string, long = false) => new Date(value).toLocaleDateString("fr-FR", {dateStyle:long ? "long" : "medium"});
 
 function FilterSection({ title, children, open = true }: { title: string; children: React.ReactNode; open?: boolean }) {
@@ -31,11 +32,16 @@ function FilterIcon({ colorClass }: { colorClass: string }) {
   return <svg aria-hidden="true" className={colorClass} width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 2.45 6.1L21 10.5l-5.25 4.05L16 21l-4-3.55L8 21l.25-6.45L3 10.5l6.55-2.4L12 2Z"/></svg>;
 }
 
-export function CollectionView({ cards, categories, presentation = {}, readOnly = false, tradeHref, folders = [], onCreateFolder, onDeleteFolder, onMoveCard, onCreateAuction, onEvolve, onSetCustomImage, onDiscard, onDiscardMany, loadCardDiscovery = getCardDiscovery }: {
+function ProtectedIcon({ size = 14 }: { size?: number }) {
+  return <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><g stroke="rgba(2,0,15,.95)" strokeWidth="5"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><path d="M12 14v3"/></g><g stroke="currentColor" strokeWidth="2"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><path d="M12 14v3"/></g></svg>;
+}
+
+export function CollectionView({ cards, categories, presentation = {}, readOnly = false, tradeHref, folders = [], onCreateFolder, onDeleteFolder, onMoveCard, onSetLocked, onCreateAuction, onEvolve, onSetCustomImage, onDiscard, onDiscardMany, loadCardDiscovery = getCardDiscovery }: {
   cards: CollectedCard[]; categories: string[]; presentation?: Record<string, CollectionPresentation>;
   totals?: Partial<Record<Rarity,number>>; readOnly?: boolean; tradeHref?: (card: CollectedCard) => string; folders?: Folder[];
   onCreateFolder?: (name: string) => Promise<void>; onDeleteFolder?: (folderId: string) => Promise<void>;
   onMoveCard?: (instanceId: string, folderId: string | null) => Promise<void>;
+  onSetLocked?: (instanceId: string, locked: boolean) => Promise<void>;
   onCreateAuction?: (instanceId:string,startingPrice:number,durationMinutes:number)=>Promise<void>;
   onEvolve?: (instanceIds: string[]) => Promise<CollectedCard>;
   onSetCustomImage?: (instanceId: string, imageUrl: string | null) => Promise<void>;
@@ -50,7 +56,7 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
   const [query, setQuery] = useState("");
   const [rarity, setRarity] = useState<Rarity | "">("");
   const [shinyOnly, setShinyOnly] = useState(false);
-  const [folder, setFolder] = useState<string | "unfiled" | "">("");
+  const [folder, setFolder] = useState<string | "unfiled" | typeof LOCKED_FOLDER | "">("");
   const [page, setPage] = useState(1);
   const [sort, setSort] = useCollectionSort();
   const [pageSize, setPageSize] = useState<number>(CARD_PAGE_SIZES[0]);
@@ -76,6 +82,8 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
   const [customImageUrl, setCustomImageUrl] = useState("");
   const [imageBusy, setImageBusy] = useState(false);
   const [imageError, setImageError] = useState("");
+  const [lockBusy, setLockBusy] = useState(false);
+  const [lockError, setLockError] = useState("");
   const [discardConfirm, setDiscardConfirm] = useState(false);
   const [discardQuantity, setDiscardQuantity] = useState(1);
   const [discardBusy, setDiscardBusy] = useState(false);
@@ -88,15 +96,15 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
   const selected = cards.find(c => c.instanceId === selectedId);
   const selectedMeta = selected ? presentation[selected.instanceId] : undefined;
   const filtered = sortCollection(cards.filter(c => matchesCardSearch(query,[c.name,c.category,c.anime]) && (!category || c.category === category) && (!rarity || c.rarity === rarity) && (!shinyOnly || c.shiny)
-      && (!folder || (folder === "unfiled" ? !c.folderId : c.folderId === folder))), sort);
+      && (!folder || (folder === LOCKED_FOLDER ? !!c.locked : folder === "unfiled" ? !c.folderId : c.folderId === folder))), sort);
   const groups = groupCollection(filtered);
   const allGroupsByKey = new Map(groupCollection(cards).map(group=>[group.key,group]));
   const pageCount = Math.max(1, Math.ceil(groups.length / pageSize));
   const activePage = Math.min(page, pageCount);
   const visibleGroups = groups.slice((activePage - 1) * pageSize, activePage * pageSize);
-  const selectedCards = cards.filter(c => selection.has(c.instanceId) && !presentation[c.instanceId]?.frozen);
+  const selectedCards = cards.filter(c => selection.has(c.instanceId) && !c.locked && !presentation[c.instanceId]?.frozen);
   const selectedGroup = selected ? groupCollection(cards.filter(card=>collectionGroupKey(card)===collectionGroupKey(selected)))[0] : undefined;
-  const isFrozen = (instanceId:string) => !!presentation[instanceId]?.frozen;
+  const isFrozen = (instanceId:string) => !!presentation[instanceId]?.frozen || !!cards.find(card=>card.instanceId===instanceId)?.locked;
   const destructibleCards = consumableCopies(selectedGroup?.cards??[],isFrozen).slice(0,onDiscardMany?undefined:1);
   const discardCards = consumptionPlan(selectedGroup?.cards??[],Math.min(discardQuantity,destructibleCards.length),isFrozen).slice(0,onDiscardMany?undefined:1);
   const discardValue = discardCards.reduce((sum,card)=>sum+(presentation[card.instanceId]?.destructionValue??DESTRUCTION_KARAS[card.rarity]),0);
@@ -106,7 +114,7 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
   const selectedValue = selectedCards.length > 0
     ? selectedCards.reduce((sum,card)=>sum+(presentation[card.instanceId]?.destructionValue??DESTRUCTION_KARAS[card.rarity]),0)
     : undefined;
-  function toggleGroup(groupCards: CollectedCard[]) { setSelection(current=>{ const next=new Set(current);const eligible=groupCards.filter(card=>!presentation[card.instanceId]?.frozen);const all=eligible.length>0&&eligible.every(card=>next.has(card.instanceId));for(const card of eligible){if(all)next.delete(card.instanceId);else next.add(card.instanceId);}return next;}); }
+  function toggleGroup(groupCards: CollectedCard[]) { setSelection(current=>{ const next=new Set(current);const eligible=groupCards.filter(card=>!card.locked&&!presentation[card.instanceId]?.frozen);const all=eligible.length>0&&eligible.every(card=>next.has(card.instanceId));for(const card of eligible){if(all)next.delete(card.instanceId);else next.add(card.instanceId);}return next;}); }
   function toggleEvolutionCard(instanceId:string) { setEvolutionSelection(current=>{const next=new Set(current);if(next.has(instanceId))next.delete(instanceId);else if(next.size<5)next.add(instanceId);return next;}); }
   async function evolveSelected() {
     if (!selected || !onEvolve || evolving || evolutionCards.length !== 5) return;
@@ -137,6 +145,13 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
     try { await onSetCustomImage(selected.instanceId, imageUrl); setCustomImageUrl(""); }
     catch (error) { setImageError(error instanceof Error ? error.message : "Impossible de personnaliser l'image."); }
     finally { setImageBusy(false); }
+  }
+  async function toggleSelectedLock() {
+    if (!selected || !onSetLocked || lockBusy || selectedMeta?.frozen) return;
+    setLockBusy(true); setLockError("");
+    try { await onSetLocked(selected.instanceId, !selected.locked); }
+    catch (error) { setLockError(error instanceof Error ? error.message : "Impossible de modifier le verrouillage de cette carte."); }
+    finally { setLockBusy(false); }
   }
   async function discardSelected() {
     if (!selected || !discardCards.length || discardBusy || (!onDiscardMany&&!onDiscard)) return;
@@ -172,11 +187,12 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
     </FilterSection>
     {!readOnly&&<FilterSection title="Dossier">
       <button type="button" className="yk-filter-option" aria-pressed={!folder} onClick={()=>{setFolder("");setPage(1);}}><span className="yk-filter-check"/><span>Tous les dossiers</span><strong>{groupCollection(cards).length}</strong></button>
+      <button type="button" className="yk-filter-option" aria-pressed={folder===LOCKED_FOLDER} onClick={()=>{setFolder(LOCKED_FOLDER);setPage(1);}}><span className="yk-filter-check"/><ProtectedIcon/><span>Cartes verrouillées</span><strong>{groupCollection(cards.filter(card=>card.locked)).length}</strong></button>
       <button type="button" className="yk-filter-option" aria-pressed={folder==="unfiled"} onClick={()=>{setFolder("unfiled");setPage(1);}}><span className="yk-filter-check"/><span>Sans dossier</span><strong>{groupCollection(cards.filter(card=>!card.folderId)).length}</strong></button>
       {folders.map(item=><button type="button" key={item.id} className="yk-filter-option" aria-pressed={folder===item.id} onClick={()=>{setFolder(item.id);setPage(1);}}><span className="yk-filter-check"/><span>{item.name}</span><strong>{groupCollection(cards.filter(card=>card.folderId===item.id)).length}</strong></button>)}
       {onCreateFolder&&<button type="button" className="yk-folder-create-toggle" aria-expanded={showFolderCreator} onClick={()=>{setShowFolderCreator(current=>!current);setFolderError("");}}>+ Créer un dossier</button>}
       {onCreateFolder&&showFolderCreator&&<div className="yk-folder-create"><input autoFocus value={folderName} maxLength={40} onChange={event=>setFolderName(event.target.value)} onKeyDown={event=>{if(event.key==="Enter"){event.preventDefault();void addFolder();}if(event.key==="Escape"){setShowFolderCreator(false);setFolderName("");}}} placeholder="Nouveau dossier" aria-label="Nom du nouveau dossier"/><Button variant="secondary" disabled={folderBusy||!folderName.trim()} onClick={()=>void addFolder()}>{folderBusy?"Création…":"Créer"}</Button></div>}
-      {onDeleteFolder&&folder&&folder!=="unfiled"&&<button type="button" className="yk-folder-delete" onClick={()=>void onDeleteFolder(folder)}>Supprimer ce dossier</button>}{folderError&&<p role="alert" className="text-xs text-danger">{folderError}</p>}
+      {onDeleteFolder&&folder&&folder!=="unfiled"&&folder!==LOCKED_FOLDER&&<button type="button" className="yk-folder-delete" onClick={()=>void onDeleteFolder(folder)}>Supprimer ce dossier</button>}{folderError&&<p role="alert" className="text-xs text-danger">{folderError}</p>}
     </FilterSection>}
     <button type="button" className="yk-filter-reset" disabled={!(query||rarity||category||shinyOnly||folder)} onClick={resetFilters}><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Réinitialiser les filtres</button>
   </>;
@@ -195,9 +211,9 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
           <div className="yk-view-toggle" aria-label="Mode d’affichage"><button type="button" aria-label="Vue grille" aria-pressed={viewMode==="grid"} onClick={()=>setViewMode("grid")}><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><rect x="14" y="14" width="6" height="6"/></svg></button><button type="button" aria-label="Vue liste" aria-pressed={viewMode==="list"} onClick={()=>setViewMode("list")}><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1" fill="currentColor"/><circle cx="4" cy="12" r="1" fill="currentColor"/><circle cx="4" cy="18" r="1" fill="currentColor"/></svg></button></div>
         </div>
         {filtered.length===0&&<div className="rounded-panel border border-dashed border-veil-strong px-6 py-16 text-center"><p className="font-display text-xl">{cards.length===0?"Ta collection est vide pour l’instant — ouvre ton premier booster.":"Aucune carte ne correspond à ces filtres."}</p>{cards.length===0?<Link href="/boosters" className="yk-button yk-button-primary mt-6">Ouvrir mon premier booster</Link>:<p className="mt-3 text-sm text-ink-2">Essaie une autre rareté ou catégorie.</p>}</div>}
-        <ul className={`yk-card-grid yk-collection-grid ${viewMode==="list"?"yk-collection-grid-list":""}`} aria-label="Groupes de cartes obtenues">{visibleGroups.map(group=>{const card=group.representative;const historyGroup=allGroupsByKey.get(group.key)??group;const meta=presentation[card.instanceId];const eligible=group.cards.filter(copy=>!presentation[copy.instanceId]?.frozen);const checked=eligible.length>0&&eligible.every(copy=>selection.has(copy.instanceId));const partial=!checked&&eligible.some(copy=>selection.has(copy.instanceId));const frozenCount=group.cards.length-eligible.length;return <li key={group.key} className="min-w-0"><button type="button" disabled={selecting&&eligible.length===0} className={`yk-collection-card ${selecting&&(checked||partial)?"yk-selected-card":""}`} aria-label={`${selecting?"Sélectionner":"Voir"} ${card.name}, ${card.rarity}, ${group.cards.length} exemplaires`} aria-pressed={selecting?checked:undefined} aria-haspopup={selecting?undefined:"dialog"} onClick={()=>selecting?toggleGroup(group.cards):setSelectedId(card.instanceId)}><CardShell><YokaiCard {...card} image={card.image} {...meta}/></CardShell>{selecting&&eligible.length>0&&<span className={`yk-selection-check ${checked||partial?"yk-checked":""}`}>{checked?"✓":partial?"−":""}</span>}{group.cards.some(copy=>presentation[copy.instanceId]?.isNew)&&<span className="absolute top-3 left-3 rounded-badge bg-accent-gold px-2 py-1 text-[10px] font-bold text-void">NEW</span>}{group.cards.length>1&&<span className="absolute right-2 bottom-2 rounded-full border border-veil bg-void/90 px-2 py-1 text-xs text-ink-2">×{group.cards.length}</span>}{frozenCount>0&&<span className="yk-group-frozen">{frozenCount} en enchère</span>}</button><div className="yk-collection-card-meta">{historyGroup.isFirstOwner?<p className="text-[11px] font-semibold text-rarity-lr">Premier propriétaire, obtenu le {formatDate(historyGroup.firstObtainedAt)}</p>:<p className="text-[11px] tracking-wider text-ink-3 uppercase">Obtenu le <time dateTime={historyGroup.firstObtainedAt}>{formatDate(historyGroup.firstObtainedAt)}</time></p>}</div></li>;})}</ul>
+        <ul className={`yk-card-grid yk-collection-grid ${viewMode==="list"?"yk-collection-grid-list":""}`} aria-label="Groupes de cartes obtenues">{visibleGroups.map(group=>{const card=group.representative;const historyGroup=allGroupsByKey.get(group.key)??group;const meta=presentation[card.instanceId];const eligible=group.cards.filter(copy=>!copy.locked&&!presentation[copy.instanceId]?.frozen);const checked=eligible.length>0&&eligible.every(copy=>selection.has(copy.instanceId));const partial=!checked&&eligible.some(copy=>selection.has(copy.instanceId));const frozenCount=group.cards.filter(copy=>presentation[copy.instanceId]?.frozen).length;const lockedCount=group.cards.filter(copy=>copy.locked).length;return <li key={group.key} className="min-w-0"><button type="button" disabled={selecting&&eligible.length===0} className={`yk-collection-card ${selecting&&(checked||partial)?"yk-selected-card":""}`} aria-label={`${selecting?"Sélectionner":"Voir"} ${card.name}, ${card.rarity}, ${group.cards.length} exemplaires`} aria-pressed={selecting?checked:undefined} aria-haspopup={selecting?undefined:"dialog"} onClick={()=>selecting?toggleGroup(group.cards):setSelectedId(card.instanceId)}><CardShell><YokaiCard {...card} image={card.image} {...meta}/></CardShell>{selecting&&eligible.length>0&&<span className={`yk-selection-check ${checked||partial?"yk-checked":""}`}>{checked?"✓":partial?"−":""}</span>}{group.cards.some(copy=>presentation[copy.instanceId]?.isNew)&&<span className="absolute top-3 left-3 rounded-badge bg-accent-gold px-2 py-1 text-[10px] font-bold text-void">NEW</span>}{group.cards.length>1&&<span className="absolute right-2 bottom-2 rounded-full border border-veil bg-void/90 px-2 py-1 text-xs text-ink-2">×{group.cards.length}</span>}{lockedCount>0&&<span className="yk-group-locked" aria-label="Carte protégée" title="Carte protégée"><ProtectedIcon size={16}/></span>}{lockedCount===0&&frozenCount>0&&<span className="yk-group-frozen">{frozenCount} en enchère</span>}</button><div className="yk-collection-card-meta">{historyGroup.isFirstOwner?<p className="text-[11px] font-semibold text-rarity-lr">Premier propriétaire, obtenu le {formatDate(historyGroup.firstObtainedAt)}</p>:<p className="text-[11px] tracking-wider text-ink-3 uppercase">Obtenu le <time dateTime={historyGroup.firstObtainedAt}>{formatDate(historyGroup.firstObtainedAt)}</time></p>}</div></li>;})}</ul>
         <div className="yk-collection-pagination"><Pagination page={activePage} pageCount={pageCount} onPageChange={setPage} label="Pagination de la collection"/><label>Cartes par page<select value={pageSize} onChange={event=>{setPageSize(Number(event.target.value));setPage(1);}}>{CARD_PAGE_SIZES.map(size=><option key={size} value={size}>{size}</option>)}</select></label></div>
-        {selecting&&<SelectionBar itemLabel="exemplaire" count={selectedCards.length} value={selectedValue} busy={bulkDiscardBusy} error={bulkDiscardError} onAll={()=>setSelection(new Set(groups.flatMap(group=>group.cards).filter(c=>!presentation[c.instanceId]?.frozen).map(c=>c.instanceId)))} onNone={()=>setSelection(new Set())} onDestroy={()=>{setBulkDiscardError("");setBulkDiscardConfirm(true);}} onClose={()=>{setSelecting(false);setSelection(new Set());}}/>}
+        {selecting&&<SelectionBar itemLabel="exemplaire" count={selectedCards.length} value={selectedValue} busy={bulkDiscardBusy} error={bulkDiscardError} onAll={()=>setSelection(new Set(groups.flatMap(group=>group.cards).filter(c=>!c.locked&&!presentation[c.instanceId]?.frozen).map(c=>c.instanceId)))} onNone={()=>setSelection(new Set())} onDestroy={()=>{setBulkDiscardError("");setBulkDiscardConfirm(true);}} onClose={()=>{setSelecting(false);setSelection(new Set());}}/>}
       </div>
     </div>
     <Modal open={!!selected&&!discardConfirm&&!auctionOpen&&!evolveConfirm} onClose={()=>setSelectedId(null)} title="Détail de la carte" className="yk-card-detail-modal">{selected&&<div className="yk-detail-grid">
@@ -206,11 +222,12 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
       </div>
       <div className="yk-detail-info">
         <header><div className="flex flex-wrap items-center gap-2"><span className={`text-sm font-bold tracking-widest ${rarityText[selected.rarity]}`}>{selected.rarity}{selected.shiny?" ✦ Shiny":""}</span>{selected.isEvolved&&<span className="text-[10px] font-semibold tracking-wider text-accent-gold">ÉVOLUÉE</span>}</div><h3 className="mt-1 font-display text-[28px] leading-tight">{selected.name}</h3></header>
-        {(selectedGroup?.cards.length??0)>1&&<div className="yk-copy-picker"><span className="yk-section-title">Exemplaire affiché</span><div>{selectedGroup?.cards.map((card,index)=><button type="button" key={card.instanceId} aria-pressed={card.instanceId===selected.instanceId} onClick={()=>setSelectedId(card.instanceId)}>{index+1}{card.customImageUrl?" ✦":""}{presentation[card.instanceId]?.frozen?" 🔒":""}</button>)}</div></div>}
+        {(selectedGroup?.cards.length??0)>1&&<div className="yk-copy-picker"><span className="yk-section-title">Exemplaire affiché</span><div>{selectedGroup?.cards.map((card,index)=><button type="button" key={card.instanceId} aria-label={`Exemplaire ${index+1}${card.locked?", protégé":""}`} aria-pressed={card.instanceId===selected.instanceId} onClick={()=>setSelectedId(card.instanceId)}><span>{index+1}{card.customImageUrl?" ✦":""}</span>{card.locked?<ProtectedIcon size={12}/>:presentation[card.instanceId]?.frozen?" ⏳":""}</button>)}</div></div>}
         <dl className="yk-detail-facts"><div><dt>Catégorie</dt><dd>{selected.category}</dd></div><div><dt>Obtenue le</dt><dd>{formatDate(selected.obtainedAt,true)}</dd></div><div><dt>Exemplaires</dt><dd>{selectedGroup?.cards.length??1}</dd></div>{selectedMeta?.marketValue!=null&&<div><dt>Valeur de marché</dt><dd><Karas amount={selectedMeta.marketValue}/></dd></div>}</dl>
-        {resolvedTradeHref&&<Link className="yk-button yk-button-primary mt-6 flex w-full justify-center" href={resolvedTradeHref(selected)}>Proposer un échange</Link>}
+        {resolvedTradeHref&&!selected.locked&&<Link className="yk-button yk-button-primary mt-6 flex w-full justify-center" href={resolvedTradeHref(selected)}>Proposer un échange</Link>}
+        {!readOnly&&onSetLocked&&<div className="yk-detail-actions"><Button variant="secondary" className="flex w-full items-center justify-center gap-2" disabled={lockBusy||!!selectedMeta?.frozen} onClick={()=>void toggleSelectedLock()}><ProtectedIcon size={16}/>{lockBusy?"Enregistrement…":selected.locked?"Déverrouiller la carte":"Verrouiller la carte"}</Button><p className="text-xs text-ink-3">Une carte verrouillée ne peut pas être vendue, échangée, détruite ni ajoutée à une sélection multiple.</p>{lockError&&<p role="alert" className="text-xs text-danger">{lockError}</p>}</div>}
         {!readOnly&&(onCreateAuction||(selected.rarity==="SSR"&&!selected.shiny))&&<div className="yk-detail-actions">
-          {onCreateAuction&&<Button className="w-full" disabled={!!selectedMeta?.frozen} onClick={()=>void openAuction()}>{selectedMeta?.frozen?"Déjà en vente":"Mettre aux enchères"}</Button>}
+          {onCreateAuction&&<Button className="w-full" disabled={selected.locked||!!selectedMeta?.frozen} onClick={()=>void openAuction()}>{selected.locked?"Carte verrouillée":selectedMeta?.frozen?"Déjà en vente":"Mettre aux enchères"}</Button>}
           {selected.rarity==="SSR"&&!selected.shiny&&<div className="yk-detail-evolve"><Button variant="secondary" className="w-full" disabled={evolvableCopies<5||evolving||!onEvolve} onClick={()=>{setEvolutionSelection(new Set(evolvableCards.slice(0,5).map(card=>card.instanceId)));setEvolutionError("");setEvolveConfirm(true);}}>Évoluer en Shiny ({evolvableCopies}/5)</Button><p><strong className="text-accent-neon">Évolution Shiny</strong> · {evolvableCopies} / 5 exemplaires SSR non-Shiny disponibles · images personnalisées préservées si possible, puis plus anciens d’abord</p></div>}
           {evolutionError&&<p role="alert" className="text-xs text-danger">{evolutionError}</p>}
         </div>}
