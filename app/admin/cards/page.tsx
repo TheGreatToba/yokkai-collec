@@ -7,6 +7,11 @@ import { createClient } from "@/utils/supabase/server";
 import { AdminCardManager } from "./admin-card-manager";
 
 export const dynamic = "force-dynamic";
+const ADMIN_SEARCH_PAGE_SIZE = 1000;
+
+function quotedLike(value: string) {
+  return `"%${value.replaceAll("\\", "\\\\").replaceAll('"', '\\"')}%"`;
+}
 
 export default async function AdminCardsPage({
   searchParams,
@@ -18,20 +23,30 @@ export default async function AdminCardsPage({
   const client = createClient(await cookies());
   const { q, category } = await searchParams;
   const searchQuery = q?.trim().slice(0, 100) ?? "";
+  const searchTerms = searchQuery.split(/\s+/).filter(Boolean);
   const selectedCategory = category?.trim().slice(0, 100) ?? "";
   const { data: categoryData, error: categoryError } = await client.rpc("list_admin_card_categories");
   if (categoryError) throw new Error(categoryError.message);
   const categories = Array.isArray(categoryData) ? categoryData.filter((item): item is string => typeof item === "string") : [];
-  let cardsQuery = client.from("cards")
-    .select("id,nom,categorie,franchise,rarete_base,image_url")
-    .limit(50);
-  if (searchQuery) cardsQuery = cardsQuery.ilike("nom", `%${searchQuery}%`);
-  if (selectedCategory) cardsQuery = cardsQuery.eq("categorie", selectedCategory);
-  cardsQuery = searchQuery || selectedCategory
-    ? cardsQuery.order("nom", { ascending: true })
-    : cardsQuery.order("date_ajout", { ascending: false });
-  const { data: cards, error } = await cardsQuery;
-  if (error) throw new Error(error.message);
+  const cards = [];
+  let offset = 0;
+  while (true) {
+    let cardsQuery = client.from("cards").select("id,nom,categorie,franchise,rarete_base,image_url");
+    for (const searchTerm of searchTerms) {
+      const term = quotedLike(searchTerm);
+      cardsQuery = cardsQuery.or(`nom.ilike.${term},franchise.ilike.${term}`);
+    }
+    if (selectedCategory) cardsQuery = cardsQuery.eq("categorie", selectedCategory);
+    cardsQuery = (searchQuery || selectedCategory
+      ? cardsQuery.order("nom", { ascending: true })
+      : cardsQuery.order("date_ajout", { ascending: false }))
+      .range(offset, offset + (searchQuery ? ADMIN_SEARCH_PAGE_SIZE : 49));
+    const { data, error } = await cardsQuery;
+    if (error) throw new Error(error.message);
+    cards.push(...(data ?? []));
+    if (!searchQuery || !data || data.length < ADMIN_SEARCH_PAGE_SIZE) break;
+    offset += ADMIN_SEARCH_PAGE_SIZE;
+  }
   return (
     <div className="min-h-screen bg-slate-950 text-white">
       <Topbar view="admin" account={<AccountMenu/>} name={name ?? undefined}/>
@@ -42,9 +57,9 @@ export default async function AdminCardsPage({
         </header>
         <section className="rounded-2xl border border-cyan-300/20 bg-slate-900/70 p-5">
           <h2 className="text-xl font-bold">Rechercher une carte du catalogue</h2>
-          <p className="mt-1 text-sm text-slate-300">Recherche par nom, par catégorie, ou combine les deux.</p>
+          <p className="mt-1 text-sm text-slate-300">Recherche par nom de carte ou de licence, avec un filtre de catégorie facultatif.</p>
           <form className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,3fr)_minmax(14rem,2fr)_auto_auto]" method="get">
-            <input aria-label="Nom de la carte" className="w-full min-w-0 rounded-xl border border-white/15 bg-slate-950 px-4 py-3 text-white" defaultValue={searchQuery} maxLength={100} name="q" placeholder="Exemple : Luffy"/>
+            <input aria-label="Nom de la carte ou de la licence" className="w-full min-w-0 rounded-xl border border-white/15 bg-slate-950 px-4 py-3 text-white" defaultValue={searchQuery} maxLength={100} name="q" placeholder="Exemple : V Cyberpunk"/>
             <label className="sr-only" htmlFor="admin-card-category">Catégorie</label>
             <select id="admin-card-category" aria-label="Catégorie" className="w-full min-w-0 rounded-xl border border-white/15 bg-slate-950 px-4 py-3 text-white" defaultValue={selectedCategory} name="category">
               <option value="">Toutes les catégories</option>

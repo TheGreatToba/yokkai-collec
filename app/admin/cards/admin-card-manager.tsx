@@ -101,7 +101,7 @@ export function AdminCardManager({ cards, searchQuery = "" }: { cards: Card[]; s
 
       <section className="space-y-3">
         <div className="flex items-center justify-between"><h2 className="text-xl font-bold">{searchQuery ? `Résultats pour « ${searchQuery} »` : "Cartes récentes"}</h2><span className="text-sm text-slate-400">{cards.length} affichée(s)</span></div>
-        {searchQuery && cards.length === 0 ? <p className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 text-slate-300">Aucune carte trouvée avec ce nom.</p> : null}
+        {searchQuery && cards.length === 0 ? <p className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 text-slate-300">Aucune carte trouvée avec ce nom ou cette licence.</p> : null}
         {cards.map((card) => <CardRow card={card} key={card.id}/>)}
       </section>
     </div>

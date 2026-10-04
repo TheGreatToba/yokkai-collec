@@ -126,9 +126,28 @@ test("un remplacement d’image admin peut relire l’objet nécessaire à l’u
 test("un admin peut rechercher une carte par son nom dans tout le catalogue", async () => {
   const page = await read("app/admin/cards/page.tsx");
   assert.match(page, /searchParams:\s*Promise<\{ q\?: string; category\?: string \}>/);
-  assert.match(page, /\.ilike\("nom", `%\$\{searchQuery\}%`\)/);
+  assert.match(page, /nom\.ilike\.\$\{term\},franchise\.ilike\.\$\{term\}/);
   assert.match(page, /name="q"/);
   assert.match(page, /Rechercher une carte du catalogue/);
+});
+
+test("la recherche admin retourne toutes les cartes d'une licence", async () => {
+  const page = await read("app/admin/cards/page.tsx");
+  const manager = await read("app/admin/cards/admin-card-manager.tsx");
+  assert.match(page, /franchise\.ilike\.\$\{term\}/);
+  assert.match(page, /ADMIN_SEARCH_PAGE_SIZE = 1000/);
+  assert.match(page, /offset \+= ADMIN_SEARCH_PAGE_SIZE/);
+  assert.match(page, /Nom de la carte ou de la licence/);
+  assert.match(page, /V Cyberpunk/);
+  assert.match(manager, /ce nom ou cette licence/);
+});
+
+test("la recherche admin combine le personnage et sa licence", async () => {
+  const page = await read("app/admin/cards/page.tsx");
+  assert.match(page, /searchQuery\.split\(\/\\s\+\/\)\.filter\(Boolean\)/);
+  assert.match(page, /for \(const searchTerm of searchTerms\)/);
+  assert.match(page, /const term = quotedLike\(searchTerm\)/);
+  assert.match(page, /cardsQuery = cardsQuery\.or\(`nom\.ilike\.\$\{term\},franchise\.ilike\.\$\{term\}`\)/);
 });
 
 test("un admin peut filtrer les cartes avec une liste de catégories", async () => {
@@ -140,7 +159,7 @@ test("un admin peut filtrer les cartes avec une liste de catégories", async () 
   assert.match(page, /Toutes les catégories/);
   assert.match(page, /sm:grid-cols-\[minmax\(0,3fr\)_minmax\(14rem,2fr\)_auto_auto\]/);
   assert.match(page, /id="admin-card-category"[^>]+w-full min-w-0/);
-  assert.match(page, /aria-label="Nom de la carte"[^>]+w-full min-w-0/);
+  assert.match(page, /aria-label="Nom de la carte ou de la licence"[^>]+w-full min-w-0/);
   assert.match(page, /cardsQuery\.eq\("categorie", selectedCategory\)/);
   assert.doesNotMatch(page, /name="q"[^>]+required/);
   assert.match(migration, /select distinct categorie as category/i);
