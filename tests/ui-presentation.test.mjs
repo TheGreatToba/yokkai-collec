@@ -10,6 +10,16 @@ import ts from "typescript";
 
 const require = createRequire(import.meta.url);
 const root = path.resolve(import.meta.dirname, "..");
+
+test("les échanges réutilisent les cartes standard sans écraser leurs textes internes", () => {
+  const source = readFileSync(path.join(root, "components/trades.tsx"), "utf8");
+  const css = readFileSync(path.join(root, "styles/community.css"), "utf8");
+  assert.match(source, /function OfferCards[\s\S]*?return <ReviewCards cards=\{cards\}\/>/);
+  assert.match(source, /<YokaiCard \{\.\.\.card\} image=\{card\.customImageUrl\?\?card\.image\}/);
+  assert.match(css, /\.yk-trade-review-cards>div>div>span\s*\{/);
+  assert.doesNotMatch(css, /\.yk-trade-review-cards\s+span\s*\{/);
+  assert.doesNotMatch(source, /className="yk-offer-cards"/);
+});
 const modules = new Map();
 function load(relative) {
   const filename = path.join(root, relative);

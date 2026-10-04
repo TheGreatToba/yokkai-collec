@@ -137,7 +137,7 @@
 .yk-trade-review-lots { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,240px),1fr)); gap: calc(var(--spacing) * 5); margin-block: calc(var(--spacing) * 5); }
 .yk-trade-review-cards { display: grid; grid-template-columns: repeat(auto-fit,minmax(100px,140px)); gap: calc(var(--spacing) * 3); margin-block: calc(var(--spacing) * 3); }
 .yk-trade-review-cards>div>div { position: relative; }
-.yk-trade-review-cards span { position: absolute; right: var(--spacing); top: var(--spacing); background: var(--color-night); border-radius: var(--radius-pill); padding: var(--spacing); }
+.yk-trade-review-cards>div>div>span { position: absolute; right: var(--spacing); top: var(--spacing); background: var(--color-night); border-radius: var(--radius-pill); padding: var(--spacing); }
 .yk-trade-review-cards strong,.yk-trade-review-cards small { display: block; font-size: var(--text-xs); margin-top: var(--spacing); }
 .yk-trade-offer { border: 1px solid var(--color-veil); border-radius: var(--radius-panel); padding: calc(var(--spacing) * 5); background: var(--color-surface); transition: border-color var(--duration-fast) var(--ease-standard); }
 .yk-trade-offer:hover { border-color: var(--color-veil-strong); }
@@ -147,8 +147,6 @@
 .yk-trade-offer-sides,.yk-trade-confirm { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: calc(var(--spacing) * 5); margin-top: calc(var(--spacing) * 5); }
 .yk-trade-offer-sides>div,.yk-trade-confirm>div { border-left: 1px solid var(--color-veil); padding-left: calc(var(--spacing) * 4); }
 .yk-trade-offer>footer { display: flex; flex-wrap: wrap; gap: calc(var(--spacing) * 2); margin-top: calc(var(--spacing) * 5); }
-.yk-offer-cards { display: flex; flex-wrap: wrap; gap: calc(var(--spacing) * 2); margin-block: calc(var(--spacing) * 3); }
-.yk-offer-cards>span { border: 1px solid var(--color-veil); border-radius: var(--radius-input); padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 3); background: var(--color-night); font-size: var(--text-xs); }
 .yk-trade-confirm { border: 1px solid var(--color-veil); border-radius: var(--radius-input); padding: calc(var(--spacing) * 4); background: var(--color-night); }
 
 @media (max-width: 700px) {
