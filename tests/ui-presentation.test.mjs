@@ -125,7 +125,7 @@ test("une carte d'ami ouvre une proposition d'échange présélectionnée et ext
   assert.match(collection, /Proposer un échange/);
   assert.match(community, /initialRequestedCardId=\{searchParams\.get\("carte"\)/);
   assert.match(trades, /setRequested\(new Set\(\[initialRequestedCardId\]\)\)/);
-  assert.match(trades, /function toggle\(current: Set<string>/);
+  assert.match(trades, /selectGroupQuantity\(selected,group\.cards,quantity[+-]1\)/);
 });
 
 test("le catalogue reprend la sidebar sans notion de possession ni action de masse", () => {

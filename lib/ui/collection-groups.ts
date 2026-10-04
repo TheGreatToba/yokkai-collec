@@ -45,3 +45,16 @@ export function consumableCopies(cards: CollectedCard[], isFrozen: (instanceId: 
 export function consumptionPlan(cards: CollectedCard[], quantity: number, isFrozen: (instanceId: string) => boolean): CollectedCard[] {
   return consumableCopies(cards,isFrozen).slice(0,Math.max(0,quantity));
 }
+
+export function selectGroupQuantity(current: ReadonlySet<string>, cards: CollectedCard[], quantity: number): Set<string> {
+  const groupIds=new Set(cards.map(card=>card.instanceId));
+  const next=new Set([...current].filter(id=>!groupIds.has(id)));
+  for(const card of consumptionPlan(cards,quantity,()=>false))next.add(card.instanceId);
+  return next;
+}
+
+export function pruneUnavailableSelection(current: ReadonlySet<string>, cards: CollectedCard[]) {
+  const available=new Set(cards.map(card=>card.instanceId));
+  const selected=new Set([...current].filter(id=>available.has(id)));
+  return {selected,removed:[...current].filter(id=>!available.has(id))};
+}

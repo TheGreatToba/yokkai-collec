@@ -73,4 +73,7 @@ test("la page Échanges poll toutes les 3 s sans chevauchement et respecte la vi
   assert.match(source,/removeEventListener\("visibilitychange",onVisible\)/);
   assert.match(source,/adapter\.listOffers\(\)/);
   assert.match(source,/invalidatePlayerSnapshots\(\["collection","balance"\]\)/);
+  assert.match(source,/pruneUnavailableSelection\(offeredRef\.current,nextContext\.ownCards\)/);
+  assert.match(source,/pruneUnavailableSelection\(requestedRef\.current,nextContext\.friendCards\)/);
+  assert.match(source,/setSelectionNotice\(/);
 });
