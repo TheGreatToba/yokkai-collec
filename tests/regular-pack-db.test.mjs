@@ -45,6 +45,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
   await db.exec("alter table public.user_profiles add column avatar_url text");
   await db.exec(readFileSync(new URL("../supabase/migrations/20261003000008_social_avatars.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261004000005_lock_collection_cards.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../supabase/migrations/20261004000007_regular_pack_10_minutes_ssr_half_percent.sql", import.meta.url), "utf8"));
   await db.query("insert into auth.users values ($1, '{\"pseudo\":\"Alice\"}'), ($2, '{\"pseudo\":\"Bob\"}'), ($3, '{\"pseudo\":\"Charlie\"}')", [alice, bob, charlie]);
   for (const rarity of ["C", "R", "SR", "SSR", "LR"]) {
     await db.query(`insert into public.cards (source_id, nom, categorie, franchise, rarete_base, image_url, source)
@@ -66,7 +67,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     assert.equal(info.user.id, alice);
     assert.equal(info.user.name, "Alice");
     assert.deepEqual(info.categories, ["Anime/Manga"]);
-    assert.deepEqual(info.dropRates.map((r) => r.percent), [71.9, 20, 7, 1, 0.1]);
+    assert.deepEqual(info.dropRates.map((r) => r.percent), [72.4, 20, 7, 0.5, 0.1]);
     assert.equal(info.shinyRate, 0.1);
     assert.equal(info.karasBalance, 0);
     assert.equal((await db.query("select prosecdef from pg_proc where oid='public.get_game_info()'::regprocedure")).rows[0].prosecdef, true);
@@ -135,7 +136,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
   await t.test("5 exemplaires indépendants par pack, LR et Shiny valides, puis blocage", async () => {
     const regularPackDefinition = (await db.query("select pg_get_functiondef('public.open_regular_pack()'::regprocedure) as value")).rows[0].value;
     assert.match(regularPackDefinition, /rarete_base\s*=\s*'LR'\s+and\s+random\(\)\s*<\s*(?:0)?\.001/i);
-    assert.match(regularPackDefinition, /roll<\.719 then 1 when roll<\.919 then 2 when roll<\.989 then 3 when roll<\.999 then 4 else 5/);
+    assert.match(regularPackDefinition, /roll<\.724 then 1 when roll<\.924 then 2 when roll<\.994 then 3 when roll<\.999 then 4 else 5/);
     assert.doesNotMatch(regularPackDefinition, /rarete_base\s+in\s*\(\s*'SSR'\s*,\s*'LR'/i);
     const draw = await asUser(alice, () => rpc("open_regular_pack"));
     assert.equal(draw.length, 5);
@@ -158,15 +159,15 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
   });
 
   await t.test("régénération : reliquat préservé et plafond strict de cinq packs", async () => {
-    await db.query("update public.user_profiles set next_regular_pack_at=clock_timestamp()-interval '15 minutes' where user_id=$1", [alice]);
+    await db.query("update public.user_profiles set next_regular_pack_at=clock_timestamp()-interval '10 minutes' where user_id=$1", [alice]);
     const before = Date.parse(await deadline(alice));
     assert.equal((await asUser(alice, () => rpc("get_regular_pack_status"))).available, 2);
     await asUser(alice, () => rpc("open_regular_pack"));
-    assert.equal(Date.parse(await deadline(alice)), before + 15 * 60000);
+    assert.equal(Date.parse(await deadline(alice)), before + 10 * 60000);
     const partial = await asUser(alice, () => rpc("get_regular_pack_status"));
     assert.equal(partial.available, 1);
-    assert.ok(partial.nextPackAt - partial.serverNow > 14 * 60000);
-    assert.ok(partial.nextPackAt - partial.serverNow <= 15 * 60000);
+    assert.ok(partial.nextPackAt - partial.serverNow > 9 * 60000);
+    assert.ok(partial.nextPackAt - partial.serverNow <= 10 * 60000);
     await db.query("update public.user_profiles set next_regular_pack_at=clock_timestamp()-interval '10 days' where user_id=$1", [alice]);
     const full = await asUser(alice, () => rpc("get_regular_pack_status"));
     assert.equal(full.available, 5);
@@ -174,8 +175,8 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     await asUser(alice, () => rpc("open_regular_pack"));
     const after = await asUser(alice, () => rpc("get_regular_pack_status"));
     assert.equal(after.available, 4);
-    assert.ok(after.nextPackAt - after.serverNow > 14 * 60000);
-    assert.ok(after.nextPackAt - after.serverNow <= 15 * 60000);
+    assert.ok(after.nextPackAt - after.serverNow > 9 * 60000);
+    assert.ok(after.nextPackAt - after.serverNow <= 10 * 60000);
   });
 
   await t.test("évolution atomique : cinq SSR non-Shiny identiques deviennent une SSR Shiny", async () => {
