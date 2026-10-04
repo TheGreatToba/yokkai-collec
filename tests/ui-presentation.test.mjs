@@ -152,7 +152,7 @@ test("mobile : vitrine du profil sur la grille partagée et page Amis sans débo
   const profile = readFileSync(path.join(root, "components/profile.tsx"), "utf8");
   const community = readFileSync(path.join(root, "styles/community.css"), "utf8");
   assert.match(profile, /className="yk-card-grid yk-featured-stage"/);
-  assert.match(community, /\.yk-featured-stage \{ --card-grid-columns-xl: 4; --card-grid-columns-lg: 4; --card-grid-columns-md: 4;/);
+  assert.match(community, /\.yk-featured-stage \{ --card-grid-columns-xl: 5; --card-grid-columns-lg: 5; --card-grid-columns-md: 5;/);
   assert.doesNotMatch(community.match(/\.yk-featured-stage \{[^}]+\}/)?.[0] ?? "", /grid-template-columns/);
   // Grid children must be allowed to shrink, otherwise the non-wrapping tabs widen the page.
   assert.match(community, /\.yk-social-stack > \* \{ min-width: 0; \}/);
@@ -163,6 +163,8 @@ test("mobile : vitrine du profil sur la grille partagée et page Amis sans débo
 
 test("le sélecteur de cartes mises en avant recherche et remonte la sélection", () => {
   const source = readFileSync(path.join(root, "components/profile.tsx"), "utf8");
+  assert.match(source, /const FEATURED_CARD_LIMIT=5/);
+  assert.match(source, /next\.size<FEATURED_CARD_LIMIT/);
   assert.match(source, /id="featured-query"/);
   assert.match(source, /matchesCardSearch\(featuredQuery/);
   assert.match(source, /Number\(selected\.has\(b\.instanceId\)\)-Number\(selected\.has\(a\.instanceId\)\)/);

@@ -22,8 +22,8 @@
 .yk-banner-results span { display: grid; min-width: 0; gap: 4px; }
 .yk-profile-columns { display: grid; grid-template-columns: minmax(0,1fr) 280px; gap: 32px; }
 .yk-modal.yk-friend-collection-modal { width: min(1400px,calc(100% - 32px)); }
-/* Profile showcase: 4 slots on desktop, then the shared .yk-card-grid mobile scale. */
-.yk-featured-stage { --card-grid-columns-xl: 4; --card-grid-columns-lg: 4; --card-grid-columns-md: 4; gap: 16px; padding: 28px 12px; background: radial-gradient(ellipse at center,var(--color-veil),transparent 70%); }
+/* Profile showcase: 5 slots on desktop, then the shared .yk-card-grid mobile scale. */
+.yk-featured-stage { --card-grid-columns-xl: 5; --card-grid-columns-lg: 5; --card-grid-columns-md: 5; gap: 16px; padding: 28px 12px; background: radial-gradient(ellipse at center,var(--color-veil),transparent 70%); }
 .yk-featured-stage > div { opacity: 1; }
 .yk-featured-empty { min-height: 210px; display: grid; place-content: center; gap: 8px; border: 1px dashed var(--color-veil-strong); border-radius: 14px; color: var(--color-ink-3); text-align: center; }
 .yk-featured-empty > span { font-size: 28px; color: var(--color-accent-gold); }
