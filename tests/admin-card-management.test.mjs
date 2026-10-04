@@ -295,6 +295,14 @@ test("la catégorie ARTISTE est renommée ARTIST et reste normalisée à l'impor
   await db.close();
 });
 
+test("la catégorie VIDEO GAME est renommée VIDEO GAMES et reste normalisée à l'import", async () => {
+  const migration = await read("supabase/migrations/20261004000006_rename_video_games_category.sql");
+  assert.match(migration, /select card_id, 'VIDEO GAMES'/i);
+  assert.match(migration, /where upper\(btrim\(categorie\)\) = 'VIDEO GAME'/i);
+  assert.match(migration, /set categorie = 'VIDEO GAMES'/i);
+  assert.match(migration, /when 'VIDEO GAME' then 'VIDEO GAMES'/i);
+});
+
 test("les noms de cartes existants et futurs sont normalisés en majuscules", async () => {
   const migration = await read("supabase/migrations/20261004000003_uppercase_card_names.sql");
   const db = new PGlite();
