@@ -6,7 +6,7 @@
 
 ### 1.1 Architecture Visuelle & Layout
 
-L'édition de profil regroupe la personnalisation de l'identité visuelle du joueur et la gestion de sa **Vitrine d'Exhibition** (4 cartes de prestige affichées publiquement).
+L'édition de profil regroupe la personnalisation de l'identité visuelle du joueur et la gestion de sa **Vitrine d'Exhibition** (5 cartes de prestige affichées publiquement).
 
 ```
 ====================================================================================================
@@ -26,7 +26,7 @@ YOKKAI COLLEC' - MON PROFIL (ÉDITION)
 |                [ échanges de la franchise Spirit Realm !                           ]            |
 |                ( 112 / 300 caractères )                                                          |
 +--------------------------------------------------------------------------------------------------+
-| CARTES EN VITRINE (4 EMPLACEMENTS DE PRESTIGE)                                                   |
+| CARTES EN VITRINE (5 EMPLACEMENTS DE PRESTIGE)                                                   |
 |                                                                                                  |
 | +-----------+   +-----------+   +-----------+   +-----------+                                    |
 | | [LR] [S]  |   | [SSR]     |   | [SSR]     |   | [EMPLAC.  |                                    |
