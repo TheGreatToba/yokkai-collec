@@ -38,11 +38,11 @@ test("simulation massive des nouveaux taux de drop et du Shiny LR indépendant",
   const samples = 5_000_000;
   const regular = simulate({
     samples,
-    thresholds: [0.719, 0.919, 0.989, 0.999],
+    thresholds: [0.724, 0.924, 0.994, 0.999],
     rarities: ["C", "R", "SR", "SSR", "LR"],
     seed: 0x59a11,
   });
-  for (const [rarity, rate] of Object.entries({ C: 0.719, R: 0.2, SR: 0.07, SSR: 0.01, LR: 0.001 })) {
+  for (const [rarity, rate] of Object.entries({ C: 0.724, R: 0.2, SR: 0.07, SSR: 0.005, LR: 0.001 })) {
     assertRate(regular.counts[rarity], rate, samples);
   }
 

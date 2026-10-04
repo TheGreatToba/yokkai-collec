@@ -57,7 +57,7 @@ immédiatement disponibles pour chaque nouveau compte.
 La fonction serveur utilise l'heure de la DB, sous verrou du profil :
 
 ```text
-intervalle = 15 minutes
+intervalle = 10 minutes
 disponibles = clamp(1 + floor((maintenant - échéance) / intervalle), 0, 5)
 après ouverture = max(échéance, maintenant - 4 × intervalle) + intervalle
 ```
@@ -238,7 +238,7 @@ Les fonctions SQL du jeu sont appelées par RPC :
   et consomme un pack dans la même transaction. Elle n'accepte aucun paramètre :
   le navigateur ne choisit ni le joueur, ni la rareté, ni les cartes, ni l'heure.
 
-Les taux sont C 71,9 %, R 20 %, SR 7 %, SSR 1 %, LR 0,1 %, avec choix uniforme parmi
+Les taux sont C 72,4 %, R 20 %, SR 7 %, SSR 0,5 %, LR 0,1 %, avec choix uniforme parmi
 les cartes de la rareté tirée. Seule une LR reçoit un second jet Shiny à 0,1 % ; une
 SSR Shiny s’obtient exclusivement en faisant évoluer trois SSR non-Shiny identiques.
 Un index `(rarete_base, id)` permet de tirer
@@ -246,7 +246,7 @@ par décalage aléatoire sans trier tout le catalogue aléatoirement. Si une des
 cinq raretés n'est pas encore importée, l'ouverture refuse de consommer le
 pack. Toute erreur d'insertion ou de timer annule l'ensemble de l'ouverture.
 
-La régénération est de 15 minutes, plafonnée à cinq packs, avec cinq packs
+La régénération est de 10 minutes, plafonnée à cinq packs, avec cinq packs
 initiaux. Deux requêtes pour un seul pack disponible ne peuvent pas toutes
 deux le consommer : la seconde attend le verrou puis vérifie le timer mis à
 jour. Si plusieurs packs sont réellement disponibles, des requêtes distinctes
