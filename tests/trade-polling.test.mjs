@@ -25,6 +25,24 @@ test("une seule transition distante pending vers accepted demande une réconcili
   assert.equal(hasNewAcceptedTrade([offer("pending")],[offer("declined")]),false);
 });
 
+test("les onglets répartissent les offres sans mélanger sens et historique",()=>{
+  const {filterTradeOffers}=tradeApi();
+  const offers=[
+    {id:"received",incoming:true,status:"pending"},
+    {id:"sent",incoming:false,status:"pending"},
+    {id:"accepted",incoming:true,status:"accepted"},
+    {id:"declined",incoming:false,status:"declined"},
+    {id:"countered",incoming:true,status:"countered"},
+  ];
+
+  assert.deepEqual(Array.from(filterTradeOffers(offers,"received"),item=>item.id),["received"]);
+  assert.deepEqual(Array.from(filterTradeOffers(offers,"sent"),item=>item.id),["sent"]);
+  assert.deepEqual(Array.from(filterTradeOffers(offers,"history"),item=>item.id),["accepted","declined","countered"]);
+  assert.ok(!filterTradeOffers(offers,"received").some(item=>!item.incoming||item.status!=="pending"));
+  assert.ok(!filterTradeOffers(offers,"sent").some(item=>item.incoming||item.status!=="pending"));
+  assert.ok(!filterTradeOffers(offers,"history").some(item=>item.status==="pending"));
+});
+
 test("la page Échanges poll toutes les 3 s sans chevauchement et respecte la visibilité",()=>{
   const source=readFileSync(new URL("../components/trades.tsx",import.meta.url),"utf8");
   assert.match(source,/TRADE_POLL_INTERVAL_MS = 3000/);
