@@ -46,6 +46,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
   await db.exec(readFileSync(new URL("../supabase/migrations/20261003000008_social_avatars.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261004000005_lock_collection_cards.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261004000007_regular_pack_10_minutes_ssr_half_percent.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../supabase/migrations/20261004000008_restore_regular_pack_status_security.sql", import.meta.url), "utf8"));
   await db.query("insert into auth.users values ($1, '{\"pseudo\":\"Alice\"}'), ($2, '{\"pseudo\":\"Bob\"}'), ($3, '{\"pseudo\":\"Charlie\"}')", [alice, bob, charlie]);
   for (const rarity of ["C", "R", "SR", "SSR", "LR"]) {
     await db.query(`insert into public.cards (source_id, nom, categorie, franchise, rarete_base, image_url, source)
@@ -71,6 +72,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     assert.equal(info.shinyRate, 0.1);
     assert.equal(info.karasBalance, 0);
     assert.equal((await db.query("select prosecdef from pg_proc where oid='public.get_game_info()'::regprocedure")).rows[0].prosecdef, true);
+    assert.equal((await db.query("select prosecdef from pg_proc where oid='public.get_regular_pack_status()'::regprocedure")).rows[0].prosecdef, true);
     await db.exec("grant select on table public.user_profiles to authenticated");
     const status = await asUser(alice, () => rpc("get_regular_pack_status"));
     assert.equal(status.available, 5);
