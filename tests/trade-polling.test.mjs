@@ -77,3 +77,50 @@ test("la page Échanges poll toutes les 3 s sans chevauchement et respecte la vi
   assert.match(source,/pruneUnavailableSelection\(requestedRef\.current,nextContext\.friendCards\)/);
   assert.match(source,/setSelectionNotice\(/);
 });
+
+test("la soumission conserve l’orientation des lots sans inverser les identifiants",()=>{
+  const {tradeSubmission}=tradeApi();
+  const submission=tradeSubmission({friendId:"ami",offered:new Set(["donne-1","donne-2"]),offeredKaras:"25",requested:new Set(["recois-1"]),requestedKaras:"40",parent:null});
+  assert.deepEqual(Array.from(submission.offeredCardIds),["donne-1","donne-2"]);
+  assert.deepEqual(Array.from(submission.requestedCardIds),["recois-1"]);
+  assert.equal(submission.offeredKaras,25);
+  assert.equal(submission.requestedKaras,40);
+  assert.notDeepEqual(Array.from(submission.offeredCardIds),Array.from(submission.requestedCardIds));
+});
+
+test("le verrou d’envoi refuse un double clic et les lots entièrement vides",()=>{
+  const {tryStartTradeSubmission}=tradeApi();
+  const lock={current:false};
+  assert.equal(tryStartTradeSubmission(lock,false),false);
+  assert.equal(lock.current,false);
+  assert.equal(tryStartTradeSubmission(lock,true),true);
+  assert.equal(lock.current,true);
+  assert.equal(tryStartTradeSubmission(lock,true),false);
+});
+
+test("les erreurs d’échange sont traduites sans exposer le message serveur",()=>{
+  const {tradeErrorMessage}=tradeApi();
+  assert.match(tradeErrorMessage("TRADE_INSUFFICIENT_KARAS"),/ami.*Karas/i);
+  assert.match(tradeErrorMessage("TRADE_CARD_UNAVAILABLE"),/plus disponible/i);
+  assert.match(tradeErrorMessage("CARD_LOCKED"),/verrouillée/i);
+  assert.equal(tradeErrorMessage("détail SQL sensible"),"Impossible de traiter cet échange. Réessayez.");
+});
+
+test("une erreur d’envoi ne déclenche aucun effacement du brouillon",()=>{
+  const source=readFileSync(new URL("../components/trades.tsx",import.meta.url),"utf8");
+  const submit=source.slice(source.indexOf("async function submit()"),source.indexOf("async function respond"));
+  const failure=submit.slice(submit.indexOf("catch"));
+  assert.doesNotMatch(failure,/updateOffered\(new Set\(\)\)|updateRequested\(new Set\(\)\)|setOfferedKaras\("0"\)|setRequestedKaras\("0"\)/);
+});
+
+test("un envoi réussi vide le brouillon et ouvre les propositions envoyées",()=>{
+  const source=readFileSync(new URL("../components/trades.tsx",import.meta.url),"utf8");
+  const submit=source.slice(source.indexOf("async function submit()"),source.indexOf("async function respond"));
+  const success=submit.slice(submit.indexOf("await reload()"),submit.indexOf("catch"));
+  assert.match(success,/updateOffered\(new Set\(\)\)/);
+  assert.match(success,/updateRequested\(new Set\(\)\)/);
+  assert.match(success,/setOfferedKaras\("0"\)/);
+  assert.match(success,/setRequestedKaras\("0"\)/);
+  assert.match(success,/setTab\("sent"\)/);
+  assert.doesNotMatch(submit,/requestedCardIds:\[\.\.\.offered\]|offeredCardIds:\[\.\.\.requested\]/);
+});

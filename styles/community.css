@@ -120,6 +120,16 @@
 .yk-trade-karas input { grid-column: 1/-1; }
 .yk-trade-submit { display: flex; align-items: center; justify-content: space-between; gap: calc(var(--spacing) * 4); margin-top: calc(var(--spacing) * 5); }
 .yk-trade-submit p { color: var(--color-ink-3); font-size: var(--text-xs); }
+.yk-trade-summary { margin-top: calc(var(--spacing) * 5); border: 1px solid var(--color-veil); border-radius: var(--radius-panel); padding: calc(var(--spacing) * 5); background: var(--color-night); }
+.yk-trade-summary>h3 { font-family: var(--font-display); font-size: var(--text-lg); }
+.yk-trade-summary>div { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: calc(var(--spacing) * 5); margin-top: calc(var(--spacing) * 4); }
+.yk-trade-summary article { min-width: 0; border-left: 2px solid var(--color-veil-strong); padding-left: calc(var(--spacing) * 4); }
+.yk-trade-summary article+article { border-color: var(--color-accent-gold); }
+.yk-trade-summary article>p,.yk-trade-summary li,.yk-trade-summary details { margin-top: calc(var(--spacing) * 2); color: var(--color-ink-3); font-size: var(--text-xs); }
+.yk-trade-summary article>.yk-karas { margin-top: calc(var(--spacing) * 3); }
+.yk-trade-summary details ul { max-height: 8rem; overflow: auto; }
+.yk-trade-summary code { overflow-wrap: anywhere; color: var(--color-ink-2); }
+.yk-trade-summary-warnings { margin-top: calc(var(--spacing) * 4); border-top: 1px solid var(--color-veil); padding-top: calc(var(--spacing) * 2); color: var(--color-karas); }
 .yk-trade-history { display: grid; gap: calc(var(--spacing) * 4); margin-top: calc(var(--spacing) * 5); }
 .yk-trade-offer { border: 1px solid var(--color-veil); border-radius: var(--radius-panel); padding: calc(var(--spacing) * 5); background: var(--color-surface); transition: border-color var(--duration-fast) var(--ease-standard); }
 .yk-trade-offer:hover { border-color: var(--color-veil-strong); }
@@ -146,6 +156,8 @@
   .yk-trade-side { padding: calc(var(--spacing) * 3); }
   .yk-trade-submit { align-items: stretch; flex-direction: column; }
   .yk-trade-submit .yk-button { width: 100%; }
+  .yk-trade-summary { padding: calc(var(--spacing) * 3); }
+  .yk-trade-summary>div { grid-template-columns: 1fr; }
   .yk-trade-offer-sides,.yk-trade-confirm { grid-template-columns: 1fr; }
   .yk-trade-incoming { align-items: stretch; flex-direction: column; }
   .yk-modal.yk-trade-picker-modal { width: 100vw; height: 100dvh; max-height: none; margin: 0; border: 0; border-radius: 0; padding: calc(var(--spacing) * 4); }
