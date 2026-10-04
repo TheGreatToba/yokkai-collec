@@ -166,7 +166,10 @@ test("mobile : vitrine du profil sur la grille partagée et page Amis sans débo
   assert.match(community, /\.yk-social-stack > \* \{ min-width: 0; \}/);
   assert.doesNotMatch(community, /\.yk-social-person \.yk-friend-action,[^{]*\{ width: 100%; margin-left/);
   const friends = readFileSync(path.join(root, "components/friends.tsx"), "utf8");
-  assert.match(friends, /const liveFriendsPanel: FriendsPanelAdapter = \{ friendships: getFriendships, search: searchUsers, respond: respondFriendRequest \}/);
+  assert.match(friends, /const liveFriendsPanel: FriendsPanelAdapter = \{ friendships: getFriendships, search: searchUsers, respond: respondFriendRequest, remove: removeFriend \}/);
+  assert.match(friends, /tab === "friends" \? <Button variant="danger" onClick=\{\(\) => setRemoval\(person\)\}>Supprimer<\/Button>/);
+  assert.doesNotMatch(friends, /<StatusPill tone="success">Ami<\/StatusPill>/);
+  assert.match(friends, /title="Supprimer cet ami \?"/);
 });
 
 test("le sélecteur de cartes mises en avant recherche et remonte la sélection", () => {

@@ -14,6 +14,7 @@ const businessMessages:Record<string,string>={
   CANNOT_FRIEND_SELF:"Vous ne pouvez pas vous ajouter vous-même.",
   PROFILE_NOT_FOUND:"Ce profil est introuvable.",
   FRIEND_REQUEST_NOT_FOUND:"Cette demande n’est plus disponible.",
+  FRIENDSHIP_NOT_FOUND:"Cette relation d’amitié n’est plus disponible.",
   FRIENDSHIP_EXISTS:"Une relation ou une demande existe déjà avec ce joueur.",
 };
 
@@ -61,3 +62,4 @@ export async function sendFriendRequest(id:string){
   }
 }
 export const respondFriendRequest=(id:string,accept:boolean)=>call<boolean>("respond_friend_request",{p_request_id:id,p_accept:accept});
+export const removeFriend=(id:string)=>call<boolean>("remove_friend",{p_friend_id:id});
