@@ -47,6 +47,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
   await db.exec(readFileSync(new URL("../supabase/migrations/20261004000005_lock_collection_cards.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261004000007_regular_pack_10_minutes_ssr_half_percent.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261004000008_restore_regular_pack_status_security.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../supabase/migrations/20261004000010_card_owners_friend_groups.sql", import.meta.url), "utf8"));
   await db.query("insert into auth.users values ($1, '{\"pseudo\":\"Alice\"}'), ($2, '{\"pseudo\":\"Bob\"}'), ($3, '{\"pseudo\":\"Charlie\"}')", [alice, bob, charlie]);
   for (const rarity of ["C", "R", "SR", "SSR", "LR"]) {
     await db.query(`insert into public.cards (source_id, nom, categorie, franchise, rarete_base, image_url, source)
@@ -445,6 +446,12 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     assert.equal((await asUser(bob, () => db.query("select public.get_public_profile($1) as value", [alice]))).rows[0].value.friendshipStatus, "accepted");
     const friendCardId = (await db.query("select id from public.cards where source_id='C'")).rows[0].id;
     await db.query("insert into public.user_cards(user_id,card_id,rarity,custom_image_url) values($1,$2,'C','https://i.imgur.com/private.png')",[alice,friendCardId]);
+    const discoveryCopies=(await db.query("insert into public.user_cards(user_id,card_id,rarity) values($1,$3,'C'),($2,$3,'C') returning id",[bob,charlie,friendCardId])).rows.map(row=>row.id);
+    const discovery=(await asUser(alice,()=>db.query("select public.get_card_discovery($1,0,30) as value",[friendCardId]))).rows[0].value;
+    assert.deepEqual(discovery.owners.map(({pseudo,isFriend})=>({pseudo,isFriend})),[
+      {pseudo:"Bob",isFriend:true},{pseudo:"Alice",isFriend:false},{pseudo:"Charlie",isFriend:false},
+    ]);
+    await db.query("delete from public.user_cards where id=any($1::uuid[])",[discoveryCopies]);
     const friendCollection = (await asUser(bob, () => db.query("select public.get_friend_collection($1) as value",[alice]))).rows[0].value;
     assert.ok(friendCollection.some(card=>card.id===friendCardId));
     const customized = friendCollection.find(card=>card.customImageUrl);

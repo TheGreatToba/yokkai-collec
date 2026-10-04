@@ -140,6 +140,14 @@ test("le catalogue reprend la sidebar sans notion de possession ni action de mas
   assert.match(catalogue, /CARD_PAGE_SIZES\.map/);
   assert.match(catalogue, /loadPage\(\{query,category,rarity,page,pageSize\}\)[^]*?\[query,category,rarity,page,pageSize,loadPage\]/);
   assert.match(catalogue, /Possesseurs actuels/);
+  assert.match(catalogue, /CardOwnerList title="Amis" owners=\{friendOwners\}/);
+  assert.match(catalogue, /CardOwnerList title="Autres utilisateurs" owners=\{otherOwners\}/);
+  assert.match(catalogue, /className="yk-catalogue-owner-columns"/);
+  assert.match(styles, /\.yk-catalogue-owner-columns \{[^}]*grid-template-columns: repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(styles, /\.yk-modal\.yk-catalogue-detail-modal \{[^}]*width: min\(72rem,calc\(100% - 48px\)\);[^}]*min-height: min\(46rem,calc\(100dvh - 48px\)\);[^}]*--collection-detail-art-width: 20rem;/);
+  assert.match(source, /title=\{owner\.pseudo\}/);
+  assert.match(styles, /\.yk-catalogue-owner-name \{[^}]*text-overflow: ellipsis;[^}]*white-space: nowrap;/);
+  assert.match(styles, /\.yk-catalogue-owners ul \{[^}]*max-height: 220px;[^}]*overflow-y: auto;/);
   assert.match(catalogue, /Ajouter à ma wishlist/);
   assert.doesNotMatch(catalogue, /Dossier|Sélection multiple|Obtenue le|possédée/);
   assert.match(layout, /styles\/community\.css/);
