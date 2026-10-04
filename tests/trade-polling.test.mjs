@@ -124,3 +124,42 @@ test("un envoi réussi vide le brouillon et ouvre les propositions envoyées",()
   assert.match(success,/setTab\("sent"\)/);
   assert.doesNotMatch(submit,/requestedCardIds:\[\.\.\.offered\]|offeredCardIds:\[\.\.\.requested\]/);
 });
+
+test("une contre-proposition inverse exactement les lots et les Karas",()=>{
+  const {counterTradeDraft,tradeSubmission}=tradeApi();
+  const original={requestedCards:[{instanceId:"b-1"},{instanceId:"b-2"}],requestedKaras:30,offeredCards:[{instanceId:"a-1"}],offeredKaras:70};
+  const context={ownCards:[{instanceId:"b-1"},{instanceId:"b-2"}],friendCards:[{instanceId:"a-1"}]};
+  const draft=counterTradeDraft(original,context);
+  assert.deepEqual(Array.from(draft.offered),["b-1","b-2"]);
+  assert.deepEqual(Array.from(draft.requested),["a-1"]);
+  assert.equal(draft.offeredKaras,"30");
+  assert.equal(draft.requestedKaras,"70");
+  assert.notDeepEqual(Array.from(draft.offered),["a-1"]);
+  const submitted=tradeSubmission({...draft,friendId:"A",parent:"offre-A-vers-B"});
+  assert.equal(submitted.toUser,"A");
+  assert.equal(submitted.parentOfferId,"offre-A-vers-B");
+  assert.deepEqual(Array.from(submitted.offeredCardIds),["b-1","b-2"]);
+  assert.deepEqual(Array.from(submitted.requestedCardIds),["a-1"]);
+});
+
+test("le préremplissage retire les instances devenues indisponibles",()=>{
+  const {counterTradeDraft}=tradeApi();
+  const original={requestedCards:[{instanceId:"b-ok"},{instanceId:"b-vendue"}],requestedKaras:0,offeredCards:[{instanceId:"a-ok"},{instanceId:"a-verrouillee"}],offeredKaras:0};
+  const draft=counterTradeDraft(original,{ownCards:[{instanceId:"b-ok"}],friendCards:[{instanceId:"a-ok"}]});
+  assert.deepEqual(Array.from(draft.offered),["b-ok"]);
+  assert.deepEqual(Array.from(draft.requested),["a-ok"]);
+  assert.equal(draft.removed,2);
+  assert.ok(!draft.offered.has("b-vendue")&&!draft.requested.has("a-verrouillee"));
+});
+
+test("les actions d’examen sont désactivées dès que l’offre change ou disparaît",()=>{
+  const {tradeOfferIsActionable}=tradeApi();
+  assert.equal(tradeOfferIsActionable("offre",[{id:"offre",status:"pending"}]),true);
+  assert.equal(tradeOfferIsActionable("offre",[{id:"offre",status:"accepted"}]),false);
+  assert.equal(tradeOfferIsActionable("offre",[{id:"offre",status:"declined"}]),false);
+  assert.equal(tradeOfferIsActionable("offre",[]),false);
+  assert.equal(tradeOfferIsActionable("offre",[{id:"autre",status:"pending"}]),false);
+  const source=readFileSync(new URL("../components/trades.tsx",import.meta.url),"utf8");
+  assert.match(source,/setAccepting\(current=>current&&tradeOfferIsActionable\(current.id,history\)/);
+  assert.match(source,/disabled=\{busy\|\|!actionable\}/);
+});
