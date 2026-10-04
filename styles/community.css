@@ -99,6 +99,8 @@
 .yk-friend-choices { display: flex; flex-wrap: wrap; gap: calc(var(--spacing) * 2); margin-top: calc(var(--spacing) * 5); }
 .yk-trade-composer { margin-top: calc(var(--spacing) * 6); border-top: 1px solid var(--color-veil); padding-top: calc(var(--spacing) * 6); }
 .yk-trade-side { min-width: 0; border: 1px solid var(--color-veil); border-radius: var(--radius-panel); padding: calc(var(--spacing) * 5); background: var(--color-void); }
+.yk-trade-side.is-offered { border-color: var(--color-veil-strong); }
+.yk-trade-side.is-requested { border-color: color-mix(in srgb,var(--color-accent-gold) 45%,var(--color-veil)); }
 .yk-trade-side>header { display: flex; align-items: center; gap: calc(var(--spacing) * 3); }
 .yk-trade-side>header p { font-family: var(--font-display); font-size: var(--text-xl); font-weight: 600; }
 .yk-trade-side>header small { color: var(--color-ink-3); }

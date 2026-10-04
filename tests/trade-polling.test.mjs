@@ -43,6 +43,25 @@ test("les onglets répartissent les offres sans mélanger sens et historique",()
   assert.ok(!filterTradeOffers(offers,"history").some(item=>item.status==="pending"));
 });
 
+test("un contexte d’ami obsolète ne peut pas remplacer le choix le plus récent",async()=>{
+  const {loadTradeContextIfCurrent}=tradeApi();
+  const pending=new Map();
+  const load=id=>new Promise(resolve=>pending.set(id,resolve));
+  let current={friendId:"ami-a",requestId:1};
+
+  const first=loadTradeContextIfCurrent(load,"ami-a",1,()=>current);
+  current={friendId:"ami-b",requestId:2};
+  const second=loadTradeContextIfCurrent(load,"ami-b",2,()=>current);
+  pending.get("ami-b")({friend:{id:"ami-b"}});
+  assert.equal((await second).friend.id,"ami-b");
+  pending.get("ami-a")({friend:{id:"ami-a"}});
+  assert.equal(await first,undefined);
+
+  current={friendId:"ami-a",requestId:3};
+  const currentRequest=loadTradeContextIfCurrent(async()=>({friend:{id:"ami-a"}}),"ami-a",3,()=>current);
+  assert.equal((await currentRequest).friend.id,"ami-a");
+});
+
 test("la page Échanges poll toutes les 3 s sans chevauchement et respecte la visibilité",()=>{
   const source=readFileSync(new URL("../components/trades.tsx",import.meta.url),"utf8");
   assert.match(source,/TRADE_POLL_INTERVAL_MS = 3000/);
