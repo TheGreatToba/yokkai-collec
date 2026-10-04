@@ -49,6 +49,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
   await db.exec(readFileSync(new URL("../supabase/migrations/20261004000008_restore_regular_pack_status_security.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261004000010_card_owners_friend_groups.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261004000014_remove_friend.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../supabase/migrations/20261004000015_trade_progress_notifications.sql", import.meta.url), "utf8"));
   await db.query("insert into auth.users values ($1, '{\"pseudo\":\"Alice\"}'), ($2, '{\"pseudo\":\"Bob\"}'), ($3, '{\"pseudo\":\"Charlie\"}')", [alice, bob, charlie]);
   for (const rarity of ["C", "R", "SR", "SSR", "LR"]) {
     await db.query(`insert into public.cards (source_id, nom, categorie, franchise, rarete_base, image_url, source)
@@ -493,6 +494,12 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     assert.equal(inbox[0].offeredCards[0].anime,"Franchise");
     await assert.rejects(asUser(alice,()=>db.query("select public.respond_trade_offer($1,'accept')",[offerId])),/TRADE_NOT_PENDING/);
     assert.equal((await asUser(bob,()=>db.query("select public.respond_trade_offer($1,'accept') as value",[offerId]))).rows[0].value,true);
+    const acceptedNotification=(await asUser(alice,()=>db.query("select public.list_notifications() as value"))).rows[0].value.find(item=>item.type==="trade_offer_accepted"&&item.referenceId===offerId);
+    assert.equal(acceptedNotification.actorPseudo,"Bob");
+    assert.equal(Number((await db.query("select count(*) as count from public.notifications where user_id=$1 and type='trade_offer_accepted' and reference_id=$2",[alice,offerId])).rows[0].count),1);
+    assert.equal(Number((await db.query("select count(*) as count from public.notifications where user_id=$1 and type='trade_offer_accepted' and reference_id=$2",[bob,offerId])).rows[0].count),0);
+    await assert.rejects(asUser(bob,()=>db.query("select public.respond_trade_offer($1,'accept')",[offerId])),/TRADE_NOT_PENDING/);
+    assert.equal(Number((await db.query("select count(*) as count from public.notifications where type='trade_offer_accepted' and reference_id=$1",[offerId])).rows[0].count),1);
     assert.equal((await db.query("select user_id,is_first_owner,folder_id from public.user_cards where id=$1",[aliceCard])).rows[0].user_id,bob);
     assert.equal((await db.query("select user_id,is_first_owner,folder_id from public.user_cards where id=$1",[bobCard])).rows[0].user_id,alice);
     assert.deepEqual((await db.query("select user_id,karas_balance from public.user_profiles where user_id in ($1,$2) order by user_id",[alice,bob])).rows,[{user_id:alice,karas_balance:105},{user_id:bob,karas_balance:95}]);
@@ -504,13 +511,25 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     await db.query("update public.user_cards set user_id=$1 where id=$2",[charlie,aliceCard]);
     await assert.rejects(asUser(bob,()=>db.query("select public.respond_trade_offer($1,'accept')",[stale])),/TRADE_CARD_UNAVAILABLE/);
     assert.equal((await db.query("select status from public.trade_offers where id=$1",[stale])).rows[0].status,"pending");
+    assert.equal(Number((await db.query("select count(*) as count from public.notifications where type='trade_offer_accepted' and reference_id=$1",[stale])).rows[0].count),0);
+
+    const unaffordable=(await asUser(alice,()=>db.query("select public.create_trade_offer($1,'{}',999,'{}',0,null) as id",[bob]))).rows[0].id;
+    await assert.rejects(asUser(bob,()=>db.query("select public.respond_trade_offer($1,'accept')",[unaffordable])),/TRADE_INSUFFICIENT_KARAS/);
+    assert.equal(Number((await db.query("select count(*) as count from public.notifications where type='trade_offer_accepted' and reference_id=$1",[unaffordable])).rows[0].count),0);
 
     const parent=(await asUser(alice,()=>db.query("select public.create_trade_offer($1,'{}',10,'{}',0,null) as id",[bob]))).rows[0].id;
     const counter=(await asUser(bob,()=>db.query("select public.create_trade_offer($1,'{}',5,'{}',5,$2) as id",[alice,parent]))).rows[0].id;
-    const counterNotification=(await asUser(alice,()=>db.query("select public.list_notifications() as value"))).rows[0].value.find(item=>item.type==="trade_offer_received"&&item.referenceId===counter);
+    const counterNotification=(await asUser(alice,()=>db.query("select public.list_notifications() as value"))).rows[0].value.find(item=>item.type==="trade_counter_offer_received"&&item.referenceId===counter);
     assert.equal(counterNotification.actorPseudo,"Bob");
     assert.equal((await db.query("select status from public.trade_offers where id=$1",[parent])).rows[0].status,"countered");
+    assert.equal(Number((await db.query("select count(*) as count from public.notifications where reference_id=$1 and type in ('trade_offer_received','trade_counter_offer_received','trade_offer_declined')",[counter])).rows[0].count),1);
     assert.equal((await asUser(alice,()=>db.query("select public.respond_trade_offer($1,'decline') as value",[counter]))).rows[0].value,false);
+    const declinedNotification=(await asUser(bob,()=>db.query("select public.list_notifications() as value"))).rows[0].value.find(item=>item.type==="trade_offer_declined"&&item.referenceId===counter);
+    assert.equal(declinedNotification.actorPseudo,"Alice");
+    assert.equal(Number((await db.query("select count(*) as count from public.notifications where user_id=$1 and type='trade_offer_declined' and reference_id=$2",[alice,counter])).rows[0].count),0);
+    await assert.rejects(asUser(alice,()=>db.query("select public.respond_trade_offer($1,'decline')",[counter])),/TRADE_NOT_PENDING/);
+    assert.equal(Number((await db.query("select count(*) as count from public.notifications where type='trade_offer_declined' and reference_id=$1",[counter])).rows[0].count),1);
+    await assert.rejects(db.query("insert into public.notifications(user_id,type,reference_id) values($1,'unknown_notification',$2)",[alice,counter]),/notifications_type_check/);
   });
 
   await t.test("RLS : Bob ne voit pas Alice et ne peut pas écrire directement", async () => {
