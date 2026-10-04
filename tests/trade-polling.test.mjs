@@ -161,5 +161,43 @@ test("les actions d’examen sont désactivées dès que l’offre change ou dis
   assert.equal(tradeOfferIsActionable("offre",[{id:"autre",status:"pending"}]),false);
   const source=readFileSync(new URL("../components/trades.tsx",import.meta.url),"utf8");
   assert.match(source,/setAccepting\(current=>current&&tradeOfferIsActionable\(current.id,history\)/);
-  assert.match(source,/disabled=\{busy\|\|!actionable\}/);
+  assert.match(source,/const actionable=offer\?\.incoming&&offer.status==="pending"/);
+  assert.match(source,/\{actionable&&<>/);
+});
+
+test("l’identifiant d’examen survit au passage dans l’historique et résout la liste complète",()=>{
+  const {resolveTradeReview,filterTradeOffers}=tradeApi();
+  const id="seconde";
+  for(const status of ["pending","accepted","declined","countered"]){
+    const all=[{id:"premiere",status:"pending",incoming:true},{id,status,incoming:true}];
+    assert.equal(resolveTradeReview(id,all).status,status);
+    for(const tab of ["received","sent","history"]){
+      filterTradeOffers(all,tab);
+      assert.equal(resolveTradeReview(id,all).id,id);
+    }
+    if(status!=="pending")assert.equal(resolveTradeReview(id,filterTradeOffers(all,"received")),undefined);
+  }
+  assert.equal(resolveTradeReview("absente",[{id,status:"pending"}]),undefined);
+});
+
+test("les pastilles reflètent le statut réel sans transformer une réponse en indisponibilité",()=>{
+  const {tradeStatusPresentation}=tradeApi();
+  for(const [status,label,tone] of [["pending","En attente","gold"],["accepted","Acceptée","success"],["declined","Refusée","danger"],["countered","Contre-proposée","info"],["expired","Indisponible","neutral"],[undefined,"Indisponible","neutral"]]){
+    const presentation=tradeStatusPresentation(status);
+    assert.equal(presentation.label,label);assert.equal(presentation.tone,tone);
+    if(["accepted","declined","countered"].includes(status))assert.notEqual(presentation.label,"Indisponible");
+  }
+});
+
+test("le popover dépend uniquement de son ID et les liens conservent ami et carte",()=>{
+  const source=readFileSync(new URL("../components/trades.tsx",import.meta.url),"utf8");
+  assert.match(source,/Modal open=\{!!reviewedId\}/);
+  assert.match(source,/resolveTradeReview\(reviewedId,offers\)/);
+  assert.doesNotMatch(source,/resolveTradeReview\(reviewedId,received\)|open=\{!!reviewedOffer\}/);
+  const route=readFileSync(new URL("../components/community-views.tsx",import.meta.url),"utf8");
+  for(const param of ["offre","ami","carte"])assert.ok(route.includes(`searchParams.get("${param}")`));
+  const modal=readFileSync(new URL("../components/ui/index.tsx",import.meta.url),"utf8");
+  assert.match(modal,/open && !ref.current\?\.open/);
+  assert.match(modal,/event.shiftKey/);
+  assert.match(modal,/trigger\?\.isConnected/);
 });

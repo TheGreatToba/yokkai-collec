@@ -27,8 +27,8 @@ export function Pagination({ page, pageCount, onPageChange, label = "Pagination"
     <button type="button" aria-label="Page suivante" disabled={activePage === pageCount} onClick={() => onPageChange(activePage + 1)} className={`${buttonClass} border-veil text-ink-2 hover:border-veil-strong hover:text-ink disabled:cursor-not-allowed disabled:opacity-30`}><span aria-hidden="true">›</span></button>
   </nav>;
 }
-export function StatusPill({ children, tone = "gold" }: { children: ReactNode; tone?: "gold" | "success" | "danger" | "info" }) {
-  const tones = { gold: "bg-accent-gold/14 text-karas", success: "bg-success/14 text-success", danger: "bg-danger/14 text-danger-ink", info: "bg-accent-neon/14 text-accent-neon" };
+export function StatusPill({ children, tone = "gold" }: { children: ReactNode; tone?: "gold" | "success" | "danger" | "info" | "neutral" }) {
+  const tones = { gold: "bg-accent-gold/14 text-karas", success: "bg-success/14 text-success", danger: "bg-danger/14 text-danger-ink", info: "bg-accent-neon/14 text-accent-neon", neutral:"bg-veil text-ink-3" };
   return <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${tones[tone]}`}>{children}</span>;
 }
 export function Karas({ amount, className = "" }: { amount?: number | null; className?: string }) {
@@ -76,7 +76,7 @@ export function Modal({ open, onClose, title, children, className = "" }: { open
       if (trigger?.isConnected) trigger.focus({ preventScroll: true });
     };
   }, [open]);
-  return <dialog ref={ref} aria-labelledby={titleId} className={`yk-modal ${className}`} onCancel={e => { e.preventDefault(); onClose(); }} onClose={() => { if (open) onClose(); }} onClick={e => {
+return <dialog ref={ref} aria-labelledby={titleId} className={`yk-modal ${className}`} onKeyDown={event=>{if(event.key!=="Tab")return;const controls=Array.from(event.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled),textarea:not(:disabled),[tabindex]:not([tabindex="-1"])')).filter(element=>element.getClientRects().length>0);const first=controls[0];const last=controls.at(-1);if(!first)return;if(event.shiftKey&&(document.activeElement===first||!event.currentTarget.contains(document.activeElement))){event.preventDefault();last?.focus();}else if(!event.shiftKey&&(document.activeElement===last||!event.currentTarget.contains(document.activeElement))){event.preventDefault();first.focus();}}} onCancel={e => { e.preventDefault(); onClose(); }} onClose={() => { if (open && !ref.current?.open) onClose(); }} onClick={e => {
     if (e.target !== e.currentTarget) return;
     const r = e.currentTarget.getBoundingClientRect();
     if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) onClose();

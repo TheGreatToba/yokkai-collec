@@ -77,7 +77,8 @@ test("les modales imbriquées libèrent le scroll et la confirmation remplace le
   const collection = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
   assert.match(modal, /modalLockCount = Math\.max\(0, modalLockCount - 1\)/);
   assert.match(modal, /if \(modalLockCount === 0\) document\.body\.style\.overflow = bodyOverflowBeforeModal/);
-  assert.match(modal, /onClose=\{\(\) => \{ if \(open\) onClose\(\); \}\}/);
+  assert.match(modal, /onClose=\{\(\) => \{ if \(open && !ref\.current\?\.open\) onClose\(\); \}\}/);
+  assert.doesNotMatch(modal, /onClose=\{\(\) => \{ if \(open\) onClose\(\); \}\}/);
   assert.match(collection, /open=\{!!selected&&!discardConfirm&&!auctionOpen&&!evolveConfirm\}/);
   assert.match(collection, /open=\{auctionOpen&&!!selected\}/);
 });
