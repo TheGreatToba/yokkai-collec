@@ -128,6 +128,15 @@ test("le compteur de cartes d'un ami ouvre sa collection complète en lecture se
   assert.match(communityCss, /\.yk-modal\.yk-friend-collection-modal \{ width: min\(1400px,calc\(100% - 32px\)\); \}/);
 });
 
+test("le compteur wishlist d'un ami ouvre toute sa wishlist et chaque carte reste cliquable", () => {
+  const profile = readFileSync(path.join(root, "components/profile.tsx"), "utf8");
+  assert.match(profile, /profile\.friendshipStatus==="accepted"\?<button[^>]+onClick=\{\(\)=>setWishlistOpen\(true\)\}/);
+  assert.match(profile, /Wishlist de \$\{profile\.pseudo\}/);
+  assert.match(profile, /wishlist\.map\(card=><Link href=\{`\/recherche\?carte=\$\{card\.id\}`\}/);
+  assert.match(profile, /Voir la wishlist/);
+  assert.match(profile, /aria-label=\{`Voir \$\{card\.name\} dans le catalogue`\}/);
+});
+
 test("une carte d'ami ouvre une proposition d'échange présélectionnée et extensible", () => {
   const collection = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
   const trades = readFileSync(path.join(root, "components/trades.tsx"), "utf8");
