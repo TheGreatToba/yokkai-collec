@@ -207,6 +207,17 @@ test("les six erreurs d’annulation ont un message français et aucun détail b
   }
 });
 
+test("une acceptation devenue impossible traduit TRADE_NOT_PENDING et recharge l’offre examinée",()=>{
+  const {tradeErrorMessage}=tradeApi();
+  assert.equal(tradeErrorMessage("TRADE_NOT_PENDING"),"Cette offre n’est plus en attente.");
+  const source=readFileSync(new URL("../components/trades.tsx",import.meta.url),"utf8");
+  const respond=source.slice(source.indexOf("async function respond"),source.indexOf("async function cancel"));
+  const failure=respond.slice(respond.indexOf("catch"));
+  assert.match(failure,/setError\(e instanceof Error \? e\.message : "Action impossible\."\)/);
+  assert.match(failure,/try\{await reload\(\);\}catch\{\}/);
+  assert.match(source,/resolveTradeReview\(reviewedId,offers\)/);
+});
+
 test("le popover dépend uniquement de son ID et les liens conservent ami et carte",()=>{
   const source=readFileSync(new URL("../components/trades.tsx",import.meta.url),"utf8");
   assert.match(source,/Modal open=\{!!reviewedId\}/);
