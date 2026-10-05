@@ -409,6 +409,8 @@ test("une carte révélée propose verrouillage et enchère dans la même modale
   assert.match(boosters, /<h3 className="yk-booster-auction-title">Mettre aux enchères<\/h3>/);
   assert.match(boosters, /onSetLocked\(auctionCandidate\.instanceId,next\)/);
   assert.match(boosters, /locked\.has\(auctionCandidate\.instanceId\).*Number\.isInteger/);
+  assert.match(boosters, /<Button variant="danger" disabled=\{auctionBusy\|\|lockBusy\|\|locked\.has\(auctionCandidate\.instanceId\)/);
+  assert.match(boosters, /\{auctionBusy\?"Publication…":"Mettre en vente"\}<\/Button>/);
   assert.match(game, /onSetLocked=\{lockCard\}/);
 });
 
