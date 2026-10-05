@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import test from "node:test";
 
+test("CI negative probe", () => assert.equal(true, false));
+
 const root = path.resolve(import.meta.dirname, "..");
 
 test("le shell conserve le ratio 5:7 et ne modifie pas la face", () => {
