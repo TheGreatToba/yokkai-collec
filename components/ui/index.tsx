@@ -84,8 +84,8 @@ return <dialog ref={ref} aria-labelledby={titleId} className={`yk-modal ${classN
   }}><div className="mb-6 flex items-center justify-between gap-4"><h2 id={titleId} className="font-display text-xl font-semibold">{title}</h2><button type="button" autoFocus onClick={onClose} aria-label="Fermer" className="size-9 shrink-0 rounded-full border border-veil text-ink-2 hover:bg-veil">✕</button></div>{open && children}</dialog>;
 }
 export function Toast({ message, onDismiss }: { message: string; onDismiss: () => void }) {
-  const [mounted,setMounted]=useState(false);
-  useEffect(()=>setMounted(true),[]);
+  const [mounted,setMounted]=useState<string>(false);
+  useEffect(()=>{const frame=requestAnimationFrame(()=>setMounted("true"));return()=>cancelAnimationFrame(frame);},[]);
   useEffect(() => { if (!message) return; const timer = window.setTimeout(onDismiss, 2600); return () => clearTimeout(timer); }, [message, onDismiss]);
   return mounted&&message ? createPortal(<div role="status" className="yk-toast">{message}</div>,document.body) : null;
 }
