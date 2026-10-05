@@ -99,6 +99,27 @@ test("le verrou d’envoi refuse un double clic et les lots entièrement vides",
   assert.equal(tryStartTradeSubmission(lock,true),false);
 });
 
+test("deux annulations dans le même tick ne déclenchent qu’un seul appel RPC",async()=>{
+  const {runTradeCancellation}=tradeApi();
+  const lock={current:false};let calls=0;let release;
+  const rpc=()=>{calls++;return new Promise(resolve=>{release=resolve;});};
+  const first=runTradeCancellation(lock,rpc,"offre");
+  const second=runTradeCancellation(lock,rpc,"offre");
+  assert.equal(await second,false);
+  assert.equal(calls,1);
+  release();
+  assert.equal(await first,true);
+  assert.equal(lock.current,false);
+
+  let unlockedCalls=0;
+  await Promise.all([Promise.resolve().then(()=>unlockedCalls++),Promise.resolve().then(()=>unlockedCalls++)]);
+  assert.equal(unlockedCalls,2,"contre-preuve : sans verrou, les deux appels partent");
+  await assert.rejects(runTradeCancellation(lock,async()=>{throw new Error("échec");},"offre"),/échec/);
+  assert.equal(lock.current,false,"le verrou est aussi libéré après exception");
+  const source=readFileSync(new URL("../components/trades.tsx",import.meta.url),"utf8");
+  assert.match(source,/runTradeCancellation\(cancellationLock,adapter\.cancel,id\)/);
+});
+
 test("les erreurs d’échange sont traduites sans exposer le message serveur",()=>{
   const {tradeErrorMessage}=tradeApi();
   assert.match(tradeErrorMessage("TRADE_INSUFFICIENT_KARAS"),/ami.*Karas/i);

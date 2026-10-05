@@ -53,6 +53,9 @@ test("échange : seule une acceptation effective invalide Collection et solde",a
   const cancelled=load("../lib/data/trades.ts",{results:{cancel_trade_offer:true}});
   assert.equal(await cancelled.api.cancelTradeOffer("trade-1"),true);
   assert.deepEqual(cancelled.invalidations,[]);
+  const alreadyCancelled=load("../lib/data/trades.ts",{failures:{cancel_trade_offer:"TRADE_ALREADY_CANCELLED"}});
+  assert.equal(await alreadyCancelled.api.cancelTradeOffer("trade-1"),true);
+  assert.deepEqual(alreadyCancelled.invalidations,[]);
 });
 
 test("succès : le résultat exact est conservé et le solde invalidé",async()=>{
