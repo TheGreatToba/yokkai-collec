@@ -65,6 +65,48 @@ function load(relative) {
 const render = (component, props) => renderToStaticMarkup(React.createElement(component, props));
 const card = { id: "card-a", instanceId: "copy-a", name: "Carte de test", category: "Test", rarity: "SSR", image: "/test-image.png", obtainedAt: "2026-09-24T10:00:00Z" };
 
+test("le verrou synchrone empêche deux ouvertures dans le même tick", async () => {
+  const { runPackOpeningOnce } = load("lib/ui/pack-opening.ts");
+  const lock = { current: false };
+  let calls = 0;
+  let release;
+  const pending = new Promise(resolve => { release = resolve; });
+  const openBooster = async () => { calls += 1; await pending; };
+  const first = runPackOpeningOnce(lock, openBooster);
+  const second = runPackOpeningOnce(lock, openBooster);
+  assert.equal(calls, 1);
+  release();
+  await Promise.all([first, second]);
+  calls = 0;
+  await Promise.all([openBooster(), openBooster()]);
+  assert.equal(calls, 2, "contre-preuve sans verrou");
+});
+
+test("le verrou d'ouverture est libéré après une erreur serveur", async () => {
+  const { runPackOpeningOnce } = load("lib/ui/pack-opening.ts");
+  const lock = { current: false };
+  await assert.rejects(runPackOpeningOnce(lock, async () => { throw new Error("session expirée"); }), /session expirée/);
+  assert.equal(lock.current, false);
+  let retried = false;
+  await runPackOpeningOnce(lock, async () => { retried = true; });
+  assert.equal(retried, true);
+});
+
+test("l'ouverture partage sa durée, se passe et ne bloque pas le reveal sur les rafraîchissements", () => {
+  const animations = readFileSync(path.join(root, "lib/ui/animations.ts"), "utf8");
+  const boosters = readFileSync(path.join(root, "components/boosters.tsx"), "utf8");
+  const game = readFileSync(path.join(root, "components/game.tsx"), "utf8");
+  const css = readFileSync(path.join(root, "styles/boosters.css"), "utf8");
+  assert.match(animations, /packOpening:\s*\{ seal: 650, slowResponse: 1500 \}/);
+  assert.match(css, /--pack-opening-duration/);
+  assert.match(css, /\.yk-tearing-pack \{ animation: none;/);
+  assert.match(boosters, /matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
+  assert.match(boosters, /event\.key==="Enter"\|\|event\.key===" "/);
+  assert.match(boosters, /onOpen\(kind\)\.catch\(skipTearing\)/);
+  assert.match(game, /setDraw\([\s\S]*?setBusy\(false\);[\s\S]*?void Promise\.all\(\[getPackStatus\(\)/);
+  assert.match(game, /runPackOpeningOnce\(opening/);
+});
+
 test("Shiny reste une surcouche SSR/LR et ne s'applique pas aux autres raretés", () => {
   const { YokaiCard } = load("components/yokai-card.tsx");
   for (const rarity of ["C", "R", "SR"]) {

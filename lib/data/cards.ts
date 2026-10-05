@@ -222,7 +222,9 @@ export async function openBooster(): Promise<CollectedCard[]> {
     const { data, error } = await db().rpc("open_regular_pack");
     if (error) throw failure(error);
     await assertPlayer(id);
-    return (await withPackDestructionValues(await withLiveCardFranchises(data as CollectedCard[]))).sort((a, b) => rank[a.rarity] - rank[b.rarity]);
+    const cards = data as CollectedCard[];
+    const [franchised, valued] = await Promise.all([withLiveCardFranchises(cards), withPackDestructionValues(cards)]);
+    return valued.map((card, index) => ({ ...card, anime: franchised[index].anime })).sort((a, b) => rank[a.rarity] - rank[b.rarity]);
   } finally {
     // The server may have committed even if the response was lost.
     cache.delete(`collection:${id}`);
@@ -246,7 +248,9 @@ export async function openDecisionPack(): Promise<DecisionPackStatus["pending"]>
   const { data, error } = await db().rpc("open_decision_pack");
   if (error) throw failure(error);
   await assertPlayer(id);
-  return withPackDestructionValues(await withLiveCardFranchises(data as DecisionPackStatus["pending"]));
+  const cards = data as DecisionPackStatus["pending"];
+  const [franchised, valued] = await Promise.all([withLiveCardFranchises(cards), withPackDestructionValues(cards)]);
+  return valued.map((card, index) => ({ ...card, anime: franchised[index].anime }));
 }
 
 export async function keepDecisionPackCard(choiceId: string): Promise<DecisionPackChoice> {

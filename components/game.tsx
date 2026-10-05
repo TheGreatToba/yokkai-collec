@@ -7,6 +7,7 @@ import { createFolder, deleteFolder, discardPackCard, evolveSsrCard, getDecision
 import { createAuction } from "@/lib/data/market";
 import { subscribePlayerSnapshotInvalidation } from "@/lib/data/player-state";
 import { useSfx } from "@/hooks/use-sfx";
+import { runPackOpeningOnce } from "@/lib/ui/pack-opening";
 
 type Info = Awaited<ReturnType<typeof getGameInfo>>;
 export function Game({ view, account }: { view: "packs" | "collection"; account?: ReactNode }) {
@@ -44,15 +45,17 @@ export function Game({ view, account }: { view: "packs" | "collection"; account?
     return () => { active = false; unsubscribe(); };
   }, []);
   async function open(kind: "regular" | "decision") {
-    if (opening.current || (draw.length > 0 && revealed < draw.length)) return;
-    opening.current = true; setBusy(true); setError("");
-    try {
+    if (draw.length > 0 && revealed < draw.length) return;
+    await runPackOpeningOnce(opening, async () => {
+      setBusy(true); setError("");
+      try {
       setDraw(kind === "regular" ? await openBooster() : await openDecisionPack());
       setDrawKind(kind); setRevealed(0);
-      const [packs, decision, cards] = await Promise.all([getPackStatus(), getDecisionPackStatus(), getUserCollection()]);
-      setStatus(packs); setDecisionStatus(decision); setCollection(cards);
-    } catch (e) { setError(e instanceof Error ? e.message : "Impossible d’ouvrir le pack."); }
-    finally { opening.current = false; setBusy(false); }
+      setBusy(false);
+      void Promise.all([getPackStatus(), getDecisionPackStatus(), getUserCollection()]).then(([packs, decision, cards]) => { setStatus(packs); setDecisionStatus(decision); setCollection(cards); }, () => undefined);
+      } catch (e) { setError(e instanceof Error ? e.message : "Impossible d’ouvrir le pack."); throw e; }
+      finally { setBusy(false); }
+    });
   }
   async function evolve(instanceIds: string[]) {
     const evolved = await evolveSsrCard(instanceIds);
