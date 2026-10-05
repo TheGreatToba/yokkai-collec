@@ -74,8 +74,8 @@
 .yk-detail-actions { display: grid; gap: calc(var(--spacing) * 2.5); }
 .yk-detail-evolve { display: grid; gap: calc(var(--spacing) * 1.5); }
 .yk-detail-evolve p,.yk-detail-hint { color: var(--color-ink-3); font-size: var(--text-xs); line-height: 1.5; }
-.yk-group-frozen { position: absolute; left: calc(var(--spacing) * 2); bottom: calc(var(--spacing) * 2); display: inline-flex; align-items: center; gap: calc(var(--spacing) * 1); border: 1px solid color-mix(in srgb,var(--color-accent-gold) 55%,transparent); border-radius: var(--radius-badge); background: color-mix(in srgb,var(--color-void) 92%,transparent); padding: calc(var(--spacing) * 1) calc(var(--spacing) * 2); color: var(--color-accent-gold); font-size: 10px; font-weight: 700; }
-.yk-group-frozen::before { content: "⚒"; font-size: 12px; line-height: 1; }
+.yk-group-frozen { position: absolute; top: calc(var(--spacing) * 10); left: calc(var(--spacing) * 4); z-index: 4; display: grid; width: calc(var(--spacing) * 7); height: calc(var(--spacing) * 7); place-items: center; overflow: hidden; border: 1px solid color-mix(in srgb,var(--color-accent-gold) 55%,transparent); border-radius: 999px; background: color-mix(in srgb,var(--color-void) 92%,transparent); color: var(--color-accent-gold); font-size: 0; filter: drop-shadow(0 1px 3px var(--color-void)); }
+.yk-group-frozen::before { content: "⚒"; font-size: 13px; line-height: 1; }
 .yk-group-locked { position: absolute; top: calc(var(--spacing) * 10); left: calc(var(--spacing) * 4); z-index: 4; display: grid; place-items: center; color: #fff; filter: drop-shadow(0 1px 3px var(--color-void)); transform: scale(.75); transform-origin: top left; }
 .yk-copy-picker { display: grid; gap: calc(var(--spacing) * 2); }
 .yk-copy-picker > div { display: flex; flex-wrap: wrap; gap: calc(var(--spacing) * 1.5); }
