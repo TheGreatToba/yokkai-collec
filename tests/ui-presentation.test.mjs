@@ -31,6 +31,7 @@ test("la wishlist d'un ami se filtre par recherche, rareté et catégorie", () =
   assert.match(source, /title="Catégorie"/);
   assert.match(source, /Réinitialiser les filtres/);
   assert.match(source, /<FriendWishlist cards=\{wishlist\}/);
+  assert.match(source, /shown\.map\(card=><Link[^>]+><CardShell><YokaiCard/);
 });
 const modules = new Map();
 function load(relative) {
