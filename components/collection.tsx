@@ -16,7 +16,7 @@ import { getCardDiscovery } from "@/lib/data/wishlist";
 import { collectionGroupKey, consumableCopies, consumptionPlan, groupCollection } from "@/lib/ui/collection-groups";
 
 // Optional display metadata, separate from the existing business types.
-export type CollectionPresentation = { number?: string; isNew?: boolean; frozen?: { remaining: string }; marketValue?: number | null; destructionValue?: number };
+export type CollectionPresentation = { number?: string; isNew?: boolean; frozen?: { remaining: string }; auctionId?: string; marketValue?: number | null; destructionValue?: number };
 const rarityOrder: Rarity[] = ["LR","SSR","SR","R","C"];
 const rarityText = { C:"text-rarity-c", R:"text-rarity-r", SR:"text-rarity-sr", SSR:"text-rarity-ssr", LR:"text-rarity-lr" };
 // Karas credited by a single destruction, as already announced in the confirmation modal.
@@ -34,6 +34,10 @@ function FilterIcon({ colorClass }: { colorClass: string }) {
 
 function ProtectedIcon({ size = 14 }: { size?: number }) {
   return <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><g stroke="rgba(2,0,15,.95)" strokeWidth="5"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><path d="M12 14v3"/></g><g stroke="currentColor" strokeWidth="2"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><path d="M12 14v3"/></g></svg>;
+}
+
+function AuctionIcon({ size = 14 }: { size?: number }) {
+  return <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m14 5 5 5M12 7l5 5M3 21l8-8M6 18l-3-3M14 3l7 7-4 4-7-7 4-4Z"/><path d="M12 21h9"/></svg>;
 }
 
 export function CollectionView({ cards, categories, presentation = {}, readOnly = false, tradeHref, folders = [], onCreateFolder, onDeleteFolder, onMoveCard, onSetLocked, onCreateAuction, onEvolve, onSetCustomImage, onDiscard, onDiscardMany, loadCardDiscovery = getCardDiscovery }: {
@@ -57,6 +61,7 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
   const [rarity, setRarity] = useState<Rarity | "">("");
   const [shinyOnly, setShinyOnly] = useState(false);
   const [folder, setFolder] = useState<string | "unfiled" | typeof LOCKED_FOLDER | "">("");
+  const [auctionOnly, setAuctionOnly] = useState(false);
   const [page, setPage] = useState(1);
   const [sort, setSort] = useCollectionSort();
   const [pageSize, setPageSize] = useState<number>(CARD_PAGE_SIZES[0]);
@@ -96,7 +101,8 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
   const selected = cards.find(c => c.instanceId === selectedId);
   const selectedMeta = selected ? presentation[selected.instanceId] : undefined;
   const filtered = sortCollection(cards.filter(c => matchesCardSearch(query,[c.name,c.category,c.anime]) && (!category || c.category === category) && (!rarity || c.rarity === rarity) && (!shinyOnly || c.shiny)
-      && (!folder || (folder === LOCKED_FOLDER ? !!c.locked : folder === "unfiled" ? !c.folderId : c.folderId === folder))), sort);
+      && (!folder || (folder === LOCKED_FOLDER ? !!c.locked : folder === "unfiled" ? !c.folderId : c.folderId === folder))
+      && (!auctionOnly || !!presentation[c.instanceId]?.frozen)), sort);
   const groups = groupCollection(filtered);
   const allGroupsByKey = new Map(groupCollection(cards).map(group=>[group.key,group]));
   const pageCount = Math.max(1, Math.ceil(groups.length / pageSize));
@@ -174,7 +180,7 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
       setBulkDiscardError(error instanceof Error ? error.message : "Impossible de détruire la sélection.");
     } finally { setBulkDiscardBusy(false); }
   }
-  const resetFilters = () => { setQuery(""); setRarity(""); setCategory(""); setShinyOnly(false); setFolder(""); setPage(1); };
+  const resetFilters = () => { setQuery(""); setRarity(""); setCategory(""); setShinyOnly(false); setFolder(""); setAuctionOnly(false); setPage(1); };
   const filters = <>
     <div className="yk-filter-search"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><label className="sr-only" htmlFor="collection-query">Rechercher dans la collection</label><input id="collection-query" type="search" value={query} onChange={event=>{setQuery(event.target.value);setPage(1);}} placeholder="Rechercher…"/></div>
     <FilterSection title="Rareté">
@@ -185,6 +191,7 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
       <button type="button" className="yk-filter-option" aria-pressed={!category} onClick={()=>{setCategory("");setPage(1);}}><span className="yk-filter-check"/><span>Toutes les catégories</span><strong>{groupCollection(cards).length}</strong></button>
       {categories.map(item=><button type="button" key={item} className="yk-filter-option" aria-pressed={category===item} onClick={()=>{setCategory(item);setPage(1);}}><span className="yk-filter-check"/><span>{item}</span><strong>{groupCollection(cards.filter(card=>card.category===item)).length}</strong></button>)}
     </FilterSection>
+    {!readOnly&&<FilterSection title="Statut"><button type="button" className="yk-filter-option" aria-pressed={auctionOnly} onClick={()=>{setAuctionOnly(current=>!current);setPage(1);}}><span className="yk-filter-check"/><AuctionIcon/><span>En enchères</span><strong>{groupCollection(cards.filter(card=>presentation[card.instanceId]?.frozen)).length}</strong></button></FilterSection>}
     {!readOnly&&<FilterSection title="Dossier">
       <button type="button" className="yk-filter-option" aria-pressed={!folder} onClick={()=>{setFolder("");setPage(1);}}><span className="yk-filter-check"/><span>Tous les dossiers</span><strong>{groupCollection(cards).length}</strong></button>
       <button type="button" className="yk-filter-option" aria-pressed={folder===LOCKED_FOLDER} onClick={()=>{setFolder(LOCKED_FOLDER);setPage(1);}}><span className="yk-filter-check"/><ProtectedIcon/><span>Cartes verrouillées</span><strong>{groupCollection(cards.filter(card=>card.locked)).length}</strong></button>
@@ -194,7 +201,7 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
       {onCreateFolder&&showFolderCreator&&<div className="yk-folder-create"><input autoFocus value={folderName} maxLength={40} onChange={event=>setFolderName(event.target.value)} onKeyDown={event=>{if(event.key==="Enter"){event.preventDefault();void addFolder();}if(event.key==="Escape"){setShowFolderCreator(false);setFolderName("");}}} placeholder="Nouveau dossier" aria-label="Nom du nouveau dossier"/><Button variant="secondary" disabled={folderBusy||!folderName.trim()} onClick={()=>void addFolder()}>{folderBusy?"Création…":"Créer"}</Button></div>}
       {onDeleteFolder&&folder&&folder!=="unfiled"&&folder!==LOCKED_FOLDER&&<button type="button" className="yk-folder-delete" onClick={()=>void onDeleteFolder(folder)}>Supprimer ce dossier</button>}{folderError&&<p role="alert" className="text-xs text-danger">{folderError}</p>}
     </FilterSection>}
-    <button type="button" className="yk-filter-reset" disabled={!(query||rarity||category||shinyOnly||folder)} onClick={resetFilters}><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Réinitialiser les filtres</button>
+    <button type="button" className="yk-filter-reset" disabled={!(query||rarity||category||shinyOnly||folder||auctionOnly)} onClick={resetFilters}><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Réinitialiser les filtres</button>
   </>;
   return <section aria-label="Collection de cartes" className={`yk-collection ${selecting ? "pb-28" : ""}`}>
     {filtersOpen&&<button type="button" className="yk-filter-backdrop" aria-label="Fermer les filtres" onClick={()=>setFiltersOpen(false)}/>}
@@ -202,7 +209,7 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
       <aside id="collection-filters" className={`yk-collection-sidebar ${filtersOpen?"yk-sidebar-open":""}`} aria-label="Filtres de la collection"><div className="yk-sidebar-mobile-head"><strong>Filtres</strong><button type="button" aria-label="Fermer les filtres" onClick={()=>setFiltersOpen(false)}>×</button></div>{filters}</aside>
       <div className="yk-collection-main">
         <div className="yk-collection-toolbar">
-          <button type="button" className="yk-mobile-filter-trigger" aria-expanded={filtersOpen} aria-controls="collection-filters" onClick={()=>setFiltersOpen(true)}><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filtres{(query||rarity||category||folder)?<span>•</span>:null}</button>
+          <button type="button" className="yk-mobile-filter-trigger" aria-expanded={filtersOpen} aria-controls="collection-filters" onClick={()=>setFiltersOpen(true)}><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filtres{(query||rarity||category||folder||auctionOnly)?<span>•</span>:null}</button>
           <div className="yk-collection-toolbar-actions">
             <label className="yk-sort-control"><span>Trier par :</span><strong aria-hidden="true">{COLLECTION_SORTS.find(option=>option.value===sort)?.label}</strong><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="m7 10 5 5 5-5"/></svg><select aria-label="Trier la collection" value={sort} onChange={e=>{if(isCollectionSort(e.target.value)){setSort(e.target.value);setPage(1);}}}>{COLLECTION_SORTS.map(option=><option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
             {!readOnly&&<SelectionModeButton active={selecting} onClick={()=>{setSelecting(!selecting);setSelection(new Set());}}/>}
