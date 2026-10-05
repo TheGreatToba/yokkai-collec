@@ -12,11 +12,11 @@ import { useIsAdmin } from "@/hooks/use-is-admin";
 import { getProfile } from "@/lib/data/profile";
 import { subscribePlayerSnapshotInvalidation } from "@/lib/data/player-state";
 
-export type NotificationItem = { id: string; title: string; text: string; time: string; read: boolean; href?: string; kind: "wishlist" | "outbid" | "trade" | "trade-counter" | "trade-accepted" | "trade-declined" | "pack" | "won" | "sold" | "friend" | "mission" };
+export type NotificationItem = { id: string; title: string; text: string; time: string; read: boolean; href?: string; kind: "wishlist" | "outbid" | "trade" | "trade-counter" | "trade-accepted" | "trade-declined" | "trade-cancelled" | "pack" | "won" | "sold" | "friend" | "mission" };
 const notificationStyle = {
   wishlist: ["♥", "text-rarity-ssr bg-rarity-ssr/14"], outbid: ["↑", "text-danger bg-danger/14"],
   trade: ["⇄", "text-accent-neon bg-accent-neon/14"], "trade-counter": ["↺", "text-accent-neon bg-accent-neon/14"],
-  "trade-accepted": ["✓", "text-success bg-success/14"], "trade-declined": ["×", "text-danger bg-danger/14"], pack: ["✦", "text-accent-gold bg-accent-gold/14"],
+  "trade-accepted": ["✓", "text-success bg-success/14"], "trade-declined": ["×", "text-danger bg-danger/14"], "trade-cancelled": ["−", "text-ink-2 bg-veil"], pack: ["✦", "text-accent-gold bg-accent-gold/14"],
   won: ["✓", "text-success bg-success/14"], sold: ["◆", "text-accent-gold bg-accent-gold/14"],
   friend: ["+", "text-accent-neon bg-accent-neon/14"], mission: ["✦", "text-success bg-success/14"],
 };
@@ -28,6 +28,7 @@ export function notificationItem(notification:AppNotification):NotificationItem 
   if(notification.type==="trade_counter_offer_received")return {...common,title:"Nouvelle contre-proposition",text:`${notification.actorPseudo??"Un collectionneur"} t’a fait une contre-proposition.`,href:`/echanges?offre=${notification.referenceId}`,kind:"trade-counter"};
   if(notification.type==="trade_offer_accepted")return {...common,title:"Offre acceptée",text:`${notification.actorPseudo??"Un collectionneur"} a accepté ton offre d’échange.`,href:`/echanges?offre=${notification.referenceId}`,kind:"trade-accepted"};
   if(notification.type==="trade_offer_declined")return {...common,title:"Offre refusée",text:`${notification.actorPseudo??"Un collectionneur"} a refusé ton offre d’échange.`,href:`/echanges?offre=${notification.referenceId}`,kind:"trade-declined"};
+  if(notification.type==="trade_offer_cancelled")return {...common,title:"Offre annulée",text:`${notification.actorPseudo??"Un collectionneur"} a annulé son offre d’échange.`,href:`/echanges?offre=${notification.referenceId}`,kind:"trade-cancelled"};
   if(notification.type==="auction_won")return {...common,title:"Enchère remportée",text:`Tu as remporté ${notification.cardName??"une carte"} !`,href:`/marche/${notification.referenceId}`,kind:"won"};
   if(notification.type==="achievement_completed")return {...common,title:"Succès débloqué",text:`Nouveau succès : ${notification.achievementName??"un succès"}.`,href:`/succes#${notification.referenceId}`,kind:"mission"};
   if(notification.type==="wishlist_card_on_auction")return {...common,title:"Carte en wishlist aux enchères",text:`${notification.cardName??"Une carte"} de ta wishlist vient d’être mise aux enchères — clique pour voir.`,href:`/marche/${notification.referenceId}`,kind:"wishlist"};

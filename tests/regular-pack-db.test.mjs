@@ -530,6 +530,49 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     await assert.rejects(asUser(alice,()=>db.query("select public.respond_trade_offer($1,'decline')",[counter])),/TRADE_NOT_PENDING/);
     assert.equal(Number((await db.query("select count(*) as count from public.notifications where type='trade_offer_declined' and reference_id=$1",[counter])).rows[0].count),1);
     await assert.rejects(db.query("insert into public.notifications(user_id,type,reference_id) values($1,'unknown_notification',$2)",[alice,counter]),/notifications_type_check/);
+
+    const legacyTypes=["wishlist_card_on_auction","friend_request","outbid","trade_offer_received","trade_counter_offer_received","trade_offer_accepted","trade_offer_declined","auction_won","achievement_completed"];
+    await db.query("insert into public.notifications(user_id,type,reference_id) select $1,'wishlist_card_on_auction',id from public.auctions limit 1",[alice]);
+    const notificationOutput=async()=>{
+      const output=[];
+      for(const user of [alice,bob,charlie]) output.push(...(await asUser(user,()=>db.query("select public.list_notifications(50) as value"))).rows[0].value);
+      return output.filter(item=>legacyTypes.includes(item.type)).sort((a,b)=>a.id.localeCompare(b.id));
+    };
+    const beforeMigration=await notificationOutput();
+    assert.deepEqual([...new Set(beforeMigration.map(item=>item.type))].sort(),[...legacyTypes].sort());
+    await db.exec(readFileSync(new URL("../supabase/migrations/20261005000000_cancel_trade_offer.sql", import.meta.url), "utf8"));
+    assert.deepEqual(await notificationOutput(),beforeMigration,"list_notifications conserve strictement la sortie des types existants");
+
+    await assert.rejects(asUser(null,()=>db.query("select public.cancel_trade_offer(gen_random_uuid())"),"anon"),/permission denied/);
+    await assert.rejects(asUser(null,()=>db.query("select public.cancel_trade_offer(gen_random_uuid())")),/AUTH_REQUIRED/);
+    await assert.rejects(asUser(alice,()=>db.query("select public.cancel_trade_offer(gen_random_uuid())")),/TRADE_NOT_FOUND/);
+    await assert.rejects(asUser(alice,()=>db.query("select public.cancel_trade_offer($1)",[offerId])),/TRADE_ALREADY_ACCEPTED/);
+    await assert.rejects(asUser(bob,()=>db.query("select public.cancel_trade_offer($1)",[counter])),/TRADE_ALREADY_DECLINED/);
+    await assert.rejects(asUser(alice,()=>db.query("select public.cancel_trade_offer($1)",[parent])),/TRADE_ALREADY_COUNTERED/);
+
+    const cancellable=(await asUser(alice,()=>db.query("select public.create_trade_offer($1,$2,5,'{}',0,null) as id",[bob,[bobCard]]))).rows[0].id;
+    const balancesBeforeCancel=(await db.query("select user_id,karas_balance from public.user_profiles where user_id in ($1,$2) order by user_id",[alice,bob])).rows;
+    await assert.rejects(asUser(bob,()=>db.query("select public.cancel_trade_offer($1)",[cancellable])),/TRADE_NOT_AUTHOR/);
+    await assert.rejects(asUser(charlie,()=>db.query("select public.cancel_trade_offer($1)",[cancellable])),/TRADE_NOT_AUTHOR/);
+    assert.equal((await asUser(alice,()=>db.query("select public.cancel_trade_offer($1) as value",[cancellable]))).rows[0].value,true);
+    assert.equal((await db.query("select status from public.trade_offers where id=$1",[cancellable])).rows[0].status,"cancelled");
+    assert.equal((await db.query("select user_id from public.user_cards where id=$1",[bobCard])).rows[0].user_id,alice);
+    assert.deepEqual((await db.query("select user_id,karas_balance from public.user_profiles where user_id in ($1,$2) order by user_id",[alice,bob])).rows,balancesBeforeCancel);
+    const cancelledNotification=(await asUser(bob,()=>db.query("select public.list_notifications() as value"))).rows[0].value.find(item=>item.type==="trade_offer_cancelled"&&item.referenceId===cancellable);
+    assert.equal(cancelledNotification.actorPseudo,"Alice");
+    assert.equal(Number((await db.query("select count(*) as count from public.notifications where user_id=$1 and type='trade_offer_cancelled' and reference_id=$2",[alice,cancellable])).rows[0].count),0);
+    await assert.rejects(asUser(alice,()=>db.query("select public.cancel_trade_offer($1)",[cancellable])),/TRADE_ALREADY_CANCELLED/);
+    assert.equal(Number((await db.query("select count(*) as count from public.notifications where type='trade_offer_cancelled' and reference_id=$1",[cancellable])).rows[0].count),1);
+    await assert.rejects(asUser(bob,()=>db.query("select public.respond_trade_offer($1,'accept')",[cancellable])),/TRADE_NOT_PENDING/);
+    assert.equal((await db.query("select status from public.trade_offers where id=$1",[cancellable])).rows[0].status,"cancelled");
+
+    const secondParent=(await asUser(alice,()=>db.query("select public.create_trade_offer($1,'{}',1,'{}',0,null) as id",[bob]))).rows[0].id;
+    const secondCounter=(await asUser(bob,()=>db.query("select public.create_trade_offer($1,'{}',1,'{}',1,$2) as id",[alice,secondParent]))).rows[0].id;
+    await asUser(bob,()=>db.query("select public.cancel_trade_offer($1)",[secondCounter]));
+    assert.deepEqual((await db.query("select id,status from public.trade_offers where id in ($1,$2) order by id",[secondParent,secondCounter])).rows.sort((a,b)=>a.id===secondParent?-1:b.id===secondParent?1:0),[
+      {id:secondParent,status:"countered"},{id:secondCounter,status:"cancelled"},
+    ]);
+    await assert.rejects(db.query("update public.trade_offers set status='unknown' where id=$1",[secondCounter]),/trade_offers_status_check/);
   });
 
   await t.test("RLS : Bob ne voit pas Alice et ne peut pas écrire directement", async () => {
