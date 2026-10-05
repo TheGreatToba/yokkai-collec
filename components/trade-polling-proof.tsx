@@ -27,6 +27,7 @@ function adapter(backend:TradeProofBackend,role:"proposer"|"recipient"):TradesPa
     listOffers:async()=>[backend.offer(role==="recipient"),{...backend.offer(role==="recipient"),id:"trade-proof-second",offeredCards:[proposerCards[0],proposerCards[1]],requestedCards:[recipientCards[0],recipientCards[1]],requestedKaras:40}],
     context:async()=>({friend,balance:role==="proposer"?475:525,ownCards:(role==="proposer"?proposerCards:recipientCards).filter(card=>!backend.unavailable||card.instanceId!=="nami-new"),friendCards:role==="proposer"?recipientCards:proposerCards}),
     create:async()=>"",
+    cancel:async()=>true,
     respond:async(_id,action)=>{if(role==="recipient"){if(action==="accept")backend.accept();else backend.decline();}return action==="accept";},
   };
 }

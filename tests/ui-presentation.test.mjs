@@ -612,7 +612,7 @@ test("l’inscription vérifie le pseudo après debounce sans remplacer la valid
 test("les notifications connues ont un texte et une redirection, les inconnues un repli sûr", () => {
   const source = readFileSync(path.join(root, "components/topbar.tsx"), "utf8");
   const model = readFileSync(path.join(root, "lib/data/notifications.ts"), "utf8");
-  for (const type of ["wishlist_card_on_auction", "friend_request", "outbid", "trade_offer_received", "trade_counter_offer_received", "trade_offer_accepted", "trade_offer_declined", "auction_won", "achievement_completed"]) {
+  for (const type of ["wishlist_card_on_auction", "friend_request", "outbid", "trade_offer_received", "trade_counter_offer_received", "trade_offer_accepted", "trade_offer_declined", "trade_offer_cancelled", "auction_won", "achievement_completed"]) {
     assert.match(model, new RegExp(type));
   }
   assert.match(source, /de ta wishlist vient d’être mise aux enchères — clique pour voir/);
@@ -622,6 +622,7 @@ test("les notifications connues ont un texte et une redirection, les inconnues u
   assert.match(source, /t’a fait une contre-proposition/);
   assert.match(source, /a accepté ton offre d’échange/);
   assert.match(source, /a refusé ton offre d’échange/);
+  assert.match(source, /a annulé son offre d’échange/);
   assert.match(source, /Nouvelle activité/);
   for (const glyph of ["⇄", "↺", "✓", "×"]) assert.match(source, new RegExp(glyph));
   assert.match(source, /Nouveau succès/);
@@ -629,6 +630,10 @@ test("les notifications connues ont un texte et une redirection, les inconnues u
   for (const href of ["/marche/", "/amis", "/echanges?offre=", "/succes#"]) {
     assert.match(source, new RegExp(href.replace("?", "\\?")));
   }
+  const {notificationItem}=load("components/topbar.tsx");
+  const unknown=notificationItem({id:"unknown",type:"future_type",referenceId:"ref",readAt:null,createdAt:"2026-10-05T00:00:00Z",cardName:null,actorPseudo:null,achievementName:null});
+  assert.equal(unknown.title,"Nouvelle activité");
+  assert.equal(unknown.text,"Une nouvelle activité est disponible.");
 });
 
 test("les notifications se relisent à l'ouverture du panneau et au retour sur l'onglet", () => {

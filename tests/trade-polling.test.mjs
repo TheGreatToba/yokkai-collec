@@ -33,11 +33,12 @@ test("les onglets répartissent les offres sans mélanger sens et historique",()
     {id:"accepted",incoming:true,status:"accepted"},
     {id:"declined",incoming:false,status:"declined"},
     {id:"countered",incoming:true,status:"countered"},
+    {id:"cancelled",incoming:false,status:"cancelled"},
   ];
 
   assert.deepEqual(Array.from(filterTradeOffers(offers,"received"),item=>item.id),["received"]);
   assert.deepEqual(Array.from(filterTradeOffers(offers,"sent"),item=>item.id),["sent"]);
-  assert.deepEqual(Array.from(filterTradeOffers(offers,"history"),item=>item.id),["accepted","declined","countered"]);
+  assert.deepEqual(Array.from(filterTradeOffers(offers,"history"),item=>item.id),["accepted","declined","countered","cancelled"]);
   assert.ok(!filterTradeOffers(offers,"received").some(item=>!item.incoming||item.status!=="pending"));
   assert.ok(!filterTradeOffers(offers,"sent").some(item=>item.incoming||item.status!=="pending"));
   assert.ok(!filterTradeOffers(offers,"history").some(item=>item.status==="pending"));
@@ -168,7 +169,7 @@ test("les actions d’examen sont désactivées dès que l’offre change ou dis
 test("l’identifiant d’examen survit au passage dans l’historique et résout la liste complète",()=>{
   const {resolveTradeReview,filterTradeOffers}=tradeApi();
   const id="seconde";
-  for(const status of ["pending","accepted","declined","countered"]){
+  for(const status of ["pending","accepted","declined","countered","cancelled"]){
     const all=[{id:"premiere",status:"pending",incoming:true},{id,status,incoming:true}];
     assert.equal(resolveTradeReview(id,all).status,status);
     for(const tab of ["received","sent","history"]){
@@ -182,10 +183,27 @@ test("l’identifiant d’examen survit au passage dans l’historique et résou
 
 test("les pastilles reflètent le statut réel sans transformer une réponse en indisponibilité",()=>{
   const {tradeStatusPresentation}=tradeApi();
-  for(const [status,label,tone] of [["pending","En attente","gold"],["accepted","Acceptée","success"],["declined","Refusée","danger"],["countered","Contre-proposée","info"],["expired","Indisponible","neutral"],[undefined,"Indisponible","neutral"]]){
+  for(const [status,label,tone] of [["pending","En attente","gold"],["accepted","Acceptée","success"],["declined","Refusée","danger"],["countered","Contre-proposée","info"],["cancelled","Annulée","neutral"],["expired","Indisponible","neutral"],[undefined,"Indisponible","neutral"]]){
     const presentation=tradeStatusPresentation(status);
     assert.equal(presentation.label,label);assert.equal(presentation.tone,tone);
-    if(["accepted","declined","countered"].includes(status))assert.notEqual(presentation.label,"Indisponible");
+    if(["accepted","declined","countered","cancelled"].includes(status))assert.notEqual(presentation.label,"Indisponible");
+  }
+});
+
+test("l’annulation reste disponible uniquement pour une offre envoyée en attente",()=>{
+  const source=readFileSync(new URL("../components/trades.tsx",import.meta.url),"utf8");
+  assert.match(source,/const cancellable=offer&&!offer\.incoming&&offer\.status==="pending"/);
+  assert.match(source,/onCancel=\{tab==="sent"\?setCancelling:undefined\}/);
+  assert.match(source,/Cette proposition a été annulée/);
+  assert.match(source,/disabled=\{busy\} onClick=\{\(\)=>cancelling&&void cancel/);
+});
+
+test("les six erreurs d’annulation ont un message français et aucun détail brut",()=>{
+  const {tradeErrorMessage}=tradeApi();
+  for(const code of ["TRADE_NOT_FOUND","TRADE_NOT_AUTHOR","TRADE_ALREADY_ACCEPTED","TRADE_ALREADY_DECLINED","TRADE_ALREADY_CANCELLED","TRADE_ALREADY_COUNTERED"]){
+    const message=tradeErrorMessage(code);
+    assert.notEqual(message,"Impossible de traiter cet échange. Réessayez.");
+    assert.ok(!message.includes(code));
   }
 });
 
