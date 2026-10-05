@@ -75,7 +75,7 @@
 .yk-detail-evolve { display: grid; gap: calc(var(--spacing) * 1.5); }
 .yk-detail-evolve p,.yk-detail-hint { color: var(--color-ink-3); font-size: var(--text-xs); line-height: 1.5; }
 .yk-group-frozen { position: absolute; top: calc(var(--spacing) * 10); left: calc(var(--spacing) * 4); z-index: 4; display: grid; place-items: center; overflow: hidden; color: #fff; font-size: 0; filter: drop-shadow(0 1px 3px var(--color-void)); transform: scale(.75); transform-origin: top left; }
-.yk-group-frozen::before { content: "⚒"; font-size: 16px; line-height: 1; }
+.yk-group-frozen::before { content: "⚒"; font-size: 16px; line-height: 1; text-shadow: -1px -1px 0 rgba(2,0,15,.95), 1px -1px 0 rgba(2,0,15,.95), -1px 1px 0 rgba(2,0,15,.95), 1px 1px 0 rgba(2,0,15,.95); }
 .yk-group-locked { position: absolute; top: calc(var(--spacing) * 10); left: calc(var(--spacing) * 4); z-index: 4; display: grid; place-items: center; color: #fff; filter: drop-shadow(0 1px 3px var(--color-void)); transform: scale(.75); transform-origin: top left; }
 .yk-copy-picker { display: grid; gap: calc(var(--spacing) * 2); }
 .yk-copy-picker > div { display: flex; flex-wrap: wrap; gap: calc(var(--spacing) * 1.5); }
