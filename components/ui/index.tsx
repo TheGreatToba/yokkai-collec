@@ -85,7 +85,7 @@ return <dialog ref={ref} aria-labelledby={titleId} className={`yk-modal ${classN
 }
 export function Toast({ message, onDismiss }: { message: string; onDismiss: () => void }) {
   const [mounted,setMounted]=useState(false);
-  useEffect(()=>setMounted(true),[]);
+  useEffect(()=>{const frame=requestAnimationFrame(()=>setMounted(true));return()=>cancelAnimationFrame(frame);},[]);
   useEffect(() => { if (!message) return; const timer = window.setTimeout(onDismiss, 2600); return () => clearTimeout(timer); }, [message, onDismiss]);
   return mounted&&message ? createPortal(<div role="status" className="yk-toast">{message}</div>,document.body) : null;
 }
