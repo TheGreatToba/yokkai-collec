@@ -25,8 +25,8 @@
 .yk-rate { border: 1px solid var(--color-veil); border-radius: 999px; padding: 5px 9px; font-size: 10px; color: var(--color-ink-2); }
 .yk-rate b { margin-right: 3px; }.yk-rate-C b { color: var(--color-rarity-c); }.yk-rate-R b { color: var(--color-rarity-r); }.yk-rate-SR b { color: var(--color-rarity-sr); }.yk-rate-SSR b { color: var(--color-rarity-ssr); }.yk-rate-LR b { color: var(--color-rarity-lr); }
 .yk-tearing-stage { min-height: 540px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.yk-tearing-stage::after { content: ''; position: fixed; inset: 0; z-index: 40; pointer-events: none; opacity: 0; background: linear-gradient(var(--holo-spark),var(--color-accent-neon)); animation: yk-flash .7s .3s both; }
-.yk-tearing-pack { animation: yk-rumble .6s ease-in-out,yk-vanish .3s .6s forwards; }
+.yk-tearing-stage::after { content: ''; position: fixed; inset: 0; z-index: 40; pointer-events: none; opacity: 0; background: linear-gradient(var(--holo-spark),var(--color-accent-neon)); animation: yk-flash var(--pack-opening-duration) both; }
+.yk-tearing-pack { animation: yk-rumble calc(var(--pack-opening-duration) * .67) ease-in-out,yk-vanish calc(var(--pack-opening-duration) * .33) calc(var(--pack-opening-duration) * .67) forwards; }
 .yk-reveal-stage { position: relative; isolation: isolate; display: flex; flex-direction: column; align-items: center; padding: 65px 0 36px; }
 .yk-reveal-stage > p,.yk-deck { z-index: 3; }
 .yk-deck { position: relative; width: 190px; aspect-ratio: 5 / 7; perspective: 1000px; }
@@ -454,7 +454,8 @@
 
 @media (max-width: 540px) { .yk-pack-art-stage { height: 290px; } .yk-callout { font-size: 18px; } }
 @media (prefers-reduced-motion: reduce) {
-  .yk-tearing-pack,.yk-face-up,.yk-stacked-back { transform: none !important; }
+  .yk-tearing-pack { animation: none; transform: none !important; }
+  .yk-face-up,.yk-stacked-back { transform: none !important; }
   .yk-burst,.yk-sr-flash,.yk-reveal-rays,.yk-reveal-particles,.yk-ssr-cinematic-stage,.yk-lr-cinematic-stage,.yk-tearing-stage::after,.yk-invocation::before,.yk-invocation::after,.yk-reveal-shiny::after { display: none; }
   .yk-reveal-ssr,.yk-reveal-lr,.yk-reveal-ssr .yk-face-up,.yk-reveal-lr .yk-face-up { animation: none; }
   .yk-reveal-ssr .yk-face-up .yk-flip,.yk-reveal-lr .yk-face-up .yk-flip { transition-delay: 0s; }
