@@ -20,6 +20,19 @@ test("les échanges réutilisent les cartes standard sans écraser leurs textes 
   assert.doesNotMatch(css, /\.yk-trade-review-cards\s+span\s*\{/);
   assert.doesNotMatch(source, /className="yk-offer-cards"/);
 });
+
+test("la wishlist d'un ami se filtre par recherche, rareté et catégorie", () => {
+  const source = readFileSync(path.join(root, "components/profile.tsx"), "utf8");
+  assert.match(source, /function FriendWishlist/);
+  assert.match(source, /matchesCardSearch\(query,\[card\.name,card\.category,card\.anime\]\)/);
+  assert.match(source, /card\.rarity===rarity/);
+  assert.match(source, /card\.category===category/);
+  assert.match(source, /title="Rareté"/);
+  assert.match(source, /title="Catégorie"/);
+  assert.match(source, /Réinitialiser les filtres/);
+  assert.match(source, /<FriendWishlist cards=\{wishlist\}/);
+  assert.match(source, /shown\.map\(card=><Link[^>]+><CardShell><YokaiCard/);
+});
 const modules = new Map();
 function load(relative) {
   const filename = path.join(root, relative);
@@ -126,6 +139,15 @@ test("le compteur de cartes d'un ami ouvre sa collection complète en lecture se
   assert.match(profile, /Voir la collection/);
   assert.match(profile, /className="yk-friend-collection-modal"/);
   assert.match(communityCss, /\.yk-modal\.yk-friend-collection-modal \{ width: min\(1400px,calc\(100% - 32px\)\); \}/);
+});
+
+test("le compteur wishlist d'un ami ouvre toute sa wishlist et chaque carte reste cliquable", () => {
+  const profile = readFileSync(path.join(root, "components/profile.tsx"), "utf8");
+  assert.match(profile, /profile\.friendshipStatus==="accepted"\?<button[^>]+onClick=\{\(\)=>setWishlistOpen\(true\)\}/);
+  assert.match(profile, /Wishlist de \$\{profile\.pseudo\}/);
+  assert.match(profile, /shown\.map\(card=><Link href=\{`\/recherche\?carte=\$\{card\.id\}`\}/);
+  assert.match(profile, /Voir la wishlist/);
+  assert.match(profile, /aria-label=\{`Voir \$\{card\.name\} dans le catalogue`\}/);
 });
 
 test("une carte d'ami ouvre une proposition d'échange présélectionnée et extensible", () => {
