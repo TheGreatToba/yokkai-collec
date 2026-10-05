@@ -45,14 +45,16 @@ export function Game({ view, account }: { view: "packs" | "collection"; account?
     return () => { active = false; unsubscribe(); };
   }, []);
   async function open(kind: "regular" | "decision") {
-    if (draw.length > 0 && revealed < draw.length) return;
-    await runPackOpeningOnce(opening, async () => {
+    if (draw.length > 0 && revealed < draw.length) return [];
+    return await runPackOpeningOnce(opening, async () => {
       setBusy(true); setError("");
       try {
-      setDraw(kind === "regular" ? await openBooster() : await openDecisionPack());
+      const cards = kind === "regular" ? await openBooster() : await openDecisionPack();
+      setDraw(cards);
       setDrawKind(kind); setRevealed(0);
       setBusy(false);
       void Promise.all([getPackStatus(), getDecisionPackStatus(), getUserCollection()]).then(([packs, decision, cards]) => { setStatus(packs); setDecisionStatus(decision); setCollection(cards); }, () => undefined);
+      return cards;
       } catch (e) { setError(e instanceof Error ? e.message : "Impossible d’ouvrir le pack."); throw e; }
       finally { setBusy(false); }
     });

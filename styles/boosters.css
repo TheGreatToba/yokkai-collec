@@ -24,9 +24,11 @@
 }
 .yk-rate { border: 1px solid var(--color-veil); border-radius: 999px; padding: 5px 9px; font-size: 10px; color: var(--color-ink-2); }
 .yk-rate b { margin-right: 3px; }.yk-rate-C b { color: var(--color-rarity-c); }.yk-rate-R b { color: var(--color-rarity-r); }.yk-rate-SR b { color: var(--color-rarity-sr); }.yk-rate-SSR b { color: var(--color-rarity-ssr); }.yk-rate-LR b { color: var(--color-rarity-lr); }
-.yk-tearing-stage { min-height: 540px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.yk-tearing-stage::after { content: ''; position: fixed; inset: 0; z-index: 40; pointer-events: none; opacity: 0; background: linear-gradient(var(--holo-spark),var(--color-accent-neon)); animation: yk-flash var(--pack-opening-duration) both; }
-.yk-tearing-pack { animation: yk-rumble calc(var(--pack-opening-duration) * .67) ease-in-out,yk-vanish calc(var(--pack-opening-duration) * .33) calc(var(--pack-opening-duration) * .67) forwards; }
+.yk-opening-stage { min-height: 540px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.yk-opening-pack { filter: drop-shadow(0 18px 24px var(--color-void)); }
+.yk-opening-tension .yk-opening-pack { animation: yk-opening-tension var(--pack-opening-duration) ease-in-out infinite; }
+.yk-opening-seal::after { content: ''; position: fixed; inset: 0; z-index: 40; pointer-events: none; opacity: 0; background: linear-gradient(var(--holo-spark),var(--color-accent-neon)); animation: yk-flash var(--pack-opening-duration) both; }
+.yk-opening-seal .yk-opening-pack { animation: yk-rumble calc(var(--pack-opening-duration) * .67) ease-in-out,yk-vanish calc(var(--pack-opening-duration) * .33) calc(var(--pack-opening-duration) * .67) forwards; }
 .yk-reveal-stage { position: relative; isolation: isolate; display: flex; flex-direction: column; align-items: center; padding: 65px 0 36px; }
 .yk-reveal-stage > p,.yk-deck { z-index: 3; }
 .yk-deck { position: relative; width: 190px; aspect-ratio: 5 / 7; perspective: 1000px; }
@@ -147,7 +149,7 @@
 .yk-reveal-progress .yk-progress-current { background: var(--color-focus); box-shadow: var(--shadow-chip); }
 .yk-decision-banner { max-width: var(--booster-reveal-max); margin: var(--layout-gutter) auto 0; padding: var(--layout-gutter-compact) var(--layout-gutter); border: 1px solid color-mix(in srgb,var(--color-karas) 35%,transparent); border-radius: var(--radius-panel); background: color-mix(in srgb,var(--color-karas) 8%,var(--color-surface)); box-shadow: var(--shadow-gold); text-align: center; }
 .yk-reveal-grid { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: var(--layout-gutter) var(--booster-reveal-gap); max-width: var(--booster-reveal-max); margin: var(--layout-gutter) auto 0; }
-.yk-reveal-slot { position: relative; min-width: 0; display: flex; flex-direction: column; align-items: stretch; animation: yk-slot-enter var(--duration-normal) var(--ease-standard) both; animation-delay: calc(var(--stagger-item) * var(--slot-i, 0)); }
+.yk-reveal-slot { position: relative; min-width: 0; display: flex; flex-direction: column; align-items: stretch; animation: yk-slot-enter var(--pack-opening-fade-duration) var(--ease-standard) both; animation-delay: calc(var(--stagger-item) * var(--slot-i, 0)); }
 .yk-slot-placeholder { aspect-ratio: 5 / 7; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--spacing) * 2); border: 1px dashed var(--color-veil-strong); border-radius: var(--radius-card); background: color-mix(in srgb,var(--color-surface) 60%,transparent); transition: border-color var(--duration-fast) var(--ease-standard),box-shadow var(--duration-fast) var(--ease-standard); }
 .yk-slot-next .yk-slot-placeholder { border-style: solid; border-color: var(--color-focus); box-shadow: var(--shadow-chip); }
 .yk-slot-number { color: var(--color-ink-3); font-family: var(--font-display); font-size: 24px; }
@@ -230,6 +232,7 @@
 /* Animation Keyframes */
 @keyframes yk-float { 0%,100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-10px) rotate(1.5deg); } }
 @keyframes yk-rumble { 0%,100% { transform:none; } 20%,60% { transform: translateX(-5px) rotate(-3deg); } 40%,80% { transform: translateX(5px) rotate(3deg) scale(1.05); } }
+@keyframes yk-opening-tension { 0%,100% { transform: translateX(0); filter: drop-shadow(0 18px 24px var(--color-void)); } 25% { transform: translateX(-1px) rotate(-.3deg); } 50% { filter: drop-shadow(0 18px 24px var(--color-void)) drop-shadow(0 0 18px color-mix(in srgb,var(--color-accent-gold) 45%,transparent)); } 75% { transform: translateX(1px) rotate(.3deg); } }
 @keyframes yk-vanish { to { transform: scale(1.4); opacity: 0; } }
 @keyframes yk-drop { from { transform: translateY(-160px) scale(1.2); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes yk-rise { from { transform: translateY(40px) scale(.7); opacity: 0; } to { transform: none; opacity: 1; } }
@@ -454,9 +457,10 @@
 
 @media (max-width: 540px) { .yk-pack-art-stage { height: 290px; } .yk-callout { font-size: 18px; } }
 @media (prefers-reduced-motion: reduce) {
-  .yk-tearing-pack { animation: none; transform: none !important; }
+  .yk-opening-tension .yk-opening-pack { animation: none; }
+  .yk-opening-seal .yk-opening-pack { animation: yk-vanish var(--pack-opening-fade-duration) var(--ease-standard) forwards; transform: none !important; }
   .yk-face-up,.yk-stacked-back { transform: none !important; }
-  .yk-burst,.yk-sr-flash,.yk-reveal-rays,.yk-reveal-particles,.yk-ssr-cinematic-stage,.yk-lr-cinematic-stage,.yk-tearing-stage::after,.yk-invocation::before,.yk-invocation::after,.yk-reveal-shiny::after { display: none; }
+  .yk-burst,.yk-sr-flash,.yk-reveal-rays,.yk-reveal-particles,.yk-ssr-cinematic-stage,.yk-lr-cinematic-stage,.yk-opening-stage::after,.yk-invocation::before,.yk-invocation::after,.yk-reveal-shiny::after { display: none; }
   .yk-reveal-ssr,.yk-reveal-lr,.yk-reveal-ssr .yk-face-up,.yk-reveal-lr .yk-face-up { animation: none; }
   .yk-reveal-ssr .yk-face-up .yk-flip,.yk-reveal-lr .yk-face-up .yk-flip { transition-delay: 0s; }
 }

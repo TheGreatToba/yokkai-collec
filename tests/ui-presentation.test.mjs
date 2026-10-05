@@ -92,17 +92,67 @@ test("le verrou d'ouverture est libéré après une erreur serveur", async () =>
   assert.equal(retried, true);
 });
 
-test("l'ouverture partage sa durée, se passe et ne bloque pas le reveal sur les rafraîchissements", () => {
+test("la rupture attend la réponse et la tension minimale sans additionner leurs durées", async () => {
+  const { runPackOpeningSequence } = load("lib/ui/pack-opening.ts");
+  const events = [];
+  let releaseResponse;
+  let releaseTension;
+  let releaseSeal;
+  const response = new Promise(resolve => { releaseResponse = resolve; });
+  const waits = new Map([
+    [250, new Promise(resolve => { releaseTension = resolve; })],
+    [400, new Promise(resolve => { releaseSeal = resolve; })],
+  ]);
+  const opening = runPackOpeningSequence({
+    open: () => response,
+    wait: duration => waits.get(duration),
+    onResponse: () => events.push("response"),
+    onSeal: () => events.push("seal"),
+  });
+
+  releaseTension();
+  await Promise.resolve();
+  assert.equal(events.join(","), "", "contre-preuve : l'ancien minuteur pouvait finir avant le serveur");
+  releaseResponse([]);
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(events.join(","), "response,seal");
+  releaseSeal();
+  await opening;
+
+  events.length = 0;
+  let releaseFastTension;
+  let releaseFastSeal;
+  const fastOpening = runPackOpeningSequence({
+    open: async () => [],
+    wait: duration => new Promise(resolve => {
+      if (duration === 250) releaseFastTension = resolve;
+      else releaseFastSeal = resolve;
+    }),
+    onResponse: () => events.push("response"),
+    onSeal: () => events.push("seal"),
+  });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(events.join(","), "response", "une réponse rapide conserve les 250 ms de tension");
+  releaseFastTension();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(events.join(","), "response,seal");
+  releaseFastSeal();
+  await fastOpening;
+});
+
+test("l'ouverture centralise ses durées, se passe et ne bloque pas le reveal sur les rafraîchissements", () => {
   const animations = readFileSync(path.join(root, "lib/ui/animations.ts"), "utf8");
   const boosters = readFileSync(path.join(root, "components/boosters.tsx"), "utf8");
   const game = readFileSync(path.join(root, "components/game.tsx"), "utf8");
   const css = readFileSync(path.join(root, "styles/boosters.css"), "utf8");
-  assert.match(animations, /packOpening:\s*\{ seal: 650, slowResponse: 1500 \}/);
+  assert.match(animations, /packOpening:\s*\{ minimumTension: 250, seal: 400, fade: 150, preload: 400, slowResponse: 1500 \}/);
   assert.match(css, /--pack-opening-duration/);
-  assert.match(css, /\.yk-tearing-pack \{ animation: none;/);
+  assert.match(css, /--pack-opening-fade-duration/);
+  assert.match(css, /\.yk-opening-tension \.yk-opening-pack \{ animation: none;/);
   assert.match(boosters, /matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
   assert.match(boosters, /event\.key==="Enter"\|\|event\.key===" "/);
-  assert.match(boosters, /onOpen\(kind\)\.catch\(skipTearing\)/);
+  assert.match(boosters, /runPackOpeningSequence\(\{/);
+  assert.match(boosters, /Promise\.race\(\[decoding/);
   assert.match(game, /setDraw\([\s\S]*?setBusy\(false\);[\s\S]*?void Promise\.all\(\[getPackStatus\(\)/);
   assert.match(game, /runPackOpeningOnce\(opening/);
 });
