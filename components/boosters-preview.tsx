@@ -32,7 +32,9 @@ export function BoostersPreview() {
     onOpen={async kind => {
       if (kind === "regular") setReserve(current => Math.max(0, current - 1)); else setDecisionUsed(true);
       setDrawKind(kind); setRevealed(0);
-      setDraw(draws[kind].map(([name, rarity, shiny], index) => ({ id: `preview-${kind}-${index}`, instanceId: `preview-${kind}-${index}-${Date.now()}`, name, category: "Anime", anime: franchises[index], rarity, image: "/assets/booster-pack.png", shiny })));
+      const cards = draws[kind].map(([name, rarity, shiny], index) => ({ id: `preview-${kind}-${index}`, instanceId: `preview-${kind}-${index}-${Date.now()}`, name, category: "Anime", anime: franchises[index], rarity, image: "/assets/booster-pack.png", shiny }));
+      setDraw(cards);
+      return cards;
     }}
     onKeepDecision={async () => 180}
     onDiscard={async () => {}}
