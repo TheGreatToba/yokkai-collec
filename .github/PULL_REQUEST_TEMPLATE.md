@@ -4,7 +4,8 @@
 
 ## Checklist
 
-- [ ] Tests lancés (`npm run lint` / `npm run build` / `npm test`)
+- [ ] CI verte — une PR rouge ne se merge pas, même si GitHub le permet
+- [ ] Vérifications reproduites localement (`npm ci`, lint, types, tests, build)
 - [ ] Testé manuellement — comment :
 - [ ] Contient une migration Supabase — laquelle :
   - [ ] Déjà appliquée sur le VPS

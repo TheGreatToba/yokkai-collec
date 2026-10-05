@@ -24,6 +24,9 @@ les dépendances étaient déjà installées. Vérifier :
 > Si le repo passe en GitHub Pro, la protection de branche (« Require a pull request before
 > merging ») pourra être activée dans Settings > Branches — ce document sera alors mis à jour.
 
+Le hook pre-push et la CI sont deux garde-fous distincts : le hook local bloque un push direct sur
+`master`, tandis que la CI vérifie le code d'une PR et surveille aussi les pushes sur `master`.
+
 ## 1. Jamais de commit direct sur `master`
 
 Toute tâche part d'une branche créée depuis un `master` à jour :
@@ -56,10 +59,26 @@ recoupement : se coordonner sur Discord avant de commencer.
 ## 4. Merge via Pull Request uniquement
 
 - Jamais de merge local poussé directement sur `master`.
+- Ne jamais merger une PR dont la vérification CI est rouge, même si GitHub propose le bouton de
+  merge en l'absence de protection de branche.
 - Ouvrir la PR **dès que le travail est prêt à être relu**, pas en fin de chantier (une PR en
   draft est très bien).
 - Remplir le template de PR, en particulier la liste des fichiers/zones touchées et les
   migrations.
+
+La CI utilise Node 22 et exécute, dans l'ordre : installation reproductible des dépendances, lint,
+vérification TypeScript, tests et build. Pour reproduire ces contrôles localement :
+
+```bash
+npm ci
+npm run lint
+npx tsc --noEmit
+npm test
+npm run build
+```
+
+Le build nécessite les variables publiques listées dans `.env.example`. Des valeurs factices
+suffisent pour vérifier le build ; ne jamais utiliser de secret ou de clé de production en CI.
 
 ## 5. Pousser souvent
 
