@@ -168,6 +168,9 @@
 .yk-reveal-card .yk-selection-check.yk-checked { background: var(--color-accent-neon); }
 .yk-reveal-screen:has(> .yk-selection-bar) .yk-reveal-summary { display: none; }
 .yk-slot-button { width: 100%; min-height: 36px; padding: calc(var(--spacing) * 2) calc(var(--spacing) * 2); font-size: 12px; }
+.yk-booster-card-actions { display: grid; gap: calc(var(--spacing) * 2); margin-top: calc(var(--spacing) * 5); border: 1px solid var(--color-veil); border-radius: var(--radius-input); padding: calc(var(--spacing) * 3); background: color-mix(in srgb,var(--color-night) 70%,transparent); }
+.yk-booster-card-actions > p { color: var(--color-ink-3); font-size: var(--text-xs); line-height: 1.5; }
+.yk-booster-auction-title { margin-top: calc(var(--spacing) * 5); border-top: 1px solid var(--color-veil); padding-top: calc(var(--spacing) * 5); font-family: var(--font-display); font-size: var(--text-lg); }
 .yk-reveal-grid-choosing .yk-slot-button.yk-button-primary { border-color: var(--color-accent-gold); box-shadow: var(--shadow-gold); }
 .yk-picked { transform: translateY(-10px); }
 .yk-picked .yk-reveal-card { outline: 2px solid var(--color-accent-gold); outline-offset: 4px; box-shadow: var(--shadow-gold); }
