@@ -394,6 +394,7 @@ test("une carte révélée peut être mise directement sur le marché", () => {
   assert.match(boosters, /<h3 className="yk-booster-auction-title">Mettre aux enchères<\/h3>/);
   assert.match(boosters, /<div className="yk-booster-action-grid"><div className="yk-booster-action-art"><YokaiCard/);
   assert.match(boosters, /<div className="yk-booster-action-controls"><div className="yk-booster-card-actions">/);
+  assert.match(boosters, /className="yk-auction-modal yk-booster-action-modal"/);
   assert.match(boosters, /onAuction\(auctionCandidate\.instanceId,price,Number\(auctionDuration\)\)/);
   assert.match(boosters, /auctioned\.has\(card\.instanceId\)\?<StatusPill tone="info">EN VENTE/);
   assert.match(boosters, /visibleCards\.filter\(card=>!auctioned\.has\(card\.instanceId\)&&!locked\.has\(card\.instanceId\)\)/);

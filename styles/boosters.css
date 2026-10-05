@@ -168,7 +168,8 @@
 .yk-reveal-card .yk-selection-check.yk-checked { background: var(--color-accent-neon); }
 .yk-reveal-screen:has(> .yk-selection-bar) .yk-reveal-summary { display: none; }
 .yk-slot-button { width: 100%; min-height: 36px; padding: calc(var(--spacing) * 2) calc(var(--spacing) * 2); font-size: 12px; }
-.yk-booster-action-grid { display: grid; grid-template-columns: var(--market-sell-art-width) minmax(0,1fr); align-items: start; gap: calc(var(--spacing) * 7); }
+.yk-modal.yk-booster-action-modal { width: min(56rem,calc(100% - var(--layout-gutter) * 2)); }
+.yk-booster-action-grid { display: grid; grid-template-columns: 15rem minmax(0,1fr); align-items: start; gap: calc(var(--spacing) * 8); }
 .yk-booster-action-art { position: sticky; top: 0; width: 100%; }
 .yk-booster-action-controls { min-width: 0; }
 .yk-booster-card-actions { display: grid; gap: calc(var(--spacing) * 2); border: 1px solid var(--color-veil); border-radius: var(--radius-input); padding: calc(var(--spacing) * 3); background: color-mix(in srgb,var(--color-night) 70%,transparent); }
@@ -207,7 +208,7 @@
   .yk-reveal-summary { padding: var(--layout-gutter-compact); }
   .yk-reveal-summary .yk-button { width: 100%; }
   .yk-booster-action-grid { grid-template-columns: 1fr; gap: var(--layout-gutter); }
-  .yk-booster-action-art { position: static; width: min(100%,var(--market-sell-art-width)); margin-inline: auto; }
+  .yk-booster-action-art { position: static; width: min(100%,13rem); margin-inline: auto; }
 }
 @media (prefers-reduced-motion: reduce) {
   .yk-reveal-slot { animation: none; }
