@@ -391,11 +391,27 @@ test("les boosters annoncent les gains autoritaires avant confirmation", () => {
 test("une carte révélée peut être mise directement sur le marché", () => {
   const boosters = readFileSync(path.join(root, "components/boosters.tsx"), "utf8");
   const game = readFileSync(path.join(root, "components/game.tsx"), "utf8");
-  assert.match(boosters, /Mettre cette carte sur le marché/);
+  assert.match(boosters, /<h3 className="yk-booster-auction-title">Mettre aux enchères<\/h3>/);
+  assert.match(boosters, /<div className="yk-booster-action-grid"><div className="yk-booster-action-art"><YokaiCard/);
+  assert.match(boosters, /<div className="yk-booster-action-controls"><div className="yk-booster-card-actions">/);
+  assert.match(boosters, /className="yk-auction-modal yk-booster-action-modal"/);
   assert.match(boosters, /onAuction\(auctionCandidate\.instanceId,price,Number\(auctionDuration\)\)/);
   assert.match(boosters, /auctioned\.has\(card\.instanceId\)\?<StatusPill tone="info">EN VENTE/);
-  assert.match(boosters, /visibleCards\.filter\(card=>!auctioned\.has\(card\.instanceId\)\)/);
+  assert.match(boosters, /visibleCards\.filter\(card=>!auctioned\.has\(card\.instanceId\)&&!locked\.has\(card\.instanceId\)\)/);
   assert.match(game, /onAuction=\{auctionCard\}/);
+});
+
+test("une carte révélée propose verrouillage et enchère dans la même modale", () => {
+  const boosters = readFileSync(path.join(root, "components/boosters.tsx"), "utf8");
+  const game = readFileSync(path.join(root, "components/game.tsx"), "utf8");
+  assert.match(boosters, /title=\{auctionDone\?"Carte mise aux enchères":"Actions sur cette carte"\}/);
+  assert.match(boosters, /locked\.has\(auctionCandidate\.instanceId\)\?"Déverrouiller la carte":"Verrouiller la carte"/);
+  assert.match(boosters, /<h3 className="yk-booster-auction-title">Mettre aux enchères<\/h3>/);
+  assert.match(boosters, /onSetLocked\(auctionCandidate\.instanceId,next\)/);
+  assert.match(boosters, /locked\.has\(auctionCandidate\.instanceId\).*Number\.isInteger/);
+  assert.match(boosters, /<Button variant="danger" disabled=\{auctionBusy\|\|lockBusy\|\|locked\.has\(auctionCandidate\.instanceId\)/);
+  assert.match(boosters, /\{auctionBusy\?"Publication…":"Mettre en vente"\}<\/Button>/);
+  assert.match(game, /onSetLocked=\{lockCard\}/);
 });
 
 test("la modale de détail groupe dossier sous la carte et destruction explicite en bas", () => {
