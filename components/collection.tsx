@@ -110,6 +110,7 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
   const visibleGroups = groups.slice((activePage - 1) * pageSize, activePage * pageSize);
   const selectedCards = cards.filter(c => selection.has(c.instanceId) && !c.locked && !presentation[c.instanceId]?.frozen);
   const selectedGroup = selected ? groupCollection(cards.filter(card=>collectionGroupKey(card)===collectionGroupKey(selected)))[0] : undefined;
+  const selectedGroupFrozen = selectedGroup?.cards.some(card=>!!presentation[card.instanceId]?.frozen)??false;
   const isFrozen = (instanceId:string) => !!presentation[instanceId]?.frozen || !!cards.find(card=>card.instanceId===instanceId)?.locked;
   const destructibleCards = consumableCopies(selectedGroup?.cards??[],isFrozen).slice(0,onDiscardMany?undefined:1);
   const discardCards = consumptionPlan(selectedGroup?.cards??[],Math.min(discardQuantity,destructibleCards.length),isFrozen).slice(0,onDiscardMany?undefined:1);
@@ -136,9 +137,9 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
     catch (error) { setFolderError(error instanceof Error ? error.message : "Impossible de créer le dossier."); }
     finally { setFolderBusy(false); }
   }
-  async function auctionSelected(){if(!selected||!onCreateAuction||auctionBusy)return;setAuctionBusy(true);setAuctionError("");try{await onCreateAuction(selected.instanceId,Number(auctionPrice),Number(auctionDuration));setAuctionDone(true);}catch(error){setAuctionError(error instanceof Error?error.message:"Impossible de créer l’enchère.");}finally{setAuctionBusy(false);}}
+  async function auctionSelected(){if(!selected||!onCreateAuction||auctionBusy||selectedGroupFrozen)return;setAuctionBusy(true);setAuctionError("");try{await onCreateAuction(selected.instanceId,Number(auctionPrice),Number(auctionDuration));setAuctionDone(true);}catch(error){setAuctionError(error instanceof Error?error.message:"Impossible de créer l’enchère.");}finally{setAuctionBusy(false);}}
   async function openAuction(){
-    if(!selected)return;
+    if(!selected||selectedGroupFrozen)return;
     setAuctionPrice("10");setAuctionError("");setAuctionDone(false);setAuctionSuggestion(null);setAuctionSuggestionBusy(true);setAuctionOpen(true);
     try{const discovery=await loadCardDiscovery(selected.id);const value=discovery.marketValue;setAuctionSuggestion(value!=null&&Number.isFinite(value)&&value>0?Math.round(value):null);}
     catch{setAuctionSuggestion(null);}
@@ -231,10 +232,11 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
         <header><div className="flex flex-wrap items-center gap-2"><span className={`text-sm font-bold tracking-widest ${rarityText[selected.rarity]}`}>{selected.rarity}{selected.shiny?" ✦ Shiny":""}</span>{selected.isEvolved&&<span className="text-[10px] font-semibold tracking-wider text-accent-gold">ÉVOLUÉE</span>}</div><h3 className="mt-1 font-display text-[28px] leading-tight">{selected.name}</h3></header>
         {(selectedGroup?.cards.length??0)>1&&<div className="yk-copy-picker"><span className="yk-section-title">Exemplaire affiché</span><div>{selectedGroup?.cards.map((card,index)=><button type="button" key={card.instanceId} aria-label={`Exemplaire ${index+1}${card.locked?", protégé":""}`} aria-pressed={card.instanceId===selected.instanceId} onClick={()=>setSelectedId(card.instanceId)}><span>{index+1}{card.customImageUrl?" ✦":""}</span>{card.locked?<ProtectedIcon size={12}/>:presentation[card.instanceId]?.frozen?" ⏳":""}</button>)}</div></div>}
         <dl className="yk-detail-facts"><div><dt>Catégorie</dt><dd>{selected.category}</dd></div><div><dt>Obtenue le</dt><dd>{formatDate(selected.obtainedAt,true)}</dd></div><div><dt>Exemplaires</dt><dd>{selectedGroup?.cards.length??1}</dd></div>{selectedMeta?.marketValue!=null&&<div><dt>Valeur de marché</dt><dd><Karas amount={selectedMeta.marketValue}/></dd></div>}</dl>
+        {selectedGroupFrozen&&<Feedback tone="error" title="Carte gelée car en enchère">Cette carte ne peut pas être remise aux enchères tant que la vente en cours n’est pas terminée.</Feedback>}
         {resolvedTradeHref&&!selected.locked&&<Link className="yk-button yk-button-primary mt-6 flex w-full justify-center" href={resolvedTradeHref(selected)}>Proposer un échange</Link>}
         {!readOnly&&onSetLocked&&<div className="yk-detail-actions"><Button variant="secondary" className="flex w-full items-center justify-center gap-2" disabled={lockBusy||!!selectedMeta?.frozen} onClick={()=>void toggleSelectedLock()}><ProtectedIcon size={16}/>{lockBusy?"Enregistrement…":selected.locked?"Déverrouiller la carte":"Verrouiller la carte"}</Button><p className="text-xs text-ink-3">Une carte verrouillée ne peut pas être vendue, échangée, détruite ni ajoutée à une sélection multiple.</p>{lockError&&<p role="alert" className="text-xs text-danger">{lockError}</p>}</div>}
         {!readOnly&&(onCreateAuction||(selected.rarity==="SSR"&&!selected.shiny))&&<div className="yk-detail-actions">
-          {onCreateAuction&&<Button className="w-full" disabled={selected.locked||!!selectedMeta?.frozen} onClick={()=>void openAuction()}>{selected.locked?"Carte verrouillée":selectedMeta?.frozen?"Déjà en vente":"Mettre aux enchères"}</Button>}
+          {onCreateAuction&&<Button className="w-full" disabled={selected.locked||selectedGroupFrozen} onClick={()=>void openAuction()}>{selected.locked?"Carte verrouillée":selectedGroupFrozen?"Carte gelée car en enchère":"Mettre aux enchères"}</Button>}
           {selected.rarity==="SSR"&&!selected.shiny&&<div className="yk-detail-evolve"><Button variant="secondary" className="w-full" disabled={evolvableCopies<5||evolving||!onEvolve} onClick={()=>{setEvolutionSelection(new Set(evolvableCards.slice(0,5).map(card=>card.instanceId)));setEvolutionError("");setEvolveConfirm(true);}}>Évoluer en Shiny ({evolvableCopies}/5)</Button><p><strong className="text-accent-neon">Évolution Shiny</strong> · {evolvableCopies} / 5 exemplaires SSR non-Shiny disponibles · images personnalisées préservées si possible, puis plus anciens d’abord</p></div>}
           {evolutionError&&<p role="alert" className="text-xs text-danger">{evolutionError}</p>}
         </div>}
