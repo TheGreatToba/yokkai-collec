@@ -79,6 +79,26 @@
 .yk-auction-history { grid-area: history; min-width: 0; padding: var(--layout-gutter-compact) calc(var(--spacing) * 5); border: 1px solid var(--color-veil); border-radius: var(--radius-panel); background: var(--color-surface); }
 .yk-auction-history li { display: flex; align-items: center; gap: calc(var(--spacing) * 3); padding: calc(var(--spacing) * 3) 0; }
 .yk-auction-history li + li { border-top: 1px solid var(--color-veil); }
+.yk-auction-chat { display: grid; gap: calc(var(--spacing) * 4); min-width: 0; padding: var(--layout-gutter-compact); border: 1px solid var(--color-veil); border-radius: var(--radius-panel); background: var(--color-surface); }
+.yk-auction-chat-head { display: flex; align-items: flex-start; justify-content: space-between; gap: calc(var(--spacing) * 3); }
+.yk-auction-chat-head p,.yk-auction-chat-head > span,.yk-auction-chat-empty,.yk-auction-chat-locked { color: var(--color-ink-3); font-size: var(--text-xs); }
+.yk-auction-chat-head p { margin-top: calc(var(--spacing) * 1); }
+.yk-auction-chat-head > span { flex-shrink: 0; }
+.yk-auction-chat-list { display: grid; gap: calc(var(--spacing) * 3); max-height: 310px; overflow-y: auto; padding-right: calc(var(--spacing) * 1); scrollbar-color: var(--color-veil-strong) transparent; }
+.yk-auction-chat-list li { display: flex; align-items: flex-start; gap: calc(var(--spacing) * 2); }
+.yk-auction-chat-list li > div { min-width: 0; max-width: 85%; padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3); border: 1px solid var(--color-veil); border-radius: var(--radius-input); background: var(--color-veil); }
+.yk-auction-chat-list li.is-mine { flex-direction: row-reverse; }
+.yk-auction-chat-list li.is-mine > div { background: color-mix(in srgb,var(--color-accent-gold) 10%,var(--color-surface)); border-color: color-mix(in srgb,var(--color-accent-gold) 35%,transparent); }
+.yk-auction-chat-list p { display: flex; align-items: center; justify-content: space-between; gap: calc(var(--spacing) * 3); margin-bottom: calc(var(--spacing) * 1); font-size: var(--text-xs); }
+.yk-auction-chat-list a { color: var(--color-ink); font-weight: 700; }
+.yk-auction-chat-list time { color: var(--color-ink-3); font-size: 10px; font-variant-numeric: tabular-nums; }
+.yk-auction-chat-list div > span { display: block; overflow-wrap: anywhere; color: var(--color-ink-2); font-size: var(--text-sm); line-height: 1.5; white-space: pre-wrap; }
+.yk-auction-chat-form { display: grid; gap: calc(var(--spacing) * 2); }
+.yk-auction-chat-form textarea { width: 100%; resize: vertical; min-height: 72px; padding: calc(var(--spacing) * 3); border: 1px solid var(--color-veil); border-radius: var(--radius-input); background: var(--color-night); color: var(--color-ink); font-size: var(--text-sm); outline: none; }
+.yk-auction-chat-form textarea:focus { border-color: var(--color-accent-gold); box-shadow: 0 0 0 2px color-mix(in srgb,var(--color-accent-gold) 18%,transparent); }
+.yk-auction-chat-form > div { display: flex; align-items: center; justify-content: space-between; gap: calc(var(--spacing) * 3); }
+.yk-auction-chat-form span { color: var(--color-ink-3); font-size: var(--text-xs); font-variant-numeric: tabular-nums; }
+.yk-auction-chat-locked { padding: calc(var(--spacing) * 3); border: 1px dashed var(--color-veil-strong); border-radius: var(--radius-input); text-align: center; }
 
 /* "Mettre aux enchères" modal (opened from a Collection card). */
 .yk-auction-modal { width: min(var(--market-sell-modal-width),calc(100% - var(--layout-gutter) * 2)); }

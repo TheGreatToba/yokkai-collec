@@ -306,6 +306,21 @@ test("le bouton de retrait de la wishlist utilise le style danger rouge", () => 
   assert.match(wishlist, />♡ Retirer<\/Button>/);
 });
 
+test("le chat d’enchère est visible mais réservé aux utilisateurs ayant misé", () => {
+  const source = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
+  const market = readFileSync(path.join(root, "lib/data/market.ts"), "utf8");
+  const css = readFileSync(path.join(root, "styles/market.css"), "utf8");
+  assert.match(source, /function AuctionChatPanel/);
+  assert.match(source, /Seuls les participants ayant misé peuvent écrire/);
+  assert.match(source, /chat\?\.canPost&&!finished/);
+  assert.match(source, /getAuctionChat\(auctionId\)/);
+  assert.match(source, /sendAuctionChatMessage\(auctionId,message\)/);
+  assert.match(source, /maxLength=\{500\}/);
+  assert.match(market, /get_auction_chat/);
+  assert.match(market, /send_auction_chat_message/);
+  assert.match(css, /\.yk-auction-chat-list/);
+});
+
 test("mobile : vitrine du profil sur la grille partagée et page Amis sans débordement", () => {
   const profile = readFileSync(path.join(root, "components/profile.tsx"), "utf8");
   const community = readFileSync(path.join(root, "styles/community.css"), "utf8");
