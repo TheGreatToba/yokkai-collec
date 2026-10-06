@@ -58,7 +58,7 @@ const config = {
       ['--market-card-min', '10.5rem'],
       ['--market-art-width', '22rem'],
       ['--market-art-width-mobile', '13.5rem'],
-      ['--market-detail-max', '100rem'],
+      ['--market-detail-max', '66rem'],
       ['--market-sell-modal-width', '40rem'],
       ['--market-sell-art-width', '9.5rem'],
     ]) });

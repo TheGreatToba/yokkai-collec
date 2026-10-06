@@ -320,10 +320,12 @@ test("le chat d’enchère est visible mais réservé aux utilisateurs ayant mis
   assert.match(source, /event\.preventDefault\(\);void send\(\)/);
   assert.match(market, /get_auction_chat/);
   assert.match(market, /send_auction_chat_message/);
-  assert.match(css, /grid-template-areas: "art header \." "art main chat" "history \. chat"/);
-  assert.match(css, /\.yk-auction-main \{ display: contents/);
+  assert.match(css, /grid-template-areas: "art main" "history main"/);
+  assert.match(css, /\.yk-auction-page \{[^}]*left: -8rem/);
+  assert.match(css, /\.yk-auction-main \{[^}]*grid-template-columns: minmax\(0,1fr\) 24rem/);
+  assert.match(css, /\.yk-auction-main \{[^}]*grid-template-areas: "header \." "panel chat"/);
   assert.match(css, /\.yk-auction-header \{ grid-area: header/);
-  assert.match(css, /\.yk-auction-panel \{ grid-area: main/);
+  assert.match(css, /\.yk-auction-panel \{ grid-area: panel/);
   assert.match(css, /\.yk-auction-chat \{ grid-area: chat/);
   assert.match(css, /\.yk-auction-chat-form textarea \{[^}]*resize: none/);
 });
