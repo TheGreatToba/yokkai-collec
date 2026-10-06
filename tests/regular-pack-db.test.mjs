@@ -48,6 +48,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
   await db.exec(readFileSync(new URL("../supabase/migrations/20261004000007_regular_pack_10_minutes_ssr_half_percent.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261004000008_restore_regular_pack_status_security.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261004000010_card_owners_friend_groups.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../supabase/migrations/20261004000013_profile_collection_privacy.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261004000014_remove_friend.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261004000015_trade_progress_notifications.sql", import.meta.url), "utf8"));
   await db.query("insert into auth.users values ($1, '{\"pseudo\":\"Alice\"}'), ($2, '{\"pseudo\":\"Bob\"}'), ($3, '{\"pseudo\":\"Charlie\"}')", [alice, bob, charlie]);
@@ -462,7 +463,13 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     assert.ok(friendCollection.every(card=>card.folderId===null));
     assert.ok(friendCollection.every(card=>card.folderId===null));
     assert.ok(friendCollection.some(card=>card.id===friendCardId&&card.image==="https://i.imgur.com/private.png"&&card.customImageUrl==="https://i.imgur.com/private.png"));
-    await assert.rejects(asUser(charlie,()=>db.query("select public.get_friend_collection($1)",[alice])),/FRIENDS_ONLY/);
+    const publicCollection=(await asUser(charlie,()=>db.query("select public.get_friend_collection($1) as value",[alice]))).rows[0].value;
+    assert.ok(publicCollection.some(card=>card.id===friendCardId));
+    assert.equal((await asUser(alice,()=>db.query("select public.set_profile_privacy(false) as value"))).rows[0].value,false);
+    await assert.rejects(asUser(charlie,()=>db.query("select public.get_friend_collection($1)",[alice])),/PROFILE_PRIVATE/);
+    assert.equal((await db.query("select public.can_view_collection($1,$2) as value",[charlie,alice])).rows[0].value,false);
+    assert.equal((await db.query("select public.can_view_collection($1,$2) as value",[bob,alice])).rows[0].value,true);
+    assert.ok((await asUser(bob,()=>db.query("select public.get_friend_collection($1) as value",[alice]))).rows[0].value.some(card=>card.id===friendCardId));
 
     const declinedId = (await asUser(alice, () => db.query("select public.send_friend_request($1) as id", [charlie]))).rows[0].id;
     assert.equal((await asUser(charlie, () => db.query("select public.respond_friend_request($1,false) as value", [declinedId]))).rows[0].value, false);

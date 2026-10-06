@@ -225,10 +225,13 @@ test("la collection d'un ami montre ses images personnalisées sans proposer d'�
   assert.doesNotMatch(html, /Sélection multiple|Détruire la sélection|Modifier le profil/);
 });
 
-test("le compteur de cartes d'un ami ouvre sa collection complète en lecture seule", () => {
+test("le compteur de cartes ouvre toute collection autorisée en lecture seule", () => {
   const profile = readFileSync(path.join(root, "components/profile.tsx"), "utf8");
   const communityCss = readFileSync(path.join(root, "styles/community.css"), "utf8");
-  assert.match(profile, /profile\.friendshipStatus==="accepted"\?<button/);
+  assert.match(profile, /!isMe&&profile\.canViewCollection\?<button/);
+  assert.match(profile, /if\(!profile\|\|!profile\.canViewCollection\)return/);
+  assert.match(profile, /profile\.canViewCollection\?profile\.cardCount:"Privée"/);
+  assert.match(profile, /profile\.canViewCollection\?profile\.distinctCardCount:"Privée"/);
   assert.match(profile, /getFriendCollection\(friendId\)/);
   assert.match(profile, /<CollectionView cards=\{friendCards\} categories=\{categories\} readOnly\/>/);
   assert.match(profile, /Voir la collection/);
