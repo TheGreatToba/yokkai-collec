@@ -27,7 +27,7 @@ export const animation = {
   modal: { duration: 350 },
   feedback: { duration: 350 },
   market: { extensionNotice: 6000, extensionPulse: 600 },
-  packOpening: { minimumTension: 250, tension: 400, seal: 750, fade: 150, slowResponse: 1500 },
+  packOpening: { minimumTension: 250, tension: 400, seal: 800, fade: 150, slowResponse: 1500 },
   cardShell: {
     perspective: "900px",
     hoverLift: "-6px",
