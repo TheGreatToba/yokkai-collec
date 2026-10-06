@@ -316,9 +316,13 @@ test("le chat d’enchère est visible mais réservé aux utilisateurs ayant mis
   assert.match(source, /getAuctionChat\(auctionId\)/);
   assert.match(source, /sendAuctionChatMessage\(auctionId,message\)/);
   assert.match(source, /maxLength=\{500\}/);
+  assert.match(source, /event\.key==="Enter"&&!event\.shiftKey/);
+  assert.match(source, /event\.preventDefault\(\);void send\(\)/);
   assert.match(market, /get_auction_chat/);
   assert.match(market, /send_auction_chat_message/);
-  assert.match(css, /\.yk-auction-chat-list/);
+  assert.match(css, /grid-template-areas: "art main chat" "history main chat"/);
+  assert.match(css, /\.yk-auction-chat \{ grid-area: chat/);
+  assert.match(css, /\.yk-auction-chat-form textarea \{[^}]*resize: none/);
 });
 
 test("mobile : vitrine du profil sur la grille partagée et page Amis sans débordement", () => {
