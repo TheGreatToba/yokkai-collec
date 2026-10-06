@@ -299,6 +299,13 @@ test("une carte de la wishlist ouvre le détail partagé du catalogue et ses pos
   assert.match(source, /Possesseurs actuels/);
 });
 
+test("le bouton de retrait de la wishlist utilise le style danger rouge", () => {
+  const source = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
+  const wishlist = source.slice(source.indexOf("export function WishlistView"), source.indexOf("const remaining"));
+  assert.match(wishlist, /<Button variant="danger"/);
+  assert.match(wishlist, />♡ Retirer<\/Button>/);
+});
+
 test("mobile : vitrine du profil sur la grille partagée et page Amis sans débordement", () => {
   const profile = readFileSync(path.join(root, "components/profile.tsx"), "utf8");
   const community = readFileSync(path.join(root, "styles/community.css"), "utf8");
