@@ -40,9 +40,10 @@ function AuctionIcon({ size = 14 }: { size?: number }) {
   return <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m14 5 5 5M12 7l5 5M3 21l8-8M6 18l-3-3M14 3l7 7-4 4-7-7 4-4Z"/><path d="M12 21h9"/></svg>;
 }
 
-export function CollectionView({ cards, categories, presentation = {}, readOnly = false, tradeHref, folders = [], onCreateFolder, onDeleteFolder, onMoveCard, onSetLocked, onCreateAuction, onEvolve, onSetCustomImage, onDiscard, onDiscardMany, loadCardDiscovery = getCardDiscovery }: {
+export function CollectionView({ cards, categories, presentation = {}, readOnly = false, tradeHref, folders = [], detailOnly = false, initialSelectedId = null, onDetailClose, onCreateFolder, onDeleteFolder, onMoveCard, onSetLocked, onCreateAuction, onEvolve, onSetCustomImage, onDiscard, onDiscardMany, loadCardDiscovery = getCardDiscovery }: {
   cards: CollectedCard[]; categories: string[]; presentation?: Record<string, CollectionPresentation>;
   totals?: Partial<Record<Rarity,number>>; readOnly?: boolean; tradeHref?: (card: CollectedCard) => string; folders?: Folder[];
+  detailOnly?: boolean; initialSelectedId?: string | null; onDetailClose?: () => void;
   onCreateFolder?: (name: string) => Promise<void>; onDeleteFolder?: (folderId: string) => Promise<void>;
   onMoveCard?: (instanceId: string, folderId: string | null) => Promise<void>;
   onSetLocked?: (instanceId: string, locked: boolean) => Promise<void>;
@@ -79,7 +80,7 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
   const [auctionSuggestionBusy,setAuctionSuggestionBusy]=useState(false);
   const [selecting, setSelecting] = useState(false);
   const [selection, setSelection] = useState<Set<string>>(new Set());
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(initialSelectedId);
   const [evolving, setEvolving] = useState(false);
   const [evolveConfirm, setEvolveConfirm] = useState(false);
   const [evolutionSelection, setEvolutionSelection] = useState<Set<string>>(new Set());
@@ -121,6 +122,7 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
   const selectedValue = selectedCards.length > 0
     ? selectedCards.reduce((sum,card)=>sum+(presentation[card.instanceId]?.destructionValue??DESTRUCTION_KARAS[card.rarity]),0)
     : undefined;
+  function closeDetail(){setSelectedId(null);onDetailClose?.();}
   function toggleGroup(groupCards: CollectedCard[]) { setSelection(current=>{ const next=new Set(current);const eligible=groupCards.filter(card=>!card.locked&&!presentation[card.instanceId]?.frozen);const all=eligible.length>0&&eligible.every(card=>next.has(card.instanceId));for(const card of eligible){if(all)next.delete(card.instanceId);else next.add(card.instanceId);}return next;}); }
   function toggleEvolutionCard(instanceId:string) { setEvolutionSelection(current=>{const next=new Set(current);if(next.has(instanceId))next.delete(instanceId);else if(next.size<5)next.add(instanceId);return next;}); }
   async function evolveSelected() {
@@ -145,7 +147,7 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
     catch{setAuctionSuggestion(null);}
     finally{setAuctionSuggestionBusy(false);}
   }
-  function closeAuction(){if(auctionBusy)return;setAuctionOpen(false);setAuctionError("");setAuctionSuggestion(null);setAuctionSuggestionBusy(false);if(auctionDone){setAuctionDone(false);setSelectedId(null);}}
+  function closeAuction(){if(auctionBusy)return;setAuctionOpen(false);setAuctionError("");setAuctionSuggestion(null);setAuctionSuggestionBusy(false);if(auctionDone){setAuctionDone(false);closeDetail();}}
   async function saveCustomImage(imageUrl: string | null) {
     if (!selected || !onSetCustomImage || imageBusy) return;
     setImageBusy(true); setImageError("");
@@ -166,7 +168,7 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
     try {
       if(onDiscardMany)await onDiscardMany(discardCards.map(card=>card.instanceId));
       else if(discardCards.length===1&&onDiscard)await onDiscard(discardCards[0].instanceId);
-      setDiscardConfirm(false); setSelectedId(null);
+      setDiscardConfirm(false); closeDetail();
     }
     catch (error) { setDiscardError(error instanceof Error ? error.message : "Impossible de détruire cette carte."); }
     finally { setDiscardBusy(false); }
@@ -204,7 +206,8 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
     </FilterSection>}
     <button type="button" className="yk-filter-reset" disabled={!(query||rarity||category||shinyOnly||folder||auctionOnly)} onClick={resetFilters}><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Réinitialiser les filtres</button>
   </>;
-  return <section aria-label="Collection de cartes" className={`yk-collection ${selecting ? "pb-28" : ""}`}>
+  return <section aria-label={detailOnly?"Détail d’une carte":"Collection de cartes"} className={detailOnly?undefined:`yk-collection ${selecting ? "pb-28" : ""}`}>
+    {!detailOnly&&<>
     {filtersOpen&&<button type="button" className="yk-filter-backdrop" aria-label="Fermer les filtres" onClick={()=>setFiltersOpen(false)}/>}
     <div className="yk-collection-layout">
       <aside id="collection-filters" className={`yk-collection-sidebar ${filtersOpen?"yk-sidebar-open":""}`} aria-label="Filtres de la collection"><div className="yk-sidebar-mobile-head"><strong>Filtres</strong><button type="button" aria-label="Fermer les filtres" onClick={()=>setFiltersOpen(false)}>×</button></div>{filters}</aside>
@@ -224,7 +227,8 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
         {selecting&&<SelectionBar itemLabel="exemplaire" count={selectedCards.length} value={selectedValue} busy={bulkDiscardBusy} error={bulkDiscardError} onAll={()=>setSelection(new Set(groups.flatMap(group=>group.cards).filter(c=>!c.locked&&!presentation[c.instanceId]?.frozen).map(c=>c.instanceId)))} onNone={()=>setSelection(new Set())} onDestroy={()=>{setBulkDiscardError("");setBulkDiscardConfirm(true);}} onClose={()=>{setSelecting(false);setSelection(new Set());}}/>}
       </div>
     </div>
-    <Modal open={!!selected&&!discardConfirm&&!auctionOpen&&!evolveConfirm} onClose={()=>setSelectedId(null)} title="Détail de la carte" className="yk-card-detail-modal">{selected&&<div className="yk-detail-grid">
+    </>}
+    <Modal open={!!selected&&!discardConfirm&&!auctionOpen&&!evolveConfirm} onClose={closeDetail} title="Détail de la carte" className="yk-card-detail-modal">{selected&&<div className="yk-detail-grid">
       <div className="yk-detail-side"><div className="yk-detail-art"><YokaiCard {...selected} image={selected.image} {...selectedMeta} fallbackImage={selected.catalogueImage}/></div>
         {!readOnly&&onMoveCard&&<div className="yk-detail-folder"><label htmlFor="detail-card-folder" className="yk-section-title">Dossier</label><select id="detail-card-folder" value={selected.folderId??""} onChange={event=>void onMoveCard(selected.instanceId,event.target.value||null)}><option value="">Sans dossier</option>{folders.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}</select></div>}
       </div>
