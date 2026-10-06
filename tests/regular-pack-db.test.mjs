@@ -542,6 +542,16 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     assert.deepEqual([...new Set(beforeMigration.map(item=>item.type))].sort(),[...legacyTypes].sort());
     await db.exec(readFileSync(new URL("../supabase/migrations/20261005000000_cancel_trade_offer.sql", import.meta.url), "utf8"));
     assert.deepEqual(await notificationOutput(),beforeMigration,"list_notifications conserve strictement la sortie des types existants");
+    await db.exec(readFileSync(new URL("../supabase/migrations/20261006000001_auction_sold_notifications.sql", import.meta.url), "utf8"));
+
+    const soldCard=(await db.query("insert into public.user_cards(user_id,card_id,rarity,is_first_owner) values($1,$2,'C',true) returning id",[alice,cardId])).rows[0].id;
+    const soldAuction=(await asUser(alice,()=>db.query("select public.create_auction($1,10,15) as id",[soldCard]))).rows[0].id;
+    await asUser(charlie,()=>db.query("select public.place_bid($1,25)",[soldAuction]));
+    await db.query("update public.auctions set ends_at=clock_timestamp()-interval '1 second' where id=$1",[soldAuction]);
+    await asUser(alice,()=>db.query("select public.list_auctions()"));
+    const soldNotification=(await asUser(alice,()=>db.query("select public.list_notifications() as value"))).rows[0].value.find(item=>item.type==="auction_sold"&&item.referenceId===soldAuction);
+    assert.deepEqual({cardName:soldNotification.cardName,karaAmount:soldNotification.karaAmount},{cardName:"C",karaAmount:25});
+    assert.equal(Number((await db.query("select count(*) as count from public.notifications where user_id=$1 and type='auction_sold' and reference_id=$2",[alice,soldAuction])).rows[0].count),1);
 
     await assert.rejects(asUser(null,()=>db.query("select public.cancel_trade_offer(gen_random_uuid())"),"anon"),/permission denied/);
     await assert.rejects(asUser(null,()=>db.query("select public.cancel_trade_offer(gen_random_uuid())")),/AUTH_REQUIRED/);
