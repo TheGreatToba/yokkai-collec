@@ -500,12 +500,8 @@ test("les boosters annoncent les gains autoritaires avant confirmation", () => {
 test("une carte révélée ouvre le détail de collection avant sa mise en vente", () => {
   const boosters = readFileSync(path.join(root, "components/boosters.tsx"), "utf8");
   const game = readFileSync(path.join(root, "components/game.tsx"), "utf8");
-  assert.match(boosters, /title="Détail de la carte" className="yk-card-detail-modal"/);
-  assert.match(boosters, /<div className="yk-detail-grid">/);
-  assert.match(boosters, /<div className="yk-detail-actions">/);
+  assert.match(boosters, /<CollectionView[^]*detailOnly[^]*initialSelectedId=\{detailCard\.instanceId\}/);
   assert.doesNotMatch(boosters, /className="yk-slot-button">Mettre en vente<\/Button>/);
-  assert.match(boosters, /open=\{auctionOpen&&!!auctionCandidate\}/);
-  assert.match(boosters, /onAuction\(auctionCandidate\.instanceId,price,Number\(auctionDuration\)\)/);
   assert.match(boosters, /auctioned\.has\(card\.instanceId\)\?<StatusPill tone="info">EN VENTE/);
   assert.match(boosters, /visibleCards\.filter\(card=>!auctioned\.has\(card\.instanceId\)&&!locked\.has\(card\.instanceId\)\)/);
   assert.match(game, /onAuction=\{auctionCard\}/);
@@ -514,13 +510,11 @@ test("une carte révélée ouvre le détail de collection avant sa mise en vente
 test("le détail d'une carte révélée propose verrouillage puis enchère", () => {
   const boosters = readFileSync(path.join(root, "components/boosters.tsx"), "utf8");
   const game = readFileSync(path.join(root, "components/game.tsx"), "utf8");
-  assert.match(boosters, /title="Détail de la carte"/);
-  assert.match(boosters, /locked\.has\(auctionCandidate\.instanceId\)\?"Déverrouiller la carte":"Verrouiller la carte"/);
-  assert.match(boosters, /onClick=\{\(\)=>setAuctionOpen\(true\)\}>\{locked\.has\(auctionCandidate\.instanceId\)\?"Carte verrouillée":"Mettre aux enchères"\}/);
-  assert.match(boosters, /onSetLocked\(auctionCandidate\.instanceId,next\)/);
-  assert.match(boosters, /locked\.has\(auctionCandidate\.instanceId\).*Number\.isInteger/);
-  assert.match(boosters, /<Button type="submit" disabled=\{auctionBusy\|\|lockBusy\|\|locked\.has\(auctionCandidate\.instanceId\)/);
-  assert.match(boosters, /\{auctionBusy\?"Publication…":"Mettre en vente"\}<\/Button>/);
+  assert.match(boosters, /onMoveCard=\{onMoveCard\}/);
+  assert.match(boosters, /onCreateAuction=\{auction\}/);
+  assert.match(boosters, /onSetLocked=\{lock\}/);
+  assert.match(boosters, /onSetCustomImage=\{onSetCustomImage\}/);
+  assert.match(boosters, /onDiscard=\{onDiscard\}/);
   assert.match(game, /onSetLocked=\{lockCard\}/);
 });
 
