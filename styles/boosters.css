@@ -26,7 +26,7 @@
 .yk-rate b { margin-right: 3px; }.yk-rate-C b { color: var(--color-rarity-c); }.yk-rate-R b { color: var(--color-rarity-r); }.yk-rate-SR b { color: var(--color-rarity-sr); }.yk-rate-SSR b { color: var(--color-rarity-ssr); }.yk-rate-LR b { color: var(--color-rarity-lr); }
 .yk-opening-stage { min-height: 540px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .yk-opening-pack { filter: drop-shadow(0 18px 24px var(--color-void)); }
-.yk-opening-tension .yk-opening-pack { animation: yk-opening-tension var(--pack-opening-duration) ease-in-out infinite; }
+.yk-opening-tension .yk-opening-pack { animation: yk-opening-tension var(--pack-opening-tension-duration) ease-in-out infinite; }
 .yk-opening-seal::after { content: ''; position: fixed; inset: 0; z-index: 40; pointer-events: none; opacity: 0; background: linear-gradient(var(--holo-spark),var(--color-accent-neon)); animation: yk-flash var(--pack-opening-duration) both; }
 .yk-opening-seal .yk-opening-pack { animation: yk-rumble calc(var(--pack-opening-duration) * .67) ease-in-out,yk-vanish calc(var(--pack-opening-duration) * .33) calc(var(--pack-opening-duration) * .67) forwards; }
 .yk-reveal-stage { position: relative; isolation: isolate; display: flex; flex-direction: column; align-items: center; padding: 65px 0 36px; }
@@ -458,7 +458,7 @@
 @media (max-width: 540px) { .yk-pack-art-stage { height: 290px; } .yk-callout { font-size: 18px; } }
 @media (prefers-reduced-motion: reduce) {
   .yk-opening-tension .yk-opening-pack { animation: none; }
-  .yk-opening-seal .yk-opening-pack { animation: yk-vanish var(--pack-opening-fade-duration) var(--ease-standard) forwards; transform: none !important; }
+  .yk-opening-seal .yk-opening-pack { animation: none; transform: none !important; }
   .yk-face-up,.yk-stacked-back { transform: none !important; }
   .yk-burst,.yk-sr-flash,.yk-reveal-rays,.yk-reveal-particles,.yk-ssr-cinematic-stage,.yk-lr-cinematic-stage,.yk-opening-stage::after,.yk-invocation::before,.yk-invocation::after,.yk-reveal-shiny::after { display: none; }
   .yk-reveal-ssr,.yk-reveal-lr,.yk-reveal-ssr .yk-face-up,.yk-reveal-lr .yk-face-up { animation: none; }

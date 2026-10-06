@@ -314,6 +314,7 @@ export function Boosters({ status, countdown, decisionStatus, decisionCountdown,
   const [decisionKaras, setDecisionKaras] = useState<number>();
   const openingLock = useRef(false);
   const skipSeal = useRef<(() => void) | null>(null);
+  const preloading = useRef<Promise<void>>(Promise.resolve());
   const playSound = onSound ?? noopSound;
   const finishSeal = () => skipSeal.current?.();
   function preload(cards: RevealCard[]) {
@@ -322,7 +323,7 @@ export function Boosters({ status, countdown, decisionStatus, decisionCountdown,
       image.src = card.image;
       return image.decode();
     }));
-    void Promise.race([decoding, new Promise(resolve => window.setTimeout(resolve, animation.packOpening.preload))]);
+    preloading.current = Promise.race([decoding, new Promise(resolve => window.setTimeout(resolve, animation.packOpening.seal))]).then(() => undefined);
   }
   function start(kind: "regular" | "decision") {
     if (openingLock.current) return;
@@ -336,7 +337,7 @@ export function Boosters({ status, countdown, decisionStatus, decisionCountdown,
       onResponse: cards => { clearTimeout(waitingTimer); setWaiting(false); if (cards) preload(cards); },
       onSeal: () => { setOpeningPhase("seal"); playSound("tear"); },
       wait: duration => duration !== animation.packOpening.seal ? new Promise(resolve => window.setTimeout(resolve, duration)) : new Promise(resolve => {
-        const timer = window.setTimeout(resolve, reducedMotion ? animation.packOpening.fade : duration);
+        const timer = window.setTimeout(() => { void (reducedMotion ? Promise.resolve() : preloading.current).then(resolve); }, reducedMotion ? 0 : duration);
         skipSeal.current = () => { window.clearTimeout(timer); resolve(); };
       }),
     }).then(() => setOpeningPhase("idle"), () => { setShowDraw(false); setOpeningPhase("idle"); }).finally(() => { clearTimeout(waitingTimer); setWaiting(false); skipSeal.current = null; openingLock.current = false; });
