@@ -261,27 +261,39 @@ test("le catalogue reprend la sidebar sans notion de possession ni action de mas
   const layout = readFileSync(path.join(root, "app/layout.tsx"), "utf8");
   const styles = readFileSync(path.join(root, "styles/community.css"), "utf8");
   const catalogue = source.slice(source.indexOf("export function SearchView"), source.indexOf("export function TradesView"));
+  const detail = source.slice(source.indexOf("function CatalogueCardModal"), source.indexOf("function CatalogueFilterIcon"));
   assert.match(catalogue, /yk-collection-sidebar/);
   assert.match(catalogue, /CatalogueFilterSection title="Rareté"/);
   assert.match(catalogue, /CatalogueFilterSection title="Catégorie"/);
   assert.match(catalogue, /<CardShell><YokaiCard/);
   assert.match(catalogue, /CARD_PAGE_SIZES\.map/);
   assert.match(catalogue, /loadPage\(\{query,category,rarity,page,pageSize\}\)[^]*?\[query,category,rarity,page,pageSize,loadPage\]/);
-  assert.match(catalogue, /Possesseurs actuels/);
-  assert.match(catalogue, /CardOwnerList title="Amis" owners=\{friendOwners\}/);
-  assert.match(catalogue, /CardOwnerList title="Autres utilisateurs" owners=\{otherOwners\}/);
-  assert.match(catalogue, /className="yk-catalogue-owner-columns"/);
+  assert.match(catalogue, /<CatalogueCardModal selected=\{selected\}/);
+  assert.match(detail, /Possesseurs actuels/);
+  assert.match(detail, /CardOwnerList title="Amis" owners=\{friendOwners\}/);
+  assert.match(detail, /CardOwnerList title="Autres utilisateurs" owners=\{otherOwners\}/);
+  assert.match(detail, /className="yk-catalogue-owner-columns"/);
   assert.match(styles, /\.yk-catalogue-owner-columns \{[^}]*grid-template-columns: repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(styles, /\.yk-modal\.yk-catalogue-detail-modal \{[^}]*width: min\(72rem,calc\(100% - 48px\)\);[^}]*min-height: min\(46rem,calc\(100dvh - 48px\)\);[^}]*--collection-detail-art-width: 20rem;/);
   assert.match(source, /title=\{owner\.pseudo\}/);
   assert.match(styles, /\.yk-catalogue-owner-name \{[^}]*text-overflow: ellipsis;[^}]*white-space: nowrap;/);
   assert.match(styles, /\.yk-catalogue-owners ul \{[^}]*max-height: 220px;[^}]*overflow-y: auto;/);
-  assert.match(catalogue, /Ajouter à ma wishlist/);
+  assert.match(detail, /Ajouter à ma wishlist/);
   assert.doesNotMatch(catalogue, /Dossier|Sélection multiple|Obtenue le|possédée/);
   assert.match(layout, /styles\/community\.css/);
   assert.match(layout, /styles\/collection\.css/);
   assert.match(catalogue, /className="yk-card-grid yk-catalogue-grid"/);
   assert.match(styles, /\.yk-catalogue-card \{[^}]*width: 100%/);
+});
+
+test("une carte de la wishlist ouvre le détail partagé du catalogue et ses possesseurs", () => {
+  const source = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
+  const wishlist = source.slice(source.indexOf("export function WishlistView"), source.indexOf("const remaining"));
+  assert.match(source, /function CatalogueCardModal/);
+  assert.match(wishlist, /aria-label=\{`Voir \$\{card\.name\}, \$\{card\.rarity\}`\}/);
+  assert.match(wishlist, /aria-haspopup="dialog"/);
+  assert.match(wishlist, /<CatalogueCardModal selected=\{selected\}/);
+  assert.match(source, /Possesseurs actuels/);
 });
 
 test("mobile : vitrine du profil sur la grille partagée et page Amis sans débordement", () => {
