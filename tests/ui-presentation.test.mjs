@@ -385,8 +385,9 @@ test("Collection, Catalogue et Marché partagent une seule échelle de colonnes"
 
 test("la collection annonce l'évolution de cinq SSR non-Shiny en Shiny", () => {
   const source = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
-  assert.match(source, /Évolution Shiny/);
-  assert.match(source, /Évoluer en Shiny \(\{evolvableCopies\}\/5\)/);
+  assert.match(source, /évolution Shiny/i);
+  assert.match(source, /Progression Shiny/);
+  assert.match(source, /\{evolvableCopies\}\/5 exemplaires/);
   assert.doesNotMatch(source, /Évolution LR|Évoluer en LR/);
   assert.match(source, /Confirmer l’évolution Shiny/);
   assert.match(source, /Image : \{card\.customImageUrl\?"personnalisée \(sera perdue\)":"d’origine"\}/);
@@ -518,16 +519,22 @@ test("le détail d'une carte révélée propose verrouillage puis enchère", () 
   assert.match(game, /onSetLocked=\{lockCard\}/);
 });
 
-test("la modale de détail groupe dossier sous la carte et destruction explicite en bas", () => {
+test("la modale de détail hiérarchise verrouillage, progression et actions avancées", () => {
   const source = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
   const modal = source.slice(source.indexOf('title="Détail de la carte"'), source.indexOf('title="Détruire des exemplaires ?"'));
   assert.ok(modal.indexOf("yk-detail-art") < modal.indexOf("yk-detail-folder"));
   assert.ok(modal.indexOf("yk-detail-folder") < modal.indexOf("yk-detail-info"));
   assert.ok(modal.indexOf("yk-detail-actions") < modal.indexOf("yk-detail-image"));
   assert.ok(modal.indexOf("yk-detail-image") < modal.indexOf("yk-detail-danger"));
+  assert.match(modal, /className="yk-detail-title-row"><h3[^>]*>\{selected\.name\}<\/h3>[^]*className="yk-detail-lock-toggle"/);
+  assert.match(modal, /aria-pressed=\{!!selected\.locked\}/);
+  assert.match(modal, /role="progressbar"/);
+  assert.match(modal, /aria-valuenow=\{Math\.min\(evolvableCopies,5\)\}/);
+  assert.match(modal, /<details className="yk-detail-image"><summary>Personnaliser l'image/);
   assert.match(modal, /Détruire des exemplaires/);
   assert.match(modal, /Revenir à l’image d’origine/);
   assert.match(modal, /selectedMeta\?\.marketValue!=null&&/);
+  assert.doesNotMatch(modal, /Une carte verrouillée ne peut pas être vendue/);
   assert.doesNotMatch(modal, /aria-label=\{`Détruire \$\{selected\.name\}`\}/);
   assert.match(source, /setDiscardConfirm\(true\)/);
   assert.match(source, /setDiscardQuantity\(destructibleCards\.length\)/);
