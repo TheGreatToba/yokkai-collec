@@ -718,12 +718,13 @@ test("l’inscription vérifie le pseudo après debounce sans remplacer la valid
 test("les notifications connues ont un texte et une redirection, les inconnues un repli sûr", () => {
   const source = readFileSync(path.join(root, "components/topbar.tsx"), "utf8");
   const model = readFileSync(path.join(root, "lib/data/notifications.ts"), "utf8");
-  for (const type of ["wishlist_card_on_auction", "friend_request", "outbid", "trade_offer_received", "trade_counter_offer_received", "trade_offer_accepted", "trade_offer_declined", "trade_offer_cancelled", "auction_won", "achievement_completed"]) {
+  for (const type of ["wishlist_card_on_auction", "friend_request", "outbid", "trade_offer_received", "trade_counter_offer_received", "trade_offer_accepted", "trade_offer_declined", "trade_offer_cancelled", "auction_won", "auction_sold", "achievement_completed"]) {
     assert.match(model, new RegExp(type));
   }
   assert.match(source, /de ta wishlist vient d’être mise aux enchères — clique pour voir/);
   assert.match(source, /Tu as été surenchéri sur/);
   assert.match(source, /Tu as remporté/);
+  assert.match(source, /Tu as vendu/);
   assert.match(source, /t’a envoyé une offre d’échange/);
   assert.match(source, /t’a fait une contre-proposition/);
   assert.match(source, /a accepté ton offre d’échange/);
@@ -740,6 +741,10 @@ test("les notifications connues ont un texte et une redirection, les inconnues u
   const unknown=notificationItem({id:"unknown",type:"future_type",referenceId:"ref",readAt:null,createdAt:"2026-10-05T00:00:00Z",cardName:null,actorPseudo:null,achievementName:null});
   assert.equal(unknown.title,"Nouvelle activité");
   assert.equal(unknown.text,"Une nouvelle activité est disponible.");
+  const sold=notificationItem({id:"sold",type:"auction_sold",referenceId:"auction",readAt:null,createdAt:"2026-10-05T00:00:00Z",cardName:"Kitsune",actorPseudo:null,achievementName:null,karaAmount:1250});
+  assert.equal(sold.title,"Personnage vendu");
+  assert.equal(sold.text,"Tu as vendu Kitsune pour 1 250 KARA.");
+  assert.equal(sold.kind,"sold");
 });
 
 test("les notifications se relisent à l'ouverture du panneau et au retour sur l'onglet", () => {
