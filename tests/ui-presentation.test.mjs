@@ -101,7 +101,7 @@ test("la rupture attend la réponse et la tension minimale sans additionner leur
   const response = new Promise(resolve => { releaseResponse = resolve; });
   const waits = new Map([
     [250, new Promise(resolve => { releaseTension = resolve; })],
-    [400, new Promise(resolve => { releaseSeal = resolve; })],
+    [800, new Promise(resolve => { releaseSeal = resolve; })],
   ]);
   const opening = runPackOpeningSequence({
     open: () => response,
@@ -145,14 +145,17 @@ test("l'ouverture centralise ses durées, se passe et ne bloque pas le reveal su
   const boosters = readFileSync(path.join(root, "components/boosters.tsx"), "utf8");
   const game = readFileSync(path.join(root, "components/game.tsx"), "utf8");
   const css = readFileSync(path.join(root, "styles/boosters.css"), "utf8");
-  assert.match(animations, /packOpening:\s*\{ minimumTension: 250, seal: 400, fade: 150, preload: 400, slowResponse: 1500 \}/);
+  assert.match(animations, /packOpening:\s*\{ minimumTension: 250, tension: 400, seal: 800, fade: 150, slowResponse: 1500 \}/);
+  assert.match(css, /--pack-opening-tension-duration/);
   assert.match(css, /--pack-opening-duration/);
   assert.match(css, /--pack-opening-fade-duration/);
   assert.match(css, /\.yk-opening-tension \.yk-opening-pack \{ animation: none;/);
   assert.match(boosters, /matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
   assert.match(boosters, /event\.key==="Enter"\|\|event\.key===" "/);
   assert.match(boosters, /runPackOpeningSequence\(\{/);
-  assert.match(boosters, /Promise\.race\(\[decoding/);
+  assert.match(boosters, /Promise\.race\(\[decoding,[\s\S]*animation\.packOpening\.seal/);
+  assert.match(boosters, /reducedMotion \? 0 : duration/);
+  assert.match(css, /\.yk-opening-seal \.yk-opening-pack \{ animation: none;/);
   assert.match(game, /setDraw\([\s\S]*?setBusy\(false\);[\s\S]*?void Promise\.all\(\[getPackStatus\(\)/);
   assert.match(game, /runPackOpeningOnce\(opening/);
 });
