@@ -428,6 +428,20 @@ test("les copies normales et Shiny forment des tuiles distinctes avec badge de q
   assert.match(html,/custom\.png/);
 });
 
+test("la collection signale et catégorise les cartes en enchères", () => {
+  const { CollectionView } = load("components/collection.tsx");
+  const auctionCard = {...card,instanceId:"auction-copy",folderId:null};
+  const html = render(CollectionView, {
+    cards:[auctionCard], categories:[],
+    presentation:{"auction-copy":{frozen:{remaining:"2026-10-07T12:00:00Z"},auctionId:"auction-1"}},
+    async onCreateAuction() {},
+  });
+  assert.match(html, /Statut/);
+  assert.match(html, /En enchères/);
+  assert.match(html, /yk-group-frozen/);
+  assert.match(html, /1 en enchère/);
+});
+
 test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
   const { BoosterReveal, Boosters } = load("components/boosters.tsx");
   const cards = Array.from({ length: 5 }, (_, i) => ({ ...card, instanceId: `copy-${i}`, anime: "Spirit Realm" }));

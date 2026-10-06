@@ -8,6 +8,7 @@ export type Card = { id: string; name: string; category: Category; anime?: strin
 export type CataloguePage = { cards: Card[]; total: number };
 export type CollectedCard = Card & { instanceId: string; obtainedAt: string; shiny: boolean; isEvolved: boolean; isFirstOwner: boolean; locked?: boolean; folderId: string | null; catalogueImage: string; customImageUrl: string | null; destructionValue?: number };
 export type Folder = { id: string; name: string };
+export type ActiveAuctionCard = { instanceId: string; auctionId: string; endsAt: string };
 export type PackStatus = { available: number; maximum: number; nextPackAt: number | null };
 export type DecisionPackStatus = { available: boolean; nextPackAt: number; pending: (CollectedCard & { discarded?: boolean })[] };
 export type DecisionPackChoice = CollectedCard & { karasReward: number };
@@ -191,6 +192,14 @@ export async function getUserCollection(): Promise<CollectedCard[]> {
   });
   await assertPlayer(id);
   return collection.map((card) => ({ ...card }));
+}
+
+export async function getActiveAuctionCards(): Promise<ActiveAuctionCard[]> {
+  const id = await playerId();
+  const { data, error } = await db().rpc("get_my_active_auction_cards");
+  if (error) throw failure(error);
+  await assertPlayer(id);
+  return (data as ActiveAuctionCard[]).map(auction => ({ ...auction }));
 }
 
 export async function getPackStatus(): Promise<PackStatus> {

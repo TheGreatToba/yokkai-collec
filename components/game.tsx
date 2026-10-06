@@ -3,7 +3,7 @@ import { CollectionView } from "@/components/collection";
 import { Boosters } from "@/components/boosters";
 import { Topbar } from "@/components/topbar";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { createFolder, deleteFolder, discardPackCard, evolveSsrCard, getDecisionPackStatus, getFolders, getGameInfo, getPackStatus, getUserCollection, keepDecisionPackCard, moveCardToFolder, openBooster, openDecisionPack, setCardCustomImage, setCollectionCardLocked, type CollectedCard, type DecisionPackStatus, type Folder, type PackStatus } from "@/lib/data/cards";
+import { createFolder, deleteFolder, discardPackCard, evolveSsrCard, getActiveAuctionCards, getDecisionPackStatus, getFolders, getGameInfo, getPackStatus, getUserCollection, keepDecisionPackCard, moveCardToFolder, openBooster, openDecisionPack, setCardCustomImage, setCollectionCardLocked, type ActiveAuctionCard, type CollectedCard, type DecisionPackStatus, type Folder, type PackStatus } from "@/lib/data/cards";
 import { createAuction } from "@/lib/data/market";
 import { subscribePlayerSnapshotInvalidation } from "@/lib/data/player-state";
 import { useSfx } from "@/hooks/use-sfx";
@@ -15,6 +15,7 @@ export function Game({ view, account }: { view: "packs" | "collection"; account?
   const [status, setStatus] = useState<PackStatus | null>(null);
   const [decisionStatus, setDecisionStatus] = useState<DecisionPackStatus | null>(null);
   const [collection, setCollection] = useState<CollectedCard[]>([]);
+  const [activeAuctionCards, setActiveAuctionCards] = useState<ActiveAuctionCard[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
   const [draw, setDraw] = useState<CollectedCard[]>([]);
   const [revealed, setRevealed] = useState(0);
@@ -28,8 +29,8 @@ export function Game({ view, account }: { view: "packs" | "collection"; account?
     let active = true;
     async function refresh() {
       try {
-        const [game, packs, decision, cards, cardFolders] = await Promise.all([getGameInfo(), getPackStatus(), getDecisionPackStatus(), getUserCollection(), getFolders()]);
-        if (active) { setInfo(game); setStatus(packs); setDecisionStatus(decision); setCollection(cards); setFolders(cardFolders); setNow(Date.now()); setError(""); }
+        const [game, packs, decision, cards, cardFolders, auctions] = await Promise.all([getGameInfo(), getPackStatus(), getDecisionPackStatus(), getUserCollection(), getFolders(), getActiveAuctionCards()]);
+        if (active) { setInfo(game); setStatus(packs); setDecisionStatus(decision); setCollection(cards); setFolders(cardFolders); setActiveAuctionCards(auctions); setNow(Date.now()); setError(""); }
       } catch (e) { if (active) setError(e instanceof Error ? e.message : "Impossible de charger la partie."); }
     }
     void refresh();
@@ -40,7 +41,7 @@ export function Game({ view, account }: { view: "packs" | "collection"; account?
     let active = true;
     const unsubscribe = subscribePlayerSnapshotInvalidation(scopes => {
       if (scopes.includes("balance")) void getGameInfo().then(game => { if (active) setInfo(game); }, () => undefined);
-      if (scopes.includes("collection")) void getUserCollection().then(cards => { if (active) setCollection(cards); }, () => undefined);
+      if (scopes.includes("collection")) void Promise.all([getUserCollection(), getActiveAuctionCards()]).then(([cards, auctions]) => { if (active) { setCollection(cards); setActiveAuctionCards(auctions); } }, () => undefined);
     });
     return () => { active = false; unsubscribe(); };
   }, []);
@@ -99,7 +100,7 @@ export function Game({ view, account }: { view: "packs" | "collection"; account?
   async function removeFolder(folderId: string) { await deleteFolder(folderId); const [nextFolders,cards]=await Promise.all([getFolders(),getUserCollection()]);setFolders(nextFolders);setCollection(cards); }
   async function moveCard(instanceId: string, folderId: string | null) { await moveCardToFolder(instanceId,folderId);setCollection(await getUserCollection()); }
   async function lockCard(instanceId:string,locked:boolean){await setCollectionCardLocked(instanceId,locked);setCollection(await getUserCollection());}
-  async function auctionCard(instanceId:string,price:number,duration:number){await createAuction(instanceId,price,duration);setCollection(await getUserCollection());}
+  async function auctionCard(instanceId:string,price:number,duration:number){await createAuction(instanceId,price,duration);const [cards,auctions]=await Promise.all([getUserCollection(),getActiveAuctionCards()]);setCollection(cards);setActiveAuctionCards(auctions);}
   async function customizeCard(instanceId:string,imageUrl:string|null){await setCardCustomImage(instanceId,imageUrl);setCollection(await getUserCollection());}
   const revealCard = useCallback((index: number) => setRevealed(current => current === index ? current + 1 : current), []);
   const seconds = status?.nextPackAt ? Math.max(0, Math.ceil((status.nextPackAt - now) / 1000)) : 0;
@@ -112,7 +113,7 @@ export function Game({ view, account }: { view: "packs" | "collection"; account?
     {error && <p role="alert" className="my-6 rounded-lg border border-danger/40 bg-danger/10 p-4 text-sm text-danger-ink">{error}</p>}{!status && !error && <p role="status" className="mt-10">Chargement…</p>}
     {view === "packs" && <Boosters status={status} countdown={countdown} decisionStatus={decisionStatus} decisionCountdown={decisionCountdown} busy={busy} draw={draw} drawKind={drawKind} collection={collection} revealed={revealed} onOpen={open} onKeepDecision={keepDecision} onDiscard={discard} onAuction={auctionCard} onSetLocked={lockCard} onReveal={revealCard} onSound={sound.play} />}
 
-    {view === "collection" && status && <CollectionView cards={collection} categories={info?.categories || []} folders={folders} onCreateFolder={addFolder} onDeleteFolder={removeFolder} onMoveCard={moveCard} onSetLocked={lockCard} onCreateAuction={auctionCard} onEvolve={evolve} onSetCustomImage={customizeCard} onDiscard={discardCollectionCard} onDiscardMany={discardCollectionCards} />}
+    {view === "collection" && status && <CollectionView cards={collection} categories={info?.categories || []} presentation={Object.fromEntries(activeAuctionCards.map(auction=>[auction.instanceId,{frozen:{remaining:auction.endsAt},auctionId:auction.auctionId}]))} folders={folders} onCreateFolder={addFolder} onDeleteFolder={removeFolder} onMoveCard={moveCard} onSetLocked={lockCard} onCreateAuction={auctionCard} onEvolve={evolve} onSetCustomImage={customizeCard} onDiscard={discardCollectionCard} onDiscardMany={discardCollectionCards} />}
 
     </main><footer className={`mx-auto mt-6 flex w-full ${view === "collection" ? "max-w-[var(--layout-collection-max)]" : "max-w-6xl"} flex-wrap justify-between gap-3 border-t border-veil px-6 py-6 text-xs text-ink-3`}><span>Yokkai Collec’ · v0.2</span><span>Collection sauvegardée sur votre compte</span></footer>
   </div>;
