@@ -356,6 +356,19 @@ test("la migration supprime uniquement DJ CONDOR et toutes ses copies", async ()
   assert.match(migration, /if linked_auctions <> 0 then/);
 });
 
+test("la migration supprime uniquement HAE-IN CHA SR et son exemplaire", async () => {
+  const migration = await read("supabase/migrations/20261008000003_remove_hae_in_cha_sr.sql");
+  assert.match(migration, /id = target_id/);
+  assert.match(migration, /nom = 'HAE-IN CHA'/);
+  assert.match(migration, /franchise = 'Solo Leveling'/);
+  assert.match(migration, /rarete_base = 'SR'/);
+  assert.match(migration, /source_id = '138789'/);
+  assert.match(migration, /delete from public\.user_cards where card_id = target_id/);
+  assert.match(migration, /delete from public\.cards where id = target_id/);
+  assert.match(migration, /if linked_auctions <> 0 then/);
+  assert.match(migration, /if pending_trades <> 0 then/);
+});
+
 test("la migration Kingdom conserve l'import manuel et supprime les copies des imports doublons", async () => {
   const migration = await read("supabase/migrations/20261007000004_remove_kingdom_duplicate_imports.sql");
   assert.match(migration, /franchise = 'Kingdom Season 2'/);
