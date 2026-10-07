@@ -49,7 +49,7 @@ après ouverture, un échec d’écriture et les accès concurrents entre deux o
 - Trois exemplaires SSR non-Shiny identiques peuvent être consommés depuis la collection
   pour créer une SSR Shiny évoluée du même personnage. C’est la seule façon d’obtenir une SSR Shiny.
 - Un Decision Pack est disponible toutes les 24 heures, indépendamment des Regular
-  Packs. Il propose cinq cartes (SR 94 %, SSR 5 %, LR 1 %) et une seule est conservée.
+  Packs. Il propose cinq cartes (SR 96,5 %, SSR 3 %, LR 0,5 %) et une seule est conservée.
   Un choix en attente est sauvegardé côté serveur et ne peut pas être relancé.
 - L’écran de reveal permet de détruire immédiatement une carte d’un Regular ou
   Decision Pack. La dernière option d’un Decision Pack ne peut pas être détruite.

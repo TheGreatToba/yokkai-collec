@@ -48,12 +48,12 @@ test("simulation massive des nouveaux taux de drop et du Shiny LR indépendant",
 
   const decision = simulate({
     samples,
-    thresholds: [0.978, 0.998],
+    thresholds: [0.965, 0.995],
     rarities: ["SR", "SSR", "LR"],
     seed: 0xdec1510,
   });
   assert.deepEqual(Object.keys(decision.counts), ["SR", "SSR", "LR"]);
-  for (const [rarity, rate] of Object.entries({ SR: 0.978, SSR: 0.02, LR: 0.002 })) {
+  for (const [rarity, rate] of Object.entries({ SR: 0.965, SSR: 0.03, LR: 0.005 })) {
     assertRate(decision.counts[rarity], rate, samples);
   }
 

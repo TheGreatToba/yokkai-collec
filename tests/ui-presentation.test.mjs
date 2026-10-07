@@ -576,6 +576,7 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
   assert.equal((selection.match(/aria-label="Voir les taux du Booster/g) || []).length, 2);
   assert.match(readFileSync(path.join(root, "components/boosters.tsx"), "utf8"), /Taux de drop du Booster/);
   const source = readFileSync(path.join(root, "components/boosters.tsx"), "utf8");
+  assert.match(source, /DECISION_DROP_RATES[^\n]*SR", percent: 96\.5[^\n]*SSR", percent: 3[^\n]*LR", percent: 0\.5/);
   const boosterStyles = readFileSync(path.join(root, "styles/boosters.css"), "utf8");
   assert.match(source, /Garder cette carte et perdre les \{cards\.length - 1\} autres \?/);
   assert.match(boosterStyles,/\.yk-reveal-selection-mode \{[^}]*width: auto;[^}]*min-height: 32px;/);
