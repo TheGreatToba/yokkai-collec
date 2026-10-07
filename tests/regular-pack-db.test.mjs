@@ -53,6 +53,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
   await db.exec(readFileSync(new URL("../supabase/migrations/20261004000015_trade_progress_notifications.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261006000002_auction_bidder_chat.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261007000003_private_friends.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../supabase/migrations/20261008000002_decision_pack_drop_rates.sql", import.meta.url), "utf8"));
   await db.query("insert into auth.users values ($1, '{\"pseudo\":\"Alice\"}'), ($2, '{\"pseudo\":\"Bob\"}'), ($3, '{\"pseudo\":\"Charlie\"}')", [alice, bob, charlie]);
   for (const rarity of ["C", "R", "SR", "SSR", "LR"]) {
     await db.query(`insert into public.cards (source_id, nom, categorie, franchise, rarete_base, image_url, source)
@@ -268,7 +269,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     assert.match(decisionPackDefinition, /rarities\s+public\.card_rarity\[\]\s*:=\s*array\['SR',\s*'SSR',\s*'LR'\]/i);
     assert.doesNotMatch(decisionPackDefinition, /array\['C'|array\['R'/i);
     assert.match(decisionPackDefinition, /rarete_base\s*=\s*'LR'\s+and\s+random\(\)\s*<\s*(?:0)?\.001/i);
-    assert.match(decisionPackDefinition, /roll<\.978 then 1 when roll<\.998 then 2 else 3/);
+    assert.match(decisionPackDefinition, /roll<\.965 then 1 when roll<\.995 then 2 else 3/);
     assert.doesNotMatch(decisionPackDefinition, /rarete_base\s+in\s*\(\s*'SSR'\s*,\s*'LR'/i);
     const initial = await asUser(bob, () => rpc("get_decision_pack_status"));
     assert.equal(initial.available, true);

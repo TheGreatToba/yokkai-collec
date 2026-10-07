@@ -255,7 +255,7 @@ peuvent les consommer. Les écritures directes du navigateur restent interdites.
 Le Decision Pack possède un délai indépendant de 24 heures. Son tirage est
 persisté dans `decision_packs` et `decision_pack_choices` jusqu’au choix final,
 ce qui empêche un rechargement de relancer les cinq propositions. Chaque carte
-est au minimum SR : SR 97,8 %, SSR 2 %, LR 0,2 %. Les raretés C et R sont
+est au minimum SR : SR 96,5 %, SSR 3 %, LR 0,5 %. Les raretés C et R sont
 entièrement absentes du pool. `keep_decision_pack_card()` crée
 exactement un exemplaire dans la collection. Les RPC de destruction suppriment un
 exemplaire Regular ou marquent un choix Decision comme détruit ; la dernière
