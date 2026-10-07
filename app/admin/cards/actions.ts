@@ -130,7 +130,7 @@ export async function importCardsAction(
       max_record_size: 1024 * 1024,
     }) as Record<string, string>[];
     if (!records.length) throw new Error("Le CSV est vide.");
-    if (records.length > 200) throw new Error("Maximum 200 cartes par import.");
+    if (records.length > 500) throw new Error("Maximum 500 cartes par import.");
     const rows = records.map((rawRow) => {
       const row = normalizeCsvRow(rawRow);
       const sourceId = (row.source_id || row.identifiant || "").trim();
