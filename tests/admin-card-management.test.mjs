@@ -358,3 +358,30 @@ test("la migration Kingdom conserve l'import manuel et supprime les copies des i
   assert.match(migration, /if linked_auctions <> 0 then/);
   assert.match(migration, /if pending_trades <> 0 then/);
 });
+
+test("la migration Dragon Ball retire les doublons manuels et traduit les noms japonais", async () => {
+  const migration = await read("supabase/migrations/20261007000005_remove_dragon_ball_manual_duplicates.sql");
+  assert.match(migration, /source = 'anilist'/);
+  for (const sourceId of ["2147", "4318", "2093", "2104", "2551"]) {
+    assert.match(migration, new RegExp(`['"]${sourceId}['"]`));
+  }
+  assert.doesNotMatch(migration, /source_id\s*=\s*'2707'/);
+  assert.match(migration, /delete from public\.user_cards\s+where card_id = any\(target_card_ids\)/);
+  assert.match(migration, /delete from public\.cards\s+where id = any\(target_card_ids\)/);
+  assert.match(migration, /set franchise = 'Dragon Ball'\s+where franchise = 'Dragon Ball Z'/);
+  assert.doesNotMatch(migration, /where franchise like 'Dragon Ball Z%'/);
+  assert.match(migration, /when '2150' then 'C-13'/);
+  assert.match(migration, /when '2149' then 'C-14'/);
+  assert.match(migration, /when '2148' then 'C-15'/);
+  assert.match(migration, /where franchise = 'Dragon Ball Z: Super Android 13!'/);
+  assert.match(migration, /set nom = 'C-19'/);
+  assert.match(migration, /source_id = '6115'/);
+  assert.match(migration, /when '2099' then 'C-16'/);
+  assert.match(migration, /when '2098' then 'C-8'/);
+  assert.match(migration, /when '2159' then 'KRILIN'/);
+  assert.match(migration, /when '3694' then 'FREEZER'/);
+  assert.match(migration, /when '6167' then U&'TORTUE G\\00C9NIALE'/);
+  assert.match(migration, /when '6127' then 'SHENRON'/);
+  assert.match(migration, /when '21344' then 'ROI NIKOCHAN'/);
+  assert.match(migration, /when '332776' then 'MEMBRE DU GANG DES LAPINS'/);
+});
