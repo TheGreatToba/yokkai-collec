@@ -55,6 +55,14 @@ test("les erreurs d'import CSV affichent le nom de la carte avec sa ligne", asyn
   assert.match(csvImport, /Carte sans nom/);
 });
 
+test("l'import CSV admin accepte jusqu'à 500 cartes", async () => {
+  const actions = await read("app/admin/cards/actions.ts");
+  const ui = await read("app/admin/cards/admin-card-manager.tsx");
+  assert.match(actions, /records\.length > 500/);
+  assert.match(actions, /Maximum 500 cartes par import\./);
+  assert.match(ui, /Jusqu’à 500 lignes\./);
+});
+
 test("le menu Admin dépend du rôle et Succès reste dans le menu profil", async () => {
   const topbar = await read("components/topbar.tsx");
   const adminLink = topbar.indexOf('href="/admin/cards"');
