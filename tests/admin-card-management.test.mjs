@@ -349,7 +349,7 @@ test("la migration supprime uniquement DJ CONDOR et toutes ses copies", async ()
 });
 
 test("la migration Kingdom conserve l'import manuel et supprime les copies des imports doublons", async () => {
-  const migration = await read("supabase/migrations/20261007000003_remove_kingdom_duplicate_imports.sql");
+  const migration = await read("supabase/migrations/20261007000004_remove_kingdom_duplicate_imports.sql");
   assert.match(migration, /franchise = 'Kingdom Season 2'/);
   assert.match(migration, /franchise = 'Kingdom' and source = 'anilist'/);
   assert.doesNotMatch(migration, /franchise = 'Kingdom'\s*\)/);
