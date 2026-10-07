@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import type { Card, CollectedCard, DecisionPackStatus, Folder, PackStatus } from "@/lib/data/cards";
+import type { Card, CollectedCard, DecisionPackStatus, Folder, PackStatus, Rarity } from "@/lib/data/cards";
 import { CollectionView } from "@/components/collection";
 import { Button, Modal, SelectionBar, SelectionModeButton, StatusPill } from "@/components/ui";
 import { CardBack, YokaiCard } from "@/components/yokai-card";
@@ -13,6 +13,8 @@ import { runPackOpeningSequence } from "@/lib/ui/pack-opening";
 
 export type RevealCard = Card & { instanceId: string; shiny?: boolean; isEvolved?: boolean; isNew?: boolean; copies?: number; discarded?: boolean; destructionValue?: number; locked?: boolean };
 type Sound = SfxName;
+type DropRate = { rarity: Rarity; percent: number };
+const DECISION_DROP_RATES: DropRate[] = [{ rarity: "SR", percent: 97.8 }, { rarity: "SSR", percent: 2 }, { rarity: "LR", percent: 0.2 }];
 const noopSound = () => {};
 // Formats the server-provided `nextPackAt`; the countdown itself stays computed by Game.
 function decisionReturnLabel(nextPackAt: number) {
@@ -290,9 +292,10 @@ export function BoosterReveal({ cards, collection = [], folders = [], revealed, 
   </section>;
 }
 
-export function Boosters({ status, countdown, decisionStatus, decisionCountdown, busy, draw, drawKind, collection, folders = [], revealed, onOpen, onKeepDecision, onDiscard, onAuction, onMoveCard, onSetLocked, onEvolve, onSetCustomImage, onReveal, onSound }: {
+export function Boosters({ status, countdown, decisionStatus, decisionCountdown, dropRates = [], shinyRate = 0.1, busy, draw, drawKind, collection, folders = [], revealed, onOpen, onKeepDecision, onDiscard, onAuction, onMoveCard, onSetLocked, onEvolve, onSetCustomImage, onReveal, onSound }: {
   status: PackStatus | null; countdown: string;
   decisionStatus: DecisionPackStatus | null; decisionCountdown: string; busy: boolean;
+  dropRates?: DropRate[]; shinyRate?: number;
   draw: RevealCard[]; drawKind: "regular" | "decision"; collection: CollectedCard[]; folders?: Folder[]; revealed: number;
   onOpen: (kind: "regular" | "decision") => Promise<RevealCard[] | undefined>; onKeepDecision: (instanceId: string) => Promise<number>;
   onDiscard: (instanceId: string) => Promise<void>;
@@ -309,6 +312,7 @@ export function Boosters({ status, countdown, decisionStatus, decisionCountdown,
   const [priorCopies, setPriorCopies] = useState<Record<string,number>>({});
   const [keptId, setKeptId] = useState<string>();
   const [decisionKaras, setDecisionKaras] = useState<number>();
+  const [ratesKind, setRatesKind] = useState<"regular" | "decision" | null>(null);
   const openingLock = useRef(false);
   const skipSeal = useRef<(() => void) | null>(null);
   const preloading = useRef<Promise<void>>(Promise.resolve());
@@ -347,20 +351,22 @@ export function Boosters({ status, countdown, decisionStatus, decisionCountdown,
   });
   const revealing = showDraw && draw.length > 0 && openingPhase === "idle" && !busy;
   const opening = openingPhase !== "idle";
+  const shownRates = ratesKind === "decision" ? DECISION_DROP_RATES : dropRates;
   return <>
         {opening ? <div className={`yk-opening-stage yk-opening-${openingPhase}`} role={openingPhase === "seal" ? "button" : "status"} tabIndex={openingPhase === "seal" ? 0 : -1} aria-label={openingPhase === "seal" ? "Passer l’animation d’ouverture" : undefined} onClick={finishSeal} onKeyDown={event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();finishSeal();}}}><div className="yk-opening-pack">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/assets/booster-pack.png" alt="" width={240} height={360} /></div><p className="mt-8 text-sm text-ink-2">{openingPhase === "seal" ? "Le sceau se brise…" : waiting ? "L’ouverture prend un peu plus de temps…" : "Ouverture du pack…"}</p></div> : revealing ? <BoosterReveal key={draw[0].instanceId} cards={revealCards} collection={collection} folders={folders} revealed={revealed} onReveal={onReveal} onReturn={() => setShowDraw(false)} onNext={drawKind === "regular" ? () => start("regular") : undefined} nextDisabled={!status || status.available === 0 || busy} nextLabel={status?.available === 0 ? `Prochain dans ${countdown}` : "Prochain booster"} onDiscard={drawKind === "regular" ? onDiscard : undefined} onAuction={drawKind === "regular" ? onAuction : undefined} onMoveCard={drawKind === "regular" ? onMoveCard : undefined} onSetLocked={drawKind === "regular" ? onSetLocked : undefined} onEvolve={drawKind === "regular" ? onEvolve : undefined} onSetCustomImage={drawKind === "regular" ? onSetCustomImage : undefined} decision={drawKind === "decision" ? { keptId, busy, karasReward: decisionKaras, onKeep: async id => { const reward = await onKeepDecision(id); setDecisionKaras(reward); setKeptId(id); return reward; } } : undefined} onSound={playSound} /> : <div className="yk-pack-grid">
-      <article className="yk-pack-panel"><div className="yk-pack-art-stage"><span className="yk-pack-badge"><StatusPill>{status ? `${status.available}/${status.maximum} en réserve` : "Réserve…"}</StatusPill></span><span className="yk-pack-orbit" />
+      <article className="yk-pack-panel"><div className="yk-pack-art-stage"><span className="yk-pack-badge"><StatusPill>{status ? `${status.available}/${status.maximum} en réserve` : "Réserve…"}</StatusPill></span><button type="button" className="yk-pack-info" aria-label="Voir les taux du Booster Régulier" onClick={()=>setRatesKind("regular")}><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></svg></button><span className="yk-pack-orbit" />
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/assets/booster-pack.png" alt="Booster Régulier Yokkai Collec’" width={220} height={330} className="yk-pack-image" /></div><div className="yk-pack-body"><div className="yk-pack-title"><h2 className="font-display text-[26px] font-semibold">Booster Régulier</h2><StatusPill tone="info">5 cartes</StatusPill></div><p className="mt-3 text-sm leading-6 text-ink-2">Cinq cartes, cinq rencontres. Découvre ce que le destin te réserve.</p>
         <dl className="yk-pack-status"><div><dt>Réserve</dt><dd className="text-karas">{status ? `${status.available} / ${status.maximum}` : "—"}</dd></div><div className="yk-pack-gauge" aria-hidden="true"><span style={{width:status && status.maximum ? `${status.available/status.maximum*100}%` : "0%"}} /></div><div><dt>Statut</dt><dd className={!status ? "text-ink-3" : status.available > 0 ? "text-success" : "text-warning"}>{!status ? "Chargement des boosters…" : status.available > 0 ? "Disponible maintenant" : `Prochain dans ${countdown}`}</dd></div>{status && status.available > 0 && <div><dt>Recharge</dt><dd className="text-ink-2">{status.nextPackAt === null ? "Réserve pleine" : `Prochain dans ${countdown}`}</dd></div>}</dl>
         <Button className="w-full" disabled={!status || status.available === 0 || busy} onClick={() => start("regular")}>{status?.available === 0 ? `Prochain dans ${countdown}` : "Ouvrir"}</Button></div></article>
-      <article className="yk-pack-panel yk-decision-panel"><div className="yk-pack-art-stage"><span className="yk-pack-badge"><StatusPill>Événement quotidien</StatusPill></span><span className="yk-pack-orbit" />
+      <article className="yk-pack-panel yk-decision-panel"><div className="yk-pack-art-stage"><span className="yk-pack-badge"><StatusPill>Événement quotidien</StatusPill></span><button type="button" className="yk-pack-info" aria-label="Voir les taux du Booster Décisif" onClick={()=>setRatesKind("decision")}><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></svg></button><span className="yk-pack-orbit" />
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/assets/booster-pack.png" alt="Booster Décisif" width={220} height={330} className="yk-pack-image yk-decision-image" /></div><div className="yk-pack-body"><div className="yk-pack-title"><h2 className="font-display text-[26px] font-semibold">Booster Décisif</h2><StatusPill tone="info">Choix unique</StatusPill></div><p className="mt-3 text-sm leading-6 text-ink-2">Révèle 5 cartes, puis garde celle de ton choix — taux augmentés.</p>
         <dl className="yk-pack-status"><div><dt>Tirage</dt><dd className="text-karas">1 carte à garder parmi 5</dd></div><div><dt>Statut</dt><dd className={!decisionStatus ? "text-ink-3" : decisionStatus.pending.length ? "text-karas" : decisionStatus.available ? "text-success" : "text-warning"} suppressHydrationWarning>{!decisionStatus ? "Chargement…" : decisionStatus.pending.length ? "Choix en attente" : decisionStatus.available ? "Disponible maintenant" : decisionReturnLabel(decisionStatus.nextPackAt)}</dd></div></dl>
         <Button disabled={!decisionStatus || (!decisionStatus.available && decisionStatus.pending.length === 0) || busy} onClick={() => start("decision")} className="w-full">{decisionStatus?.pending.length ? "Reprendre mon choix" : decisionStatus?.available ? "Ouvrir" : `Revient dans ${decisionCountdown}`}</Button></div></article>
     </div>}
+    <Modal open={ratesKind!==null} onClose={()=>setRatesKind(null)} title={`Taux de drop du Booster ${ratesKind === "decision" ? "Décisif" : "Régulier"}`}><p className="text-sm text-ink-2">Probabilité pour chaque carte révélée.</p><dl className="yk-drop-rates">{shownRates.map(rate=><div key={rate.rarity}><dt>{rate.rarity}</dt><dd>{rate.percent.toLocaleString("fr-FR",{maximumFractionDigits:2})} %</dd></div>)}</dl><p className="yk-drop-shiny">Une carte LR a ensuite <strong>{shinyRate.toLocaleString("fr-FR",{maximumFractionDigits:2})} %</strong> de chance d’être Shiny.</p></Modal>
   </>;
 }

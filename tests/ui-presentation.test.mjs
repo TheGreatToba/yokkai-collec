@@ -532,6 +532,8 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
   assert.match(selection, /Prochain dans 01:00/);
   assert.match(selection, /1 carte à garder parmi 5/);
   assert.match(selection, /Revient demain à 00:30/);
+  assert.equal((selection.match(/aria-label="Voir les taux du Booster/g) || []).length, 2);
+  assert.match(readFileSync(path.join(root, "components/boosters.tsx"), "utf8"), /Taux de drop du Booster/);
   const source = readFileSync(path.join(root, "components/boosters.tsx"), "utf8");
   const boosterStyles = readFileSync(path.join(root, "styles/boosters.css"), "utf8");
   assert.match(source, /Garder cette carte et perdre les \{cards\.length - 1\} autres \?/);
