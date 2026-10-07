@@ -299,6 +299,16 @@ test("une carte de la wishlist ouvre le détail partagé du catalogue et ses pos
   assert.match(source, /Possesseurs actuels/);
 });
 
+test("la wishlist reprend le tri et les effets statiques du catalogue", () => {
+  const source = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
+  const wishlist = source.slice(source.indexOf("export function WishlistView"), source.indexOf("const remaining"));
+  assert.match(wishlist, /id="wishlist-filters"/);
+  assert.match(wishlist, /CatalogueFilterSection title="Tri"/);
+  assert.match(wishlist, /CatalogueFilterSection title="Rareté"/);
+  assert.match(wishlist, /CatalogueFilterSection title="Catégorie"/);
+  assert.match(wishlist, /<YokaiCard \{\.\.\.card\} animated=\{false\}/);
+});
+
 test("le bouton de retrait de la wishlist utilise le style danger rouge", () => {
   const source = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
   const wishlist = source.slice(source.indexOf("export function WishlistView"), source.indexOf("const remaining"));
