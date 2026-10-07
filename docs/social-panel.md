@@ -22,3 +22,12 @@
 - La page publique d'une carte partagée est visible sans compte.
 - Au moment du partage, une option cochée permet d'afficher le pseudo sur cette page.
 - La page publique d'une carte partagée n'affiche jamais d'image personnalisée.
+- Les champs visibles d'un partage sont figés à sa création : nom, franchise, rareté, statut
+  Shiny, illustration du catalogue et, seulement avec accord explicite, pseudo du joueur.
+- Un joueur peut créer au plus 10 nouveaux liens par jour UTC. Recréer la même combinaison
+  carte/Shiny/affichage du pseudo réutilise le lien existant sans consommer ce plafond.
+- Les images sociales ne sont pas stockées dans Supabase Storage : Next.js les produit avec
+  `ImageResponse`, les conserve dans un cache mémoire LRU borné à 32 Mio et mutualise les rendus
+  simultanés d'une même image.
+- Un joueur peut supprimer ses liens. La page et les routes d'image répondent alors 404, mais les
+  aperçus déjà mis en cache par Discord, WhatsApp ou X peuvent rester visibles quelque temps.
