@@ -356,6 +356,11 @@ test("le chat d’enchère est visible mais réservé au vendeur et aux utilisat
   assert.match(css, /\.yk-auction-chat-form textarea \{[^}]*resize: none/);
 });
 
+test("le panneau d’enchère ne grandit pas avec la hauteur du chat", () => {
+  const market = readFileSync(path.join(root, "styles/market.css"), "utf8");
+  assert.match(market, /\.yk-auction-panel \{[^}]*align-self: start;/);
+});
+
 test("mobile : vitrine du profil sur la grille partagée et page Amis sans débordement", () => {
   const profile = readFileSync(path.join(root, "components/profile.tsx"), "utf8");
   const community = readFileSync(path.join(root, "styles/community.css"), "utf8");
