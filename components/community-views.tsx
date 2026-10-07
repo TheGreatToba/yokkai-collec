@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { animation } from "@/lib/ui/animations";
 import { getCataloguePage, getGameInfo, getUserCollection, invalidatePlayerSnapshots, type Card, type CollectedCard, type Rarity } from "@/lib/data/cards";
 import { notificationItem, Topbar } from "@/components/topbar";
@@ -134,11 +134,12 @@ function AuctionOutcome({ auction }: { auction: AuctionPresentation }) {
   return <div role="status" className="yk-auction-outcome"><p className="yk-outcome-badge">Enchère terminée</p><p className="mt-2 text-sm text-ink-2">{auction.winner?`Remportée par ${auction.winner} pour ${formatKaras(auction.amount)}.`:"Aucune offre n’a été placée."}</p></div>;
 }
 function AuctionChatPanel({auctionId,refreshKey,finished}:{auctionId:string;refreshKey:number;finished:boolean}) {
-  const [chat,setChat]=useState<Awaited<ReturnType<typeof getAuctionChat>>>();const [draft,setDraft]=useState("");const [busy,setBusy]=useState(false);const [error,setError]=useState("");const listRef=useRef<HTMLOListElement>(null);
-  const mentionMatch=draft.match(/(?:^|\s)@([^\s@]*)$/);const mentionQuery=mentionMatch?.[1].toLocaleLowerCase("fr");const mentionOptions=mentionMatch?chat?.participants.filter(participant=>!participant.mine&&participant.pseudo.toLocaleLowerCase("fr").startsWith(mentionQuery??"")).slice(0,5)??[]:[];
+  const [chat,setChat]=useState<Awaited<ReturnType<typeof getAuctionChat>>>();const [draft,setDraft]=useState("");const [busy,setBusy]=useState(false);const [error,setError]=useState("");const listRef=useRef<HTMLOListElement>(null);const mentionIndexRef=useRef(0);
+  const mentionMatch=draft.match(/(?:^|\s)@([^\s@]*)$/);const mentionQuery=mentionMatch?.[1].toLocaleLowerCase("fr");const hasMention=!!mentionMatch;const mentionOptions=useMemo(()=>hasMention?chat?.participants.filter(participant=>!participant.mine&&participant.pseudo.toLocaleLowerCase("fr").startsWith(mentionQuery??"")).slice(0,5)??[]:[],[chat?.participants,hasMention,mentionQuery]);
   const load=useCallback(async()=>{try{setChat(await getAuctionChat(auctionId));setError("");}catch(e){setError(e instanceof Error?e.message:"Chat indisponible.");}},[auctionId]);
   useEffect(()=>{let active=true;const refresh=()=>{void getAuctionChat(auctionId).then(value=>{if(active){setChat(value);setError("");}},reason=>{if(active)setError(reason instanceof Error?reason.message:"Chat indisponible.");});};const frame=window.requestAnimationFrame(refresh);const timer=window.setInterval(()=>{if(document.visibilityState==="visible")refresh();},3000);return()=>{active=false;window.cancelAnimationFrame(frame);window.clearInterval(timer);};},[auctionId,refreshKey]);
   useEffect(()=>{const list=listRef.current;if(list)list.scrollTop=list.scrollHeight;},[chat?.messages.length]);
+  useEffect(()=>{const textarea=document.getElementById("auction-chat-message");if(!(textarea instanceof HTMLTextAreaElement)||mentionOptions.length===0)return;mentionIndexRef.current=0;const markSelected=()=>document.querySelectorAll<HTMLButtonElement>("#auction-mention-options button").forEach((button,index)=>button.setAttribute("aria-selected",String(index===mentionIndexRef.current)));markSelected();const navigate=(event:KeyboardEvent)=>{if(event.isComposing)return;if(event.key==="ArrowDown"||event.key==="ArrowUp"){event.preventDefault();event.stopPropagation();mentionIndexRef.current=(mentionIndexRef.current+(event.key==="ArrowDown"?1:-1)+mentionOptions.length)%mentionOptions.length;markSelected();return;}if(event.key==="Enter"){event.preventDefault();event.stopPropagation();selectMention(mentionOptions[mentionIndexRef.current].pseudo);}};textarea.addEventListener("keydown",navigate);return()=>textarea.removeEventListener("keydown",navigate);},[mentionOptions]);
   async function send(){const message=draft.trim();if(!message||busy)return;setBusy(true);setError("");try{const sent=await sendAuctionChatMessage(auctionId,message);setChat(current=>current?{...current,messages:[...current.messages,sent]}:current);setDraft("");}catch(e){setError(e instanceof Error?e.message:"Message impossible à envoyer.");await load();}finally{setBusy(false);}}
   function selectMention(pseudo:string){setDraft(current=>current.replace(/@([^\s@]*)$/,`@${pseudo} `));}
   // The transient list is rebuilt from the current @query; no option persists as selected.

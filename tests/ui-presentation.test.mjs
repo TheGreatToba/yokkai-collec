@@ -322,6 +322,9 @@ test("le chat d’enchère est visible mais réservé aux utilisateurs ayant mis
   assert.match(source, /chat\?\.participants\.filter/);
   assert.match(source, /auction-mention-options/);
   assert.match(source, /@ pour mentionner/);
+  assert.match(source, /event\.key==="ArrowDown"\|\|event\.key==="ArrowUp"/);
+  assert.match(source, /selectMention\(mentionOptions\[mentionIndexRef\.current\]\.pseudo\)/);
+  assert.match(css, /button\[aria-selected="true"\]/);
   assert.match(market, /get_auction_chat/);
   assert.match(market, /send_auction_chat_message/);
   assert.match(css, /grid-template-areas: "art main" "history main"/);

@@ -101,7 +101,7 @@
 .yk-auction-chat-form textarea:focus { border-color: var(--color-accent-gold); box-shadow: 0 0 0 2px color-mix(in srgb,var(--color-accent-gold) 18%,transparent); }
 .yk-auction-mention-options { position: absolute; z-index: 4; right: 0; bottom: calc(100% + var(--spacing) * 2); left: 0; overflow: hidden; border: 1px solid var(--color-veil-strong); border-radius: var(--radius-input); background: var(--color-elevated); box-shadow: var(--shadow-modal); }
 .yk-auction-mention-options button { display: flex; width: 100%; align-items: center; gap: calc(var(--spacing) * 2); padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3); color: var(--color-ink-2); font-size: var(--text-sm); text-align: left; }
-.yk-auction-mention-options button:hover,.yk-auction-mention-options button:focus-visible { background: var(--color-veil); color: var(--color-accent-gold); outline: none; }
+.yk-auction-mention-options button:hover,.yk-auction-mention-options button:focus-visible,.yk-auction-mention-options button[aria-selected="true"] { background: var(--color-veil); color: var(--color-accent-gold); outline: none; }
 .yk-auction-chat-form > div { display: flex; align-items: center; justify-content: space-between; gap: calc(var(--spacing) * 3); }
 .yk-auction-chat-form span { color: var(--color-ink-3); font-size: var(--text-xs); font-variant-numeric: tabular-nums; }
 .yk-auction-chat-locked { padding: calc(var(--spacing) * 3); border: 1px dashed var(--color-veil-strong); border-radius: var(--radius-input); text-align: center; }
