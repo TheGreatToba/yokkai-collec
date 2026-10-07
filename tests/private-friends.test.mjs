@@ -1,0 +1,98 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import test from "node:test";
+import vm from "node:vm";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import ts from "typescript";
+
+const require = createRequire(import.meta.url);
+function load(file, overrides) {
+  const exports = {};
+  const code = ts.transpileModule(readFileSync(new URL(`../${file}`,import.meta.url),"utf8"),{
+    compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true},
+  }).outputText;
+  vm.runInNewContext(code,{exports,require:name=>name in overrides?overrides[name]:require(name)});
+  return exports;
+}
+const friend = {id:"bob",pseudo:"Bob",avatarUrl:null};
+const base = {id:"alice",pseudo:"Alice",bio:"",avatarUrl:null,bannerCard:null,
+  friendshipStatus:"self",isPublic:true,canViewCollection:true,featuredCards:[],cardCount:0,distinctCardCount:0};
+function profileApi(response) {
+  return load("lib/data/profile.ts",{
+    "@/utils/supabase/client":{createClient:()=>({rpc:async()=>({data:response,error:null})})},
+    "@/lib/data/cards":{withLiveCardFranchises:async cards=>cards},
+    "@/lib/data/player-state":{publishPlayerSnapshotInvalidation:()=>{}},
+  });
+}
+
+test("profil : réponses anciennes et nouvelles, friends absent ou null",async()=>{
+  for (const status of ["self","accepted","none"]) for (const friends of [undefined,null,[],[friend]]) {
+    const result = await profileApi({...base,friendshipStatus:status,friends}).getProfile();
+    assert.equal(result.friendsVisible,status==="self");
+    assert.equal(result.friends.length,status==="self"&&Array.isArray(friends)?friends.length:0);
+  }
+  for (const flag of [true,false]) {
+    const api = profileApi({...base,friends:[friend],friendsVisible:flag});
+    for (const result of [await api.getProfile(),await api.saveProfile("",null,[],null)]) {
+      assert.equal(result.friendsVisible,flag,"le flag explicite prévaut sur la longueur et le fallback");
+      assert.equal(result.friends.length,flag?1:0);
+    }
+  }
+});
+
+const h = React.createElement;
+const ui = {
+  Avatar:({name})=>h("span",null,name),
+  Button:({children,onClick,disabled,...props})=>h("button",{"aria-label":props["aria-label"],onClick,disabled},children),
+  StatusPill:({children})=>h("span",null,children),
+  Modal:()=>null,Toast:()=>null,
+};
+const link = ({href,children,...props})=>h("a",{href,"aria-label":props["aria-label"]},children);
+const friendsModule = load("components/friends.tsx",{
+  "next/link":link,"@/components/ui":ui,"@/lib/data/friends":{},
+});
+function renderProfile(profile) {
+  let stateIndex=0;
+  const {ProfileExperience} = load("components/profile.tsx",{
+    react:{...React,useEffect:()=>{},useState:initial=>React.useState(stateIndex++===0?profile:initial)},
+    "next/link":link,"next/navigation":{usePathname:()=>"/profil/Alice",useSearchParams:()=>new URLSearchParams()},
+    "@/components/ui":ui,"@/components/friends":friendsModule,
+    "@/components/yokai-card":{YokaiCard:()=>null},"@/components/card-shell":{},"@/components/collection":{},
+    "@/lib/data/profile":{},"@/lib/data/wishlist":{},"@/lib/data/cards":{},"@/lib/ui/card-search":{},
+  });
+  return renderToStaticMarkup(h(ProfileExperience,{}));
+}
+test("profil rendu : propriétaire sans ami voit 0, visiteurs sans tuile ni colonne",()=>{
+  for (const friends of [undefined,null,[]]) {
+    const html = renderProfile({...base,friends,friendsVisible:true});
+    assert.match(html,/>Amis<\/p>/);
+    assert.match(html,/>0<\/p>/);
+    assert.match(html,/>Amis<\/h3>/);
+  }
+  const own = renderProfile({...base,friends:[friend],friendsVisible:true});
+  assert.match(own,/href="\/profil\/Bob"/);
+  for (const status of ["accepted","none"]) for (const friends of [undefined,null,[],[friend]]) {
+    const html = renderProfile({...base,friendshipStatus:status,friends,friendsVisible:false});
+    assert.doesNotMatch(html,/>Amis<\/(?:p|h3)>|\/profil\/Bob|yk-profile-columns/);
+    assert.match(html,/Voir la collection/);
+  }
+});
+test("les quatre états du bouton d'amitié restent disponibles",()=>{
+  for (const [status,label] of [["none","Ajouter en ami"],["outgoing","Demande envoyée"],["incoming","Accepter"],["accepted","Déjà ami"]]) {
+    const html = renderToStaticMarkup(h(friendsModule.FriendAction,{userId:"bob",status}));
+    assert.ok(html.includes(label));
+    if(status==="incoming")assert.ok(html.includes("Refuser"));
+  }
+});
+test("aperçu social : compteur et liste réservés au propriétaire",()=>{
+  const {SocialPreview} = load("components/social-preview.tsx",{
+    "next/link":link,"@/components/ui":ui,"@/components/friends":{},
+    "@/components/yokai-card":{YokaiCard:()=>null},
+  });
+  const own = renderToStaticMarkup(h(SocialPreview,{screen:"profile"}));
+  const visitor = renderToStaticMarkup(h(SocialPreview,{screen:"public"}));
+  assert.match(own,/>Amis<\/(?:p|h3)>/);
+  assert.doesNotMatch(visitor,/>Amis<\/(?:p|h3)>/);
+});
