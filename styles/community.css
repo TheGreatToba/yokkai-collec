@@ -27,6 +27,7 @@
 .yk-friend-wishlist-results { min-width: 0; }
 .yk-friend-wishlist-count { margin-bottom: calc(var(--spacing) * 4); color: var(--color-ink-2); font-size: var(--text-sm); }
 .yk-friend-wishlist-results .yk-empty-state { min-height: 320px; margin-top: 0; }
+.yk-profile-wishlist-preview { --card-grid-columns-xl: 5; --card-grid-columns-lg: 4; --card-grid-columns-md: 3; --card-grid-columns-sm: 2; }
 /* Profile showcase: 5 slots on desktop, then the shared .yk-card-grid mobile scale. */
 .yk-featured-stage { --card-grid-columns-xl: 5; --card-grid-columns-lg: 5; --card-grid-columns-md: 5; gap: 16px; padding: 28px 12px; background: radial-gradient(ellipse at center,var(--color-veil),transparent 70%); }
 .yk-featured-stage > div { opacity: 1; }
