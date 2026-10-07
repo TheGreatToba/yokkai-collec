@@ -347,3 +347,14 @@ test("la migration supprime uniquement DJ CONDOR et toutes ses copies", async ()
   assert.match(migration, /delete from public\.cards where id = target_id/);
   assert.match(migration, /if linked_auctions <> 0 then/);
 });
+
+test("la migration Kingdom conserve l'import manuel et supprime les copies des imports doublons", async () => {
+  const migration = await read("supabase/migrations/20261007000003_remove_kingdom_duplicate_imports.sql");
+  assert.match(migration, /franchise = 'Kingdom Season 2'/);
+  assert.match(migration, /franchise = 'Kingdom' and source = 'anilist'/);
+  assert.doesNotMatch(migration, /franchise = 'Kingdom'\s*\)/);
+  assert.match(migration, /delete from public\.user_cards\s+where card_id = any\(target_card_ids\)/);
+  assert.match(migration, /delete from public\.cards\s+where id = any\(target_card_ids\)/);
+  assert.match(migration, /if linked_auctions <> 0 then/);
+  assert.match(migration, /if pending_trades <> 0 then/);
+});
