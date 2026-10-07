@@ -86,7 +86,7 @@ test("les quatre états du bouton d'amitié restent disponibles",()=>{
     if(status==="incoming")assert.ok(html.includes("Refuser"));
   }
 });
-test("aperçu social : compteur et liste réservés au propriétaire",()=>{
+test("aperçu social historique : le visiteur reste masqué sans flag public explicite",()=>{
   const {SocialPreview} = load("components/social-preview.tsx",{
     "next/link":link,"@/components/ui":ui,"@/components/friends":{},
     "@/components/yokai-card":{YokaiCard:()=>null},
