@@ -1,7 +1,7 @@
 import { createClient } from "@/utils/supabase/client";
 
 export type FriendshipStatus = "none"|"incoming"|"outgoing"|"accepted"|"self";
-export type FriendUser = {id:string;pseudo:string;avatarUrl?:string|null;status?:FriendshipStatus;requestId?:string;createdAt?:string};
+export type FriendUser = {id:string;pseudo:string;avatarUrl?:string|null;status?:FriendshipStatus;requestId?:string;createdAt?:string;isOnline?:boolean;lastSeenAt?:string|null};
 export type Friendships = {friends:FriendUser[];incoming:FriendUser[];outgoing:FriendUser[]};
 export type PublicProfile = {id:string;pseudo:string;friendshipStatus:FriendshipStatus};
 let client:ReturnType<typeof createClient>|undefined;
@@ -47,6 +47,12 @@ async function call<T>(name:string,args?:Record<string,unknown>):Promise<T>{
 }
 export const searchUsers=(query:string)=>call<FriendUser[]>("search_users",{p_query:query});
 export const getFriendships=()=>call<Friendships>("get_friendships");
+export async function touchPresence(){
+  const {data}=await db().auth.getSession();
+  if(!data.session?.user)return false;
+  await call<string|null>("touch_presence");
+  return true;
+}
 export const getPublicProfile=(id:string)=>call<PublicProfile>("get_public_profile",{p_user_id:id});
 export async function sendFriendRequest(id:string){
   try{return await call<string>("send_friend_request",{p_friend_id:id});}

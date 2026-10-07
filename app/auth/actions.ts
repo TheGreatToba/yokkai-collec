@@ -152,6 +152,7 @@ export async function signUp(_state: AuthState, form: FormData): Promise<AuthSta
 export async function signOut(): Promise<AuthState> {
   try {
     const supabase = createClient(await cookies());
+    await supabase.rpc("mark_offline");
     const { error } = await supabase.auth.signOut({ scope: "local" });
     if (error) return { error: "La déconnexion a échoué. Réessayez." };
   } catch {
