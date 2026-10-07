@@ -56,7 +56,7 @@ const config = {
       ['--booster-reveal-gap-compact', '0.625rem'],
       ['--booster-progress-dot', '1.5rem'],
       ['--market-card-min', '10.5rem'],
-      ['--market-art-width', '22rem'],
+      ['--market-art-width', '19rem'],
       ['--market-art-width-mobile', '13.5rem'],
       ['--market-detail-max', '66rem'],
       ['--market-sell-modal-width', '40rem'],

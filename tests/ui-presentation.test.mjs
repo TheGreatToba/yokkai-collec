@@ -310,6 +310,7 @@ test("le chat d’enchère est visible mais réservé aux utilisateurs ayant mis
   const source = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
   const market = readFileSync(path.join(root, "lib/data/market.ts"), "utf8");
   const css = readFileSync(path.join(root, "styles/market.css"), "utf8");
+  const tokens = readFileSync(path.join(root, "tailwind.config.ts"), "utf8");
   assert.match(source, /function AuctionChatPanel/);
   assert.match(source, /Seuls les participants ayant misé peuvent écrire/);
   assert.match(source, /chat\?\.canPost&&!finished/);
@@ -323,6 +324,7 @@ test("le chat d’enchère est visible mais réservé aux utilisateurs ayant mis
   assert.match(css, /grid-template-areas: "art main" "history main"/);
   assert.match(css, /\.yk-auction-page \{[^}]*left: -8rem/);
   assert.match(css, /#main-content:has\(\.yk-auction-page\) \{[^}]*max-width: 72rem/);
+  assert.match(tokens, /\['--market-art-width', '19rem'\]/);
   assert.match(css, /\.yk-auction-main \{[^}]*grid-template-columns: minmax\(0,1fr\) 24rem/);
   assert.match(css, /\.yk-auction-main \{[^}]*grid-template-areas: "header \." "panel chat"/);
   assert.match(css, /\.yk-auction-header \{ grid-area: header/);
