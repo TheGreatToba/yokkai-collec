@@ -306,13 +306,13 @@ test("le bouton de retrait de la wishlist utilise le style danger rouge", () => 
   assert.match(wishlist, />♡ Retirer<\/Button>/);
 });
 
-test("le chat d’enchère est visible mais réservé aux utilisateurs ayant misé", () => {
+test("le chat d’enchère est visible mais réservé au vendeur et aux utilisateurs ayant misé", () => {
   const source = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
   const market = readFileSync(path.join(root, "lib/data/market.ts"), "utf8");
   const css = readFileSync(path.join(root, "styles/market.css"), "utf8");
   const tokens = readFileSync(path.join(root, "tailwind.config.ts"), "utf8");
   assert.match(source, /function AuctionChatPanel/);
-  assert.match(source, /Seuls les participants ayant misé peuvent écrire/);
+  assert.match(source, /Le vendeur et les enchérisseurs peuvent écrire/);
   assert.match(source, /chat\?\.canPost&&!finished/);
   assert.match(source, /getAuctionChat\(auctionId\)/);
   assert.match(source, /sendAuctionChatMessage\(auctionId,message\)/);
@@ -320,6 +320,7 @@ test("le chat d’enchère est visible mais réservé aux utilisateurs ayant mis
   assert.match(source, /event\.key==="Enter"&&!event\.shiftKey/);
   assert.match(source, /event\.preventDefault\(\);void send\(\)/);
   assert.match(source, /chat\?\.participants\.filter/);
+  assert.match(market, /CHAT_PARTICIPANTS_ONLY:"Seuls le vendeur et les enchérisseurs peuvent participer au chat\."/);
   assert.match(source, /auction-mention-options/);
   assert.match(source, /@ pour mentionner/);
   assert.match(source, /event\.key==="ArrowDown"\|\|event\.key==="ArrowUp"/);

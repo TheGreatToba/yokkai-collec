@@ -566,6 +566,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     assert.deepEqual(await notificationOutput(),beforeMigration,"list_notifications conserve strictement la sortie des types existants");
     await db.exec(readFileSync(new URL("../supabase/migrations/20261006000001_auction_sold_notifications.sql", import.meta.url), "utf8"));
     await db.exec(readFileSync(new URL("../supabase/migrations/20261007000000_auction_chat_mentions.sql", import.meta.url), "utf8"));
+    await db.exec(readFileSync(new URL("../supabase/migrations/20261007000001_auction_seller_chat.sql", import.meta.url), "utf8"));
 
     const soldCard=(await db.query("insert into public.user_cards(user_id,card_id,rarity,is_first_owner) values($1,$2,'C',true) returning id",[alice,cardId])).rows[0].id;
     const soldAuction=(await asUser(alice,()=>db.query("select public.create_auction($1,10,15) as id",[soldCard]))).rows[0].id;
@@ -582,8 +583,13 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     await asUser(bob,()=>db.query("select public.place_bid($1,20)",[mentionAuction]));
     await asUser(charlie,()=>db.query("select public.place_bid($1,30)",[mentionAuction]));
     const mentionChat=(await asUser(bob,()=>db.query("select public.get_auction_chat($1) as value",[mentionAuction]))).rows[0].value;
-    assert.deepEqual(mentionChat.participants.map(participant=>participant.pseudo),["Bob","Charlie"]);
-    await assert.rejects(asUser(bob,()=>db.query("select public.send_auction_chat_message($1,$2)",[mentionAuction,"Salut @Alice"])),/CHAT_MENTION_INVALID/);
+    assert.deepEqual(mentionChat.participants.map(participant=>participant.pseudo),["Alice","Bob","Charlie"]);
+    const sellerChat=(await asUser(alice,()=>db.query("select public.get_auction_chat($1) as value",[mentionAuction]))).rows[0].value;
+    assert.equal(sellerChat.canPost,true);
+    await asUser(alice,()=>db.query("select public.send_auction_chat_message($1,$2)",[mentionAuction,"Bonne chance @Bob"]));
+    const sellerMention=(await asUser(bob,()=>db.query("select public.list_notifications() as value"))).rows[0].value.find(item=>item.type==="auction_chat_mention"&&item.referenceId===mentionAuction);
+    assert.equal(sellerMention.actorPseudo,"Alice");
+    await assert.rejects(asUser(bob,()=>db.query("select public.send_auction_chat_message($1,$2)",[mentionAuction,"Salut @Nobody"])),/CHAT_MENTION_INVALID/);
     await asUser(bob,()=>db.query("select public.send_auction_chat_message($1,$2)",[mentionAuction,"Salut @Charlie"]));
     const mentionNotification=(await asUser(charlie,()=>db.query("select public.list_notifications() as value"))).rows[0].value.find(item=>item.type==="auction_chat_mention");
     assert.deepEqual({referenceId:mentionNotification.referenceId,cardName:mentionNotification.cardName,actorPseudo:mentionNotification.actorPseudo},{referenceId:mentionAuction,cardName:"C",actorPseudo:"Bob"});
