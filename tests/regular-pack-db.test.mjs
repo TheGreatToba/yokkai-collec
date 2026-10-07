@@ -51,6 +51,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
   await db.exec(readFileSync(new URL("../supabase/migrations/20261004000013_profile_collection_privacy.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261004000014_remove_friend.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261004000015_trade_progress_notifications.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../supabase/migrations/20261006000002_auction_bidder_chat.sql", import.meta.url), "utf8"));
   await db.query("insert into auth.users values ($1, '{\"pseudo\":\"Alice\"}'), ($2, '{\"pseudo\":\"Bob\"}'), ($3, '{\"pseudo\":\"Charlie\"}')", [alice, bob, charlie]);
   for (const rarity of ["C", "R", "SR", "SSR", "LR"]) {
     await db.query(`insert into public.cards (source_id, nom, categorie, franchise, rarete_base, image_url, source)
@@ -374,6 +375,20 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     await assert.rejects(asUser(alice, () => db.query("select public.cancel_auction($1)", [auctionId])), /AUCTION_HAS_BIDS/);
     assert.equal(Number((await db.query("select karas_balance from public.user_profiles where user_id=$1", [bob])).rows[0].karas_balance), 80);
     await asUser(charlie, () => db.query("select public.place_bid($1,30)", [auctionId]));
+    await assert.rejects(asUser(alice, () => db.query("select public.send_auction_chat_message($1,$2)", [auctionId,"Message vendeur"])), /CHAT_BIDDERS_ONLY/);
+    await assert.rejects(asUser(bob, () => db.query("select public.send_auction_chat_message($1,$2)", [auctionId,"   "])), /CHAT_MESSAGE_INVALID/);
+    const bobMessage = (await asUser(bob, () => db.query("select public.send_auction_chat_message($1,$2) as value", [auctionId,"  Bonne chance !  "]))).rows[0].value;
+    assert.equal(bobMessage.message, "Bonne chance !");
+    assert.equal(bobMessage.mine, true);
+    await asUser(charlie, () => db.query("select public.send_auction_chat_message($1,$2)", [auctionId,"Merci, toi aussi."]));
+    const sellerChat = (await asUser(alice, () => db.query("select public.get_auction_chat($1) as value", [auctionId]))).rows[0].value;
+    assert.equal(sellerChat.canPost, false);
+    assert.deepEqual(sellerChat.messages.map(message => message.message), ["Bonne chance !","Merci, toi aussi."]);
+    const bidderChat = (await asUser(bob, () => db.query("select public.get_auction_chat($1) as value", [auctionId]))).rows[0].value;
+    assert.equal(bidderChat.canPost, true);
+    assert.equal(bidderChat.messages[0].mine, true);
+    await assert.rejects(asUser(bob, () => db.query("select * from public.auction_chat_messages")), /permission denied/);
+    await assert.rejects(asUser(bob, () => db.query("insert into public.auction_chat_messages(auction_id,user_id,message) values($1,$2,'Direct')", [auctionId,bob])), /permission denied/);
     const bobAuctions = (await asUser(bob, () => db.query("select public.list_auctions() as value"))).rows[0].value;
     const bobParticipation = bobAuctions.find(item => item.id === auctionId);
     assert.equal(bobParticipation.hasBid, true);
@@ -550,6 +565,9 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     await db.exec(readFileSync(new URL("../supabase/migrations/20261005000000_cancel_trade_offer.sql", import.meta.url), "utf8"));
     assert.deepEqual(await notificationOutput(),beforeMigration,"list_notifications conserve strictement la sortie des types existants");
     await db.exec(readFileSync(new URL("../supabase/migrations/20261006000001_auction_sold_notifications.sql", import.meta.url), "utf8"));
+    await db.exec(readFileSync(new URL("../supabase/migrations/20261007000000_auction_chat_mentions.sql", import.meta.url), "utf8"));
+    await db.exec(readFileSync(new URL("../supabase/migrations/20261007000001_auction_seller_chat.sql", import.meta.url), "utf8"));
+    await db.exec(readFileSync(new URL("../supabase/migrations/20261007000002_auction_chat_gifs.sql", import.meta.url), "utf8"));
 
     const soldCard=(await db.query("insert into public.user_cards(user_id,card_id,rarity,is_first_owner) values($1,$2,'C',true) returning id",[alice,cardId])).rows[0].id;
     const soldAuction=(await asUser(alice,()=>db.query("select public.create_auction($1,10,15) as id",[soldCard]))).rows[0].id;
@@ -559,6 +577,29 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     const soldNotification=(await asUser(alice,()=>db.query("select public.list_notifications() as value"))).rows[0].value.find(item=>item.type==="auction_sold"&&item.referenceId===soldAuction);
     assert.deepEqual({cardName:soldNotification.cardName,karaAmount:soldNotification.karaAmount},{cardName:"C",karaAmount:25});
     assert.equal(Number((await db.query("select count(*) as count from public.notifications where user_id=$1 and type='auction_sold' and reference_id=$2",[alice,soldAuction])).rows[0].count),1);
+
+    const mentionCard=(await db.query("insert into public.user_cards(user_id,card_id,rarity) values($1,$2,'C') returning id",[alice,cardId])).rows[0].id;
+    const mentionAuction=(await asUser(alice,()=>db.query("select public.create_auction($1,10,15) as id",[mentionCard]))).rows[0].id;
+    await db.query("update public.user_profiles set karas_balance=karas_balance+100 where user_id in ($1,$2)",[bob,charlie]);
+    await asUser(bob,()=>db.query("select public.place_bid($1,20)",[mentionAuction]));
+    await asUser(charlie,()=>db.query("select public.place_bid($1,30)",[mentionAuction]));
+    const mentionChat=(await asUser(bob,()=>db.query("select public.get_auction_chat($1) as value",[mentionAuction]))).rows[0].value;
+    assert.deepEqual(mentionChat.participants.map(participant=>participant.pseudo),["Alice","Bob","Charlie"]);
+    const sellerChat=(await asUser(alice,()=>db.query("select public.get_auction_chat($1) as value",[mentionAuction]))).rows[0].value;
+    assert.equal(sellerChat.canPost,true);
+    await asUser(alice,()=>db.query("select public.send_auction_chat_message($1,$2)",[mentionAuction,"Bonne chance @Bob"]));
+    const sellerMention=(await asUser(bob,()=>db.query("select public.list_notifications() as value"))).rows[0].value.find(item=>item.type==="auction_chat_mention"&&item.referenceId===mentionAuction);
+    assert.equal(sellerMention.actorPseudo,"Alice");
+    await assert.rejects(asUser(alice,()=>db.query("select public.send_auction_chat_message($1,$2,$3)",[mentionAuction,"", "https://evil.example/gif.gif"])),/CHAT_GIF_INVALID/);
+    const gifMessage=(await asUser(alice,()=>db.query("select public.send_auction_chat_message($1,$2,$3) as value",[mentionAuction,"", "https://media2.giphy.com/media/abc123/giphy.gif"]))).rows[0].value;
+    assert.equal(gifMessage.gifUrl,"https://media2.giphy.com/media/abc123/giphy.gif");
+    const chatWithGif=(await asUser(bob,()=>db.query("select public.get_auction_chat($1) as value",[mentionAuction]))).rows[0].value;
+    assert.equal(chatWithGif.messages.at(-1).gifUrl,"https://media2.giphy.com/media/abc123/giphy.gif");
+    await assert.rejects(asUser(bob,()=>db.query("select public.send_auction_chat_message($1,$2)",[mentionAuction,"Salut @Nobody"])),/CHAT_MENTION_INVALID/);
+    await asUser(bob,()=>db.query("select public.send_auction_chat_message($1,$2)",[mentionAuction,"Salut @Charlie"]));
+    const mentionNotification=(await asUser(charlie,()=>db.query("select public.list_notifications() as value"))).rows[0].value.find(item=>item.type==="auction_chat_mention");
+    assert.deepEqual({referenceId:mentionNotification.referenceId,cardName:mentionNotification.cardName,actorPseudo:mentionNotification.actorPseudo},{referenceId:mentionAuction,cardName:"C",actorPseudo:"Bob"});
+    assert.equal(Number((await db.query("select count(*) as count from public.notifications where user_id=$1 and type='auction_chat_mention' and reference_id=$2",[charlie,mentionAuction])).rows[0].count),1);
 
     await assert.rejects(asUser(null,()=>db.query("select public.cancel_trade_offer(gen_random_uuid())"),"anon"),/permission denied/);
     await assert.rejects(asUser(null,()=>db.query("select public.cancel_trade_offer(gen_random_uuid())")),/AUTH_REQUIRED/);

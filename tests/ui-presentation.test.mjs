@@ -306,6 +306,46 @@ test("le bouton de retrait de la wishlist utilise le style danger rouge", () => 
   assert.match(wishlist, />♡ Retirer<\/Button>/);
 });
 
+test("le chat d’enchère est visible mais réservé au vendeur et aux utilisateurs ayant misé", () => {
+  const source = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
+  const market = readFileSync(path.join(root, "lib/data/market.ts"), "utf8");
+  const css = readFileSync(path.join(root, "styles/market.css"), "utf8");
+  const gifPicker = readFileSync(path.join(root, "components/gif-picker.tsx"), "utf8");
+  const tokens = readFileSync(path.join(root, "tailwind.config.ts"), "utf8");
+  assert.match(source, /function AuctionChatPanel/);
+  assert.match(source, /Le vendeur et les enchérisseurs peuvent écrire/);
+  assert.match(source, /chat\?\.canPost&&!finished/);
+  assert.match(source, /getAuctionChat\(auctionId\)/);
+  assert.match(source, /sendAuctionChatMessage\(auctionId,message,gif\?\.url\)/);
+  assert.match(source, /maxLength=\{500\}/);
+  assert.match(source, /event\.key==="Enter"&&!event\.shiftKey/);
+  assert.match(source, /event\.preventDefault\(\);void send\(\)/);
+  assert.match(source, /chat\?\.participants\.filter/);
+  assert.match(market, /CHAT_PARTICIPANTS_ONLY:"Seuls le vendeur et les enchérisseurs peuvent participer au chat\."/);
+  assert.match(source, /auction-mention-options/);
+  assert.match(source, /@ pour mentionner/);
+  assert.match(source, /<GifPicker disabled=\{busy\} onSelect=\{gif=>void send\(gif\)\}/);
+  assert.match(source, /item\.gifUrl\?<img className="yk-auction-chat-gif"/);
+  assert.match(gifPicker, /api\.giphy\.com\/v1\/gifs/);
+  assert.match(gifPicker, /Powered by GIPHY/);
+  assert.match(source, /event\.key==="ArrowDown"\|\|event\.key==="ArrowUp"/);
+  assert.match(source, /event\.key==="Enter"\|\|event\.key==="Tab"/);
+  assert.match(source, /selectMention\(mentionOptions\[mentionIndexRef\.current\]\.pseudo\)/);
+  assert.match(css, /button\[aria-selected="true"\]/);
+  assert.match(market, /get_auction_chat/);
+  assert.match(market, /send_auction_chat_message/);
+  assert.match(css, /grid-template-areas: "art main" "history main"/);
+  assert.match(css, /\.yk-auction-page \{[^}]*left: -8rem/);
+  assert.match(css, /#main-content:has\(\.yk-auction-page\) \{[^}]*max-width: 72rem/);
+  assert.match(tokens, /\['--market-art-width', '19rem'\]/);
+  assert.match(css, /\.yk-auction-main \{[^}]*grid-template-columns: minmax\(0,1fr\) 24rem/);
+  assert.match(css, /\.yk-auction-main \{[^}]*grid-template-areas: "header \." "panel chat"/);
+  assert.match(css, /\.yk-auction-header \{ grid-area: header/);
+  assert.match(css, /\.yk-auction-panel \{ grid-area: panel/);
+  assert.match(css, /\.yk-auction-chat \{ grid-area: chat/);
+  assert.match(css, /\.yk-auction-chat-form textarea \{[^}]*resize: none/);
+});
+
 test("mobile : vitrine du profil sur la grille partagée et page Amis sans débordement", () => {
   const profile = readFileSync(path.join(root, "components/profile.tsx"), "utf8");
   const community = readFileSync(path.join(root, "styles/community.css"), "utf8");
@@ -745,7 +785,7 @@ test("l’inscription vérifie le pseudo après debounce sans remplacer la valid
 test("les notifications connues ont un texte et une redirection, les inconnues un repli sûr", () => {
   const source = readFileSync(path.join(root, "components/topbar.tsx"), "utf8");
   const model = readFileSync(path.join(root, "lib/data/notifications.ts"), "utf8");
-  for (const type of ["wishlist_card_on_auction", "friend_request", "outbid", "trade_offer_received", "trade_counter_offer_received", "trade_offer_accepted", "trade_offer_declined", "trade_offer_cancelled", "auction_won", "auction_sold", "achievement_completed"]) {
+  for (const type of ["wishlist_card_on_auction", "friend_request", "outbid", "trade_offer_received", "trade_counter_offer_received", "trade_offer_accepted", "trade_offer_declined", "trade_offer_cancelled", "auction_won", "auction_sold", "auction_chat_mention", "achievement_completed"]) {
     assert.match(model, new RegExp(type));
   }
   assert.match(source, /de ta wishlist vient d’être mise aux enchères — clique pour voir/);
@@ -772,6 +812,10 @@ test("les notifications connues ont un texte et une redirection, les inconnues u
   assert.equal(sold.title,"Personnage vendu");
   assert.equal(sold.text,"Tu as vendu Kitsune pour 1 250 KARA.");
   assert.equal(sold.kind,"sold");
+  const mention=notificationItem({id:"mention",type:"auction_chat_mention",referenceId:"auction",readAt:null,createdAt:"2026-10-05T00:00:00Z",cardName:"Kitsune",actorPseudo:"Bob",achievementName:null});
+  assert.equal(mention.text,"Bob t’a mentionné dans la discussion de Kitsune.");
+  assert.equal(mention.href,"/marche/auction#chat-enchere");
+  assert.equal(mention.kind,"mention");
 });
 
 test("les notifications se relisent à l'ouverture du panneau et au retour sur l'onglet", () => {
