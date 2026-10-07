@@ -384,6 +384,25 @@ test("mobile : vitrine du profil sur la grille partagée et page Amis sans débo
   assert.match(friends, /title="Supprimer cet ami \?"/);
 });
 
+test("la liste d’amis affiche la présence et actualise la dernière activité", () => {
+  const friends = readFileSync(path.join(root, "components/friends.tsx"), "utf8");
+  const heartbeat = readFileSync(path.join(root, "components/presence-heartbeat.tsx"), "utf8");
+  const layout = readFileSync(path.join(root, "app/layout.tsx"), "utf8");
+  assert.match(layout, /<PresenceHeartbeat\/>/);
+  assert.match(heartbeat, /touchPresence\(\)/);
+  assert.match(heartbeat, /PRESENCE_THROTTLE_MS = 30_000/);
+  for(const event of ["pointerdown","pointermove","keydown","scroll","touchstart"])assert.match(heartbeat,new RegExp(event));
+  assert.doesNotMatch(heartbeat, /setInterval/);
+  assert.match(friends, /showPresence=\{tab==="friends"\}/);
+  assert.match(friends, /window\.setInterval\(\(\)=>void refresh\(\),30_000\)/);
+  const {friendPresenceLabel}=load("components/friends.tsx");
+  const now=Date.parse("2026-10-08T12:00:00Z");
+  assert.equal(friendPresenceLabel({isOnline:true,lastSeenAt:"2026-10-08T10:00:00Z"},now),"En ligne");
+  assert.equal(friendPresenceLabel({isOnline:false,lastSeenAt:"2026-10-08T11:55:00Z"},now),"Vu il y a 5 min");
+  assert.equal(friendPresenceLabel({isOnline:false,lastSeenAt:"2026-10-08T09:00:00Z"},now),"Vu il y a 3 h");
+  assert.equal(friendPresenceLabel({isOnline:false,lastSeenAt:null},now),"Jamais vu en ligne");
+});
+
 test("le sélecteur de cartes mises en avant recherche et remonte la sélection", () => {
   const source = readFileSync(path.join(root, "components/profile.tsx"), "utf8");
   assert.match(source, /const FEATURED_CARD_LIMIT=5/);

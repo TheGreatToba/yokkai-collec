@@ -211,7 +211,7 @@ test("production : aucune inscription avec une URL de retour manquante ou invali
 });
 
 test("déconnexion locale, propagation des erreurs et redirection après succès", async () => {
-  const api = actions({ signOut: async ({ scope }) => { assert.equal(scope, "local"); return { error: null }; } });
+  const api = actions({ rpc: async name => { assert.equal(name,"mark_offline"); return {data:null,error:null}; }, signOut: async ({ scope }) => { assert.equal(scope, "local"); return { error: null }; } });
   await assert.rejects(api.signOut(), /REDIRECT:\/connexion/);
   const failed = await actions({ signOut: async () => ({ error: { message: "network" } }) }).signOut();
   assert.match(failed.error, /échoué/);

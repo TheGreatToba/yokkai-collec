@@ -102,6 +102,7 @@
 .yk-social-person>a { display: grid; min-width: 0; flex: 1; gap: calc(var(--spacing) * .5); }
 .yk-social-person strong { overflow: hidden; font-family: var(--font-display); text-overflow: ellipsis; white-space: nowrap; }
 .yk-social-person small { color: var(--color-ink-3); font-size: var(--text-xs); }
+.yk-social-person small.yk-presence-online { color: var(--color-success); font-weight: 600; }
 .yk-friend-action-buttons { display: flex; flex-wrap: wrap; gap: calc(var(--spacing) * 2); }
 .yk-friend-proof-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(calc(var(--spacing) * 40),1fr)); gap: calc(var(--spacing) * 3); margin-top: calc(var(--spacing) * 5); }
 .yk-friend-proof-case { display: grid; align-content: space-between; gap: calc(var(--spacing) * 3); min-height: calc(var(--spacing) * 22); border: 1px solid var(--color-veil); border-radius: var(--radius-input); padding: calc(var(--spacing) * 3); background: var(--color-night); }

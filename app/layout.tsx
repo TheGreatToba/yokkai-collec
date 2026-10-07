@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Cinzel, Sora, Noto_Serif_JP } from "next/font/google";
+import { PresenceHeartbeat } from "@/components/presence-heartbeat";
 import "./globals.css";
 import "../styles/ui.css";
 import "../styles/community.css";
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr" className={`h-full antialiased ${cinzel.variable} ${sora.variable} ${noto.variable}`}>
-      <body suppressHydrationWarning className="min-h-full flex flex-col">{children}</body>
+      <body suppressHydrationWarning className="min-h-full flex flex-col"><PresenceHeartbeat/>{children}</body>
     </html>
   );
 }
