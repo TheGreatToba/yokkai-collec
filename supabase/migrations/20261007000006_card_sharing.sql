@@ -132,6 +132,40 @@ begin
 end;
 $$;
 
+-- PostgreSQL grants EXECUTE to PUBLIC on new functions by default. Older
+-- trigger helpers may therefore be reported as executable by anon even though
+-- they are not public RPCs. Close that inherited surface before allowlisting
+-- the only two intentional anonymous functions.
+do $$
+declare
+  candidate record;
+begin
+  for candidate in
+    select namespace.nspname, procedure.proname,
+      pg_catalog.pg_get_function_identity_arguments(procedure.oid) as arguments
+    from pg_catalog.pg_proc procedure
+    join pg_catalog.pg_namespace namespace on namespace.oid = procedure.pronamespace
+    where namespace.nspname = 'public'
+      and pg_catalog.has_function_privilege('anon', procedure.oid, 'EXECUTE')
+      and not (
+        procedure.proname = 'is_pseudo_available'
+        and pg_catalog.pg_get_function_identity_arguments(procedure.oid) = 'p_pseudo text'
+      )
+      and not (
+        procedure.proname = 'get_shared_card'
+        and pg_catalog.pg_get_function_identity_arguments(procedure.oid) = 'p_share_id text'
+      )
+  loop
+    execute pg_catalog.format(
+      'revoke execute on function %I.%I(%s) from public, anon',
+      candidate.nspname,
+      candidate.proname,
+      candidate.arguments
+    );
+  end loop;
+end;
+$$;
+
 revoke all on function public.create_card_share(uuid, boolean),
   public.get_shared_card(text), public.delete_card_share(text)
 from public, anon, authenticated;
