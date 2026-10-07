@@ -248,6 +248,13 @@ test("le compteur wishlist d'un ami ouvre toute sa wishlist et chaque carte rest
   assert.match(profile, /aria-label=\{`Voir \$\{card\.name\} dans le catalogue`\}/);
 });
 
+test("l’aperçu wishlist du profil garde des cartes compactes", () => {
+  const profile = readFileSync(path.join(root, "components/profile.tsx"), "utf8");
+  const community = readFileSync(path.join(root, "styles/community.css"), "utf8");
+  assert.match(profile, /className="yk-card-grid yk-profile-wishlist-preview mt-5"/);
+  assert.match(community, /\.yk-profile-wishlist-preview \{ --card-grid-columns-xl: 5; --card-grid-columns-lg: 4; --card-grid-columns-md: 3; --card-grid-columns-sm: 2; \}/);
+});
+
 test("une carte d'ami ouvre une proposition d'échange présélectionnée et extensible", () => {
   const collection = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
   const trades = readFileSync(path.join(root, "components/trades.tsx"), "utf8");
