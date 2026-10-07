@@ -1,6 +1,7 @@
 /* Phase 6 · Marché. Wraps the frozen YokaiCard with auction data; the grid shares the Collection/Catalogue columns. */
 .yk-back-link { display: inline-flex; margin-bottom: calc(var(--spacing) * 4); color: var(--color-ink-3); font-size: 13px; transition: color var(--duration-fast) var(--ease-standard); }
 .yk-back-link:hover { color: var(--color-ink); }
+#main-content:has(.yk-auction-page) { max-width: 72rem; }
 #main-content:has(.yk-auction-page) > div:first-child { position: relative; left: -8rem; width: 100%; max-width: var(--market-detail-max); margin-inline: auto; }
 
 /* List & Mes enchères */

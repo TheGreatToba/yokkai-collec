@@ -322,6 +322,7 @@ test("le chat d’enchère est visible mais réservé aux utilisateurs ayant mis
   assert.match(market, /send_auction_chat_message/);
   assert.match(css, /grid-template-areas: "art main" "history main"/);
   assert.match(css, /\.yk-auction-page \{[^}]*left: -8rem/);
+  assert.match(css, /#main-content:has\(\.yk-auction-page\) \{[^}]*max-width: 72rem/);
   assert.match(css, /\.yk-auction-main \{[^}]*grid-template-columns: minmax\(0,1fr\) 24rem/);
   assert.match(css, /\.yk-auction-main \{[^}]*grid-template-areas: "header \." "panel chat"/);
   assert.match(css, /\.yk-auction-header \{ grid-area: header/);
