@@ -2,7 +2,7 @@ import { AccountMenu } from "@/components/account-menu";
 import { Topbar } from "@/components/topbar";
 import { cookies } from "next/headers";
 import { requireAdminPage } from "@/lib/auth/admin";
-import { getCurrentPseudo } from "@/lib/auth/session";
+import { getCurrentKarasBalance, getCurrentPseudo } from "@/lib/auth/session";
 import { createClient } from "@/utils/supabase/server";
 import { AdminCardManager } from "./admin-card-manager";
 
@@ -19,8 +19,11 @@ export default async function AdminCardsPage({
   searchParams: Promise<{ q?: string; category?: string }>;
 }) {
   const admin = await requireAdminPage();
-  const name = await getCurrentPseudo(admin.id);
   const client = createClient(await cookies());
+  const [name, karas] = await Promise.all([
+    getCurrentPseudo(admin.id),
+    getCurrentKarasBalance(client),
+  ]);
   const { q, category } = await searchParams;
   const searchQuery = q?.trim().slice(0, 100) ?? "";
   const searchTerms = searchQuery.split(/\s+/).filter(Boolean);
@@ -49,7 +52,7 @@ export default async function AdminCardsPage({
   }
   return (
     <div className="min-h-screen bg-slate-950 text-white">
-      <Topbar view="admin" account={<AccountMenu/>} name={name ?? undefined}/>
+      <Topbar view="admin" account={<AccountMenu/>} name={name ?? undefined} karas={karas}/>
       <main id="main-content" className="px-4 py-8 sm:px-8">
        <div className="mx-auto max-w-7xl space-y-8">
         <header className="flex flex-wrap items-center justify-between gap-4">

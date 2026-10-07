@@ -856,6 +856,18 @@ test("les notifications se relisent à l'ouverture du panneau et au retour sur l
   assert.ok(existsSync(path.join(root, "app/design-system/notification-refresh-preview/page.tsx")));
 });
 
+test("les pages Paramètres et Admin transmettent le solde de Karas à la Topbar", () => {
+  const session = readFileSync(path.join(root, "lib/auth/session.ts"), "utf8");
+  const settings = readFileSync(path.join(root, "app/parametres/page.tsx"), "utf8");
+  const admin = readFileSync(path.join(root, "app/admin/cards/page.tsx"), "utf8");
+  assert.match(session, /export async function getCurrentKarasBalance/);
+  assert.match(session, /rpc\("get_game_info"\)/);
+  assert.match(settings, /getCurrentKarasBalance\(\)/);
+  assert.match(settings, /<Topbar view="settings"[\s\S]{0,200}karas=\{karas\}/);
+  assert.match(admin, /getCurrentKarasBalance\(client\)/);
+  assert.match(admin, /<Topbar view="admin"[\s\S]{0,200}karas=\{karas\}/);
+});
+
 test("tri de la Collection : rareté par défaut, dates, nom français et ordre stable", () => {
   const { sortCollection, COLLECTION_SORTS, DEFAULT_COLLECTION_SORT, isCollectionSort } = load("lib/ui/collection-sort.ts");
   const make = (instanceId, name, rarity, shiny, obtainedAt) => ({ ...card, instanceId, name, rarity, shiny, obtainedAt });
