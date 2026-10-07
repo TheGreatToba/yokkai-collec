@@ -56,6 +56,8 @@ YOKKAI COLLEC' - MON PROFIL (ÉDITION)
 
 Ce profil est visible par l'ensemble de la communauté au clic sur un pseudo dans le marché, le catalogue ou la liste d'amis.
 
+La liste et le nombre d'amis sont visibles uniquement par le propriétaire sur son profil et sur /amis. Un visiteur, même ami accepté, ne voit ni liste ni compteur ni section de remplacement. Cette règle est indépendante de la confidentialité de la collection.
+
 ```
 ====================================================================================================
 YOKKAI COLLEC' - PROFIL PUBLIC : @ShadowMaster
@@ -76,9 +78,6 @@ YOKKAI COLLEC' - PROFIL PUBLIC : @ShadowMaster
 | | [LR] [S]  |   | [LR]      |   | [SSR]     |   | [SSR]     |                                    |
 | | Kuro Kits |   | Gashadok. |   | Ren Cyber |   | Aoi Drag. |                                    |
 | +-----------+   +-----------+   +-----------+   +-----------+                                    |
-+--------------------------------------------------------------------------------------------------+
-| LISTE D'AMIS (24)                                                                                |
-| [ @PlayerOne ]  [ @KpopFan99 ]  [ @CyberSamurai ]  [ @YukiFan ]  ... [Voir tous les amis]        |
 +--------------------------------------------------------------------------------------------------+
 
 ```

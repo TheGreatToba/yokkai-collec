@@ -26,7 +26,7 @@ Streamer/Youtubeur, Influenceur, Politicien, Écrivain, Philosophe
 ## Compte & Profil
 - Création de compte, choix du pseudo
 - Édition du profil : photo, bio, 4 cartes mises en avant (choisies dans sa collection)
-- Ajout d'amis par pseudo, liste d'amis
+- Ajout d'amis par pseudo ; liste et nombre d'amis visibles uniquement par leur propriétaire, jamais par les visiteurs de son profil (même amis acceptés)
 - Consultation du profil et de la collection des autres joueurs
 
 ## Collection
