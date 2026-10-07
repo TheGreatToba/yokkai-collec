@@ -319,6 +319,9 @@ test("le chat d’enchère est visible mais réservé aux utilisateurs ayant mis
   assert.match(source, /maxLength=\{500\}/);
   assert.match(source, /event\.key==="Enter"&&!event\.shiftKey/);
   assert.match(source, /event\.preventDefault\(\);void send\(\)/);
+  assert.match(source, /chat\?\.participants\.filter/);
+  assert.match(source, /auction-mention-options/);
+  assert.match(source, /@ pour mentionner/);
   assert.match(market, /get_auction_chat/);
   assert.match(market, /send_auction_chat_message/);
   assert.match(css, /grid-template-areas: "art main" "history main"/);
@@ -772,7 +775,7 @@ test("l’inscription vérifie le pseudo après debounce sans remplacer la valid
 test("les notifications connues ont un texte et une redirection, les inconnues un repli sûr", () => {
   const source = readFileSync(path.join(root, "components/topbar.tsx"), "utf8");
   const model = readFileSync(path.join(root, "lib/data/notifications.ts"), "utf8");
-  for (const type of ["wishlist_card_on_auction", "friend_request", "outbid", "trade_offer_received", "trade_counter_offer_received", "trade_offer_accepted", "trade_offer_declined", "trade_offer_cancelled", "auction_won", "auction_sold", "achievement_completed"]) {
+  for (const type of ["wishlist_card_on_auction", "friend_request", "outbid", "trade_offer_received", "trade_counter_offer_received", "trade_offer_accepted", "trade_offer_declined", "trade_offer_cancelled", "auction_won", "auction_sold", "auction_chat_mention", "achievement_completed"]) {
     assert.match(model, new RegExp(type));
   }
   assert.match(source, /de ta wishlist vient d’être mise aux enchères — clique pour voir/);
@@ -799,6 +802,10 @@ test("les notifications connues ont un texte et une redirection, les inconnues u
   assert.equal(sold.title,"Personnage vendu");
   assert.equal(sold.text,"Tu as vendu Kitsune pour 1 250 KARA.");
   assert.equal(sold.kind,"sold");
+  const mention=notificationItem({id:"mention",type:"auction_chat_mention",referenceId:"auction",readAt:null,createdAt:"2026-10-05T00:00:00Z",cardName:"Kitsune",actorPseudo:"Bob",achievementName:null});
+  assert.equal(mention.text,"Bob t’a mentionné dans la discussion de Kitsune.");
+  assert.equal(mention.href,"/marche/auction#chat-enchere");
+  assert.equal(mention.kind,"mention");
 });
 
 test("les notifications se relisent à l'ouverture du panneau et au retour sur l'onglet", () => {
