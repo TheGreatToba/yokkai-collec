@@ -9,7 +9,14 @@ type GiphyItem={id:string;title:string;images:{fixed_width_small?:GiphyImage;fix
 type GiphyResponse={data:GiphyItem[];pagination?:{count:number;offset:number;total_count:number}};
 
 const PAGE_SIZE=18;
-const QUICK_SEARCHES=["Réaction","Anime","Bravo","Rire","Choqué","Merci"];
+const GIF_CATEGORIES=[
+  {label:"Tendances",term:""},
+  {label:"Réactions",term:"reaction"},
+  {label:"Anime",term:"anime"},
+  {label:"Gaming",term:"gaming"},
+  {label:"Sport",term:"sport"},
+  {label:"Mèmes",term:"meme"},
+];
 
 const toChoice=(item:GiphyItem):GifChoice=>{
   const preview=item.images.fixed_width_small??item.images.fixed_width??item.images.original;
@@ -61,11 +68,10 @@ export function GifPicker({disabled,onSelect}:{disabled?:boolean;onSelect:(gif:G
 
   return <div ref={panelRef} className="yk-gif-picker">
     <button type="button" className="yk-gif-trigger" disabled={disabled} aria-expanded={open} aria-controls="auction-gif-panel" onClick={()=>{setOpen(value=>!value);setSelected(null);}}>GIF</button>
-    {open&&<><button type="button" tabIndex={-1} className="yk-gif-backdrop" aria-label="Fermer le sélecteur de GIF" onClick={()=>setOpen(false)}/><section id="auction-gif-panel" className="yk-gif-panel" role="dialog" aria-modal="true" aria-label="Choisir un GIF">
-      <header><div><strong>Choisir un GIF</strong><span>{debouncedQuery?`Résultats pour « ${debouncedQuery} »`:"Tendances du moment"}</span></div><button type="button" aria-label="Fermer" onClick={()=>setOpen(false)}>×</button></header>
+    {open&&<section id="auction-gif-panel" className="yk-gif-panel" role="dialog" aria-label="Choisir un GIF">
+      <div className="yk-gif-categories" aria-label="Catégories de GIF">{GIF_CATEGORIES.map(category=><button type="button" key={category.label} className={query===category.term?"is-active":undefined} onClick={()=>choose(category.term)}>{category.label}</button>)}</div>
       <label className="sr-only" htmlFor="auction-gif-search">Rechercher un GIF</label>
       <div className="yk-gif-search"><span aria-hidden="true">⌕</span><input id="auction-gif-search" type="search" autoFocus value={query} onChange={event=>setQuery(event.target.value)} placeholder="Rechercher sur GIPHY…"/>{query&&<button type="button" aria-label="Effacer la recherche" onClick={()=>setQuery("")}>×</button>}</div>
-      {!query&&<div className="yk-gif-suggestions" aria-label="Recherches rapides">{QUICK_SEARCHES.map(term=><button type="button" key={term} onClick={()=>choose(term)}>{term}</button>)}</div>}
       <div className="yk-gif-results" aria-busy={loading&&offset===0}>{gifs.map(gif=><button type="button" key={gif.id} aria-label={`Aperçu : ${gif.title}`} onClick={()=>setSelected(gif)}><img src={gif.previewUrl} alt={gif.title} loading="lazy"/></button>)}</div>
       {loading&&offset===0&&<div className="yk-gif-loading" role="status">Chargement des GIF…</div>}
       {!loading&&!error&&!gifs.length&&<p>Aucun GIF trouvé.</p>}
@@ -73,6 +79,6 @@ export function GifPicker({disabled,onSelect}:{disabled?:boolean;onSelect:(gif:G
       {hasMore&&!error&&<button type="button" className="yk-gif-more" disabled={loading} onClick={()=>setOffset(value=>value+PAGE_SIZE)}>{loading?"Chargement…":"Charger plus"}</button>}
       {selected&&<div className="yk-gif-preview" role="dialog" aria-label="Aperçu du GIF"><img src={selected.previewUrl} alt={selected.title}/><div><button type="button" onClick={()=>setSelected(null)}>Annuler</button><button type="button" onClick={sendSelected}>Envoyer ce GIF</button></div></div>}
       <a href="https://giphy.com" target="_blank" rel="noreferrer">Powered by GIPHY</a>
-    </section></>}
+    </section>}
   </div>;
 }
