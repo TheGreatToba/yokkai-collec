@@ -1,9 +1,20 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { performance } from "node:perf_hooks";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { replayMigrations, securityDefinerAccess } from "../scripts/replay-migrations.mjs";
 import allowlist from "./security-definer-allowlist.mjs";
+
+test("migration versions are unique", () => {
+  const names = readdirSync(new URL("../supabase/migrations/", import.meta.url)).filter(name => name.endsWith(".sql")).sort();
+  const versions = new Map();
+  for (const name of names) {
+    const version = name.match(/^(\d{14})_/)?.[1];
+    assert.ok(version, `Invalid migration filename: ${name}`);
+    assert.ok(!versions.has(version), `Duplicate migration version ${version}: ${versions.get(version)} and ${name}`);
+    versions.set(version, name);
+  }
+});
 
 test("all migrations replay with Supabase defaults; SECURITY DEFINER access is explicitly allowed", async (t) => {
   const start = performance.now();
