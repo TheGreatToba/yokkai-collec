@@ -21,7 +21,12 @@ test("partages de cartes : surface publique minimale et limites transactionnelle
   await db.exec(migration("20260923000000_create_card_schema"));
   await db.exec("alter table public.user_cards add column is_shiny boolean not null default false");
   await db.exec(migration("20260928000002_pseudo_availability"));
+  await db.exec(`
+    create function public.prevent_locked_card_transfer_or_delete() returns trigger language plpgsql as $$begin return new; end$$;
+    create function public.prevent_locked_trade_offer() returns trigger language plpgsql as $$begin return new; end$$;
+  `);
   await db.exec(migration("20261007000006_card_sharing"));
+  await db.exec(migration("20261008000004_revoke_anon_trigger_helpers"));
   await db.query("insert into auth.users values ($1),($2)", [alice,bob]);
   await db.query("insert into public.user_profiles(user_id,pseudo) values ($1,'Alice'),($2,'Bob')", [alice,bob]);
 
