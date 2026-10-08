@@ -95,7 +95,7 @@ const fs=require('fs'); const state=JSON.parse(fs.readFileSync(process.env.MOCK_
 const command=process.argv.slice(2).join(' '); let kind=input.includes('json_agg')?'registry':input.includes('pg_get_functiondef')?'drift':input.includes('set -euo pipefail')?'backup':'apply';
 fs.appendFileSync(process.env.MOCK_LOG,JSON.stringify({kind,command,input})+'\\n');
 if(kind==='registry') console.log('[]');
-if(kind==='drift') { const applied=fs.existsSync(process.env.MOCK_APPLIED); const changed=state.driftAfterBackup&&fs.readFileSync(process.env.MOCK_LOG,'utf8').includes('"kind":"backup"'); console.log(state.drift||changed?JSON.stringify({kind:'relation',name:'public.unexpected',value:{rls:false}}):applied?state.after:state.before); }
+if(kind==='drift') { const applied=fs.existsSync(process.env.MOCK_APPLIED); const changed=state.driftAfterBackup&&fs.readFileSync(process.env.MOCK_LOG,'utf8').includes('"kind":"backup"'); console.log(state.malformed?'[]':state.drift||changed?JSON.stringify({kind:'relation',name:'public.unexpected',value:{rls:false}}):applied?state.after:state.before); }
 if(kind==='backup') { if(state.badBackup) {console.error('Backup empty or suspicious');process.exit(1)} console.log('Validated backup on VPS'); }
 if(kind==='apply') {if(state.failApply){console.error('transaction failed');process.exit(1)}fs.writeFileSync(process.env.MOCK_APPLIED,'yes');console.log('BEGIN\\nINSERT 0 1\\nINSERT 0 1\\nCOMMIT');}
 `, { mode: 0o755 });
@@ -126,6 +126,7 @@ print(out.decode(),end='');sys.exit(p.wait())`;
   result = spawnSync("bash", [path.join(directory, "scripts/deploy-migrations.sh")], { env, encoding: "utf8", timeout: 30000 });
   assert.equal(result.status, 0, result.stderr); assert.match(result.stdout, /Dry-run: no production writes/);
   result = run({ drift: true }, "--apply", "APPLY"); assert.notEqual(result.status, 0); assert.deepEqual(calls().map(c => c.kind), ["registry", "drift"]);
+  result = run({ malformed: true }, "--apply", "APPLY"); assert.notEqual(result.status, 0); assert.deepEqual(calls().map(c => c.kind), ["registry", "drift"]);
   result = run({}, "--apply"); assert.notEqual(result.status, 0); assert.match(result.stderr, /interactive terminal/);
   result = run({}, "--apply", "NO"); assert.notEqual(result.status, 0); assert.deepEqual(calls().map(c => c.kind), ["registry", "drift"]);
   result = run({ badBackup: true }, "--apply", "APPLY"); assert.notEqual(result.status, 0); assert.deepEqual(calls().map(c => c.kind), ["registry", "drift", "backup"]);
