@@ -107,10 +107,11 @@ test("CSV streaming : BOM, accents, virgules, guillemets, multiligne et en-tête
 
 test("validation : entiers, rareté, image par défaut et identifiants", () => {
   for (const patch of [{ favoris_count: "-1" }, { favoris_count: "1.5" },
-    { favoris_count: "2147483648" }, { rarete_base: "SHINY" }, { source_id: " " },
+    { favoris_count: "2147483648" }, { rarete_base: "SHINY" },
     { image_url: "https://s4.anilist.co/character/large/default.jpg" }]) {
     assert.throws(() => validateCard({ ...row(), ...patch }));
   }
+  assert.match(validateCard({ ...row(), source_id: " " }).source_id, /^generated-[a-f0-9]{24}$/);
   assert.notEqual(imagePath(row()), imagePath({ ...row(), source: "other" }));
 });
 
@@ -119,6 +120,28 @@ test("manual cards receive a stable derived identifier", () => {
   const second = validateCard({ ...row(""), source: "manual", categorie: "kpop", nom: "blackpink" });
   assert.match(first.source_id, /^manual-[a-f0-9]{24}$/);
   assert.equal(first.source_id, second.source_id);
+});
+
+test("une ligne sans nom est ignorée sans bloquer les cartes valides et les identifiants manquants", async () => {
+  const client = fakeClient();
+  const failures = [];
+  const stats = await importCards({
+    rows: [
+      { ...row(""), source: "manual", nom: "Carte sans identifiant" },
+      { ...row("2"), nom: "" },
+      row("3"),
+    ],
+    client,
+    fetchImage: async () => image(),
+    log: silent,
+    onFailure: async (failure) => failures.push(failure),
+  });
+  assert.equal(stats.imported, 2);
+  assert.equal(stats.skipped, 1);
+  assert.equal(failures[0].record, 2);
+  assert.match(failures[0].message, /Champ vide : nom/);
+  const imported = [...client.cards.values()];
+  assert.ok(imported.some((card) => /^manual-[a-f0-9]{24}$/.test(card.source_id)));
 });
 
 test("lots, échec image ignoré, erreurs journalisées et reprise sans doublons", async () => {

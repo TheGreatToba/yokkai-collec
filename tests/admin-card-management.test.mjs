@@ -42,6 +42,8 @@ test("un CSV admin sans source_id bascule en source manuelle pour obtenir un ide
   assert.match(actions, /normalize\("NFD"\)/);
   assert.match(actions, /row\.franchise \?\? row\.licence/);
   assert.match(actions, /row\.image_url \?\? row\.image \?\? row\.image_source/);
+  assert.match(actions, /deriveSourceId\(card\)/);
+  assert.match(actions, /relax_column_count: true/);
 });
 
 test("les erreurs d'import CSV affichent le nom de la carte avec sa ligne", async () => {

@@ -36,12 +36,21 @@ export async function* readCards(path) {
   }
 }
 
+export function deriveSourceId(row) {
+  const source = row.source?.trim() || "manual";
+  const name = row.nom?.trim();
+  const category = row.categorie?.trim();
+  if (!name || !category) return "";
+  const identity = source === "manual"
+    ? `${category.toLocaleLowerCase("fr")}\0${name.toLocaleLowerCase("fr")}`
+    : `${source.toLocaleLowerCase("fr")}\0${category.toLocaleLowerCase("fr")}\0${name.toLocaleLowerCase("fr")}`;
+  const prefix = source === "manual" ? "manual" : "generated";
+  return `${prefix}-${createHash("sha256").update(identity).digest("hex").slice(0, 24)}`;
+}
+
 export function validateCard(row) {
   const card = Object.fromEntries(COLUMNS.map((column) => [column, row[column]?.trim() ?? ""]));
-  if (!card.source_id && card.source === "manual" && card.nom && card.categorie) {
-    const identity = `${card.categorie.toLocaleLowerCase("fr")}\0${card.nom.toLocaleLowerCase("fr")}`;
-    card.source_id = `manual-${createHash("sha256").update(identity).digest("hex").slice(0, 24)}`;
-  }
+  if (!card.source_id) card.source_id = deriveSourceId(card);
   // The cleaned AniList CSV can contain unknown franchises (empty text is valid in DB).
   for (const column of ["source_id", "nom", "categorie", "source", "image_url"]) {
     if (!card[column]) throw new Error(`Champ vide : ${column}`);
