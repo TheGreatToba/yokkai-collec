@@ -28,8 +28,10 @@ export function useNotificationFeed(enabled = true, load: () => Promise<AppNotif
     void refresh();
     const timer = window.setInterval(() => void refresh(), POLL_INTERVAL_MS);
     const onVisible = () => { if (document.visibilityState === "visible") void refresh(); };
+    const onBlock = () => { void refresh(); };
+    window.addEventListener("player-block-changed", onBlock);
     document.addEventListener("visibilitychange", onVisible);
-    return () => { mounted.current = false; window.clearInterval(timer); document.removeEventListener("visibilitychange", onVisible); };
+    return () => { mounted.current = false; window.clearInterval(timer); window.removeEventListener("player-block-changed", onBlock); document.removeEventListener("visibilitychange", onVisible); };
   }, [enabled, refresh]);
   const retry = useCallback(() => { setError(""); void refresh(); }, [refresh]);
   return { notifications, setNotifications, error, refresh, retry };

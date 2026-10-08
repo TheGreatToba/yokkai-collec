@@ -332,8 +332,8 @@ test("le chat d’enchère est visible mais réservé au vendeur et aux utilisat
   assert.match(source, /function AuctionChatPanel/);
   assert.match(source, /Le vendeur et les enchérisseurs peuvent écrire/);
   assert.match(source, /chat\?\.canPost&&!finished/);
-  assert.match(source, /getAuctionChat\(auctionId\)/);
-  assert.match(source, /sendAuctionChatMessage\(auctionId,message,gif\?\.url\)/);
+  assert.match(source, /adapter\.get\(auctionId\)/);
+  assert.match(source, /adapter\.send\(auctionId,message,gif\?\.url\)/);
   assert.match(source, /maxLength=\{500\}/);
   assert.match(source, /event\.key==="Enter"&&!event\.shiftKey/);
   assert.match(source, /event\.preventDefault\(\);void send\(\)/);

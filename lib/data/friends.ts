@@ -11,6 +11,7 @@ type SupabaseFailure={message?:string;code?:string;details?:string;hint?:string;
 class FriendsError extends Error { constructor(message:string,readonly reason?:string){super(message);this.name="FriendsError";} }
 
 const businessMessages:Record<string,string>={
+  ACTION_UNAVAILABLE:"Impossible d’envoyer cette demande.",
   CANNOT_FRIEND_SELF:"Vous ne pouvez pas vous ajouter vous-même.",
   PROFILE_NOT_FOUND:"Ce profil est introuvable.",
   FRIEND_REQUEST_NOT_FOUND:"Cette demande n’est plus disponible.",

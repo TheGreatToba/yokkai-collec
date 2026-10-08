@@ -61,3 +61,8 @@ test("présence : un utilisateur connecté envoie son activité",async()=>{
   assert.equal(await api.touchPresence(),true);
   assert.deepEqual(calls.map(call=>call.name),["touch_presence"]);
 });
+
+test("demande impossible : aucun message de blocage n’est révélé",async()=>{
+  const {api}=setup(async()=>({data:null,error:{message:"ACTION_UNAVAILABLE",code:"P0001"}}));
+  await assert.rejects(api.sendFriendRequest("target"),error=>error.message==="Impossible d’envoyer cette demande."&&!/bloqu/i.test(error.message));
+});
