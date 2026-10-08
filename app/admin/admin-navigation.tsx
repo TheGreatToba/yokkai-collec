@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const items = [
   { href: "/admin/cards", label: "Mise en ligne des cartes" },
   { href: "/admin/players", label: "Administration des joueurs" },
+  { href: "/admin/reports", label: "Signalements" },
 ];
 
 export function AdminNavigation() {

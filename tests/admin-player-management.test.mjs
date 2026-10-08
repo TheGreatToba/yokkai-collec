@@ -8,10 +8,23 @@ test("le panneau admin sépare les cartes et les joueurs", async () => {
   const nav = await read("app/admin/admin-navigation.tsx");
   const cards = await read("app/admin/cards/page.tsx");
   const players = await read("app/admin/players/page.tsx");
-  assert.match(nav, /\/admin\/cards/); assert.match(nav, /\/admin\/players/);
+  assert.match(nav, /\/admin\/cards/); assert.match(nav, /\/admin\/players/); assert.match(nav, /\/admin\/reports/);
   assert.match(nav, /border-cyan-400 bg-cyan-400\/10 text-cyan-200/);
   assert.match(cards, /<AdminNavigation/); assert.match(players, /<AdminNavigation/);
   assert.match(players, /admin_list_players/); assert.match(players, /admin_get_player/);
+});
+
+test("le panneau admin affiche et traite les signalements enrichis", async () => {
+  const page = await read("app/admin/reports/page.tsx");
+  const list = await read("app/admin/reports/report-list.tsx");
+  const actions = await read("app/admin/reports/actions.ts");
+  const migration = await read("supabase/migrations/20261009000002_admin_reports_dashboard.sql");
+  assert.match(page, /admin_search_reports/); assert.match(page, /<AdminNavigation/); assert.match(page, /<ReportList/);
+  assert.match(list, /Signalé par/); assert.match(list, /Joueur signalé/); assert.match(list, /Marquer comme traité/);
+  assert.match(actions, /requireAdminAction\(\)/); assert.match(actions, /admin_set_report_status/);
+  assert.match(migration, /if not public\.is_current_user_admin\(\)/);
+  assert.match(migration, /join auth\.users reporter_auth/); assert.match(migration, /reportedIsBanned/);
+  assert.match(migration, /revoke all on function public\.admin_search_reports[\s\S]+from public,anon,authenticated/);
 });
 
 test("les données joueurs et le bannissement restent derrière des RPC admin", async () => {
