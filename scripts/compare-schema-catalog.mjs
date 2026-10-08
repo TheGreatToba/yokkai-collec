@@ -1,0 +1,28 @@
+import { readFileSync } from "node:fs";
+import { replayMigrations } from "./replay-migrations.mjs";
+
+const { db, migrations } = await replayMigrations();
+try {
+  const expected = (await db.query(readFileSync(new URL("./schema-catalog.sql", import.meta.url), "utf8")))
+    .rows.map((row) => JSON.parse(Object.values(row)[0]));
+  const actual = readFileSync(process.argv[2], "utf8").trim().split(/\r?\n/).filter(Boolean).map((line) => JSON.parse(line));
+  const key = (row) => `${row.kind}: ${row.name}`;
+  const canonical = (value) => JSON.stringify(value, (_key, item) =>
+    typeof item === "string" ? item.replace(/\r\n/g, "\n") :
+    item && typeof item === "object" && !Array.isArray(item)
+      ? Object.fromEntries(Object.keys(item).sort().map((name) => [name, item[name]])) : item);
+  const reference = new Map(expected.map((row) => [key(row), canonical(row.value)]));
+  const production = new Map(actual.map((row) => [key(row), canonical(row.value)]));
+  let differences = 0;
+  for (const name of [...new Set([...reference.keys(), ...production.keys()])].sort()) {
+    if (reference.get(name) === production.get(name)) continue;
+    differences++;
+    console.log(`${!reference.has(name) ? 'PROD ONLY' : !production.has(name) ? 'MISSING IN PROD' : 'CHANGED'} ${name}`);
+    console.log(`  migrations: ${reference.get(name) ?? '(absent)'}`);
+    console.log(`  production: ${production.get(name) ?? '(absent)'}`);
+  }
+  console.log(`${migrations.length} migrations replayed; ${differences} divergences.`);
+  process.exitCode = differences ? 1 : 0;
+} finally {
+  await db.close();
+}
