@@ -9,6 +9,7 @@ test("le panneau admin sépare les cartes et les joueurs", async () => {
   const cards = await read("app/admin/cards/page.tsx");
   const players = await read("app/admin/players/page.tsx");
   assert.match(nav, /\/admin\/cards/); assert.match(nav, /\/admin\/players/);
+  assert.match(nav, /border-cyan-400 bg-cyan-400\/10 text-cyan-200/);
   assert.match(cards, /<AdminNavigation/); assert.match(players, /<AdminNavigation/);
   assert.match(players, /admin_list_players/); assert.match(players, /admin_get_player/);
 });

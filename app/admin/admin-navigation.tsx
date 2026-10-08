@@ -15,7 +15,7 @@ export function AdminNavigation() {
       {items.map((item) => (
         <Link
           aria-current={pathname.startsWith(item.href) ? "page" : undefined}
-          className="yk-tab"
+          className={`yk-tab ${pathname.startsWith(item.href) ? "border-cyan-400 bg-cyan-400/10 text-cyan-200 shadow-[0_0_16px_rgba(34,211,238,0.16)]" : ""}`}
           href={item.href}
           key={item.href}
         >
