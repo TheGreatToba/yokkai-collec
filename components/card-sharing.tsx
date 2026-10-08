@@ -75,6 +75,7 @@ function ShareList() {
   const [rows, setRows] = useState<CardShare[]>([]);
   const [offset, setOffset] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [revision, setRevision] = useState(0);
   const [error, setError] = useState("");
   const [candidate, setCandidate] = useState<CardShare | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -83,12 +84,12 @@ function ShareList() {
     let active = true;
     void listCardShares(offset).then(value => { if (active) { setRows(value); setLoading(false); } }, reason => { if (active) { setError(reason.message); setLoading(false); } });
     return () => { active = false; };
-  }, [offset]);
+  }, [offset, revision]);
   function page(value: number) { setLoading(true); setError(""); setOffset(value); }
   async function remove() {
     if (!candidate || lock.current) return;
     lock.current = true; setDeleting(true); setError("");
-    try { await deleteCardShare(candidate.id); setRows(current => current.filter(row => row.id !== candidate.id)); setCandidate(null); }
+    try { await deleteCardShare(candidate.id); setRows(current => current.filter(row => row.id !== candidate.id)); setCandidate(null); setLoading(true); setRevision(value => value + 1); }
     catch (reason) { setError(reason instanceof Error ? reason.message : "Suppression indisponible."); }
     finally { lock.current = false; setDeleting(false); }
   }
