@@ -3,7 +3,7 @@ import "server-only";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
-import { isCatalogueImageUrl } from "@/lib/server/card-sharing";
+import { isShareImageUrl } from "@/lib/server/card-sharing";
 import type { Rarity } from "@/lib/data/cards";
 import type { SharedCard } from "@/lib/server/card-sharing";
 
@@ -52,7 +52,7 @@ function validMagic(bytes:Uint8Array,type:string) {
 
 export async function fetchCatalogueImage(url:string,fetchImage:typeof fetch=fetch) {
   try{
-    if(!isCatalogueImageUrl(url))return null;
+    if(!isShareImageUrl(url))return null;
     const response=await fetchImage(new URL(url),{redirect:"error",signal:AbortSignal.timeout(IMAGE_TIMEOUT_MS),
       headers:{Accept:"image/png,image/jpeg,image/webp,image/gif"}});
     if(!response.ok)return null;
