@@ -22,3 +22,20 @@
 - La page publique d'une carte partagée est visible sans compte.
 - Au moment du partage, une option cochée permet d'afficher le pseudo sur cette page.
 - La page publique d'une carte partagée n'affiche jamais d'image personnalisée.
+- La feuille de partage est accessible depuis le détail d'une carte possédée et depuis le reveal
+  final des SSR, LR ou Shiny conservées. L'option « Afficher mon pseudo » est décochée par défaut.
+  Elle propose le lien, le partage natif et les téléchargements story/carré. La Collection donne
+  accès à « Mes liens partagés », avec suppression confirmée et liste réservée au propriétaire.
+- Les champs visibles d'un partage sont figés à sa création : nom, franchise, rareté, statut
+  Shiny, illustration du catalogue et, seulement avec accord explicite, pseudo du joueur.
+- Un joueur peut créer au plus 10 nouveaux liens par jour UTC. Recréer la même combinaison
+  carte/Shiny/affichage du pseudo réutilise le lien existant sans consommer ce plafond.
+- Les images sociales ne sont pas stockées dans Supabase Storage : Next.js les produit avec
+  `ImageResponse`, les conserve dans un cache mémoire LRU borné à 32 Mio et mutualise les rendus
+  simultanés d'une même image.
+- Un joueur peut supprimer ses liens. La page et les routes d'image répondent alors 404, mais les
+  aperçus déjà mis en cache par Discord, WhatsApp ou X peuvent rester visibles quelque temps.
+- Limite connue de Next.js 16 : pour un partage inconnu, la page « introuvable » et sa balise
+  `noindex` sont bien rendues, mais le shell diffusé avant la vérification conserve le statut HTTP
+  200. Les routes d'image vérifient l'existence avant tout rendu et répondent, elles, avec un vrai
+  statut HTTP 404. Le proxy ne fait volontairement aucune requête supplémentaire à la base.

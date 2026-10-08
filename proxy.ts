@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { updateSession } from "@/utils/supabase/proxy";
 
 const maintenancePage = `<!doctype html>
@@ -57,6 +58,11 @@ export async function proxy(request: NextRequest) {
         "X-Robots-Tag": "noindex, nofollow",
       },
     });
+  }
+
+  const pathname = request.nextUrl.pathname;
+  if (/^\/partage\/[0-9a-f]{32}(?:\/image\/(?:og|story|square))?$/.test(pathname)) {
+    return NextResponse.next();
   }
 
   return updateSession(request);

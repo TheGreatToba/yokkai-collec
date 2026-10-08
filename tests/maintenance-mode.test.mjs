@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
-import { NextRequest } from "next/server.js";
+import { NextRequest, NextResponse } from "next/server.js";
 import ts from "typescript";
 
 function loadProxy(maintenanceMode) {
@@ -16,6 +16,7 @@ function loadProxy(maintenanceMode) {
     process: { env: { MAINTENANCE_MODE: maintenanceMode } },
     Response,
     require(name) {
+      if (name === "next/server") return { NextResponse };
       if (name === "@/utils/supabase/proxy") {
         return { updateSession: () => { sessionChecks += 1; return new Response("application"); } };
       }
@@ -46,4 +47,19 @@ test("une valeur autre que true laisse fonctionner l'application", async () => {
 
   assert.equal(await response.text(), "application");
   assert.equal(loaded.sessionChecks(), 1);
+});
+
+test("seules les routes publiques de partage contournent le rafraîchissement de session", async () => {
+  const id = "a".repeat(32);
+  for (const path of [`/partage/${id}`, ...["og","story","square"].map(format=>`/partage/${id}/image/${format}`)]) {
+    const loaded = loadProxy("false");
+    const response = await loaded.proxy(new NextRequest(`http://localhost${path}`));
+    assert.equal(response.status,200);
+    assert.equal(loaded.sessionChecks(),0,path);
+  }
+  for (const path of ["/collection",`/partage/${id}x`,`/partage/${id}/image/raw`,"/partage/not-hex"]) {
+    const loaded = loadProxy("false");
+    await loaded.proxy(new NextRequest(`http://localhost${path}`));
+    assert.equal(loaded.sessionChecks(),1,path);
+  }
 });
