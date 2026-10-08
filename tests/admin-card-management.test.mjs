@@ -55,6 +55,14 @@ test("les erreurs d'import CSV affichent le nom de la carte avec sa ligne", asyn
   assert.match(csvImport, /Carte sans nom/);
 });
 
+test("l'import CSV admin accepte jusqu'à 500 cartes", async () => {
+  const actions = await read("app/admin/cards/actions.ts");
+  const ui = await read("app/admin/cards/admin-card-manager.tsx");
+  assert.match(actions, /records\.length > 500/);
+  assert.match(actions, /Maximum 500 cartes par import\./);
+  assert.match(ui, /Jusqu’à 500 lignes\./);
+});
+
 test("le menu Admin dépend du rôle et Succès reste dans le menu profil", async () => {
   const topbar = await read("components/topbar.tsx");
   const adminLink = topbar.indexOf('href="/admin/cards"');
@@ -346,6 +354,19 @@ test("la migration supprime uniquement DJ CONDOR et toutes ses copies", async ()
   assert.match(migration, /delete from public\.user_cards where card_id = target_id/);
   assert.match(migration, /delete from public\.cards where id = target_id/);
   assert.match(migration, /if linked_auctions <> 0 then/);
+});
+
+test("la migration supprime uniquement HAE-IN CHA SR et son exemplaire", async () => {
+  const migration = await read("supabase/migrations/20261008000003_remove_hae_in_cha_sr.sql");
+  assert.match(migration, /id = target_id/);
+  assert.match(migration, /nom = 'HAE-IN CHA'/);
+  assert.match(migration, /franchise = 'Solo Leveling'/);
+  assert.match(migration, /rarete_base = 'SR'/);
+  assert.match(migration, /source_id = '138789'/);
+  assert.match(migration, /delete from public\.user_cards where card_id = target_id/);
+  assert.match(migration, /delete from public\.cards where id = target_id/);
+  assert.match(migration, /if linked_auctions <> 0 then/);
+  assert.match(migration, /if pending_trades <> 0 then/);
 });
 
 test("la migration Kingdom conserve l'import manuel et supprime les copies des imports doublons", async () => {

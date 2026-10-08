@@ -8,7 +8,7 @@ const alice = "10000000-0000-4000-8000-000000000001";
 const bob = "10000000-0000-4000-8000-000000000002";
 const charlie = "10000000-0000-4000-8000-000000000003";
 
-test("amis privés : RPC, droits et contre-preuve SQL sur l'ancienne fonction", async t => {
+test("amis des profils publics : RPC, droits et confidentialité", async t => {
   const db = new PGlite();
   t.after(() => db.close());
   // Only Supabase infrastructure is simulated; profile/friendship functions come from migrations.
@@ -53,8 +53,11 @@ test("amis privés : RPC, droits et contre-preuve SQL sur l'ancienne fonction", 
     from pg_proc where pronamespace='public'::regnamespace order by signature`)).rows;
   const before = await functions();
   const oldDefinition = (await db.query("select pg_get_functiondef('public.get_profile(text)'::regprocedure) as value")).rows[0].value;
-  const next = migration("20261007000003_private_friends");
+  const privateFriends = migration("20261007000003_private_friends");
+  const next = migration("20261008000000_restore_public_profile_friends");
+  assert.equal((privateFriends.match(/create or replace function/gi) ?? []).length, 1);
   assert.equal((next.match(/create or replace function/gi) ?? []).length, 1);
+  await db.exec(privateFriends);
   await db.exec(next);
 
   await t.test("seule get_profile change et ses droits restent identiques", async () => {
@@ -66,15 +69,21 @@ test("amis privés : RPC, droits et contre-preuve SQL sur l'ancienne fonction", 
     assert.deepEqual(rights, {authenticated:true,anon:false});
     await assert.rejects(asUser(alice,()=>db.query("select public.get_profile(null)"),"anon"), /permission denied/);
   });
-  await t.test("visiteurs ami et non ami : tableau vide et flag false, profil public ou privé", async () => {
-    for (const isPublic of [true,false]) {
-      await db.query("update public.user_profiles set is_public=$1 where user_id=$2", [isPublic,alice]);
-      for (const viewer of [bob,charlie]) for (const identifier of ["Alice",alice]) await expectPrivate(viewer,identifier);
-      const owner = await profile(alice,"Alice");
-      assert.equal(owner.friendsVisible,true);
-      assert.deepEqual(owner.friends.map(friend=>friend.id),[bob]);
-      assert.equal((await profile(alice,null)).friendsVisible,true);
+  await t.test("profil public : amis visibles par tous les visiteurs", async () => {
+    await db.query("update public.user_profiles set is_public=true where user_id=$1", [alice]);
+    for (const viewer of [bob,charlie]) for (const identifier of ["Alice",alice]) {
+      const result = await profile(viewer,identifier);
+      assert.equal(result.friendsVisible,true);
+      assert.deepEqual(result.friends.map(friend=>friend.id),[bob]);
     }
+  });
+  await t.test("profil privé : amis masqués aux visiteurs mais visibles du propriétaire", async () => {
+    await db.query("update public.user_profiles set is_public=false where user_id=$1", [alice]);
+    for (const viewer of [bob,charlie]) for (const identifier of ["Alice",alice]) await expectPrivate(viewer,identifier);
+    const owner = await profile(alice,"Alice");
+    assert.equal(owner.friendsVisible,true);
+    assert.deepEqual(owner.friends.map(friend=>friend.id),[bob]);
+    assert.equal((await profile(alice,null)).friendsVisible,true);
   });
   await t.test("propriétaire sans ami et retour update_profile", async () => {
     const empty = await profile(charlie,null);
@@ -95,7 +104,7 @@ test("amis privés : RPC, droits et contre-preuve SQL sur l'ancienne fonction", 
         assert.equal(leaked.friends.length,1);
         assert.equal(leaked.friendsVisible,undefined);
       }
-    } finally { await db.exec(next); }
+    } finally { await db.exec(privateFriends); await db.exec(next); }
     for (const viewer of [bob,charlie]) await expectPrivate(viewer,"Alice");
   });
 });

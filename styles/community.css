@@ -28,6 +28,7 @@
 .yk-friend-wishlist-results { min-width: 0; }
 .yk-friend-wishlist-count { margin-bottom: calc(var(--spacing) * 4); color: var(--color-ink-2); font-size: var(--text-sm); }
 .yk-friend-wishlist-results .yk-empty-state { min-height: 320px; margin-top: 0; }
+.yk-profile-wishlist-preview { --card-grid-columns-xl: 5; --card-grid-columns-lg: 4; --card-grid-columns-md: 3; --card-grid-columns-sm: 2; }
 /* Profile showcase: 5 slots on desktop, swipeable rail on mobile. */
 .yk-featured-stage { --card-grid-columns-xl: 5; --card-grid-columns-lg: 5; --card-grid-columns-md: 5; gap: 16px; padding: 28px 12px; background: radial-gradient(ellipse at center,var(--color-veil),transparent 70%); }
 .yk-featured-stage > div { opacity: 1; }
@@ -107,6 +108,7 @@
 .yk-social-person>a { display: grid; min-width: 0; flex: 1; gap: calc(var(--spacing) * .5); }
 .yk-social-person strong { overflow: hidden; font-family: var(--font-display); text-overflow: ellipsis; white-space: nowrap; }
 .yk-social-person small { color: var(--color-ink-3); font-size: var(--text-xs); }
+.yk-social-person small.yk-presence-online { color: var(--color-success); font-weight: 600; }
 .yk-friend-action-buttons { display: flex; flex-wrap: wrap; gap: calc(var(--spacing) * 2); }
 .yk-friend-proof-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(calc(var(--spacing) * 40),1fr)); gap: calc(var(--spacing) * 3); margin-top: calc(var(--spacing) * 5); }
 .yk-friend-proof-case { display: grid; align-content: space-between; gap: calc(var(--spacing) * 3); min-height: calc(var(--spacing) * 22); border: 1px solid var(--color-veil); border-radius: var(--radius-input); padding: calc(var(--spacing) * 3); background: var(--color-night); }

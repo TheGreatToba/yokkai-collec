@@ -16,3 +16,13 @@ export async function getCurrentPseudo(userId: string) {
     .select("pseudo").eq("user_id", userId).maybeSingle();
   return !error && typeof data?.pseudo === "string" ? data.pseudo : null;
 }
+
+export async function getCurrentKarasBalance(
+  existingClient?: ReturnType<typeof createClient>,
+) {
+  const supabase = existingClient ?? createClient(await cookies());
+  const { data, error } = await supabase.rpc("get_game_info");
+  if (error || !data || typeof data !== "object") return undefined;
+  const balance = (data as { karasBalance?: unknown }).karasBalance;
+  return typeof balance === "number" ? balance : undefined;
+}

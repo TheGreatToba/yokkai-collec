@@ -6,7 +6,7 @@ import ts from "typescript";
 
 function setup(handler,{nodeEnv="development"}={}){
   const logs=[];const calls=[];
-  const client={async rpc(name,args){calls.push({name,args});return handler(name,args);}};
+  const client={auth:{async getSession(){return {data:{session:{user:{id:"viewer"}}}};}},async rpc(name,args){calls.push({name,args});return handler(name,args);}};
   const context={exports:{},process:{env:{NODE_ENV:nodeEnv}},console:{error:(...args)=>logs.push(args)},
     require:(name)=>{assert.equal(name,"@/utils/supabase/client");return {createClient:()=>client};}};
   const source=ts.transpileModule(readFileSync(new URL("../lib/data/friends.ts",import.meta.url),"utf8"),{
@@ -54,4 +54,10 @@ test("amis : supprimer un ami appelle la RPC avec le bon utilisateur",async()=>{
   assert.equal(calls.length,1);
   assert.equal(calls[0].name,"remove_friend");
   assert.equal(calls[0].args.p_friend_id,"friend-id");
+});
+
+test("présence : un utilisateur connecté envoie son activité",async()=>{
+  const {api,calls}=setup(async()=>({data:"2026-10-08T10:00:00Z",error:null}));
+  assert.equal(await api.touchPresence(),true);
+  assert.deepEqual(calls.map(call=>call.name),["touch_presence"]);
 });

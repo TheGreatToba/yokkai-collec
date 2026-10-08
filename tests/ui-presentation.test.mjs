@@ -248,6 +248,13 @@ test("le compteur wishlist d'un ami ouvre toute sa wishlist et chaque carte rest
   assert.match(profile, /aria-label=\{`Voir \$\{card\.name\} dans le catalogue`\}/);
 });
 
+test("l’aperçu wishlist du profil garde des cartes compactes", () => {
+  const profile = readFileSync(path.join(root, "components/profile.tsx"), "utf8");
+  const community = readFileSync(path.join(root, "styles/community.css"), "utf8");
+  assert.match(profile, /className="yk-card-grid yk-profile-wishlist-preview mt-5"/);
+  assert.match(community, /\.yk-profile-wishlist-preview \{ --card-grid-columns-xl: 5; --card-grid-columns-lg: 4; --card-grid-columns-md: 3; --card-grid-columns-sm: 2; \}/);
+});
+
 test("une carte d'ami ouvre une proposition d'échange présélectionnée et extensible", () => {
   const collection = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
   const trades = readFileSync(path.join(root, "components/trades.tsx"), "utf8");
@@ -299,6 +306,16 @@ test("une carte de la wishlist ouvre le détail partagé du catalogue et ses pos
   assert.match(source, /Possesseurs actuels/);
 });
 
+test("la wishlist reprend le tri et les effets statiques du catalogue", () => {
+  const source = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
+  const wishlist = source.slice(source.indexOf("export function WishlistView"), source.indexOf("const remaining"));
+  assert.match(wishlist, /id="wishlist-filters"/);
+  assert.match(wishlist, /CatalogueFilterSection title="Tri"/);
+  assert.match(wishlist, /CatalogueFilterSection title="Rareté"/);
+  assert.match(wishlist, /CatalogueFilterSection title="Catégorie"/);
+  assert.match(wishlist, /<YokaiCard \{\.\.\.card\} animated=\{false\}/);
+});
+
 test("le bouton de retrait de la wishlist utilise le style danger rouge", () => {
   const source = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
   const wishlist = source.slice(source.indexOf("export function WishlistView"), source.indexOf("const remaining"));
@@ -346,6 +363,11 @@ test("le chat d’enchère est visible mais réservé au vendeur et aux utilisat
   assert.match(css, /\.yk-auction-chat-form textarea \{[^}]*resize: none/);
 });
 
+test("le panneau d’enchère ne grandit pas avec la hauteur du chat", () => {
+  const market = readFileSync(path.join(root, "styles/market.css"), "utf8");
+  assert.match(market, /\.yk-auction-panel \{[^}]*align-self: start;/);
+});
+
 test("mobile : vitrine du profil en carrousel tactile et page Amis sans débordement", () => {
   const profile = readFileSync(path.join(root, "components/profile.tsx"), "utf8");
   const community = readFileSync(path.join(root, "styles/community.css"), "utf8");
@@ -362,6 +384,25 @@ test("mobile : vitrine du profil en carrousel tactile et page Amis sans déborde
   assert.match(friends, /tab === "friends" \? <Button variant="danger" onClick=\{\(\) => setRemoval\(person\)\}>Supprimer<\/Button>/);
   assert.doesNotMatch(friends, /<StatusPill tone="success">Ami<\/StatusPill>/);
   assert.match(friends, /title="Supprimer cet ami \?"/);
+});
+
+test("la liste d’amis affiche la présence et actualise la dernière activité", () => {
+  const friends = readFileSync(path.join(root, "components/friends.tsx"), "utf8");
+  const heartbeat = readFileSync(path.join(root, "components/presence-heartbeat.tsx"), "utf8");
+  const layout = readFileSync(path.join(root, "app/layout.tsx"), "utf8");
+  assert.match(layout, /<PresenceHeartbeat\/>/);
+  assert.match(heartbeat, /touchPresence\(\)/);
+  assert.match(heartbeat, /PRESENCE_THROTTLE_MS = 30_000/);
+  for(const event of ["pointerdown","pointermove","keydown","scroll","touchstart"])assert.match(heartbeat,new RegExp(event));
+  assert.doesNotMatch(heartbeat, /setInterval/);
+  assert.match(friends, /showPresence=\{tab==="friends"\}/);
+  assert.match(friends, /window\.setInterval\(\(\)=>void refresh\(\),30_000\)/);
+  const {friendPresenceLabel}=load("components/friends.tsx");
+  const now=Date.parse("2026-10-08T12:00:00Z");
+  assert.equal(friendPresenceLabel({isOnline:true,lastSeenAt:"2026-10-08T10:00:00Z"},now),"En ligne");
+  assert.equal(friendPresenceLabel({isOnline:false,lastSeenAt:"2026-10-08T11:55:00Z"},now),"Vu il y a 5 min");
+  assert.equal(friendPresenceLabel({isOnline:false,lastSeenAt:"2026-10-08T09:00:00Z"},now),"Vu il y a 3 h");
+  assert.equal(friendPresenceLabel({isOnline:false,lastSeenAt:null},now),"Jamais vu en ligne");
 });
 
 test("le sélecteur de cartes mises en avant recherche et remonte la sélection", () => {
@@ -537,6 +578,7 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
   assert.equal((selection.match(/aria-label="Voir les taux du Booster/g) || []).length, 2);
   assert.match(readFileSync(path.join(root, "components/boosters.tsx"), "utf8"), /Taux de drop du Booster/);
   const source = readFileSync(path.join(root, "components/boosters.tsx"), "utf8");
+  assert.match(source, /DECISION_DROP_RATES[^\n]*SR", percent: 96\.5[^\n]*SSR", percent: 3[^\n]*LR", percent: 0\.5/);
   const boosterStyles = readFileSync(path.join(root, "styles/boosters.css"), "utf8");
   assert.match(source, /Garder cette carte et perdre les \{cards\.length - 1\} autres \?/);
   assert.match(boosterStyles,/\.yk-reveal-selection-mode \{[^}]*width: auto;[^}]*min-height: 32px;/);
@@ -834,6 +876,18 @@ test("les notifications se relisent à l'ouverture du panneau et au retour sur l
   assert.match(community, /onRefreshNotifications=\{\(\)=>void feed\.refresh\(\)\}/);
   for (const source of [topbar, community]) assert.doesNotMatch(source, /getNotifications\(\)/);
   assert.ok(existsSync(path.join(root, "app/design-system/notification-refresh-preview/page.tsx")));
+});
+
+test("les pages Paramètres et Admin transmettent le solde de Karas à la Topbar", () => {
+  const session = readFileSync(path.join(root, "lib/auth/session.ts"), "utf8");
+  const settings = readFileSync(path.join(root, "app/parametres/page.tsx"), "utf8");
+  const admin = readFileSync(path.join(root, "app/admin/cards/page.tsx"), "utf8");
+  assert.match(session, /export async function getCurrentKarasBalance/);
+  assert.match(session, /rpc\("get_game_info"\)/);
+  assert.match(settings, /getCurrentKarasBalance\(\)/);
+  assert.match(settings, /<Topbar view="settings"[\s\S]{0,200}karas=\{karas\}/);
+  assert.match(admin, /getCurrentKarasBalance\(client\)/);
+  assert.match(admin, /<Topbar view="admin"[\s\S]{0,200}karas=\{karas\}/);
 });
 
 test("tri de la Collection : rareté par défaut, dates, nom français et ordre stable", () => {

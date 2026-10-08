@@ -14,7 +14,7 @@ import { runPackOpeningSequence } from "@/lib/ui/pack-opening";
 export type RevealCard = Card & { instanceId: string; shiny?: boolean; isEvolved?: boolean; isNew?: boolean; copies?: number; discarded?: boolean; destructionValue?: number; locked?: boolean };
 type Sound = SfxName;
 type DropRate = { rarity: Rarity; percent: number };
-const DECISION_DROP_RATES: DropRate[] = [{ rarity: "SR", percent: 97.8 }, { rarity: "SSR", percent: 2 }, { rarity: "LR", percent: 0.2 }];
+const DECISION_DROP_RATES: DropRate[] = [{ rarity: "SR", percent: 96.5 }, { rarity: "SSR", percent: 3 }, { rarity: "LR", percent: 0.5 }];
 const noopSound = () => {};
 // Formats the server-provided `nextPackAt`; the countdown itself stays computed by Game.
 function decisionReturnLabel(nextPackAt: number) {
