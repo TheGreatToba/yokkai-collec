@@ -5,7 +5,7 @@ returns jsonb
 language plpgsql stable security definer set search_path = ''
 as $$
 begin
-  if auth.uid() is null then raise exception 'AUTH_REQUIRED'; end if;
+  if auth.uid() is null then return '[]'::jsonb; end if;
   return coalesce((select pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object(
     'id', share.id, 'cardName', share.card_name, 'rarity', share.rarity,
     'shiny', share.shiny, 'showPseudo', share.show_pseudo, 'createdAt', share.created_at

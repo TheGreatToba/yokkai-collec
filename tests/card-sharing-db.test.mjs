@@ -96,6 +96,7 @@ test("partages de cartes : surface publique minimale et limites transactionnelle
     assert.equal(mine.length,2);
     assert.deepEqual(Object.keys(mine[0]).sort(),["id","cardName","rarity","shiny","showPseudo","createdAt"].sort());
     assert.deepEqual(await list(bob),[]);
+    assert.deepEqual(await list(null),[]);
     assert.deepEqual(await asUser(alice, async () => (await db.query("select public.list_card_shares(50) as value")).rows[0].value),[]);
   });
 
