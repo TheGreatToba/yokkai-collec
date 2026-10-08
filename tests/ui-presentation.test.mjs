@@ -946,5 +946,5 @@ test("tri de la Collection : rareté par défaut, dates, nom français et ordre 
   assert.doesNotMatch(source, /yk-sort-placeholder|Tri non disponible/);
   const css = readFileSync(path.join(root, "styles/collection.css"), "utf8");
   assert.match(css, /\.yk-sort-control \{[^}]*white-space: nowrap;/, "les libellés longs restent sur une ligne");
-  assert.match(css, /\.yk-collection-toolbar-actions > \* \{[^}]*width: calc\(var\(--spacing\) \* 50\);/, "la largeur partagée des actions ne change pas");
+  assert.match(css, /\.yk-collection-toolbar-actions > :not\(dialog\) \{[^}]*width: calc\(var\(--spacing\) \* 50\);/, "la largeur partagée des actions ne change pas");
 });

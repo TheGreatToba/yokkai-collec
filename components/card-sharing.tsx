@@ -36,7 +36,7 @@ function ShareSheet({ instanceId, name }: { instanceId: string; name: string }) 
   }
 
   async function download(format: "story" | "square") {
-    const response = await fetch(`${url}/image/${format}`);
+    const response = await fetch(`${url}/image/${format}`, { cache: "no-store" });
     if (!response.ok || response.headers.get("Content-Type") !== "image/png") {
       throw new Error("L’image est indisponible. Réessaie dans un instant.");
     }
@@ -48,7 +48,7 @@ function ShareSheet({ instanceId, name }: { instanceId: string; name: string }) 
   }
 
   return <div className="space-y-5">
-    <p className="text-sm text-ink-2">Seule l’illustration du catalogue sera publiée. Maximum 10 nouveaux liens par jour UTC.</p>
+    <p className="text-sm text-ink-2">L’image affichée sur ta carte sera publiée, y compris ton image personnalisée si tu en as une. Un lien existant sera actualisé avec cette image. Maximum 10 nouvelles créations par jour UTC.</p>
     <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={showPseudo} disabled={busy} onChange={event => { setShowPseudo(event.target.checked); setUrl(""); setMessage(""); }} />Afficher mon pseudo</label>
     {!url ? <Button disabled={busy} onClick={() => void run(async () => setUrl(cardShareUrl(await createCardShare(instanceId, showPseudo))))}>{busy ? "Création…" : "Créer le lien"}</Button> : <>
       <label className="block text-sm">Lien public<input className="auth-input mt-2" readOnly value={url} onFocus={event => event.currentTarget.select()} /></label>

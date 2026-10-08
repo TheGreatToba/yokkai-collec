@@ -29,7 +29,7 @@ const context={exports:{},process,Buffer,URL,Response,fetch:fetchImage,AbortSign
   },
 };
 vm.runInNewContext(source,context);
-const {renderSharedCardImage}=context.exports;
+const {renderSharedCardImage,fetchCatalogueImage}=context.exports;
 const expected={og:[1200,630],story:[1080,1920],square:[1080,1080]};
 
 test("ImageResponse génère chaque rareté et format, y compris les variantes Shiny",async()=>{
@@ -55,4 +55,19 @@ test("illustration expirée ou non autorisée : cadre de remplacement, sans éch
     catalogueImageUrl:"https://evil.example/internal"},"og");
   assert.deepEqual([...bytes.slice(0,8)],[137,80,78,71,13,10,26,10]);
   assert.ok(performance.now()-started<1000,"le fallback local ne doit pas attendre le délai réseau");
+});
+
+test("illustration Imgur autorisée : téléchargée et conservée dans le rendu social",async()=>{
+  let requested;
+  const image=await fetchCatalogueImage("https://i.imgur.com/custom.png",async(url,options)=>{
+    requested=String(url);
+    assert.equal(options.redirect,"error");
+    return fetchImage();
+  });
+  assert.equal(requested,"https://i.imgur.com/custom.png");
+  assert.equal(image,`data:image/png;base64,${art.toString("base64")}`);
+  const bytes=await renderSharedCardImage({cardName:"Personnalisée",franchise:"Franchise",rarity:"SSR",shiny:false,
+    catalogueImageUrl:"https://i.imgur.com/custom.png"},"og");
+  assert.deepEqual([...bytes.slice(0,8)],[137,80,78,71,13,10,26,10]);
+  assert.equal(await fetchCatalogueImage("https://evil.example/custom.png",()=>assert.fail("hôte interdit")),null);
 });

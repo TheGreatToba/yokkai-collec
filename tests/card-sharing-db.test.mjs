@@ -19,7 +19,7 @@ test("partages de cartes : surface publique minimale et limites transactionnelle
     grant usage on schema public,auth to anon,authenticated,service_role;
   `);
   await db.exec(migration("20260923000000_create_card_schema"));
-  await db.exec("alter table public.user_cards add column is_shiny boolean not null default false");
+  await db.exec("alter table public.user_cards add column is_shiny boolean not null default false; alter table public.user_cards add column custom_image_url text");
   await db.exec(migration("20260928000002_pseudo_availability"));
   await db.exec(`
     create function public.prevent_locked_card_transfer_or_delete() returns trigger language plpgsql as $$begin return new; end$$;
@@ -93,6 +93,7 @@ test("partages de cartes : surface publique minimale et limites transactionnelle
       from public.card_shares limit 1`);
     await db.exec("set timezone='Pacific/Honolulu'");
     await db.exec(migration("20261008000006_card_share_creation_limit"));
+    await db.exec(migration("20261008000011_card_share_custom_images"));
     assert.equal((await db.query("select count(*)::int as count from public.card_share_creations")).rows[0].count,2);
     await db.exec("delete from public.card_shares where id=repeat('e',32)");
     assert.equal((await db.query("select relrowsecurity from pg_class where oid='public.card_share_creations'::regclass")).rows[0].relrowsecurity,true);
@@ -184,6 +185,32 @@ test("partages de cartes : surface publique minimale et limites transactionnelle
       await db.exec("set role authenticated");
       await db.query("select set_config('request.jwt.claims',$1,false)",[JSON.stringify({sub:alice,role:"authenticated"})]);
       await assert.rejects(db.query("select public.create_card_share($1,false)",[instances[9]]),/CARD_SHARE_DAILY_LIMIT/);
+    } finally { await db.exec("rollback"); }
+  });
+
+  await t.test("image personnalisée : création, actualisation gratuite du lien et retour au catalogue", async () => {
+    await db.exec("begin");
+    try {
+      await db.query("delete from public.card_share_creations where owner_id=$1",[alice]);
+      await db.query("update public.user_cards set custom_image_url='https://i.imgur.com/custom.png' where id=$1",[instances[0]]);
+      const first=await create(instances[0]);
+      assert.equal((await read(first)).catalogueImageUrl,"https://i.imgur.com/custom.png");
+      const before=await read(first);
+      await db.query("update public.user_cards set custom_image_url='https://i.imgur.com/changed.gif' where id=$1",[instances[0]]);
+      assert.equal(await create(instances[0]),first);
+      assert.deepEqual(await read(first),{...before,catalogueImageUrl:"https://i.imgur.com/changed.gif"});
+      assert.equal((await db.query("select count(*)::int as count from public.card_share_creations where owner_id=$1",[alice])).rows[0].count,1);
+      const otherCopy=(await db.query("insert into public.user_cards(user_id,card_id,custom_image_url) values ($1,$2,'https://i.imgur.com/copy.png') returning id",[alice,cards[0]])).rows[0].id;
+      assert.equal(await create(otherCopy),first);
+      assert.equal((await read(first)).catalogueImageUrl,"https://i.imgur.com/copy.png");
+      await db.query("update public.user_cards set custom_image_url=null where id=$1",[instances[0]]);
+      assert.equal(await create(instances[0]),first);
+      assert.equal((await read(first)).catalogueImageUrl,"https://catalogue.example/card-0.png");
+      for(let index=1;index<=9;index++)await create(instances[index]);
+      await db.query("update public.user_cards set custom_image_url='https://i.imgur.com/at-cap.png' where id=$1",[instances[0]]);
+      assert.equal(await create(instances[0]),first,"l'actualisation est autorisée même au plafond");
+      assert.equal((await read(first)).catalogueImageUrl,"https://i.imgur.com/at-cap.png");
+      assert.equal((await db.query("select count(*)::int as count from public.card_share_creations where owner_id=$1",[alice])).rows[0].count,10);
     } finally { await db.exec("rollback"); }
   });
 

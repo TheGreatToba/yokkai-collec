@@ -69,7 +69,7 @@ test("contre-preuve : l'ancien en-tête échoue à la politique de cache court",
 test("une image valide est un PNG public limité à 300 secondes",async()=>{
   const response=await cardShareImageResponse(id,"square",{
     getShare:async()=>card,
-    cache:{getOrRender:async(key,render)=>{assert.equal(key,`${id}:square`);return render();}},
+    cache:{getOrRender:async(key,render)=>{assert.equal(key,`${id}:square:${card.catalogueImageUrl}`);return render();}},
     render:async(value,format)=>{assert.equal(value,card);assert.equal(format,"square");return new Uint8Array([137,80,78,71]);},
   });
   assert.equal(response.status,200);
@@ -96,7 +96,7 @@ test("la page et ses métadonnées restent strictement publiques",()=>{
   assert.doesNotMatch(page,/customImage|custom_image|ownerId|instanceId|auction|chat|gif/i);
 });
 
-const {isCatalogueImageUrl}=load("lib/server/card-sharing.ts",{require(name){
+const {isShareImageUrl}=load("lib/server/card-sharing.ts",{require(name){
   if(name==="server-only"||name==="@supabase/supabase-js")return {};
   if(name==="@/utils/supabase/config")return {getSupabaseConfig:()=>({url:"https://catalogue.example",key:"test"})};
   throw new Error(`Unexpected import: ${name}`);
@@ -105,6 +105,14 @@ const {isCatalogueImageUrl}=load("lib/server/card-sharing.ts",{require(name){
 test("page publique : validation partagée et cadre nommé pour un autre hôte",async()=>{
   for(const [url,valid] of [
     ["https://catalogue.example/storage/v1/object/public/card-images/card.png",true],
+    ["https://i.imgur.com/custom.png",true],
+    ["https://imgur.com/custom.jpg",true],
+    ["https://i.imgur.com.evil.example/custom.png",false],
+    ["https://imgur.com@evil.example/custom.png",false],
+    ["https://evil@i.imgur.com/custom.png",false],
+    ["https://i.imgur.com:444/custom.png",false],
+    ["http://i.imgur.com/custom.png",false],
+    ["https://i.imgur.com/",false],
     ["https://evil.example/storage/v1/object/public/card-images/card.png",false],
     ["http://catalogue.example/storage/v1/object/public/card-images/card.png",false],
     ["https://catalogue.example:444/storage/v1/object/public/card-images/card.png",false],
@@ -112,9 +120,9 @@ test("page publique : validation partagée et cadre nommé pour un autre hôte",
     ["https://catalogue.example/storage/v1/object/public/card-images-evil/card.png",false],
     ["invalid",false],
   ]){
-    assert.equal(isCatalogueImageUrl(url),valid);
+    assert.equal(isShareImageUrl(url),valid);
     const page=load("app/partage/[id]/page.tsx",{require(name){
-      if(name==="@/lib/server/card-sharing")return {isCatalogueImageUrl,getSharedCard:async()=>({...card,catalogueImageUrl:url})};
+      if(name==="@/lib/server/card-sharing")return {isShareImageUrl,getSharedCard:async()=>({...card,catalogueImageUrl:url})};
       if(name==="next/link")return {__esModule:true,default:"a"};
       if(name==="next/navigation")return {notFound:()=>assert.fail("share exists")};
       return require(name);
@@ -127,4 +135,20 @@ test("page publique : validation partagée et cadre nommé pour un autre hôte",
       assert.match(html,/flex h-full items-center justify-center p-6 text-ink-2">Kitsune<\/div>/);
     }
   }
+});
+
+test("changer l’illustration produit un nouveau PNG malgré un cache mémoire chaud",async()=>{
+  const {RenderCache}=load("lib/server/image-cache.ts");
+  const cache=new RenderCache(1024);
+  let shared={...card,catalogueImageUrl:"https://i.imgur.com/first.png"};
+  let renders=0;
+  const dependencies={getShare:async()=>shared,cache,render:async()=>new Uint8Array([++renders])};
+  const first=await cardShareImageResponse(id,"og",dependencies);
+  assert.deepEqual([...new Uint8Array(await first.arrayBuffer())],[1]);
+  shared={...shared,catalogueImageUrl:"https://i.imgur.com/second.png"};
+  const next=await cardShareImageResponse(id,"og",dependencies);
+  assert.deepEqual([...new Uint8Array(await next.arrayBuffer())],[2]);
+  const again=await cardShareImageResponse(id,"og",dependencies);
+  assert.deepEqual([...new Uint8Array(await again.arrayBuffer())],[2]);
+  assert.equal(renders,2);
 });

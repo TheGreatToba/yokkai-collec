@@ -17,11 +17,14 @@ let client: ReturnType<typeof createClient> | undefined;
 
 export const isShareId = (value: string) => /^[0-9a-f]{32}$/.test(value);
 
-export function isCatalogueImageUrl(url: string): boolean {
+export function isShareImageUrl(url: string): boolean {
   try {
     const source = new URL(url);
-    return source.protocol === "https:" &&
-      source.origin === new URL(getSupabaseConfig().url).origin &&
+    if (source.protocol !== "https:" || source.username || source.password) return false;
+    if (source.origin === "https://i.imgur.com" || source.origin === "https://imgur.com") {
+      return source.pathname.length > 1;
+    }
+    return source.origin === new URL(getSupabaseConfig().url).origin &&
       source.pathname.startsWith("/storage/v1/object/public/card-images/");
   } catch {
     return false;

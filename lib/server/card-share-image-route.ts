@@ -32,7 +32,7 @@ export async function cardShareImageResponse(
   }
   if (!card) return missing();
   try {
-    const image = await cache.getOrRender(`${id}:${format}`, () =>
+    const image = await cache.getOrRender(`${id}:${format}:${card.catalogueImageUrl}`, () =>
       render(card, format as Format),
     );
     return new Response(Uint8Array.from(image).buffer, {
