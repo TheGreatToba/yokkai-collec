@@ -12,6 +12,20 @@ const file = (version, source, name = "probe") => ({ filename: `${version}_${nam
 const first = file("20260101000000", "begin; create table public.deploy_probe(id integer); commit;");
 const second = file("20260101000001", "begin; alter table public.deploy_probe add column value text; commit;");
 
+test("registry exceptions accept only the exact listed version and name", () => {
+  const exceptions = JSON.parse(readFileSync(new URL("../supabase/migration-registry-exceptions.json", import.meta.url), "utf8"));
+  assert.deepEqual(Object.keys(exceptions), ["20260928000000"]);
+  assert.ok(exceptions["20260928000000"].justification.trim());
+  const legacy = file("20260928000000", "select 1;", "discard_collection_card_balance");
+  const accepted = { version: "20260928000000", name: exceptions["20260928000000"].name };
+  assert.deepEqual(deploymentPlan([legacy], [accepted]).pending, []);
+  assert.deepEqual(deploymentPlan([legacy], [{ ...accepted, name: "discard_collection_card_balance" }]).pending, []);
+  for (const name of [accepted.name + "_other", "discard_collection_card_balance_other", "different", null, undefined]) {
+    assert.throws(() => deploymentPlan([legacy], [{ ...accepted, name }]), /Registry name differs/);
+  }
+  assert.throws(() => deploymentPlan([first], [{ version: "20260101000000", name: accepted.name }]), /Registry name differs/);
+});
+
 test("deployment rejects registry collisions/gaps/unknown versions and nontransactional SQL before writes", () => {
   assert.throws(() => deploymentPlan([first, { ...second, filename: first.filename }], []), /Duplicate migration version/);
   assert.throws(() => deploymentPlan([first, second], [{ version: "20260101000001", name: "probe" }]), /ordered repository prefix/);
@@ -86,6 +100,7 @@ test("shell deployment gates dry-run, drift, confirmation and invalid backup bef
   const directory = mkdtempSync(path.join(tmpdir(), "yokkai-deploy-test-"));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   mkdirSync(path.join(directory, "scripts")); mkdirSync(path.join(directory, "supabase/migrations"), { recursive: true }); mkdirSync(path.join(directory, "bin"));
+  cpSync(new URL("../supabase/migration-registry-exceptions.json", import.meta.url), path.join(directory, "supabase/migration-registry-exceptions.json"));
   for (const name of ["deploy-migrations.sh", "check-prod-drift.sh", "plan-deploy-migrations.mjs", "replay-migrations.mjs", "compare-schema-catalog.mjs", "schema-catalog.sql"]) cpSync(new URL(`../scripts/${name}`, import.meta.url), path.join(directory, "scripts", name));
   symlinkSync(path.resolve("node_modules"), path.join(directory, "node_modules"), "dir");
   writeFileSync(path.join(directory, "supabase/migrations", first.filename), first.source);

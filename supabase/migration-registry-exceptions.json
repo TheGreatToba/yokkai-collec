@@ -1,0 +1,6 @@
+{
+  "20260928000000": {
+    "name": "discard_collection_card_balance_skipped_obsolete",
+    "justification": "Marqueur historique observé dans le registre après la restauration auto-hébergée du 26/09 (origine exacte non établie). La RPC de destruction et crédit atomiques est remplacée par 20260928000001_self_contained_collection_discard.sql (commit 3226fa5), puis 20261001000002_booster_destruction_estimates.sql. Accepter uniquement ce nom, sans modifier le registre."
+  }
+}

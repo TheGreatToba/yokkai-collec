@@ -2,6 +2,8 @@ import { readdirSync, readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { replayMigrations } from "./replay-migrations.mjs";
 
+const registryExceptions = JSON.parse(readFileSync(new URL("../supabase/migration-registry-exceptions.json", import.meta.url), "utf8"));
+
 // Split top-level SQL only: PL/pgSQL bodies, quoted text and comments retain
 // their semicolons. Never let a migration COMMIT the deployment transaction.
 export function transactionBody(source, filename) {
@@ -79,7 +81,9 @@ export function deploymentPlan(files, registry) {
   if (applied.some((f, i) => f.filename !== files[i].filename)) throw new Error("Applied migrations are not an ordered repository prefix");
   for (const { filename } of applied) {
     const record = registry.find(r => r.version === filename.slice(0, 14));
-    if (record.name !== null && record.name !== undefined && record.name !== filename.slice(15, -4)) throw new Error(`Registry name differs for ${filename}`);
+    const exception = registryExceptions[record.version];
+    const acceptedException = exception?.justification?.trim() && record.name === exception.name;
+    if (record.name !== filename.slice(15, -4) && !acceptedException) throw new Error(`Registry name differs for ${filename}`);
   }
   const pending = files.slice(applied.length);
   const literal = value => "E'" + value.replaceAll("\\", "\\\\").replaceAll("'", "''") + "'";
