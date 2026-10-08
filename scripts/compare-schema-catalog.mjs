@@ -1,7 +1,9 @@
 import { readFileSync } from "node:fs";
 import { replayMigrations } from "./replay-migrations.mjs";
 
-const { db, migrations } = await replayMigrations();
+// Before deployment compare against the applied prefix, not the pending schema.
+const selected = process.env.DRIFT_MIGRATIONS_JSON;
+const { db, migrations } = await replayMigrations(selected === undefined ? {} : { migrations: JSON.parse(selected) });
 try {
   const expected = (await db.query(readFileSync(new URL("./schema-catalog.sql", import.meta.url), "utf8")))
     .rows.map((row) => JSON.parse(Object.values(row)[0]));
