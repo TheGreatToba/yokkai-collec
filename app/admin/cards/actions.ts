@@ -8,6 +8,7 @@ import { requireAdminAction } from "@/lib/auth/admin";
 import { createClient } from "@/utils/supabase/server";
 import {
   downloadImage,
+  deriveSourceId,
   imagePath,
   importCards,
   validateCard,
@@ -127,6 +128,7 @@ export async function importCardsAction(
       columns: true,
       skip_empty_lines: true,
       trim: true,
+      relax_column_count: true,
       max_record_size: 1024 * 1024,
     }) as Record<string, string>[];
     if (!records.length) throw new Error("Le CSV est vide.");
@@ -134,7 +136,7 @@ export async function importCardsAction(
     const rows = records.map((rawRow) => {
       const row = normalizeCsvRow(rawRow);
       const sourceId = (row.source_id || row.identifiant || "").trim();
-      return {
+      const card = {
         source_id: sourceId,
         nom: row.nom ?? row.name ?? "",
         categorie: row.categorie ?? row.category ?? "",
@@ -147,6 +149,8 @@ export async function importCardsAction(
         // CSV without source_id is therefore safely rerunnable without duplicates.
         source: sourceId ? (row.source || "manual") : "manual",
       };
+      if (!card.source_id) card.source_id = deriveSourceId(card);
+      return card;
     });
     const client = createClient(await cookies());
     const failures: string[] = [];

@@ -92,7 +92,7 @@ export function AdminCardManager({ cards, searchQuery = "" }: { cards: Card[]; s
 
         <form action={importAction} className="space-y-4 rounded-2xl border border-white/10 bg-slate-900/70 p-5">
           <h2 className="text-xl font-bold">Importer un CSV</h2>
-          <p className="text-sm text-slate-300">Jusqu’à 500 lignes. Colonnes : nom, categorie, franchise, rarete_base et image_url. Les images sont téléchargées lentement (2 simultanées maximum).</p>
+          <p className="text-sm text-slate-300">Jusqu’à 500 lignes. Colonnes : nom, categorie, franchise, rarete_base et image_url. Le source_id manquant est créé automatiquement ; les lignes invalides sont ignorées sans bloquer les cartes valides. Les images sont téléchargées lentement (2 simultanées maximum).</p>
           <input accept=".csv,text/csv" className="w-full rounded-lg bg-slate-950 p-3" name="csv" required type="file"/>
           <SubmitButton>{importing ? "Import en cours…" : "Importer les cartes"}</SubmitButton>
           <Feedback state={importState}/>
