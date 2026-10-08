@@ -93,7 +93,7 @@ test("partages de cartes : surface publique minimale et limites transactionnelle
       from public.card_shares limit 1`);
     await db.exec("set timezone='Pacific/Honolulu'");
     await db.exec(migration("20261008000006_card_share_creation_limit"));
-    await db.exec(migration("20261008000011_card_share_custom_images"));
+    await db.exec(migration("20261008000012_card_share_custom_images"));
     assert.equal((await db.query("select count(*)::int as count from public.card_share_creations")).rows[0].count,2);
     await db.exec("delete from public.card_shares where id=repeat('e',32)");
     assert.equal((await db.query("select relrowsecurity from pg_class where oid='public.card_share_creations'::regclass")).rows[0].relrowsecurity,true);
