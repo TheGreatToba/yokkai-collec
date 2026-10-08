@@ -35,7 +35,7 @@ function BanControl({ player }: { player: AdminPlayer }) {
     </button>
     {state.message && <p className={`mt-2 text-xs ${state.ok ? "text-emerald-300" : "text-red-300"}`} role="status">{state.message}</p>}
     <Modal open={confirming} onClose={() => setConfirming(false)} title={player.isBanned ? "Débannir ce joueur ?" : "Bannir ce joueur ?"}>
-      <p className="text-sm text-slate-300">{player.isBanned ? `${player.pseudo} pourra de nouveau se connecter.` : `${player.pseudo} sera immédiatement déconnecté et ne pourra plus se connecter.`}</p>
+      <p className="text-sm text-slate-300">{player.isBanned ? `${player.pseudo} pourra de nouveau se connecter.` : `${player.pseudo} sera immédiatement déconnecté. Ses ventes seront annulées, les enchérisseurs remboursés et ses mises supprimées.`}</p>
       <form action={submit} className="mt-5 flex justify-end gap-3">
         <input name="user_id" type="hidden" value={player.userId}/><input name="banned" type="hidden" value={String(!player.isBanned)}/>
         <button className="yk-button yk-button-secondary" onClick={() => setConfirming(false)} type="button">Annuler</button>

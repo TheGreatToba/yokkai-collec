@@ -30,6 +30,18 @@ test("les données joueurs et le bannissement restent derrière des RPC admin", 
   assert.match(migration, /revoke all on function[\s\S]+from public,anon,authenticated/);
 });
 
+test("bannir un joueur annule ses ventes, rembourse les mises bloquées et efface ses enchères", async () => {
+  const migration = await read("supabase/migrations/20261009000001_ban_cancels_auctions.sql");
+  assert.match(migration, /where seller_id=p_user_id and status='active'/);
+  assert.match(migration, /perform public\.credit_karas\(sale\.buyer_id,sale\.current_price\)/);
+  assert.match(migration, /delete from public\.auctions where id=sale\.id/);
+  assert.match(migration, /where buyer_id=p_user_id and status='active'/);
+  assert.match(migration, /perform public\.credit_karas\(p_user_id,sale\.current_price\)/);
+  assert.match(migration, /set buyer_id=null,current_price=starting_price/);
+  assert.match(migration, /delete from public\.bids where bidder_id=p_user_id/);
+  assert.match(migration, /delete from auth\.sessions where user_id=p_user_id/);
+});
+
 test("la fiche joueur affiche son inventaire et confirme la modération", async () => {
   const manager = await read("app/admin/players/player-manager.tsx");
   const actions = await read("app/admin/players/actions.ts");

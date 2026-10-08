@@ -46,7 +46,7 @@ export async function setPlayerBanAction(
       throw error;
     }
     revalidatePath("/admin/players");
-    return { ok: true, message: banned ? "Le joueur a été banni et ses sessions ont été fermées." : "Le joueur a été débanni." };
+    return { ok: true, message: banned ? "Le joueur a été banni, ses ventes annulées, ses mises supprimées et les Karas bloqués remboursés." : "Le joueur a été débanni." };
   } catch (error) {
     return { ok: false, message: error instanceof Error ? error.message : "Action impossible." };
   }
