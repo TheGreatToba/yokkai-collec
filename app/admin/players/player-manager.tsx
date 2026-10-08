@@ -1,0 +1,63 @@
+"use client";
+
+import { useActionState, useState } from "react";
+import Link from "next/link";
+import { Modal } from "@/components/ui";
+import { YokaiCard } from "@/components/yokai-card";
+import { setPlayerBanAction, type PlayerAdminActionState } from "./actions";
+
+export type AdminPlayer = {
+  userId: string; pseudo: string; email: string; createdAt: string; lastSeenAt: string | null;
+  cardsCount: number; karasBalance: number; isBanned: boolean; isAdmin: boolean;
+};
+export type AdminPlayerCard = {
+  instanceId: string; name: string; category: string; franchise: string; rarity: "C" | "R" | "SR" | "SSR" | "LR";
+  imageUrl: string; obtainedAt: string; shiny: boolean;
+};
+export type AdminPlayerDetail = AdminPlayer & { cards: AdminPlayerCard[] };
+
+const initialState: PlayerAdminActionState = { ok: false, message: "" };
+
+function BanControl({ player }: { player: AdminPlayer }) {
+  const [state, action, pending] = useActionState(setPlayerBanAction, initialState);
+  const [confirming, setConfirming] = useState(false);
+  async function submit(form: FormData) {
+    action(form);
+    setConfirming(false);
+  }
+  if (player.isAdmin) return <span className="rounded-full border border-cyan-300/30 px-3 py-1 text-xs text-cyan-200">Administrateur</span>;
+  return <>
+    <button className={player.isBanned ? "yk-button yk-button-secondary" : "yk-button yk-button-danger"} onClick={() => setConfirming(true)} type="button">
+      {player.isBanned ? "Débannir" : "Bannir"}
+    </button>
+    {state.message && <p className={`mt-2 text-xs ${state.ok ? "text-emerald-300" : "text-red-300"}`} role="status">{state.message}</p>}
+    <Modal open={confirming} onClose={() => setConfirming(false)} title={player.isBanned ? "Débannir ce joueur ?" : "Bannir ce joueur ?"}>
+      <p className="text-sm text-slate-300">{player.isBanned ? `${player.pseudo} pourra de nouveau se connecter.` : `${player.pseudo} sera immédiatement déconnecté et ne pourra plus se connecter.`}</p>
+      <form action={submit} className="mt-5 flex justify-end gap-3">
+        <input name="user_id" type="hidden" value={player.userId}/><input name="banned" type="hidden" value={String(!player.isBanned)}/>
+        <button className="yk-button yk-button-secondary" onClick={() => setConfirming(false)} type="button">Annuler</button>
+        <button className={player.isBanned ? "yk-button" : "yk-button yk-button-danger"} disabled={pending} type="submit">{pending ? "Traitement…" : "Confirmer"}</button>
+      </form>
+    </Modal>
+  </>;
+}
+
+export function PlayerManager({ players, selected }: { players: AdminPlayer[]; selected: AdminPlayerDetail | null }) {
+  return <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,.85fr)]">
+    <section className="overflow-hidden rounded-2xl border border-white/10 bg-slate-900/70">
+      <div className="border-b border-white/10 px-5 py-4"><h2 className="text-lg font-bold">Joueurs ({players.length})</h2></div>
+      {players.length ? <div className="divide-y divide-white/10">{players.map(player => <article className="grid gap-3 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center" key={player.userId}>
+        <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><strong>{player.pseudo}</strong>{player.isBanned && <span className="rounded-full bg-red-500/15 px-2 py-1 text-[11px] font-bold text-red-300">Banni</span>}</div><p className="truncate text-sm text-slate-400">{player.email}</p><p className="mt-1 text-xs text-slate-500">{player.cardsCount} carte{player.cardsCount === 1 ? "" : "s"} · {player.karasBalance.toLocaleString("fr-FR")} Karas</p></div>
+        <Link className="yk-button yk-button-secondary" href={`/admin/players?player=${player.userId}`}>Voir le joueur</Link>
+      </article>)}</div> : <p className="p-8 text-center text-slate-400">Aucun joueur trouvé.</p>}
+    </section>
+    <aside className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 xl:sticky xl:top-24 xl:self-start">
+      {!selected ? <div className="py-12 text-center text-slate-400"><p className="font-semibold text-white">Sélectionne un joueur</p><p className="mt-2 text-sm">Son compte et ses cartes apparaîtront ici.</p></div> : <>
+        <div className="flex items-start justify-between gap-4"><div className="min-w-0"><p className="text-xs uppercase tracking-widest text-cyan-300">Compte joueur</p><h2 className="mt-1 truncate text-2xl font-black">{selected.pseudo}</h2><p className="truncate text-sm text-slate-400">{selected.email}</p></div><BanControl player={selected}/></div>
+        <dl className="mt-5 grid grid-cols-2 gap-3 text-sm"><div className="rounded-xl bg-slate-950 p-3"><dt className="text-slate-500">Karas</dt><dd className="mt-1 font-bold text-amber-300">{selected.karasBalance.toLocaleString("fr-FR")}</dd></div><div className="rounded-xl bg-slate-950 p-3"><dt className="text-slate-500">Cartes</dt><dd className="mt-1 font-bold">{selected.cardsCount}</dd></div><div className="col-span-2 rounded-xl bg-slate-950 p-3"><dt className="text-slate-500">Dernière activité</dt><dd className="mt-1">{selected.lastSeenAt ? new Date(selected.lastSeenAt).toLocaleString("fr-FR") : "Jamais vue en ligne"}</dd></div></dl>
+        <div className="mt-6 flex items-center justify-between"><h3 className="font-bold">Collection</h3><span className="text-xs text-slate-500">{selected.cards.length} affichée{selected.cards.length === 1 ? "" : "s"}</span></div>
+        {selected.cards.length ? <div className="mt-3 grid max-h-[52rem] grid-cols-2 gap-3 overflow-y-auto pr-1">{selected.cards.map(card => <YokaiCard animated={false} category={card.category} className="w-full" image={card.imageUrl} key={card.instanceId} name={card.name} anime={card.franchise} rarity={card.rarity} shiny={card.shiny}/>)}</div> : <p className="mt-4 rounded-xl bg-slate-950 p-5 text-center text-sm text-slate-400">Ce joueur ne possède aucune carte.</p>}
+      </>}
+    </aside>
+  </div>;
+}
