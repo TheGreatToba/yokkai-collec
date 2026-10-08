@@ -53,6 +53,10 @@ test("one transaction rolls back every migration and registry entry on failure; 
   const stale = deploymentPlan([first, second], []).sql;
   await assert.rejects(db.exec(stale), /Migration registry changed/);
   await db.exec("rollback");
+  const quoted = file("20260101000002", String.raw`begin; select E'C:\\folder\\file''name'; commit;`);
+  await db.exec("set standard_conforming_strings=off");
+  await db.exec(deploymentPlan([first, second, quoted], registry).sql);
+  assert.equal((await db.query("select statements[1] as source from supabase_migrations.schema_migrations where version='20260101000002'")).rows[0].source, quoted.source);
 });
 
 test("historical nontransactional migrations are explicitly refused when pending", async t => {

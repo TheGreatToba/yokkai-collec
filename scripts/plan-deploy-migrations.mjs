@@ -82,7 +82,7 @@ export function deploymentPlan(files, registry) {
     if (record.name !== null && record.name !== undefined && record.name !== filename.slice(15, -4)) throw new Error(`Registry name differs for ${filename}`);
   }
   const pending = files.slice(applied.length);
-  const literal = value => "'" + value.replaceAll("'", "''") + "'";
+  const literal = value => "E'" + value.replaceAll("\\", "\\\\").replaceAll("'", "''") + "'";
   const expected = "array[" + appliedVersions.sort().map(literal).join(",") + "]::text[]";
   const sql = ["begin;", "set local lock_timeout='5s';", "set local statement_timeout='120s';",
     "select pg_advisory_xact_lock(20261008, 1022);",
