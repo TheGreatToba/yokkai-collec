@@ -3,7 +3,7 @@ import "server-only";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
-import { getSupabaseConfig } from "@/utils/supabase/config";
+import { isCatalogueImageUrl } from "@/lib/server/card-sharing";
 import type { Rarity } from "@/lib/data/cards";
 import type { SharedCard } from "@/lib/server/card-sharing";
 
@@ -52,11 +52,8 @@ function validMagic(bytes:Uint8Array,type:string) {
 
 export async function fetchCatalogueImage(url:string,fetchImage:typeof fetch=fetch) {
   try{
-    const source=new URL(url);
-    const catalogue=new URL(getSupabaseConfig().url);
-    if(source.protocol!=="https:"||source.origin!==catalogue.origin||
-      !source.pathname.startsWith("/storage/v1/object/public/card-images/"))return null;
-    const response=await fetchImage(source,{redirect:"error",signal:AbortSignal.timeout(IMAGE_TIMEOUT_MS),
+    if(!isCatalogueImageUrl(url))return null;
+    const response=await fetchImage(new URL(url),{redirect:"error",signal:AbortSignal.timeout(IMAGE_TIMEOUT_MS),
       headers:{Accept:"image/png,image/jpeg,image/webp,image/gif"}});
     if(!response.ok)return null;
     const type=response.headers.get("content-type")?.split(";")[0].trim().toLowerCase()??"";

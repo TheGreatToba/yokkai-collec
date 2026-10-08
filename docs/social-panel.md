@@ -28,13 +28,29 @@
   accès à « Mes liens partagés », avec suppression confirmée et liste réservée au propriétaire.
 - Les champs visibles d'un partage sont figés à sa création : nom, franchise, rareté, statut
   Shiny, illustration du catalogue et, seulement avec accord explicite, pseudo du joueur.
-- Un joueur peut créer au plus 10 nouveaux liens par jour UTC. Recréer la même combinaison
-  carte/Shiny/affichage du pseudo réutilise le lien existant sans consommer ce plafond.
+- Le plafond est de 10 créations par joueur et par jour UTC, pas de 10 liens actifs.
+  Supprimer puis recréer un partage consomme une nouvelle création. La même combinaison
+  carte/Shiny/affichage du pseudo réutilise un lien encore existant sans consommer ce plafond.
+  Les événements de création sont conservés indépendamment des suppressions ; ceux du joueur
+  de plus de 7 jours sont nettoyés dans la fonction de création, sans tâche planifiée.
+- La carte partagée se rattache au catalogue `cards`, lisible par `anon`. Le catalogue et ses
+  identifiants restent donc récupérables à partir des données publiques.
+- La page publique valide l'illustration comme le rendu social : HTTPS, origine Supabase exacte
+  et préfixe du bucket `card-images`. Sinon, elle montre un cadre avec le nom de la carte.
 - Les images sociales ne sont pas stockées dans Supabase Storage : Next.js les produit avec
   `ImageResponse`, les conserve dans un cache mémoire LRU borné à 32 Mio et mutualise les rendus
   simultanés d'une même image.
-- Un joueur peut supprimer ses liens. La page et les routes d'image répondent alors 404, mais les
-  aperçus déjà mis en cache par Discord, WhatsApp ou X peuvent rester visibles quelque temps.
+- Les PNG ont un cache HTTP `public, max-age=300, must-revalidate`, sans `immutable` : cinq
+  minutes limitent les requêtes répétées tout en bornant la fraîcheur après suppression.
+  Chaque requête d'image atteignant Next.js vérifie le partage par un appel RPC à la base avant
+  toute lecture du cache mémoire (un appel SQL par image servie par le serveur). Une réponse
+  servie par un cache HTTP ne consulte pas la base. La page est dynamique et sans stockage HTTP
+  (`private, no-cache, no-store, max-age=0, must-revalidate`). Les 404 d'image restent `no-store`.
+  Les copies reçues avant cette politique peuvent suivre l'ancien en-tête jusqu'à expiration.
+- Un joueur peut supprimer ses liens. La prochaine requête d'image au serveur répond alors 404 ;
+  une copie HTTP encore fraîche peut rester visible jusqu'à 300 secondes. Discord et WhatsApp
+  conservent leur propre copie de l'aperçu après suppression : supprimer le partage n'efface pas
+  ces copies et l'application ne contrôle pas leur durée de conservation.
 - Limite connue de Next.js 16 : pour un partage inconnu, la page « introuvable » et sa balise
   `noindex` sont bien rendues, mais le shell diffusé avant la vérification conserve le statut HTTP
   200. Les routes d'image vérifient l'existence avant tout rendu et répondent, elles, avec un vrai

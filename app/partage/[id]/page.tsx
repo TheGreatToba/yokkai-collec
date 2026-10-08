@@ -2,8 +2,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getSharedCard } from "@/lib/server/card-sharing";
+import { getSharedCard, isCatalogueImageUrl } from "@/lib/server/card-sharing";
 import type { Rarity } from "@/lib/data/cards";
+
+export const dynamic = "force-dynamic";
 
 type Props={params:Promise<{id:string}>};
 const rarityText:Record<Rarity,string>={C:"text-rarity-c",R:"text-rarity-r",SR:"text-rarity-sr",SSR:"text-rarity-ssr",LR:"text-rarity-lr"};
@@ -38,7 +40,9 @@ export default async function SharedCardPage({params}:Props) {
     <article className="w-full max-w-xl rounded-panel border border-veil bg-surface p-6 text-center shadow-2xl sm:p-10">
       <p className="eyebrow">Carte partagée</p>
       <div className="mx-auto mt-6 aspect-[4/5] max-w-sm overflow-hidden rounded-card border border-veil bg-elevated">
-        <img className="h-full w-full object-cover" src={card.catalogueImageUrl} alt={`Illustration catalogue de ${card.cardName}`}/>
+        {isCatalogueImageUrl(card.catalogueImageUrl)?
+          <img className="h-full w-full object-cover" src={card.catalogueImageUrl} alt={`Illustration catalogue de ${card.cardName}`}/>:
+          <div className="flex h-full items-center justify-center p-6 text-ink-2">{card.cardName}</div>}
       </div>
       <h1 className="yk-title mt-7">{card.cardName}</h1>
       <p className="mt-3 text-sm text-ink-2">{card.franchise}</p>
