@@ -346,12 +346,14 @@ test("le chat d’enchère est visible mais réservé au vendeur et aux utilisat
   assert.match(css, /\.yk-auction-chat-form textarea \{[^}]*resize: none/);
 });
 
-test("mobile : vitrine du profil sur la grille partagée et page Amis sans débordement", () => {
+test("mobile : vitrine du profil en carrousel tactile et page Amis sans débordement", () => {
   const profile = readFileSync(path.join(root, "components/profile.tsx"), "utf8");
   const community = readFileSync(path.join(root, "styles/community.css"), "utf8");
   assert.match(profile, /className="yk-card-grid yk-featured-stage"/);
+  assert.match(community, /\.yk-profile-columns > section \{ min-width: 0; \}/);
   assert.match(community, /\.yk-featured-stage \{ --card-grid-columns-xl: 5; --card-grid-columns-lg: 5; --card-grid-columns-md: 5;/);
-  assert.doesNotMatch(community.match(/\.yk-featured-stage \{[^}]+\}/)?.[0] ?? "", /grid-template-columns/);
+  assert.match(community, /@media \(max-width: 700px\) \{[^]*?\.yk-featured-stage \{[^}]*display: flex;[^}]*overflow-x: auto;[^}]*scroll-snap-type: x mandatory;/);
+  assert.match(community, /@media \(max-width: 700px\) \{[^]*?\.yk-featured-stage > div \{[^}]*flex: 0 0 min\(72vw,13rem\);[^}]*scroll-snap-align: center;/);
   // Grid children must be allowed to shrink, otherwise the non-wrapping tabs widen the page.
   assert.match(community, /\.yk-social-stack > \* \{ min-width: 0; \}/);
   assert.doesNotMatch(community, /\.yk-social-person \.yk-friend-action,[^{]*\{ width: 100%; margin-left/);
