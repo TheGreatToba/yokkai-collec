@@ -14,7 +14,30 @@ npm run dev
 
 Ouvrir http://localhost:3000 pour les packs, et `/collection` pour la collection.
 
-## Vérifications
+## Migrations en production
+
+Les migrations s'appliquent uniquement via `scripts/deploy-migrations.sh`.
+Aucune modification de schéma depuis Studio.
+Avec Node.js 22, `npm ci`, Bash et une clé SSH configurée (port 1022) :
+
+```sh
+PROD_SSH_ALIAS=mon-alias PROD_DB_CONTAINER=mon-conteneur bash scripts/deploy-migrations.sh
+PROD_SSH_ALIAS=mon-alias PROD_DB_CONTAINER=mon-conteneur bash scripts/deploy-migrations.sh --apply
+```
+
+L'aperçu n'écrit rien sur le VPS ; `--apply` exige la saisie interactive de `APPLY`.
+Le script utilise uniquement `postgres`, vérifie le drift contre les migrations
+déjà appliquées et refuse les doublons, registres incohérents et SQL incompatible
+avec une transaction. Le rejeu PGlite doit réussir (extensions indisponibles refusées).
+Une archive UTC complète est validée (taille + `pg_restore --list`) sur le VPS dans
+`/var/backups/yokkai-migrations` ; seuls les dix derniers backups de ce script restent.
+`PROD_BACKUP_DIR` permet un répertoire dédié root, mode 700 (créé ainsi par défaut).
+L'alias doit autoriser `sudo -n docker` et `sudo -n bash`, sans mot de passe transmis.
+Migrations et registre sont appliqués dans une transaction unique, puis le drift
+est vérifié ; une erreur après `COMMIT` exige une investigation, sans rollback
+automatique. Les sauvegardes hors VPS feront l'objet d'un chantier séparé.
+
+## Vérifications locales
 
 ```sh
 npm run lint

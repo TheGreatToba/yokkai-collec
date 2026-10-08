@@ -380,6 +380,11 @@ test("le chat d’enchère est visible mais réservé au vendeur et aux utilisat
   assert.match(source, /item\.gifUrl\?<img className="yk-auction-chat-gif"/);
   assert.match(gifPicker, /api\.giphy\.com\/v1\/gifs/);
   assert.match(gifPicker, /Powered by GIPHY/);
+  assert.match(gifPicker, /PAGE_SIZE=18/);
+  assert.match(gifPicker, /Charger plus/);
+  assert.match(gifPicker, /Envoyer ce GIF/);
+  assert.match(gifPicker, /GIF_CATEGORIES/);
+  assert.match(gifPicker, /Tendances/);
   assert.match(source, /event\.key==="ArrowDown"\|\|event\.key==="ArrowUp"/);
   assert.match(source, /event\.key==="Enter"\|\|event\.key==="Tab"/);
   assert.match(source, /selectMention\(mentionOptions\[mentionIndexRef\.current\]\.pseudo\)/);

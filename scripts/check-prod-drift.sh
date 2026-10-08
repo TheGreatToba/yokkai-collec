@@ -5,11 +5,14 @@
 # local PGlite memory. Do not run this automatically in CI.
 # Usage: PROD_SSH_ALIAS=my-config-alias bash scripts/check-prod-drift.sh
 # Optional: PROD_DB_CONTAINER for a Supabase deployment with a suffixed name.
+# Optional: DRIFT_MIGRATIONS_JSON (array of filenames) for the applied prefix;
+# deploy-migrations.sh validates this prefix against the production registry.
 # Requires node/npm dependencies locally and key-based SSH access; the database
 # container must permit local psql authentication (no password passed by script).
 # The SSH account must permit passwordless sudo for docker; -n refuses prompts.
 # Compares public functions/grants/RLS/triggers, storage policies and signup
 # triggers, including exact owners of all public functions (SECURITY DEFINER too).
+# Also compares public columns/constraints/indexes/views/enums/sequence settings.
 # Platform-managed auth/storage definitions are excluded; no owner-role mapping.
 set -euo pipefail
 : "${PROD_SSH_ALIAS:?Set an alias from ~/.ssh/config}"
