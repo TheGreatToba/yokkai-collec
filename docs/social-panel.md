@@ -2,22 +2,22 @@
 
 ## Étapes prévues
 
-1. Amis privés — cette PR
+1. Visibilité de la liste d’amis — réglage de chaque joueur
 2. Partage de carte
 3. Blocage et signalement
 4. Likes de profil
 5. Boucle d'échange : doublons à échanger, correspondance avec la wishlist et message dans l'offre
-6. Présence en ligne
+6. Présence en ligne — déjà livrée
 7. Plus tard : fil d'activité, classements, invitation et webhook Discord
 
 ## Décisions prises
 
 - Tout joueur connecté peut liker un profil, avec un seul like par joueur et un plafond quotidien.
 - L'historique des likes n'est visible que par le propriétaire du profil.
-- La liste et le nombre d'amis ne sont visibles que par le propriétaire, sur son profil et sur /amis, indépendamment de la confidentialité de sa collection.
-- Un visiteur, même ami du propriétaire, ne voit ni tuile ni colonne Amis. Aucun élément ne les remplace dans cette PR.
-- Une future PR ajoutera un compteur de likes sur le profil public ; aucun compteur d'amis n'est public.
-- La présence en ligne n'est visible que par les amis, sans compteur global.
+- Chaque joueur règle la visibilité de sa liste d’amis. Actuellement ce choix utilise le réglage de profil public : un profil public expose sa liste, un profil privé la réserve au propriétaire, y compris face à un ami.
+- Le propriétaire conserve l’accès à sa liste sur son profil et sur /amis.
+- Une future PR ajoutera un compteur de likes sur le profil public.
+- La présence en ligne est déjà livrée : la RPC ne renvoie les statuts et dernières activités que pour les amitiés acceptées du joueur connecté, sans compteur global.
 - Un réglage permet d'« apparaître hors ligne ».
 - La page publique d'une carte partagée est visible sans compte.
 - Au moment du partage, une option cochée permet d'afficher le pseudo sur cette page.
@@ -55,3 +55,12 @@
   `noindex` sont bien rendues, mais le shell diffusé avant la vérification conserve le statut HTTP
   200. Les routes d'image vérifient l'existence avant tout rendu et répondent, elles, avec un vrai
   statut HTTP 404. Le proxy ne fait volontairement aucune requête supplémentaire à la base.
+
+## Blocage et critères d’acceptation
+
+- Le blocage coupe demandes d’amis, amitié, échanges en attente et notifications d’interaction. Les profils et enchères restent consultables ; les mises restent autorisées.
+- Le chat masque côté serveur au bloqueur les messages des joueurs qu’il a bloqués, avant la limite des 100 messages. Les mentions entre joueurs bloqués ne produisent pas de notification.
+- Le joueur bloqué peut constater l’amitié retirée et les offres annulées, mais ne reçoit aucune notification ni message nommant le blocage. Débloquer ne restaure rien.
+- Présence déjà livrée : après blocage, aucune présence ou dernière activité de l’autre joueur ne doit être accessible par get_friendships ; cette restriction est testée côté serveur.
+- Likes de profil à venir : refuser les likes dans les deux sens lorsqu’un blocage existe ; ne produire aucune notification ou erreur révélant le blocage.
+- Messages dans les offres d’échange à venir : refuser l’envoi dans les deux sens lorsqu’un blocage existe, appliquer la restriction côté serveur et ne créer aucune notification d’interaction.

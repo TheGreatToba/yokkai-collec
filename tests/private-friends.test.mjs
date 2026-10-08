@@ -52,6 +52,7 @@ const ui = {
 const link = ({href,children,...props})=>h("a",{href,"aria-label":props["aria-label"]},children);
 const friendsModule = load("components/friends.tsx",{
   "next/link":link,"@/components/ui":ui,"@/lib/data/friends":{},
+  "@/lib/data/moderation":{liveModeration:{}},
 });
 function renderProfile(profile) {
   let stateIndex=0;
@@ -59,6 +60,7 @@ function renderProfile(profile) {
     react:{...React,useEffect:()=>{},useState:initial=>React.useState(stateIndex++===0?profile:initial)},
     "next/link":link,"next/navigation":{usePathname:()=>"/profil/Alice",useSearchParams:()=>new URLSearchParams()},
     "@/components/ui":ui,"@/components/friends":friendsModule,
+    "@/lib/data/moderation":{},"@/components/player-moderation":{PlayerModeration:()=>null},
     "@/components/yokai-card":{YokaiCard:()=>null},"@/components/card-shell":{},"@/components/collection":{},
     "@/lib/data/profile":{},"@/lib/data/wishlist":{},"@/lib/data/cards":{},"@/lib/ui/card-search":{},
   });
@@ -95,4 +97,12 @@ test("aperçu social historique : le visiteur reste masqué sans flag public exp
   const visitor = renderToStaticMarkup(h(SocialPreview,{screen:"public"}));
   assert.match(own,/>Amis<\/(?:p|h3)>/);
   assert.doesNotMatch(visitor,/>Amis<\/(?:p|h3)>/);
+});
+
+test("FriendAction : bloqué par moi prévaut sur tous les états reçus du profil",()=>{
+  for(const status of ["none","incoming","outgoing","accepted"]){
+    const html=renderToStaticMarkup(h(friendsModule.FriendAction,{userId:"bob",status,blockedByMe:true}));
+    assert.match(html,/Débloquer/);
+    assert.doesNotMatch(html,/Ajouter en ami|Accepter|Refuser|Déjà ami|Demande envoyée/);
+  }
 });

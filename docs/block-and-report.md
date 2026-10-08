@@ -1,7 +1,7 @@
 # Blocage et signalement
 
 Migration : `20261008000007_block_and_report.sql`. Instance cible : Supabase de production (VPS).
-**Non appliquée.** Ne jamais appliquer les tests sur cette instance : ils utilisent PGlite jetable.
+**Appliquée sur le VPS de production le 8 octobre 2026 (contrôles terminés à 14:18 UTC).** Les tests automatisés utilisent PGlite jetable.
 
 ## Confidentialité et portée
 
@@ -92,3 +92,18 @@ get_profile applique côté serveur friends_allowed := viewer=target.user_id OR 
 Les amis publics contiennent id/pseudo/avatarUrl uniquement, sans isOnline/lastSeenAt.
 get_friendships renvoie ces statuts seulement pour les amitiés accepted impliquant auth.uid().
 Aucune correction de visibilité dans cette PR.
+## Résultat du déploiement SQL
+
+Coordination Discord confirmée avant intervention. Sauvegarde pg_dump validée par pg_restore --list
+(1 027 entrées), conservée hors dépôt sur le VPS. Précontrôle : 11 fonctions sans écart de MD5,
+registre à jour jusqu'à 20261008000006. Migration et inscription 20261008000007 appliquées ensemble
+en transaction, avec délais de verrous bornés. Postcontrôle READ ONLY + ROLLBACK : 16 corps de fonctions
+conformes aux migrations, fonctions de profil/recherche/échanges protégées inchangées.
+
+Vérification sur trois comptes existants dans une transaction terminée par ROLLBACK : amitié et demandes
+retirées, offres des deux sens annulées et tiers préservé, aucune notification au bloqué, présence retirée,
+idempotence et auto-blocage, demandes refusées dans les deux sens, nouvelle demande après déblocage,
+chat filtré avant LIMIT 100 et visibilité asymétrique, signalements (doublon profil NULL, auto-signalement,
+snapshot, plafond, accès non-administrateur). Accès authenticated contrôlé ; anon conserve exactement
+is_pseudo_available(text) et get_shared_card(text). Après ROLLBACK : zéro blocage et zéro signalement.
+Le code applicatif n'est pas publié ; PR toujours en draft, aucun merge.
