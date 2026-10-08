@@ -65,5 +65,6 @@ DRIFT_MIGRATIONS_JSON="$applied" bash scripts/check-prod-drift.sh || { echo 'Dep
 printf '%s' "$plan" | node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(0,"utf8")).sql)' | \
   ssh -T -p 1022 -o BatchMode=yes "$PROD_SSH_ALIAS" \
     "sudo -n docker exec -i $PROD_DB_CONTAINER psql -X -w -U postgres -d postgres -v ON_ERROR_STOP=1"
+unset DRIFT_MIGRATIONS_JSON # A caller's old prefix must never weaken the final check.
 bash scripts/check-prod-drift.sh || { echo 'Post-deployment drift detected. Transaction committed; investigate, do not automatically roll back.' >&2; exit 1; }
 echo 'Deployment complete; no drift.'

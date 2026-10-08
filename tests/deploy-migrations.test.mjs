@@ -99,7 +99,7 @@ if(kind==='drift') { const applied=fs.existsSync(process.env.MOCK_APPLIED); cons
 if(kind==='backup') { if(state.badBackup) {console.error('Backup empty or suspicious');process.exit(1)} console.log('Validated backup on VPS'); }
 if(kind==='apply') {if(state.failApply){console.error('transaction failed');process.exit(1)}fs.writeFileSync(process.env.MOCK_APPLIED,'yes');console.log('BEGIN\\nINSERT 0 1\\nINSERT 0 1\\nCOMMIT');}
 `, { mode: 0o755 });
-  const env = { ...process.env, PATH: path.join(directory, "bin") + ":" + process.env.PATH, PROD_SSH_ALIAS: "fixture", PROD_DB_CONTAINER: "fixture-db", MOCK_STATE: stateFile, MOCK_LOG: logFile, MOCK_APPLIED: path.join(directory, "applied") };
+  const env = { ...process.env, DRIFT_MIGRATIONS_JSON: "[]", PATH: path.join(directory, "bin") + ":" + process.env.PATH, PROD_SSH_ALIAS: "fixture", PROD_DB_CONTAINER: "fixture-db", MOCK_STATE: stateFile, MOCK_LOG: logFile, MOCK_APPLIED: path.join(directory, "applied") };
   const calls = () => readFileSync(logFile, "utf8").trim().split("\n").filter(Boolean).map(JSON.parse);
   const run = (state = {}, mode = "--dry-run", confirmation) => {
     writeFileSync(stateFile, JSON.stringify({ before, after, ...state })); writeFileSync(logFile, ""); rmSync(env.MOCK_APPLIED, { force: true });
