@@ -42,7 +42,7 @@ export default async function AdminPlayersPage({ searchParams }: { searchParams:
     ...playerFromRpc(rawDetail),
     cards: Array.isArray(rawDetail.cards) ? rawDetail.cards.map(card => {
       const item = card as Record<string, unknown>;
-      return { instanceId: String(item.instanceId), name: String(item.name), category: String(item.category), franchise: String(item.franchise ?? ""), rarity: String(item.rarity) as "C" | "R" | "SR" | "SSR" | "LR", imageUrl: String(item.imageUrl), obtainedAt: String(item.obtainedAt), shiny: item.shiny === true };
+      return { instanceId: String(item.instanceId), cardId:String(item.cardId), name: String(item.name), category: String(item.category), franchise: String(item.franchise ?? ""), rarity: String(item.rarity) as "C" | "R" | "SR" | "SSR" | "LR", imageUrl: String(item.imageUrl), catalogueImage:String(item.catalogueImage), customImageUrl:typeof item.customImageUrl==="string"?item.customImageUrl:null, obtainedAt: String(item.obtainedAt), shiny: item.shiny === true, evolved:item.evolved===true, firstOwner:item.firstOwner===true, locked:item.locked===true, activeAuctionId:typeof item.activeAuctionId==="string"?item.activeAuctionId:null };
     }) : [],
   } satisfies AdminPlayerDetail : null;
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));

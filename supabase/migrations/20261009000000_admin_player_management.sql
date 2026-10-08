@@ -2,7 +2,7 @@ begin;
 
 alter table public.admin_audit_logs drop constraint if exists admin_audit_logs_action_check;
 alter table public.admin_audit_logs add constraint admin_audit_logs_action_check check (action in (
-  'card.create','card.update','card.delete','card.import','player.ban','player.unban'
+  'card.create','card.update','card.delete','card.import','player.ban','player.unban','player.card.remove'
 ));
 
 create or replace function public.admin_list_players(p_query text default '', p_limit integer default 50, p_offset integer default 0)
@@ -38,13 +38,33 @@ begin
     'isBanned',u.banned_until is not null and u.banned_until>now(),
     'isAdmin',exists(select 1 from public.admin_users au where au.user_id=u.id),
     'cards',coalesce((select jsonb_agg(jsonb_build_object(
-      'instanceId',owned.id,'name',card.nom,'category',card.categorie,'franchise',card.franchise,
-      'rarity',owned.rarity,'imageUrl',coalesce(owned.custom_image_url,card.image_url),
-      'obtainedAt',owned.date_obtention,'shiny',owned.is_shiny
+      'instanceId',owned.id,'cardId',card.id,'name',card.nom,'category',card.categorie,'franchise',card.franchise,
+      'rarity',owned.rarity,'imageUrl',coalesce(owned.custom_image_url,card.image_url),'catalogueImage',card.image_url,
+      'customImageUrl',owned.custom_image_url,'obtainedAt',owned.date_obtention,'shiny',owned.is_shiny,
+      'evolved',owned.is_evolved,'firstOwner',owned.is_first_owner,'locked',owned.is_locked,
+      'activeAuctionId',(select auction.id from public.auctions auction where auction.card_instance_id=owned.id and auction.status='active' limit 1)
     ) order by owned.date_obtention desc) from public.user_cards owned join public.cards card on card.id=owned.card_id where owned.user_id=u.id),'[]'::jsonb)
   ) into result from auth.users u left join public.user_profiles p on p.user_id=u.id where u.id=p_user_id;
   if result is null then raise exception 'PLAYER_NOT_FOUND' using errcode='P0001'; end if;
   return result;
+end; $$;
+
+create or replace function public.admin_remove_player_card(p_card_instance_id uuid)
+returns void language plpgsql security definer set search_path = '' as $$
+declare target public.user_cards%rowtype; sale public.auctions%rowtype;
+begin
+  if not public.is_current_user_admin() then raise exception 'ADMIN_REQUIRED' using errcode='P0001'; end if;
+  select * into target from public.user_cards where id=p_card_instance_id for update;
+  if not found then raise exception 'CARD_NOT_FOUND' using errcode='P0001'; end if;
+  if exists(select 1 from public.trade_offers where status='pending' and (p_card_instance_id=any(offered_card_ids) or p_card_instance_id=any(requested_card_ids))) then raise exception 'CARD_IN_TRADE' using errcode='P0001'; end if;
+  select * into sale from public.auctions where card_instance_id=p_card_instance_id and status='active' for update;
+  if found then
+    if sale.buyer_id is not null then perform public.credit_karas(sale.buyer_id,sale.current_price); end if;
+    update public.auctions set status='expired',ends_at=clock_timestamp(),buyer_id=null where id=sale.id;
+  end if;
+  update public.user_cards set is_locked=false where id=p_card_instance_id;
+  delete from public.user_cards where id=p_card_instance_id;
+  insert into public.admin_audit_logs(admin_user_id,action,card_id,metadata) values(auth.uid(),'player.card.remove',target.card_id,jsonb_build_object('target_user_id',target.user_id,'card_instance_id',target.id,'auction_id',sale.id));
 end; $$;
 
 create or replace function public.admin_set_user_ban(p_user_id uuid,p_banned boolean)
@@ -59,7 +79,7 @@ begin
   insert into public.admin_audit_logs(admin_user_id,action,metadata) values(auth.uid(),case when p_banned then 'player.ban' else 'player.unban' end,jsonb_build_object('target_user_id',p_user_id));
 end; $$;
 
-revoke all on function public.admin_list_players(text,integer,integer),public.admin_get_player(uuid),public.admin_set_user_ban(uuid,boolean) from public,anon,authenticated;
-grant execute on function public.admin_list_players(text,integer,integer),public.admin_get_player(uuid),public.admin_set_user_ban(uuid,boolean) to authenticated;
+revoke all on function public.admin_list_players(text,integer,integer),public.admin_get_player(uuid),public.admin_set_user_ban(uuid,boolean),public.admin_remove_player_card(uuid) from public,anon,authenticated;
+grant execute on function public.admin_list_players(text,integer,integer),public.admin_get_player(uuid),public.admin_set_user_ban(uuid,boolean),public.admin_remove_player_card(uuid) to authenticated;
 
 commit;
