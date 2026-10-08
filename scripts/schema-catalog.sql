@@ -1,11 +1,12 @@
 -- Read-only application catalogue; no data rows, no function execution.
 -- Supabase-managed auth/storage objects are excluded except storage policies and
--- the application's signup trigger. Owners are omitted (migration roles differ).
+-- application triggers. Public function owners are compared by exact role name,
+-- including SECURITY DEFINER owners; differing migration roles are reported.
 select jsonb_build_object('kind', kind, 'name', name, 'value', value)::text
 from (
   select 'function' as kind,
     n.nspname || '.' || p.proname || '(' || oidvectortypes(p.proargtypes) || ')' as name,
-    jsonb_build_object('definition', pg_get_functiondef(p.oid), 'grants',
+    jsonb_build_object('definition', pg_get_functiondef(p.oid), 'owner', pg_get_userbyid(p.proowner), 'grants',
       (select jsonb_agg(jsonb_build_array(case when a.grantee=0 then 'PUBLIC' else pg_get_userbyid(a.grantee) end,
         a.privilege_type, a.is_grantable) order by a.grantee=0 desc, pg_get_userbyid(a.grantee), a.privilege_type)
        from aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a where a.grantee<>p.proowner)) as value

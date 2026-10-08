@@ -7,7 +7,8 @@
 # Requires node/npm dependencies locally and key-based SSH access; the database
 # container must permit local psql authentication (no password passed by script).
 # Compares public functions/grants/RLS/triggers, storage policies and signup
-# trigger; excludes platform-managed definitions and owner/grantor differences.
+# triggers, including exact owners of all public functions (SECURITY DEFINER too).
+# Platform-managed auth/storage definitions are excluded; no owner-role mapping.
 set -euo pipefail
 : "${PROD_SSH_ALIAS:?Set an alias from ~/.ssh/config}"
 [[ "$PROD_SSH_ALIAS" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_.-]*$ ]] || { echo 'Invalid SSH alias' >&2; exit 2; }
