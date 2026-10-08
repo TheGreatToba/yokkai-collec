@@ -13,7 +13,7 @@
 .yk-card-badges { display: flex; align-items: center; gap: 2cqw; }
 .yk-card-badge,.yk-shiny-badge { font-size: clamp(8px,6.5cqw,13px); font-weight: 700; letter-spacing: .06em; padding: 1px 6px; border-radius: 4px; white-space: nowrap; background: var(--card-badge); color: var(--card-badge-ink); border: 1px solid var(--card-badge-border); }
 .yk-card-bottom { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; }
-.yk-card-name { max-width: 100%; font-family: var(--font-display); font-weight: 700; font-size: clamp(10px,8.5cqw,20px); letter-spacing: .04em; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.yk-card-name { max-width: 100%; font-family: var(--font-card-name); font-weight: 700; font-size: clamp(10px,8.5cqw,20px); letter-spacing: .04em; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .yk-card-category { min-width: 0; max-width: calc(100% - 11cqw); font-size: clamp(7px,5.5cqw,12px); font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--color-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .yk-card-anime { max-width: 100%; font-size: clamp(7px,5.5cqw,12px); font-weight: 600; letter-spacing: .06em; color: rgba(255,255,255,.88); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .yk-card-name,.yk-card-category,.yk-card-anime,.yk-card-missing { text-shadow: 0 1px 2px #000,0 2px 5px #000,0 0 12px #000; }
@@ -31,7 +31,7 @@
 .yk-shiny .yk-card-art::after { content: ''; position: absolute; inset: -35%; pointer-events: none; opacity: .5; background: linear-gradient(112deg,transparent 34%,rgba(255,255,255,.08) 41%,rgba(200,230,255,.72) 48%,rgba(255,184,236,.42) 53%,transparent 62%); mix-blend-mode: screen; transform: translateX(-55%) rotate(4deg); }
 .yk-shiny.yk-animated .yk-card-art::after { animation: yk-shiny-glint 3.2s ease-in-out infinite; }
 .yk-shiny .yk-card-interior { box-shadow: inset 0 0 28px color-mix(in srgb,var(--holo-glow) 55%,transparent); }
-.yk-card-back { width: 100%; aspect-ratio: 5 / 7; border-radius: 12px; background: var(--color-surface) url('/assets/card-back.png') center / cover; box-shadow: var(--shadow-card); }
+.yk-card-back { width: 100%; aspect-ratio: 5 / 7; border: 1px solid color-mix(in srgb,var(--color-accent-gold) 48%,transparent); border-radius: 12px; background: #050507 url('/assets/card-back.png') center / cover no-repeat; box-shadow: 0 0 0 1px color-mix(in srgb,var(--color-void) 90%,transparent),0 10px 28px color-mix(in srgb,var(--color-void) 88%,transparent),0 0 18px color-mix(in srgb,var(--color-accent-gold) 16%,transparent); }
 @container yokai (max-width: 90px) {
   .yk-card-badge,.yk-shiny-badge { font-size: 7cqw; padding: 1cqw 2cqw; border-width: .6px; }
   .yk-card-name { font-size: 8.5cqw; }
