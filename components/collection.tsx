@@ -8,6 +8,7 @@ import type { CollectedCard, Folder, Rarity } from "@/lib/data/cards";
 import { Button, Chip, Feedback, Karas, Modal, Pagination, SelectionBar, SelectionModeButton } from "@/components/ui";
 import { YokaiCard } from "@/components/yokai-card";
 import { CardShell } from "@/components/card-shell";
+import { CardShareButton, MyCardShares } from "@/components/card-sharing";
 import { CARD_PAGE_SIZES } from "@/lib/ui/pagination";
 import { COLLECTION_SORTS, isCollectionSort, sortCollection } from "@/lib/ui/collection-sort";
 import { matchesCardSearch } from "@/lib/ui/card-search";
@@ -215,6 +216,7 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
         <div className="yk-collection-toolbar">
           <button type="button" className="yk-mobile-filter-trigger" aria-expanded={filtersOpen} aria-controls="collection-filters" onClick={()=>setFiltersOpen(true)}><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filtres{(query||rarity||category||folder||auctionOnly)?<span>•</span>:null}</button>
           <div className="yk-collection-toolbar-actions">
+            {!readOnly&&<MyCardShares/>}
             <label className="yk-sort-control"><span>Trier par :</span><strong aria-hidden="true">{COLLECTION_SORTS.find(option=>option.value===sort)?.label}</strong><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="m7 10 5 5 5-5"/></svg><select aria-label="Trier la collection" value={sort} onChange={e=>{if(isCollectionSort(e.target.value)){setSort(e.target.value);setPage(1);}}}>{COLLECTION_SORTS.map(option=><option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
             {!readOnly&&<SelectionModeButton active={selecting} onClick={()=>{setSelecting(!selecting);setSelection(new Set());}}/>}
           </div>
@@ -236,6 +238,7 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
         <header><div className="flex flex-wrap items-center gap-2"><span className={`text-sm font-bold tracking-widest ${rarityText[selected.rarity]}`}>{selected.rarity}{selected.shiny?" ✦ Shiny":""}</span>{selected.isEvolved&&<span className="text-[10px] font-semibold tracking-wider text-accent-gold">ÉVOLUÉE</span>}</div><div className="yk-detail-title-row"><h3 className="font-display text-[28px] leading-tight">{selected.name}</h3>{!readOnly&&onSetLocked&&<button type="button" className="yk-detail-lock-toggle" aria-label={selected.locked?"Déverrouiller la carte":"Verrouiller la carte"} aria-pressed={!!selected.locked} title={selected.locked?"Verrouillée : incassable et non échangeable":"Verrouiller cette carte"} disabled={lockBusy||!!selectedMeta?.frozen} onClick={()=>void toggleSelectedLock()}><ProtectedIcon size={17}/></button>}</div>{lockError&&<p role="alert" className="mt-2 text-xs text-danger">{lockError}</p>}</header>
         {(selectedGroup?.cards.length??0)>1&&<div className="yk-copy-picker"><span className="yk-section-title">Exemplaire affiché</span><div>{selectedGroup?.cards.map((card,index)=><button type="button" key={card.instanceId} aria-label={`Exemplaire ${index+1}${card.locked?", protégé":""}`} aria-pressed={card.instanceId===selected.instanceId} onClick={()=>setSelectedId(card.instanceId)}><span>{index+1}{card.customImageUrl?" ✦":""}</span>{card.locked?<ProtectedIcon size={12}/>:presentation[card.instanceId]?.frozen?" ⏳":""}</button>)}</div></div>}
         <dl className="yk-detail-facts"><div><dt>Catégorie</dt><dd>{selected.category}</dd></div><div><dt>Obtenue le</dt><dd>{formatDate(selected.obtainedAt,true)}</dd></div><div><dt>Exemplaires</dt><dd>{selectedGroup?.cards.length??1}</dd></div>{selectedMeta?.marketValue!=null&&<div><dt>Valeur de marché</dt><dd><Karas amount={selectedMeta.marketValue}/></dd></div>}</dl>
+        {!readOnly&&<CardShareButton key={selected.instanceId} instanceId={selected.instanceId} name={selected.name}/>}
         {selectedGroupFrozen&&<Feedback tone="error" title="Carte gelée car en enchère">Cette carte ne peut pas être remise aux enchères ni supprimée jusqu’à ce que la vente soit terminée ou que la carte soit retirée des enchères.</Feedback>}
         {resolvedTradeHref&&!selected.locked&&<Link className="yk-button yk-button-primary mt-6 flex w-full justify-center" href={resolvedTradeHref(selected)}>Proposer un échange</Link>}
         {!readOnly&&(onCreateAuction||(selected.rarity==="SSR"&&!selected.shiny))&&<div className="yk-detail-actions">

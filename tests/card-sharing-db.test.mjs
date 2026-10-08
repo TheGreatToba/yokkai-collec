@@ -27,6 +27,7 @@ test("partages de cartes : surface publique minimale et limites transactionnelle
   `);
   await db.exec(migration("20261007000006_card_sharing"));
   await db.exec(migration("20261008000004_revoke_anon_trigger_helpers"));
+  await db.exec(migration("20261008000005_list_card_shares"));
   await db.query("insert into auth.users values ($1),($2)", [alice,bob]);
   await db.query("insert into public.user_profiles(user_id,pseudo) values ($1,'Alice'),($2,'Bob')", [alice,bob]);
 
@@ -86,6 +87,16 @@ test("partages de cartes : surface publique minimale et limites transactionnelle
 
   await t.test("identifiants invalides, trop longs et inconnus donnent exactement null", async () => {
     for (const id of ["", "xyz", "a".repeat(31), "a".repeat(33), "f".repeat(32)]) assert.equal(await read(id),null);
+  });
+
+  await t.test("la liste est authentifiée, limitée au propriétaire et sans identifiants internes", async () => {
+    const list = id => asUser(id, async () => (await db.query("select public.list_card_shares() as value")).rows[0].value);
+    assert.equal((await db.query("select has_function_privilege('anon','public.list_card_shares(integer)','EXECUTE') as allowed")).rows[0].allowed,false);
+    const mine = await list(alice);
+    assert.equal(mine.length,2);
+    assert.deepEqual(Object.keys(mine[0]).sort(),["id","cardName","rarity","shiny","showPseudo","createdAt"].sort());
+    assert.deepEqual(await list(bob),[]);
+    assert.deepEqual(await asUser(alice, async () => (await db.query("select public.list_card_shares(50) as value")).rows[0].value),[]);
   });
 
   await t.test("possession obligatoire, déduplication avant plafond et plafond de dix", async () => {

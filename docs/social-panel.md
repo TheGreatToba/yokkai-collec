@@ -22,6 +22,10 @@
 - La page publique d'une carte partagée est visible sans compte.
 - Au moment du partage, une option cochée permet d'afficher le pseudo sur cette page.
 - La page publique d'une carte partagée n'affiche jamais d'image personnalisée.
+- La feuille de partage est accessible depuis le détail d'une carte possédée et depuis le reveal
+  final des SSR, LR ou Shiny conservées. L'option « Afficher mon pseudo » est décochée par défaut.
+  Elle propose le lien, le partage natif et les téléchargements story/carré. La Collection donne
+  accès à « Mes liens partagés », avec suppression confirmée et liste réservée au propriétaire.
 - Les champs visibles d'un partage sont figés à sa création : nom, franchise, rareté, statut
   Shiny, illustration du catalogue et, seulement avec accord explicite, pseudo du joueur.
 - Un joueur peut créer au plus 10 nouveaux liens par jour UTC. Recréer la même combinaison
