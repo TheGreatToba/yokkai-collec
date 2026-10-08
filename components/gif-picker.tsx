@@ -61,7 +61,7 @@ export function GifPicker({disabled,onSelect}:{disabled?:boolean;onSelect:(gif:G
 
   return <div ref={panelRef} className="yk-gif-picker">
     <button type="button" className="yk-gif-trigger" disabled={disabled} aria-expanded={open} aria-controls="auction-gif-panel" onClick={()=>{setOpen(value=>!value);setSelected(null);}}>GIF</button>
-    {open&&<section id="auction-gif-panel" className="yk-gif-panel" aria-label="Choisir un GIF">
+    {open&&<><button type="button" tabIndex={-1} className="yk-gif-backdrop" aria-label="Fermer le sélecteur de GIF" onClick={()=>setOpen(false)}/><section id="auction-gif-panel" className="yk-gif-panel" role="dialog" aria-modal="true" aria-label="Choisir un GIF">
       <header><div><strong>Choisir un GIF</strong><span>{debouncedQuery?`Résultats pour « ${debouncedQuery} »`:"Tendances du moment"}</span></div><button type="button" aria-label="Fermer" onClick={()=>setOpen(false)}>×</button></header>
       <label className="sr-only" htmlFor="auction-gif-search">Rechercher un GIF</label>
       <div className="yk-gif-search"><span aria-hidden="true">⌕</span><input id="auction-gif-search" type="search" autoFocus value={query} onChange={event=>setQuery(event.target.value)} placeholder="Rechercher sur GIPHY…"/>{query&&<button type="button" aria-label="Effacer la recherche" onClick={()=>setQuery("")}>×</button>}</div>
@@ -73,6 +73,6 @@ export function GifPicker({disabled,onSelect}:{disabled?:boolean;onSelect:(gif:G
       {hasMore&&!error&&<button type="button" className="yk-gif-more" disabled={loading} onClick={()=>setOffset(value=>value+PAGE_SIZE)}>{loading?"Chargement…":"Charger plus"}</button>}
       {selected&&<div className="yk-gif-preview" role="dialog" aria-label="Aperçu du GIF"><img src={selected.previewUrl} alt={selected.title}/><div><button type="button" onClick={()=>setSelected(null)}>Annuler</button><button type="button" onClick={sendSelected}>Envoyer ce GIF</button></div></div>}
       <a href="https://giphy.com" target="_blank" rel="noreferrer">Powered by GIPHY</a>
-    </section>}
+    </section></>}
   </div>;
 }

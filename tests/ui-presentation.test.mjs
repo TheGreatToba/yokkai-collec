@@ -384,6 +384,8 @@ test("le chat d’enchère est visible mais réservé au vendeur et aux utilisat
   assert.match(gifPicker, /Charger plus/);
   assert.match(gifPicker, /Envoyer ce GIF/);
   assert.match(gifPicker, /Tendances du moment/);
+  assert.match(gifPicker, /yk-gif-backdrop/);
+  assert.match(gifPicker, /aria-modal="true"/);
   assert.match(source, /event\.key==="ArrowDown"\|\|event\.key==="ArrowUp"/);
   assert.match(source, /event\.key==="Enter"\|\|event\.key==="Tab"/);
   assert.match(source, /selectMention\(mentionOptions\[mentionIndexRef\.current\]\.pseudo\)/);
