@@ -39,6 +39,7 @@ export function validateCredentials(form: FormData, signup: boolean) {
 
 export function authError(code?: string, status?: number) {
   switch (code) {
+    case "user_banned": return "Votre compte est banni.";
     case "invalid_credentials": return "Email ou mot de passe incorrect.";
     case "email_not_confirmed": return "Confirmez votre adresse email avant de vous connecter.";
     case "weak_password": return "Ce mot de passe est trop faible. Choisissez-en un plus long et plus varié.";
