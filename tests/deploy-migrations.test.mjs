@@ -123,6 +123,8 @@ print(out.decode(),end='');sys.exit(p.wait())`;
     return spawnSync("python3", ["-c", python, "bash", path.join(directory, "scripts/deploy-migrations.sh"), mode], { env: { ...env, CONFIRMATION: confirmation }, encoding: "utf8", timeout: 35000 });
   };
   let result = run(); assert.equal(result.status, 0, result.stderr); assert.deepEqual(calls().map(c => c.kind), ["registry", "drift"]); assert.match(result.stdout, /Dry-run: no production writes/);
+  result = spawnSync("bash", [path.join(directory, "scripts/deploy-migrations.sh")], { env, encoding: "utf8", timeout: 30000 });
+  assert.equal(result.status, 0, result.stderr); assert.match(result.stdout, /Dry-run: no production writes/);
   result = run({ drift: true }, "--apply", "APPLY"); assert.notEqual(result.status, 0); assert.deepEqual(calls().map(c => c.kind), ["registry", "drift"]);
   result = run({}, "--apply"); assert.notEqual(result.status, 0); assert.match(result.stderr, /interactive terminal/);
   result = run({}, "--apply", "NO"); assert.notEqual(result.status, 0); assert.deepEqual(calls().map(c => c.kind), ["registry", "drift"]);

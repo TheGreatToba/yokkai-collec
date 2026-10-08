@@ -33,7 +33,8 @@ echo "Would back up on VPS in $PROD_BACKUP_DIR, validate the archive, keep the l
 echo 'then apply the listed migrations + registry entries in ONE transaction as postgres and check drift again.'
 [[ "$mode" == --apply ]] || { echo 'Dry-run: no production writes or backups. Use --apply for interactive confirmation.'; exit 0; }
 [[ -t 0 ]] || { echo 'Deployment refused: --apply requires an interactive terminal.' >&2; exit 1; }
-read -r -p 'Apply the migrations listed above? Type APPLY: ' confirmation
+printf 'Confirm these migrations:\n%s\nType APPLY: ' "$pending" > /dev/tty
+read -r confirmation < /dev/tty
 [[ "$confirmation" == APPLY ]] || { echo 'Cancelled; no production writes.'; exit 1; }
 
 # Archive stays on the VPS host, outside the disposable container. Only archives
