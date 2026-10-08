@@ -9,6 +9,8 @@ try {
     .rows.map((row) => JSON.parse(Object.values(row)[0]));
   const actual = readFileSync(process.argv[2], "utf8").trim().split(/\r?\n/).filter(Boolean).map((line) => JSON.parse(line));
   const key = (row) => `${row.kind}: ${row.name}`;
+  if (actual.some(row => !row || typeof row.kind !== "string" || typeof row.name !== "string" || !Object.hasOwn(row, "value")) ||
+    new Set(actual.map(key)).size !== actual.length) throw new Error("Invalid or duplicate production catalogue entries; drift check refused");
   const canonical = (value) => JSON.stringify(value, (_key, item) =>
     typeof item === "string" ? item.replace(/\r\n/g, "\n") :
     item && typeof item === "object" && !Array.isArray(item)
