@@ -1,8 +1,9 @@
 @import "tailwindcss";
 @import "../styles/card-tokens.css";
 @config "../tailwind.config.ts";
-@theme inline { --font-sans: var(--font-sora), system-ui, sans-serif; --font-display: var(--font-cinzel), Georgia, serif; --font-jp: var(--font-noto-jp), serif; --font-mono: Consolas, monospace; }
+@theme inline { --font-sans: var(--font-sora), system-ui, sans-serif; --font-display: var(--font-hy-wen-hei), Arial, sans-serif; --font-heading: var(--font-hy-wen-hei), Arial, sans-serif; --font-jp: var(--font-noto-jp), serif; --font-mono: Consolas, monospace; }
 * { box-sizing: border-box; }
 html { background: var(--color-night); }
 body { margin: 0; }
+h1 { font-family: var(--font-heading) !important; }
 button:not(:disabled), select { cursor: pointer; }

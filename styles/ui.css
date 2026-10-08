@@ -1,6 +1,7 @@
 :root {
   --font-sans: var(--font-sora), system-ui, sans-serif;
-  --font-display: var(--font-cinzel), Georgia, serif;
+  --font-display: var(--font-hy-wen-hei), Arial, sans-serif;
+  --font-card-name: var(--font-cinzel), Georgia, serif;
   --font-jp: var(--font-noto-jp), serif;
 }
 :root { color-scheme: dark; --ease-yokkai: var(--ease-standard); }

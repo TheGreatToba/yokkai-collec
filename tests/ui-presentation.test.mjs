@@ -65,6 +65,41 @@ function load(relative) {
 const render = (component, props) => renderToStaticMarkup(React.createElement(component, props));
 const card = { id: "card-a", instanceId: "copy-a", name: "Carte de test", category: "Test", rarity: "SSR", image: "/test-image.png", obtainedAt: "2026-09-24T10:00:00Z" };
 
+test("les titres H1 utilisent la police locale HYWenHei-85W", () => {
+  const layout = readFileSync(path.join(root, "app/layout.tsx"), "utf8");
+  const css = readFileSync(path.join(root, "app/globals.css"), "utf8");
+  assert.match(layout, /localFont\(\{[\s\S]*HYWenHei-85W\.ttf[\s\S]*variable: "--font-hy-wen-hei"/);
+  assert.match(layout, /\$\{hyWenHei\.variable\}/);
+  assert.match(css, /--font-heading: var\(--font-hy-wen-hei\), Arial, sans-serif/);
+  assert.match(css, /h1 \{ font-family: var\(--font-heading\) !important; \}/);
+  assert.ok(existsSync(path.join(root, "app/fonts/hywenhei-85w/HYWenHei-85W.ttf")));
+});
+
+test("la police HYWenHei remplace la police d'affichage sauf pour les noms sur les cartes", () => {
+  const css = readFileSync(path.join(root, "app/globals.css"), "utf8");
+  const ui = readFileSync(path.join(root, "styles/ui.css"), "utf8");
+  const cards = readFileSync(path.join(root, "styles/cards.css"), "utf8");
+  assert.match(css, /--font-display: var\(--font-hy-wen-hei\), Arial, sans-serif/);
+  assert.match(ui, /--font-display: var\(--font-hy-wen-hei\), Arial, sans-serif/);
+  assert.match(ui, /--font-card-name: var\(--font-cinzel\), Georgia, serif/);
+  assert.match(cards, /\.yk-card-name \{[^}]*font-family: var\(--font-card-name\)/);
+});
+
+test("les nouveaux visuels distinguent le booster régulier du Decision Pack", () => {
+  const boosters = readFileSync(path.join(root, "components/boosters.tsx"), "utf8");
+  const cards = readFileSync(path.join(root, "styles/cards.css"), "utf8");
+  const styles = readFileSync(path.join(root, "styles/boosters.css"), "utf8");
+  assert.match(boosters, /src="\/assets\/booster-pack\.png" alt="Booster Régulier/);
+  assert.match(boosters, /src="\/assets\/decision-booster-pack\.png" alt="Booster Décisif/);
+  assert.match(boosters, /drawKind === "decision" \? "\/assets\/decision-booster-pack\.png" : "\/assets\/booster-pack\.png"/);
+  assert.doesNotMatch(styles, /\.yk-decision-image \{[^}]*hue-rotate/);
+  assert.match(styles, /\.yk-decision-panel \.yk-pack-art-stage \{[^}]*var\(--color-karas\)/);
+  assert.match(cards, /url\('\/assets\/card-back\.png'\)/);
+  assert.match(cards, /\.yk-card-back \{[^}]*background: #050507 url\('\/assets\/card-back\.png'\)[^}]*color-accent-gold/);
+  for (const asset of ["card-back.png", "booster-pack.png", "decision-booster-pack.png"])
+    assert.ok(existsSync(path.join(root, "public/assets", asset)), `${asset} doit être présent`);
+});
+
 test("le verrou synchrone empêche deux ouvertures dans le même tick", async () => {
   const { runPackOpeningOnce } = load("lib/ui/pack-opening.ts");
   const lock = { current: false };
