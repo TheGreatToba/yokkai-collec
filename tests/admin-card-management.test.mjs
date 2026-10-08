@@ -40,8 +40,10 @@ test("un CSV admin sans source_id bascule en source manuelle pour obtenir un ide
   const actions = await read("app/admin/cards/actions.ts");
   assert.match(actions, /source:\s*sourceId\s*\?\s*\(row\.source \|\| "manual"\)\s*:\s*"manual"/);
   assert.match(actions, /normalize\("NFD"\)/);
+  assert.match(actions, /row\.nom \?\? row\.name \?\? row\.personnage \?\? row\.character/);
   assert.match(actions, /row\.franchise \?\? row\.licence/);
   assert.match(actions, /row\.image_url \?\? row\.image \?\? row\.image_source/);
+  assert.match(actions, /\.replace\(\/\^http:/);
   assert.match(actions, /deriveSourceId\(card\)/);
   assert.match(actions, /relax_column_count: true/);
 });

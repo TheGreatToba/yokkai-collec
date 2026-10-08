@@ -138,11 +138,12 @@ export async function importCardsAction(
       const sourceId = (row.source_id || row.identifiant || "").trim();
       const card = {
         source_id: sourceId,
-        nom: row.nom ?? row.name ?? "",
+        nom: row.nom ?? row.name ?? row.personnage ?? row.character ?? "",
         categorie: row.categorie ?? row.category ?? "",
         franchise: row.franchise ?? row.licence ?? row.anime ?? "",
         franchise_romaji: row.franchise_romaji ?? "",
-        image_url: row.image_url ?? row.image ?? row.image_source ?? "",
+        image_url: (row.image_url ?? row.image ?? row.image_source ?? "")
+          .replace(/^http:\/\//i, "https://"),
         favoris_count: row.favoris_count ?? "",
         rarete_base: row.rarete_base ?? row.rarete ?? row.rarity ?? "",
         // validateCard generates a deterministic ID for manual rows. An admin
