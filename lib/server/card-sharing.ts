@@ -17,6 +17,17 @@ let client: ReturnType<typeof createClient> | undefined;
 
 export const isShareId = (value: string) => /^[0-9a-f]{32}$/.test(value);
 
+export function isCatalogueImageUrl(url: string): boolean {
+  try {
+    const source = new URL(url);
+    return source.protocol === "https:" &&
+      source.origin === new URL(getSupabaseConfig().url).origin &&
+      source.pathname.startsWith("/storage/v1/object/public/card-images/");
+  } catch {
+    return false;
+  }
+}
+
 function db() {
   if (!client) {
     const { url, key } = getSupabaseConfig();

@@ -38,7 +38,7 @@ export async function cardShareImageResponse(
     return new Response(Uint8Array.from(image).buffer, {
       headers: {
         "Content-Type": "image/png",
-        "Cache-Control": "public, max-age=31536000, immutable",
+        "Cache-Control": "public, max-age=300, must-revalidate",
         "Content-Length": String(image.byteLength),
       },
     });

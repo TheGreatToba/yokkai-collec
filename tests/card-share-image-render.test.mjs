@@ -6,6 +6,15 @@ import vm from "node:vm";
 import ts from "typescript";
 
 const require=createRequire(import.meta.url);
+const sharingContext={exports:{},URL,require(name){
+  if(name==="server-only")return {};
+  if(name==="@/utils/supabase/config")return {getSupabaseConfig:()=>({url:"https://catalogue.example",key:"test"})};
+  if(name==="@supabase/supabase-js")return {};
+  throw new Error(`Unexpected sharing import: ${name}`);
+}};
+vm.runInNewContext(ts.transpileModule(readFileSync(new URL("../lib/server/card-sharing.ts",import.meta.url),"utf8"),{
+  compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022},
+}).outputText,sharingContext);
 const source=ts.transpileModule(readFileSync(new URL("../lib/server/card-share-image.tsx",import.meta.url),"utf8"),{
   compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true},
 }).outputText;
@@ -14,7 +23,7 @@ const fetchImage=async()=>new Response(art,{headers:{"Content-Type":"image/png",
 const context={exports:{},process,Buffer,URL,Response,fetch:fetchImage,AbortSignal,TextDecoder,Uint8Array,Promise,
   require(name){
     if(name==="server-only")return {};
-    if(name==="@/utils/supabase/config")return {getSupabaseConfig:()=>({url:"https://catalogue.example",key:"test"})};
+    if(name==="@/lib/server/card-sharing")return sharingContext.exports;
     if(name.startsWith("@/"))return {};
     return require(name);
   },

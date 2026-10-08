@@ -2,13 +2,18 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
+import { createRequire } from "node:module";
+import { renderToStaticMarkup } from "react-dom/server";
 import ts from "typescript";
+
+const require = createRequire(import.meta.url);
 
 function load(file,globals={}) {
   const source=ts.transpileModule(readFileSync(new URL(`../${file}`,import.meta.url),"utf8"),{
-    compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022},
+    compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX},
   }).outputText;
-  const context={exports:{},Response,Uint8Array,...globals,require:name=>{throw new Error(`Unexpected import: ${name}`);}};
+  const context={exports:{},Response,Uint8Array,URL,...globals};
+  context.require=globals.require??(name=>{throw new Error(`Unexpected import: ${name}`);});
   vm.runInNewContext(source,context);
   return context.exports;
 }
@@ -24,22 +29,44 @@ test("une image inconnue ou un identifiant invalide rend 404 avant tout rendu",a
       getShare,cache:{getOrRender:async(_key,render)=>render()},render:async()=>{renders+=1;return new Uint8Array([1]);},
     });
     assert.equal(response.status,404);
+    assert.equal(response.headers.get("cache-control"),"no-store");
     assert.equal(renders,0);
   }
 });
 
-test("une suppression gagne contre une image encore présente dans le cache",async()=>{
+test("la requête suivant une suppression rend 404 avant le cache mémoire chaud",async()=>{
+  let exists=true;
   let cacheReads=0;
-  const response=await cardShareImageResponse(id,"og",{
-    getShare:async()=>null,
+  let queries=0;
+  const dependencies={
+    getShare:async()=>{queries+=1;return exists?card:null;},
     cache:{getOrRender:async()=>{cacheReads+=1;return new Uint8Array([1]);}},
     render:async()=>assert.fail("must not render"),
-  });
+  };
+  assert.equal((await cardShareImageResponse(id,"og",dependencies)).status,200);
+  assert.equal((await cardShareImageResponse(id,"og",dependencies)).status,200);
+  exists=false;
+  const response=await cardShareImageResponse(id,"og",dependencies);
   assert.equal(response.status,404);
-  assert.equal(cacheReads,0);
+  assert.equal(response.headers.get("cache-control"),"no-store");
+  assert.equal(cacheReads,2);
+  assert.equal(queries,3,"un appel RPC par requête, même avec un cache chaud");
 });
 
-test("une image valide est un PNG public immutable",async()=>{
+function assertShortCache(header) {
+  assert.doesNotMatch(header,/immutable/i);
+  const lifetimes=[...header.matchAll(/(?:s-maxage|max-age)=(\d+)/g)].map(match=>Number(match[1]));
+  assert.ok(lifetimes.length>0);
+  assert.ok(lifetimes.every(seconds=>seconds<=300));
+  assert.match(header,/must-revalidate/);
+  assert.doesNotMatch(header,/stale-while-revalidate|stale-if-error/i);
+}
+
+test("contre-preuve : l'ancien en-tête échoue à la politique de cache court",()=>{
+  assert.throws(()=>assertShortCache("public, max-age=31536000, immutable"),assert.AssertionError);
+});
+
+test("une image valide est un PNG public limité à 300 secondes",async()=>{
   const response=await cardShareImageResponse(id,"square",{
     getShare:async()=>card,
     cache:{getOrRender:async(key,render)=>{assert.equal(key,`${id}:square`);return render();}},
@@ -47,7 +74,7 @@ test("une image valide est un PNG public immutable",async()=>{
   });
   assert.equal(response.status,200);
   assert.equal(response.headers.get("content-type"),"image/png");
-  assert.match(response.headers.get("cache-control"),/public.*immutable/);
+  assertShortCache(response.headers.get("cache-control"));
 });
 
 test("une panne de rendu ne devient jamais une erreur 500",async()=>{
@@ -67,4 +94,37 @@ test("la page et ses métadonnées restent strictement publiques",()=>{
   assert.match(page,/summary_large_image/);
   assert.match(page,/NEXT_PUBLIC_SITE_URL/);
   assert.doesNotMatch(page,/customImage|custom_image|ownerId|instanceId|auction|chat|gif/i);
+});
+
+const {isCatalogueImageUrl}=load("lib/server/card-sharing.ts",{require(name){
+  if(name==="server-only"||name==="@supabase/supabase-js")return {};
+  if(name==="@/utils/supabase/config")return {getSupabaseConfig:()=>({url:"https://catalogue.example",key:"test"})};
+  throw new Error(`Unexpected import: ${name}`);
+}});
+
+test("page publique : validation partagée et cadre nommé pour un autre hôte",async()=>{
+  for(const [url,valid] of [
+    ["https://catalogue.example/storage/v1/object/public/card-images/card.png",true],
+    ["https://evil.example/storage/v1/object/public/card-images/card.png",false],
+    ["http://catalogue.example/storage/v1/object/public/card-images/card.png",false],
+    ["https://catalogue.example:444/storage/v1/object/public/card-images/card.png",false],
+    ["https://catalogue.example/storage/v1/object/public/other/card.png",false],
+    ["https://catalogue.example/storage/v1/object/public/card-images-evil/card.png",false],
+    ["invalid",false],
+  ]){
+    assert.equal(isCatalogueImageUrl(url),valid);
+    const page=load("app/partage/[id]/page.tsx",{require(name){
+      if(name==="@/lib/server/card-sharing")return {isCatalogueImageUrl,getSharedCard:async()=>({...card,catalogueImageUrl:url})};
+      if(name==="next/link")return {__esModule:true,default:"a"};
+      if(name==="next/navigation")return {notFound:()=>assert.fail("share exists")};
+      return require(name);
+    }});
+    assert.equal(page.dynamic,"force-dynamic");
+    const html=renderToStaticMarkup(await page.default({params:Promise.resolve({id})}));
+    if(valid)assert.match(html,/<img/);
+    else {
+      assert.doesNotMatch(html,/<img|evil\.example/);
+      assert.match(html,/flex h-full items-center justify-center p-6 text-ink-2">Kitsune<\/div>/);
+    }
+  }
 });
