@@ -134,7 +134,7 @@ Statut établi par le câblage UI → `lib/data` → RPC → SQL, et par les tes
 | ID | Gravité | Constat | Preuve | Correction proposée | Effort |
 |---|---|---|---|---|---|
 | FUN-01 | Moyenne | `getCurrentPseudo()` lit `user_profiles` en direct, alors que depuis `20261002000002` le rôle `authenticated` n'a **plus aucun droit** sur cette table (les droits de colonne de `20260924000008:13` sont révoqués avec le `REVOKE ALL`). La requête échoue et la fonction renvoie `null` sur `/parametres`, `/admin/cards` et les pages communauté. | `lib/auth/session.ts:13-18`. Sonde : `select … from public.user_profiles` en `authenticated` → *permission denied for table user_profiles*. Commentaire de prod : `tests/regular-pack-db.test.mjs:63` | Lire le pseudo via `get_game_info` (déjà appelé juste à côté, `session.ts:20-28`). <br> **Statut : Corrigé — [PR #105](https://github.com/TheGreatToba/yokkai-collec/pull/105) (2026-10-09).** getCurrentPseudo réutilise get_game_info ; aucune réouverture de user_profiles, aucune nouvelle RPC ni migration. Tests du pseudo courant et de l’interdiction des lectures privées des autres. | S |
-| FUN-02 | Basse | Message d'erreur affiché avec un mojibake : « commenÃ§ant ». | `lib/data/cards.ts:43` | Corriger l'encodage. | S |
+| FUN-02 | Basse | Message d'erreur affiché avec un mojibake : « commenÃ§ant ». | `lib/data/cards.ts:43` | Corriger l'encodage. <br> **Statut : Corrigé — [PR #127](https://github.com/TheGreatToba/yokkai-collec/pull/127) (2026-10-09).** Message français rétabli ; test du helper setCardCustomImage rouge avant puis vert. Aucune migration, compatible avec la base actuelle. | S |
 
 ### Axe 6 — Performance
 
