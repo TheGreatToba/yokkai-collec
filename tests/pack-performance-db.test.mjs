@@ -73,15 +73,16 @@ async function scenario(db) {
       await rpc(db, bob, "select public.discard_decision_pack_card($1) as result", [choice.instanceId]);
       await record(`decision choice discarded ${i+1}`);
     }
-    // Preserve both existing errors without fixing the zero-reward bug here.
-    // A savepoint proves failed actions leave cards/achievements unchanged.
-    for (const [fn,error] of [['discard_decision_pack_card',/DECISION_LAST_CHOICE/],['keep_decision_pack_card',/INVALID_KARAS_AMOUNT/]]) {
-      await db.exec("savepoint last_choice; set role authenticated");
-      await db.query("select set_config('request.jwt.claim.sub',$1,false)",[bob]);
-      try { await assert.rejects(db.query(`select public.${fn}($1)`,[discardedChoices[4].instanceId]),error); }
-      finally { await db.exec("rollback to savepoint last_choice; reset role; release savepoint last_choice"); }
-      await record(`last Decision choice: ${fn} refused without state changes`);
-    }
+    // The last choice remains protected from destruction; the zero-reward keep
+    // is now covered by its dedicated fix and stays identical across batching.
+    await db.exec("savepoint last_choice; set role authenticated");
+    await db.query("select set_config('request.jwt.claim.sub',$1,false)",[bob]);
+    try { await assert.rejects(db.query('select public.discard_decision_pack_card($1)',[discardedChoices[4].instanceId]),/DECISION_LAST_CHOICE/); }
+    finally { await db.exec("rollback to savepoint last_choice; reset role; release savepoint last_choice"); }
+    await record('last Decision choice protected from destruction');
+    const lastKept=await rpc(db,bob,'select public.keep_decision_pack_card($1) as result',[discardedChoices[4].instanceId]);
+    assert.equal(lastKept.karasReward,0);
+    await record('last Decision choice kept without a second reward');
     const friendship = await rpc(db, alice, "select public.send_friend_request($1) as result", [bob]);
     await rpc(db, bob, "select public.respond_friend_request($1,true) as result", [friendship]);
     const owned = (await db.query("select id from public.user_cards where user_id=$1 order by card_id,id", [alice])).rows;
