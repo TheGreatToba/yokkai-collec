@@ -294,10 +294,10 @@ export function BoosterReveal({ cards, collection = [], folders = [], revealed, 
   </section>;
 }
 
-export function Boosters({ status, countdown, decisionStatus, decisionCountdown, dropRates = [], shinyRate = 0.1, busy, draw, drawKind, collection, folders = [], revealed, onOpen, onKeepDecision, onDiscard, onAuction, onMoveCard, onSetLocked, onEvolve, onSetCustomImage, onReveal, onSound }: {
+export function Boosters({ status, countdown, decisionStatus, decisionCountdown, dropRates = [], decisionDropRates = DECISION_DROP_RATES, shinyRate = 0.1, busy, draw, drawKind, collection, folders = [], revealed, onOpen, onKeepDecision, onDiscard, onAuction, onMoveCard, onSetLocked, onEvolve, onSetCustomImage, onReveal, onSound }: {
   status: PackStatus | null; countdown: string;
   decisionStatus: DecisionPackStatus | null; decisionCountdown: string; busy: boolean;
-  dropRates?: DropRate[]; shinyRate?: number;
+  dropRates?: DropRate[]; decisionDropRates?: DropRate[]; shinyRate?: number;
   draw: RevealCard[]; drawKind: "regular" | "decision"; collection: CollectedCard[]; folders?: Folder[]; revealed: number;
   onOpen: (kind: "regular" | "decision") => Promise<RevealCard[] | undefined>; onKeepDecision: (instanceId: string) => Promise<number>;
   onDiscard: (instanceId: string) => Promise<void>;
@@ -353,7 +353,7 @@ export function Boosters({ status, countdown, decisionStatus, decisionCountdown,
   });
   const revealing = showDraw && draw.length > 0 && openingPhase === "idle" && !busy;
   const opening = openingPhase !== "idle";
-  const shownRates = ratesKind === "decision" ? DECISION_DROP_RATES : dropRates;
+  const shownRates = ratesKind === "decision" ? decisionDropRates : dropRates;
   return <>
         {opening ? <div className={`yk-opening-stage yk-opening-${openingPhase}`} role={openingPhase === "seal" ? "button" : "status"} tabIndex={openingPhase === "seal" ? 0 : -1} aria-label={openingPhase === "seal" ? "Passer l’animation d’ouverture" : undefined} onClick={finishSeal} onKeyDown={event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();finishSeal();}}}><div className="yk-opening-pack">
       {/* eslint-disable-next-line @next/next/no-img-element */}

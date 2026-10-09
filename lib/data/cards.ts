@@ -14,7 +14,7 @@ export type DecisionPackStatus = { available: boolean; nextPackAt: number; pendi
 export type DecisionPackChoice = CollectedCard & { karasReward: number };
 type GameInfo = {
   user: { id: string; name: string }; categories: Category[]; rarities: Rarity[];
-  dropRates: { rarity: Rarity; percent: number }[]; shinyRate: number; karasBalance: number;
+  dropRates: { rarity: Rarity; percent: number }[]; decisionDropRates?: { rarity: Rarity; percent: number }[]; shinyRate: number; karasBalance: number;
 };
 type CardRow = { id: string; nom: string; categorie: string; franchise?: string | null; rarete_base: Rarity; image_url: string };
 type OwnedRow = { id: string; date_obtention: string; is_shiny: boolean; is_evolved: boolean; is_first_owner: boolean; is_locked: boolean; folder_id: string | null; custom_image_url: string | null; cards: CardRow };
@@ -165,7 +165,8 @@ export async function getGameInfo(): Promise<GameInfo> {
   });
   await assertPlayer(id);
   return { ...info, user: { ...info.user }, categories: [...info.categories],
-    rarities: [...info.rarities], dropRates: info.dropRates.map((rate) => ({ ...rate })) };
+    rarities: [...info.rarities], dropRates: info.dropRates.map((rate) => ({ ...rate })),
+    decisionDropRates: info.decisionDropRates?.map(rate => ({ ...rate })) };
 }
 
 export async function getUserCollection(): Promise<CollectedCard[]> {
