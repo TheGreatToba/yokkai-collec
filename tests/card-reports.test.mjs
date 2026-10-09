@@ -25,9 +25,13 @@ test("card reports are authenticated, deduplicated and admin-audited",async t=>{
   assert.equal((await db.query("select action from public.admin_audit_logs where metadata->>'report_id'=$1",[reportId])).rows[0].action,"card_report.status.change");
 });
 
-test("every real YokaiCard exposes the three report reasons",()=>{
+test("card reports appear only in detail modals with the three reasons",()=>{
   const cardComponent=readFileSync(new URL("../components/yokai-card.tsx",import.meta.url),"utf8");
   const modal=readFileSync(new URL("../components/card-report-button.tsx",import.meta.url),"utf8");
-  assert.match(cardComponent,/CardReportButton cardId=\{id\}/);
+  const catalogue=readFileSync(new URL("../components/community-views.tsx",import.meta.url),"utf8");
+  const collection=readFileSync(new URL("../components/collection.tsx",import.meta.url),"utf8");
+  assert.doesNotMatch(cardComponent,/CardReportButton|yk-card-report-trigger/);
+  assert.match(catalogue,/CardReportButton cardId=\{selected\.id\}/);
+  assert.match(collection,/CardReportButton cardId=\{selected\.id\}/);
   for(const reason of ["image_issue","wrong_license","duplicate_card"]) assert.match(modal,new RegExp(reason));
 });
