@@ -21,12 +21,12 @@ jobs:
       postgres:
         image: supabase/postgres:17.6.1.136
         env:
-          POSTGRES_USER: postgres
+          POSTGRES_USER: auction_ci_admin
           POSTGRES_HOST_AUTH_METHOD: trust
         # Fresh isolated cluster, no ports exposed, no bundled Supabase init scripts.
         options: >-
           --tmpfs /docker-entrypoint-initdb.d
-          --health-cmd "pg_isready -U postgres"
+          --health-cmd "pg_isready -U auction_ci_admin -d postgres"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20

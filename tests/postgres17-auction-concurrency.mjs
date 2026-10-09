@@ -32,7 +32,7 @@ async function until(check, description) {
 }
 
 // Init scripts are disabled on this service. Keep the production migration role NOSUPERUSER.
-await query("create role auction_ci_admin superuser login; alter role postgres nosuperuser bypassrls createrole; create role anon; create role authenticated; create role service_role bypassrls; create database auction_lock_ci owner postgres;", { user: "postgres", db: "postgres" });
+await query("create role postgres login nosuperuser bypassrls createrole; create role anon; create role authenticated; create role service_role bypassrls; create database auction_lock_ci owner postgres;", { db: "postgres" });
 const version = await query("select version();");
 assert.match(version, /PostgreSQL 17\.6\b/);
 console.log(version);
