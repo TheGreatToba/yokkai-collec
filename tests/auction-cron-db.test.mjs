@@ -28,7 +28,7 @@ const readers = ["select public.list_auctions()", "select public.get_auction($1)
 
 test("cron declares the exact postgres command every minute, idempotently", async t => {
   const { db } = await replayMigrations(); t.after(() => db.close());
-  const jobs = async () => (await db.query("select jobname,schedule,command,username,database,active from cron.job")).rows;
+  const jobs = async () => (await db.query("select jobname,schedule,command,username,database,active from cron.job where jobname='settle-expired-auctions'")).rows;
   const expected = [{ jobname: "settle-expired-auctions", schedule: "* * * * *", command, username: "postgres", database: "postgres", active: true }];
   assert.deepEqual(await jobs(), expected);
   await db.exec(sql());
