@@ -8,6 +8,7 @@ import { createAuction } from "@/lib/data/market";
 import { subscribePlayerSnapshotInvalidation } from "@/lib/data/player-state";
 import { useSfx } from "@/hooks/use-sfx";
 import { runPackOpeningOnce } from "@/lib/ui/pack-opening";
+import { startVisiblePolling } from "@/lib/ui/visible-polling";
 
 type Info = Awaited<ReturnType<typeof getGameInfo>>;
 export function Game({ view, account }: { view: "packs" | "collection"; account?: ReactNode }) {
@@ -27,19 +28,48 @@ export function Game({ view, account }: { view: "packs" | "collection"; account?
   const sound = useSfx();
   useEffect(() => {
     let active = true;
-    async function refresh() {
+    let loading = false;
+    let fullRefresh = false;
+    async function refresh(resumed: boolean) {
+      fullRefresh ||= resumed;
+      if (document.hidden || loading) return;
+      loading = true;
+      const full = fullRefresh;
+      fullRefresh = false;
       try {
-        const [game, packs, decision, cards, cardFolders, auctions] = await Promise.all([getGameInfo(), getPackStatus(), getDecisionPackStatus(), getUserCollection(), getFolders(), getActiveAuctionCards()]);
-        if (active) { setInfo(game); setStatus(packs); setDecisionStatus(decision); setCollection(cards); setFolders(cardFolders); setActiveAuctionCards(auctions); setNow(Date.now()); setError(""); }
+        const [game, packs, decision, cards, cardFolders, auctions] = await Promise.all([
+          getGameInfo(),
+          full || view === "packs" ? getPackStatus() : null,
+          full || view === "packs" ? getDecisionPackStatus() : null,
+          full ? getUserCollection() : null,
+          full ? getFolders() : null,
+          full || view === "collection" ? getActiveAuctionCards() : null,
+        ]);
+        if (active) {
+          setInfo(game);
+          if (packs) setStatus(packs);
+          if (decision) setDecisionStatus(decision);
+          if (cards) setCollection(cards);
+          if (cardFolders) setFolders(cardFolders);
+          if (auctions) setActiveAuctionCards(auctions);
+          setError("");
+        }
       } catch (e) { if (active) setError(e instanceof Error ? e.message : "Impossible de charger la partie."); }
+      finally {
+        loading = false;
+        if (active && fullRefresh && !document.hidden) void refresh(false);
+      }
     }
-    void refresh();
-    const interval = window.setInterval(refresh, 1000);
-    return () => { active = false; clearInterval(interval); };
+    const stop = startVisiblePolling(resumed => void refresh(resumed), 30_000);
+    return () => { active = false; stop(); };
+  }, [view]);
+  useEffect(() => {
+    return startVisiblePolling(() => setNow(Date.now()), 1000);
   }, []);
   useEffect(() => {
     let active = true;
     const unsubscribe = subscribePlayerSnapshotInvalidation(scopes => {
+      if (document.hidden) return;
       if (scopes.includes("balance")) void getGameInfo().then(game => { if (active) setInfo(game); }, () => undefined);
       if (scopes.includes("collection")) void Promise.all([getUserCollection(), getActiveAuctionCards()]).then(([cards, auctions]) => { if (active) { setCollection(cards); setActiveAuctionCards(auctions); } }, () => undefined);
     });
