@@ -411,7 +411,7 @@ test("la migration supprime Kirby: Right Back at Ya! et ses exemplaires", async 
 });
 
 test("la migration supprime NieR:Automata Ver1.1a Cour 2 et ses exemplaires", async () => {
-  const migration = await read("supabase/migrations/20261009000012_remove_nier_automata_cour_2_cards.sql");
+  const migration = await read("supabase/migrations/20261009000013_remove_nier_automata_cour_2_cards.sql");
   assert.match(migration, /franchise = 'NieR:Automata Ver1.1a Cour 2'/);
   assert.match(migration, /perform public\.credit_karas\(sale\.buyer_id, sale\.current_price\)/);
   assert.match(migration, /delete from public\.auctions\s+where id = sale\.id/);
