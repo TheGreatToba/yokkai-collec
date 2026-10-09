@@ -14,7 +14,7 @@ const second = file("20260101000001", "begin; alter table public.deploy_probe ad
 
 test("registry exceptions accept only the exact listed version and name", () => {
   const exceptions = JSON.parse(readFileSync(new URL("../supabase/migration-registry-exceptions.json", import.meta.url), "utf8"));
-  assert.deepEqual(Object.keys(exceptions), ["20260928000000"]);
+  assert.deepEqual(Object.keys(exceptions), ["20260928000000", "20261007000004", "20261007000005"]);
   assert.ok(exceptions["20260928000000"].justification.trim());
   const legacy = file("20260928000000", "select 1;", "discard_collection_card_balance");
   const accepted = { version: "20260928000000", name: exceptions["20260928000000"].name };
@@ -24,6 +24,19 @@ test("registry exceptions accept only the exact listed version and name", () => 
     assert.throws(() => deploymentPlan([legacy], [{ ...accepted, name }]), /Registry name differs/);
   }
   assert.throws(() => deploymentPlan([first], [{ version: "20260101000000", name: accepted.name }]), /Registry name differs/);
+});
+
+test("NULL registry names are accepted only for the two documented versions", () => {
+  const exceptions = JSON.parse(readFileSync(new URL("../supabase/migration-registry-exceptions.json", import.meta.url), "utf8"));
+  for (const [version, name] of [["20261007000004", "remove_kingdom_duplicate_imports"], ["20261007000005", "remove_dragon_ball_manual_duplicates"]]) {
+    const migration = file(version, "select 1;", name);
+    assert.deepEqual(deploymentPlan([migration], [{ version, name: null }]).pending, []);
+    assert.equal(exceptions[version].name, null);
+    assert.ok(exceptions[version].justification.trim());
+    assert.ok(readFileSync(new URL(`../supabase/${exceptions[version].proof}`, import.meta.url), "utf8").includes("2026-10-09"));
+    for (const different of ["different", undefined]) assert.throws(() => deploymentPlan([migration], [{ version, name: different }]), /Registry name differs/);
+  }
+  assert.throws(() => deploymentPlan([first], [{ version: "20260101000000", name: null }]), /Registry name differs/);
 });
 
 test("deployment rejects registry collisions/gaps/unknown versions and nontransactional SQL before writes", () => {
