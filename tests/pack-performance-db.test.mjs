@@ -32,7 +32,7 @@ async function fixtures(db) {
     select md5('perf-'||g)::uuid,'perf-'||g,'Perf '||g,
       'Category '||((g-1)/5),'Perf',
       (array['C','R','SR','SSR','LR'])[1+(g-1)%5]::public.card_rarity,'https://example.test/card.png','test'
-    from generate_series(1,15) g;`);
+    from generate_series(1,30) g;`);
 }
 
 async function snapshot(db) {
@@ -69,9 +69,18 @@ async function scenario(db) {
     await rpc(db, alice, "select public.keep_decision_pack_card($1) as result", [choices[0].instanceId]);
     await record("decision kept, other choices destroyed");
     const discardedChoices = await rpc(db, bob, "select public.open_decision_pack() as result");
-    for (const [i,choice] of discardedChoices.entries()) {
+    for (const [i,choice] of discardedChoices.slice(0,4).entries()) {
       await rpc(db, bob, "select public.discard_decision_pack_card($1) as result", [choice.instanceId]);
       await record(`decision choice discarded ${i+1}`);
+    }
+    // Preserve both existing errors without fixing the zero-reward bug here.
+    // A savepoint proves failed actions leave cards/achievements unchanged.
+    for (const [fn,error] of [['discard_decision_pack_card',/DECISION_LAST_CHOICE/],['keep_decision_pack_card',/INVALID_KARAS_AMOUNT/]]) {
+      await db.exec("savepoint last_choice; set role authenticated");
+      await db.query("select set_config('request.jwt.claim.sub',$1,false)",[bob]);
+      try { await assert.rejects(db.query(`select public.${fn}($1)`,[discardedChoices[4].instanceId]),error); }
+      finally { await db.exec("rollback to savepoint last_choice; reset role; release savepoint last_choice"); }
+      await record(`last Decision choice: ${fn} refused without state changes`);
     }
     const friendship = await rpc(db, alice, "select public.send_friend_request($1) as result", [bob]);
     await rpc(db, bob, "select public.respond_friend_request($1,true) as result", [friendship]);
@@ -100,6 +109,15 @@ async function scenario(db) {
     const evolutionTrade = await rpc(db, alice, "select public.create_trade_offer($1,$2::uuid[]) as result", [bob, [evolved.instanceId]]);
     await rpc(db, bob, "select public.respond_trade_offer($1,'accept') as result", [evolutionTrade]);
     await record("evolved card transferred (historical evolution counter behavior)");
+    // Cross all four acquisition thresholds, including 25 unique cards, in a
+    // single batch. This catches a dropped condition even when read-side live
+    // progress is unchanged. Both versions receive precisely the same cards.
+    await db.query(`insert into public.user_cards(user_id,card_id,rarity,is_shiny)
+      select $1,id,rarete_base,rarete_base='LR' from public.cards order by id limit 25`, [bob]);
+    for (const id of ['collection-en-marche','legende-naissante','eclat-inattendu','specialiste']) {
+      assert.equal((await db.query("select completed_at is not null as completed from public.user_achievements where user_id=$1 and achievement_id=$2",[bob,id])).rows[0]?.completed,true,id);
+    }
+    await record("all four collection thresholds crossed together");
     await rpc(db, alice, "select public.claim_achievement('premier-rituel') as result");
     await record("achievement claimed");
     const timestamps = (await db.query("select user_id,achievement_id,completed_at from public.user_achievements order by 1,2")).rows;
