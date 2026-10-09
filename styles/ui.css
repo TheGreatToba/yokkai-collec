@@ -29,6 +29,10 @@ a[aria-current="page"] { color: var(--color-ink); }
 .yk-karas-gem { width: 10px; height: 10px; flex: 0 0 auto; transform: rotate(45deg); border-radius: 2px; background: var(--background-karas); box-shadow: 0 0 10px color-mix(in srgb,var(--color-accent-gold) 32%,transparent); }
 .yk-modal { margin: auto; width: min(820px,calc(100% - 32px)); max-height: 90dvh; padding: 28px; overflow: auto; border: 1px solid var(--color-veil); border-radius: 14px; background: var(--color-surface); color: var(--color-ink); box-shadow: var(--shadow-modal); animation: yk-ui-modal-in var(--modal-duration) var(--ease-standard) both; }
 .yk-modal::backdrop { background: color-mix(in srgb,var(--color-void) 80%,transparent); backdrop-filter: blur(8px); animation: yk-ui-fade-in var(--modal-duration) var(--ease-standard) both; }
+.yk-modal.yk-card-report-modal { width: min(34rem,calc(100% - 32px)); }
+.yk-card-report-reason { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 12px 14px; border: 1px solid var(--color-veil); border-radius: 10px; background: color-mix(in srgb,var(--color-void) 72%,transparent); color: var(--color-ink-2); cursor: pointer; transition: border-color .15s ease,background .15s ease,color .15s ease; }
+.yk-card-report-reason:hover,.yk-card-report-reason.is-selected { border-color: color-mix(in srgb,var(--color-danger) 65%,transparent); background: color-mix(in srgb,var(--color-danger) 12%,transparent); color: var(--color-ink); }
+.yk-card-report-reason input { accent-color: var(--color-danger); }
 .auth-label,.yk-field-label { display: block; margin-bottom: 8px; color: var(--color-ink-2); font-size: 13px; font-weight: 600; }
 .auth-input, select, .yk-field-control { width: 100%; min-height: 46px; border: 1px solid var(--color-veil); border-radius: 8px; padding: 11px 13px; background: var(--color-void); color: var(--color-ink); transition: border-color var(--duration-fast) var(--ease-standard),box-shadow var(--duration-fast) var(--ease-standard),background var(--duration-fast) var(--ease-standard); }
 .auth-input::placeholder { color: var(--color-ink-3); }
