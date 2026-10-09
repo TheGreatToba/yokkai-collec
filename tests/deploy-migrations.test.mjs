@@ -137,6 +137,30 @@ test("pre-deployment catalogue detects structural drift as well as grants and fu
   assert.ok(!after.some(r => r.kind === "index" && r.name === "public.cards_rarete_base_idx"));
 });
 
+test("drift detects changed, missing and extra cron jobs", async t => {
+  const { db } = await replayMigrations(); t.after(() => db.close());
+  const sql = readFileSync(new URL("../scripts/schema-catalog.sql", import.meta.url), "utf8");
+  const rows = (await db.query(sql)).rows.map(r => JSON.parse(Object.values(r)[0]));
+  const job = rows.find(r => r.kind === "cron-job");
+  assert.equal(job.name, "settle-expired-auctions@postgres");
+  assert.deepEqual(job.value, { schedule: "* * * * *", command: "select public.settle_expired_auctions();", username: "postgres", database: "postgres", active: true });
+  const directory = mkdtempSync(path.join(tmpdir(), "yokkai-cron-drift-"));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const production = path.join(directory, "production.jsonl");
+  const compare = actual => {
+    writeFileSync(production, actual.map(r => JSON.stringify(r)).join("\n"));
+    return spawnSync(process.execPath, ["scripts/compare-schema-catalog.mjs", production], { encoding: "utf8", env: { ...process.env, DRIFT_MIGRATIONS_JSON: undefined } });
+  };
+  assert.equal(compare(rows).status, 0);
+  for (const patch of [{ schedule: "*/5 * * * *" }, { command: "select 1;" }, { active: false }, { username: "supabase_admin" }]) {
+    const changed = compare(rows.map(r => r === job ? { ...r, value: { ...r.value, ...patch } } : r));
+    assert.equal(changed.status, 1, changed.stderr);
+    assert.match(changed.stdout, /CHANGED cron-job/);
+  }
+  assert.match(compare(rows.filter(r => r !== job)).stdout, /MISSING IN PROD cron-job/);
+  assert.match(compare([...rows, { ...job, name: "unexpected@postgres" }]).stdout, /PROD ONLY cron-job/);
+});
+
 test("shell deployment gates dry-run, drift, confirmation and invalid backup before SQL", { skip: process.platform === "win32" ? "Interactive PTY integration runs on Linux CI; planner and transaction tests run on Windows too" : false }, async t => {
   const directory = mkdtempSync(path.join(tmpdir(), "yokkai-deploy-test-"));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
@@ -224,4 +248,35 @@ else if(args.includes('pg_restore')){require('fs').readFileSync(0);if(process.en
   assert.ok(archives.includes("unrelated.dump"));
   assert.ok(!archives.some(f => f.endsWith(".partial")));
   for (let i = 1; i <= 3; i++) assert.ok(!archives.some(f => f.endsWith(`-${i}.dump`)), "Prune oldest by modification time");
+
+  // The actual administrative shell body must never reach SQL after a bad dump.
+  const admin = new URL("../scripts/admin/enable-pg-cron.sh", import.meta.url);
+  const source = readFileSync(admin, "utf8");
+  const body = source.match(/<<'REMOTE'\n([\s\S]*?)\nREMOTE/)[1];
+  const adminDirectory = path.join(directory, "admin-backups");
+  const adminLog = path.join(directory, "admin-sql.txt");
+  writeFileSync(path.join(directory, "bin/docker"), `#!/usr/bin/env node
+const fs=require('fs');const args=process.argv.slice(2);
+if(args.includes('pg_dump')){if(!process.env.MOCK_EMPTY)process.stdout.write(Buffer.alloc(2048));}
+else if(args.includes('pg_restore')){fs.readFileSync(0);if(process.env.MOCK_BAD_ARCHIVE)process.exit(1);}
+else if(args.includes('psql')){if(args[args.indexOf('-U')+1]!=='supabase_admin')process.exit(2);fs.writeFileSync(process.env.ADMIN_LOG,fs.readFileSync(0));}
+else process.exit(2);
+`, { mode: 0o755 });
+  const enable = extra => spawnSync("bash", ["-s", "--", "fixture-db", adminDirectory], { input: body, env: { ...env, ADMIN_LOG: adminLog, ...extra }, encoding: "utf8" });
+  for (const extra of [{ MOCK_EMPTY: "1" }, { MOCK_BAD_ARCHIVE: "1" }]) {
+    assert.notEqual(enable(extra).status, 0);
+    assert.equal(readdirSync(adminDirectory).length, 0);
+    assert.throws(() => readFileSync(adminLog));
+  }
+  const enabled = enable({}); assert.equal(enabled.status, 0, enabled.stderr);
+  const adminSql = readFileSync(adminLog, "utf8");
+  assert.match(adminSql, /create extension if not exists pg_cron/);
+  assert.match(adminSql, /set local role postgres/);
+  assert.doesNotMatch(adminSql, /select cron.schedule/);
+  assert.equal(readdirSync(adminDirectory).filter(n => n.endsWith(".dump")).length, 1);
+  writeFileSync(logFile, "");
+  const dry = spawnSync("bash", [admin.pathname], { env, encoding: "utf8" });
+  assert.equal(dry.status, 0, dry.stderr); assert.deepEqual(calls(), []);
+  const unattended = spawnSync("bash", [admin.pathname, "--apply"], { env, encoding: "utf8" });
+  assert.notEqual(unattended.status, 0); assert.match(unattended.stderr, /interactive terminal/); assert.deepEqual(calls(), []);
 });
