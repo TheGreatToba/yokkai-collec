@@ -59,7 +59,7 @@ await query(`
     values ('${y}','${seller}',10,100,'${a}',60,clock_timestamp()+interval '1 hour');
   create function public.ci_pause_debit() returns trigger language plpgsql as $$
   begin
-    if new.karas_balance < old.karas_balance then perform pg_advisory_xact_lock(721934); end if;
+    if new.karas_balance < old.karas_balance then perform pg_advisory_xact_lock_shared(721934); end if;
     return new;
   end $$;
   create trigger ci_pause_debit before update of karas_balance on public.user_profiles for each row execute function public.ci_pause_debit();
@@ -73,7 +73,9 @@ for (let iteration = 1; iteration <= 50; iteration++) {
     const s = session(`set application_name='${label}'; set statement_timeout='12s'; begin; set local role authenticated; select set_config('request.jwt.claim.sub','${player}',true); select public.place_bid('${auction}',120); commit;`);
     s.child.stdin.end(); return s;
   };
-  const first = bid(a, x, "ci-bid-a"), second = bid(b, y, "ci-bid-b");
+  const [first, second] = iteration % 2
+    ? [bid(a, x, "ci-bid-a"), bid(b, y, "ci-bid-b")]
+    : [bid(b, y, "ci-bid-b"), bid(a, x, "ci-bid-a")];
   // Attach handlers immediately: the expected RED deadlock must not become unhandled.
   const bids = Promise.allSettled([first.done, second.done]);
   try {
@@ -96,3 +98,16 @@ for (let iteration = 1; iteration <= 50; iteration++) {
   assert.deepEqual(state, { balances: [880, 880], buyers: [a, b], prices: [120, 120], bids: 2, notifications: 2 });
   console.log(`Crossed bids ${iteration}/50: two authenticated sessions committed; balances, escrow, bids and notifications preserved`);
 }
+
+const asPlayer = (player, sql) => query(`begin; set local role authenticated; select set_config('request.jwt.claim.sub','${player}',true); ${sql}; commit;`);
+await asPlayer(a, `select public.place_bid('${x}',150)`);
+assert.equal(await query(`select karas_balance from public.user_profiles where user_id='${a}';`), "850", "Self-raise charges only the difference");
+await assert.rejects(asPlayer(seller, `select public.place_bid('${x}',160)`), /SELLER_CANNOT_BID/);
+await assert.rejects(asPlayer(b, `select public.place_bid('${x}',159)`), /BID_TOO_LOW/);
+await assert.rejects(asPlayer(b, `select public.place_bid('${x}',1000000)`), /INSUFFICIENT_KARAS/);
+await query(`update public.auctions set ends_at=clock_timestamp()+interval '4 minutes' where id='${x}';`);
+const before = await query(`select ends_at::text from public.auctions where id='${x}';`);
+await asPlayer(a, `select public.place_bid('${x}',160)`);
+assert.equal(Number(await query(`select extract(epoch from (ends_at-'${before}'::timestamptz)) from public.auctions where id='${x}';`)), 60);
+assert.equal(await query("select has_function_privilege('anon','public.place_bid(uuid,integer)','EXECUTE');"), "f");
+console.log("Auction rules preserved: self-raise delta, seller refusal, minimum bid, insufficient funds, 60s extension and anon denied");
