@@ -908,9 +908,10 @@ test("les notifications se relisent à l'ouverture du panneau et au retour sur l
   const hook = readFileSync(path.join(root, "hooks/use-notification-feed.ts"), "utf8");
   const topbar = readFileSync(path.join(root, "components/topbar.tsx"), "utf8");
   const community = readFileSync(path.join(root, "components/community-views.tsx"), "utf8");
-  assert.match(hook, /setInterval\(\(\) => void refresh\(\), POLL_INTERVAL_MS\)/);
-  assert.match(hook, /addEventListener\("visibilitychange"/);
-  assert.match(hook, /removeEventListener\("visibilitychange"/);
+  assert.match(hook, /startVisiblePolling\(\(\) => void refresh\(\), POLL_INTERVAL_MS\)/);
+  const polling = readFileSync(new URL("../lib/ui/visible-polling.ts", import.meta.url), "utf8");
+  assert.match(polling, /addEventListener\("visibilitychange"/);
+  assert.match(polling, /removeEventListener\("visibilitychange"/);
   assert.match(hook, /inFlight\.current\) return/);
   assert.match(topbar, /setPanel\("notifications"\);if\(notifications\)onRefreshNotifications\?\.\(\);else void feed\.refresh\(\);/);
   assert.match(community, /onRefreshNotifications=\{\(\)=>void feed\.refresh\(\)\}/);
