@@ -146,7 +146,7 @@ test("inscription sans confirmation et connexion : session puis invalidation du 
 });
 
 test("erreurs Auth : messages français, pas de détails techniques ni de mot de passe", async () => {
-  for (const code of ["invalid_credentials", "email_not_confirmed", "over_request_rate_limit", "unexpected_failure"]) {
+  for (const code of ["invalid_credentials", "email_not_confirmed", "user_banned", "over_request_rate_limit", "unexpected_failure"]) {
     const result = await actions({ signInWithPassword: async () => ({ error: { code, message: "SECRET PROVIDER DETAILS" } }) }).signIn({}, form());
     assert.ok(result.error);
     assert.equal(JSON.stringify(result).includes("SECRET"), false);
@@ -158,6 +158,7 @@ test("erreurs Auth : messages français, pas de détails techniques ni de mot de
 
 test("inscription : chaque erreur Auth identifiable a un message distinct", () => {
   const expected = new Map([
+    ["user_banned", /Votre compte est banni\./],
     ["weak_password", /mot de passe est trop faible/],
     ["email_exists", /déjà utilisée/],
     ["user_already_exists", /déjà utilisée/],

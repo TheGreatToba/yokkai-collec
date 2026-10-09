@@ -5,6 +5,7 @@ import { requireAdminPage } from "@/lib/auth/admin";
 import { getCurrentKarasBalance, getCurrentPseudo } from "@/lib/auth/session";
 import { createClient } from "@/utils/supabase/server";
 import { AdminCardManager } from "./admin-card-manager";
+import { AdminNavigation } from "../admin-navigation";
 
 export const dynamic = "force-dynamic";
 const ADMIN_SEARCH_PAGE_SIZE = 1000;
@@ -58,6 +59,7 @@ export default async function AdminCardsPage({
         <header className="flex flex-wrap items-center justify-between gap-4">
           <div><p className="text-sm font-semibold uppercase tracking-widest text-cyan-300">Administration</p><h1 className="text-3xl font-black">Mise en ligne des cartes</h1><p className="text-sm text-slate-400">Connecté : {admin.email}</p></div>
         </header>
+        <AdminNavigation />
         <section className="rounded-2xl border border-cyan-300/20 bg-slate-900/70 p-5">
           <h2 className="text-xl font-bold">Rechercher une carte du catalogue</h2>
           <p className="mt-1 text-sm text-slate-300">Recherche par nom de carte ou de licence, avec un filtre de catégorie facultatif.</p>

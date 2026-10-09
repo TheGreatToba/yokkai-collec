@@ -2,6 +2,11 @@
 // Trigger entries retain historical authenticated grants; PostgreSQL rejects direct calls
 // to returns-trigger functions (they can only run in a trigger context).
 const allowlist = {
+  "public.admin_get_player(uuid)": ["authenticated"], // Admin-only account and inventory projection.
+  "public.admin_list_players(text, integer, integer)": ["authenticated"], // Admin-only paginated account search.
+  "public.admin_remove_player_card(uuid)": ["authenticated"], // Admin-only removal of one owned copy, including safe auction cancellation.
+  "public.admin_set_user_ban(uuid, boolean)": ["authenticated"], // Admin-only moderation action with self/admin protection.
+  "public.admin_search_reports(text, text, integer, integer)": ["authenticated"], // Admin-only enriched report dashboard.
   "public.admin_card_reference_counts(uuid)": ["authenticated"], // Admin RPC checks administrator status before reading references.
   "public.admin_list_reports(text, integer, integer)": ["authenticated"], // Moderation RPC checks administrator status.
   "public.admin_set_report_status(uuid, text)": ["authenticated"], // Moderation update checks administrator status.
