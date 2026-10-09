@@ -3,7 +3,6 @@ import { PGlite } from "@electric-sql/pglite";
 
 // Shared Supabase bootstrap for disposable PGlite and PostgreSQL databases.
 export const bootstrapSQL = `
-
       create schema auth;
       create table auth.users(id uuid primary key, raw_user_meta_data jsonb);
       create function auth.uid() returns uuid language sql stable as
@@ -13,7 +12,7 @@ export const bootstrapSQL = `
       create table storage.objects(bucket_id text, name text, owner_id text);
       create function storage.foldername(text) returns text[] language sql as $$select string_to_array($1,'/')$$;
       grant usage on schema public, auth, storage to anon, authenticated, service_role;
-      -- pg_cron is unavailable in WASM. Record declarations only; never execute jobs.
+      -- Record cron declarations only; never run scheduled jobs in disposable tests.
       create schema cron;
       create table cron.job (
         jobid bigint generated always as identity primary key,
@@ -41,7 +40,7 @@ export const bootstrapSQL = `
 export async function replayMigrations({ migrations: selected } = {}) {
   const db = new PGlite();
   try {
-    await db.exec(`      create role anon; create role authenticated; create role service_role bypassrls;
+    await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
 ${bootstrapSQL}`);
     const directory = new URL("../supabase/migrations/", import.meta.url);
     const available = readdirSync(directory).filter((name) => name.endsWith(".sql")).sort();

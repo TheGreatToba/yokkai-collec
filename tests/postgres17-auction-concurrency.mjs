@@ -10,7 +10,7 @@ assert.ok(container, "TEST_POSTGRES_CONTAINER must identify the disposable Postg
 const image = execFileSync("docker", ["inspect", "--format", "{{.Config.Image}}", container], { encoding: "utf8" }).trim();
 assert.equal(image, "supabase/postgres:17.6.1.136");
 const database = "auction_lock_ci";
-function session(sql, { user = "auction_ci_admin", db = database } = {}) {
+function session(sql, { user = "supabase_admin", db = database } = {}) {
   const child = spawn("docker", ["exec", "-i", container, "psql", "-X", "-w", "-qAt", "-U", user, "-d", db, "-v", "ON_ERROR_STOP=1", "-v", "VERBOSITY=verbose"], { stdio: "pipe" });
   let out = "", err = "";
   child.stdout.on("data", b => { out += b; });
