@@ -141,9 +141,10 @@ test("drift detects changed, missing and extra cron jobs", async t => {
   const { db } = await replayMigrations(); t.after(() => db.close());
   const sql = readFileSync(new URL("../scripts/schema-catalog.sql", import.meta.url), "utf8");
   const rows = (await db.query(sql)).rows.map(r => JSON.parse(Object.values(r)[0]));
-  const job = rows.find(r => r.kind === "cron-job");
-  assert.equal(job.name, "settle-expired-auctions@postgres");
-  assert.deepEqual(job.value, { schedule: "* * * * *", command: "select public.settle_expired_auctions();", username: "postgres", database: "postgres", active: true });
+  const jobs = rows.filter(r => r.kind === "cron-job");
+  assert.deepEqual(jobs.map(j => j.name), ["purge-cron-history@postgres", "settle-expired-auctions@postgres"]);
+  assert.deepEqual(jobs[0].value, { schedule: "0 3 * * *", command: "delete from cron.job_run_details where end_time < now() - interval '7 days';", username: "postgres", database: "postgres", active: true });
+  assert.deepEqual(jobs[1].value, { schedule: "* * * * *", command: "select public.settle_expired_auctions();", username: "postgres", database: "postgres", active: true });
   const directory = mkdtempSync(path.join(tmpdir(), "yokkai-cron-drift-"));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   const production = path.join(directory, "production.jsonl");
@@ -152,13 +153,17 @@ test("drift detects changed, missing and extra cron jobs", async t => {
     return spawnSync(process.execPath, ["scripts/compare-schema-catalog.mjs", production], { encoding: "utf8", env: { ...process.env, DRIFT_MIGRATIONS_JSON: undefined } });
   };
   assert.equal(compare(rows).status, 0);
-  for (const patch of [{ schedule: "*/5 * * * *" }, { command: "select 1;" }, { active: false }, { username: "supabase_admin" }]) {
-    const changed = compare(rows.map(r => r === job ? { ...r, value: { ...r.value, ...patch } } : r));
-    assert.equal(changed.status, 1, changed.stderr);
-    assert.match(changed.stdout, /CHANGED cron-job/);
+  for (const job of jobs) {
+    for (const patch of [{ schedule: "*/5 * * * *" }, { command: "select 1;" }, { active: false }, { username: "supabase_admin" }]) {
+      const changed = compare(rows.map(r => r === job ? { ...r, value: { ...r.value, ...patch } } : r));
+      assert.equal(changed.status, 1, changed.stderr);
+      assert.match(changed.stdout, /CHANGED cron-job/);
+    }
+    const missing = compare(rows.filter(r => r !== job));
+    assert.equal(missing.status, 1, missing.stderr);
+    assert.ok(missing.stdout.includes(`MISSING IN PROD cron-job: ${job.name}`));
   }
-  assert.match(compare(rows.filter(r => r !== job)).stdout, /MISSING IN PROD cron-job/);
-  assert.match(compare([...rows, { ...job, name: "unexpected@postgres" }]).stdout, /PROD ONLY cron-job/);
+  assert.match(compare([...rows, { ...jobs[0], name: "unexpected@postgres" }]).stdout, /PROD ONLY cron-job/);
 });
 
 test("shell deployment gates dry-run, drift, confirmation and invalid backup before SQL", { skip: process.platform === "win32" ? "Interactive PTY integration runs on Linux CI; planner and transaction tests run on Windows too" : false }, async t => {

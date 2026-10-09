@@ -24,6 +24,10 @@ export async function replayMigrations({ migrations: selected } = {}) {
         username text not null default current_user, database text not null default current_database(),
         active boolean not null default true, unique(jobname, username)
       );
+      create table cron.job_run_details (
+        runid bigint generated always as identity primary key,
+        start_time timestamptz, end_time timestamptz
+      );
       create function cron.schedule(job_name text, schedule text, command text)
       returns bigint language sql as $$
         insert into cron.job(jobname,schedule,command) values ($1,$2,$3)
