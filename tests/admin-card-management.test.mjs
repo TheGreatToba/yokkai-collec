@@ -378,6 +378,7 @@ test("la migration supprime la licence PERSONA5 the Animation et ses exemplaires
   assert.match(migration, /lower\(btrim\(franchise\)\) = lower\('PERSONA5 the Animation'\)/);
   assert.match(migration, /delete from public\.card_shares/);
   assert.match(migration, /delete from public\.decision_pack_choices/);
+  assert.match(migration, /update public\.user_cards\s+set is_locked = false/);
   assert.match(migration, /delete from public\.user_cards\s+where card_id = any\(target_card_ids\)/);
   assert.match(migration, /delete from public\.cards\s+where id = any\(target_card_ids\)/);
   assert.match(migration, /if linked_auctions <> 0 then/);

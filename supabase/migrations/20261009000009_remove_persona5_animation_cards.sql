@@ -61,6 +61,10 @@ begin
   delete from public.decision_pack_choices
   where card_id = any(target_card_ids);
 
+  update public.user_cards
+  set is_locked = false
+  where id = any(target_instance_ids);
+
   delete from public.user_cards
   where card_id = any(target_card_ids);
 
