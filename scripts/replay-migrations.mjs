@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
 
 // Disposable database only: mimic Supabase defaults before creating application objects.
-export async function replayMigrations() {
+export async function replayMigrations({ migrations: selected } = {}) {
   const db = new PGlite();
   try {
     await db.exec(`
@@ -21,7 +21,11 @@ export async function replayMigrations() {
       alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
     `);
     const directory = new URL("../supabase/migrations/", import.meta.url);
-    const migrations = readdirSync(directory).filter((name) => name.endsWith(".sql")).sort();
+    const available = readdirSync(directory).filter((name) => name.endsWith(".sql")).sort();
+    const migrations = selected ?? available;
+    if (!Array.isArray(migrations) || migrations.some(name => !available.includes(name))) {
+      throw new Error("Invalid migration selection");
+    }
     for (const name of migrations) {
       try { await db.exec(readFileSync(new URL(name, directory), "utf8")); }
       catch (error) { throw new Error(`Migration ${name}: ${error.message}`, { cause: error }); }

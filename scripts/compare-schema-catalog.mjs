@@ -1,12 +1,16 @@
 import { readFileSync } from "node:fs";
 import { replayMigrations } from "./replay-migrations.mjs";
 
-const { db, migrations } = await replayMigrations();
+// Before deployment compare against the applied prefix, not the pending schema.
+const selected = process.env.DRIFT_MIGRATIONS_JSON;
+const { db, migrations } = await replayMigrations(selected === undefined ? {} : { migrations: JSON.parse(selected) });
 try {
   const expected = (await db.query(readFileSync(new URL("./schema-catalog.sql", import.meta.url), "utf8")))
     .rows.map((row) => JSON.parse(Object.values(row)[0]));
   const actual = readFileSync(process.argv[2], "utf8").trim().split(/\r?\n/).filter(Boolean).map((line) => JSON.parse(line));
   const key = (row) => `${row.kind}: ${row.name}`;
+  if (actual.some(row => !row || typeof row.kind !== "string" || typeof row.name !== "string" || !Object.hasOwn(row, "value")) ||
+    new Set(actual.map(key)).size !== actual.length) throw new Error("Invalid or duplicate production catalogue entries; drift check refused");
   const canonical = (value) => JSON.stringify(value, (_key, item) =>
     typeof item === "string" ? item.replace(/\r\n/g, "\n") :
     item && typeof item === "object" && !Array.isArray(item)

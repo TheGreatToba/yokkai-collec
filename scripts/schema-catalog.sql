@@ -22,6 +22,38 @@ from (
   from pg_class c join pg_namespace n on n.oid=c.relnamespace
   where n.nspname='public' and c.relkind in ('r','p','v','m','S','f')
   union all
+  select 'column', n.nspname || '.' || c.relname || '.' || a.attname,
+    jsonb_build_object('position', a.attnum, 'type', format_type(a.atttypid,a.atttypmod),
+      'not_null', a.attnotnull, 'identity', a.attidentity, 'generated', a.attgenerated,
+      'default', pg_get_expr(d.adbin,d.adrelid))
+  from pg_attribute a join pg_class c on c.oid=a.attrelid join pg_namespace n on n.oid=c.relnamespace
+    left join pg_attrdef d on d.adrelid=a.attrelid and d.adnum=a.attnum
+  where n.nspname='public' and c.relkind in ('r','p','v','m','f') and a.attnum>0 and not a.attisdropped
+  union all
+  select 'constraint', n.nspname || '.' || c.relname || '.' || con.conname,
+    jsonb_build_object('definition', pg_get_constraintdef(con.oid), 'validated', con.convalidated)
+  from pg_constraint con join pg_class c on c.oid=con.conrelid join pg_namespace n on n.oid=c.relnamespace
+  where n.nspname='public'
+  union all
+  select 'index', n.nspname || '.' || c.relname,
+    jsonb_build_object('definition', pg_get_indexdef(i.indexrelid), 'valid', i.indisvalid, 'ready', i.indisready)
+  from pg_index i join pg_class c on c.oid=i.indexrelid join pg_namespace n on n.oid=c.relnamespace
+  where n.nspname='public'
+  union all
+  select 'view', n.nspname || '.' || c.relname, to_jsonb(pg_get_viewdef(c.oid))
+  from pg_class c join pg_namespace n on n.oid=c.relnamespace
+  where n.nspname='public' and c.relkind in ('v','m')
+  union all
+  select 'enum', n.nspname || '.' || t.typname,
+    (select jsonb_agg(e.enumlabel order by e.enumsortorder) from pg_enum e where e.enumtypid=t.oid)
+  from pg_type t join pg_namespace n on n.oid=t.typnamespace where n.nspname='public' and t.typtype='e'
+  union all
+  select 'sequence', n.nspname || '.' || c.relname,
+    jsonb_build_object('type', format_type(s.seqtypid,null), 'start', s.seqstart, 'increment', s.seqincrement,
+      'min', s.seqmin, 'max', s.seqmax, 'cache', s.seqcache, 'cycle', s.seqcycle)
+  from pg_sequence s join pg_class c on c.oid=s.seqrelid join pg_namespace n on n.oid=c.relnamespace
+  where n.nspname='public'
+  union all
   select 'column-grant', n.nspname || '.' || c.relname || '.' || col.attname,
     (select jsonb_agg(jsonb_build_array(case when a.grantee=0 then 'PUBLIC' else pg_get_userbyid(a.grantee) end,
       a.privilege_type, a.is_grantable) order by a.grantee=0 desc, pg_get_userbyid(a.grantee), a.privilege_type)

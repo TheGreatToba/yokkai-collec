@@ -20,9 +20,10 @@ Il utilise la convention Proxy de Next.js 16.
    des packs et ouverture transactionnelle du Regular Pack.
 
 Ces fichiers ne sont pas appliqués automatiquement au projet distant.
-Exécuter leur contenu dans cet ordre dans le SQL Editor de Supabase, ou via
-la CLI Supabase une fois le projet initialisé et lié. Ne pas rejouer une
-migration déjà appliquée.
+Les migrations s'appliquent uniquement via `scripts/deploy-migrations.sh` depuis
+la racine du repo (aperçu par défaut ; `--apply` avec confirmation interactive).
+Aucune modification de schéma depuis Studio. Voir le README racine pour les
+contrôles, sauvegardes sur VPS et prérequis. Ne pas rejouer une migration déjà appliquée.
 
 Le 24 septembre 2026, les trois migrations ont été appliquées au projet distant
 dans une transaction via l'API d'administration, avec leurs versions exactes
