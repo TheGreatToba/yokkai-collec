@@ -16,6 +16,21 @@ export async function replayMigrations({ migrations: selected } = {}) {
       create table storage.objects(bucket_id text, name text, owner_id text);
       create function storage.foldername(text) returns text[] language sql as $$select string_to_array($1,'/')$$;
       grant usage on schema public, auth, storage to anon, authenticated, service_role;
+      -- pg_cron is unavailable in WASM. Record declarations only; never execute jobs.
+      create schema cron;
+      create table cron.job (
+        jobid bigint generated always as identity primary key,
+        jobname text not null, schedule text not null, command text not null,
+        username text not null default current_user, database text not null default current_database(),
+        active boolean not null default true, unique(jobname, username)
+      );
+      create function cron.schedule(job_name text, schedule text, command text)
+      returns bigint language sql as $$
+        insert into cron.job(jobname,schedule,command) values ($1,$2,$3)
+        on conflict(jobname,username) do update set schedule=excluded.schedule, command=excluded.command, active=true
+        returning jobid
+      $$;
+      revoke all on function cron.schedule(text,text,text) from public;
       alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
       alter default privileges in schema public grant execute on functions to anon, authenticated, service_role;
       alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;

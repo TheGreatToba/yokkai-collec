@@ -13,6 +13,7 @@
 # Compares public functions/grants/RLS/triggers, storage policies and signup
 # triggers, including exact owners of all public functions (SECURITY DEFINER too).
 # Also compares public columns/constraints/indexes/views/enums/sequence settings.
+# Compares cron job names, schedules, commands, execution roles and activation.
 # Platform-managed auth/storage definitions are excluded; no owner-role mapping.
 set -euo pipefail
 : "${PROD_SSH_ALIAS:?Set an alias from ~/.ssh/config}"

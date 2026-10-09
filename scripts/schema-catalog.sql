@@ -75,4 +75,16 @@ from (
   where not t.tgisinternal and (n.nspname='public' or
     (n.nspname in ('auth','storage') and t.tgfoid in
       (select p.oid from pg_proc p join pg_namespace ns on ns.oid=p.pronamespace where ns.nspname='public')))
+  union all
+  -- The extension is activated separately. A missing cron schema yields no jobs,
+  -- while a missing/changed declared job is still detected after its migration.
+  select 'cron-job', coalesce(job.jobname, '[unnamed:' || job.jobid || ']') || '@' || job.username,
+    jsonb_build_object('schedule', job.schedule, 'command', job.command,
+      'username', job.username, 'database', job.database, 'active', job.active)
+  from xmltable('/table/row' passing
+    case when to_regclass('cron.job') is null then '<table/>'::xml
+    else query_to_xml('select jobid,jobname,schedule,command,username,database,active from cron.job', true, false, '') end
+    columns jobid bigint path 'jobid', jobname text path 'jobname', schedule text path 'schedule',
+      command text path 'command', username text path 'username', database text path 'database', active boolean path 'active'
+  ) job
 ) catalogue order by kind, name;

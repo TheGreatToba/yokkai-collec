@@ -69,6 +69,8 @@ test("canonical owners preserve all twelve RPC/helper/trigger paths with non-sup
       await db.exec("rollback to locked_transfer; release locked_transfer");
       const auction = (await db.query(`insert into public.auctions(card_instance_id,seller_id,starting_price,duration_minutes,ends_at,current_price,buyer_id)
         values ($1,$2,10,15,now()-interval '1 minute',40,$3) returning id`, [copies[2], alice, bob])).rows[0].id;
+      // Settlement now belongs to the postgres server job, not the read RPC.
+      await db.query("select public.settle_expired_auctions()");
       await db.exec("set local role authenticated");
       assert.equal(await call("select public.remove_friend($1) as value", [bob]), true);
       assert.deepEqual(await call("select public.get_my_active_auction_cards() as value"), []);

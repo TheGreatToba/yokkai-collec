@@ -37,6 +37,35 @@ Migrations et registre sont appliqués dans une transaction unique, puis le drif
 est vérifié ; une erreur après `COMMIT` exige une investigation, sans rollback
 automatique. Les sauvegardes hors VPS feront l'objet d'un chantier séparé.
 
+### Activation unique de pg_cron
+
+Avant la migration `20261009000004_auction_server_settlement.sql`, un administrateur
+VPS (toi ou ton collègue, après coordination) lance **une seule fois** le script
+ci-dessous. C'est l'exception administrative pour installer l'extension, hors du
+registre de migrations : backup complet validé, puis `CREATE EXTENSION IF NOT EXISTS`
+sous `supabase_admin` et vérification des droits de planification de `postgres`.
+Les migrations suivantes continuent exclusivement sous `postgres`.
+
+```sh
+PROD_SSH_ALIAS=mon-alias PROD_DB_CONTAINER=mon-conteneur bash scripts/admin/enable-pg-cron.sh
+PROD_SSH_ALIAS=mon-alias PROD_DB_CONTAINER=mon-conteneur bash scripts/admin/enable-pg-cron.sh --apply
+```
+
+Le premier appel affiche seulement le plan ; le second exige `ENABLE-PG-CRON`.
+Le backup reste sur le VPS dans `/var/backups/yokkai-pg-cron` (surcharge possible
+via `PROD_BACKUP_DIR`). Le script ne programme aucun job ; la migration le fait
+sous `postgres`, chaque minute. Elle échoue explicitement si pg_cron manque.
+PGlite utilise un stub qui enregistre le job sans exécuter de planificateur.
+
+Ordre sûr : **activation pg_cron → migration via deploy-migrations.sh → front**.
+Coolify redéploie automatiquement `master` (configuration vérifiée le 09/10/2026).
+Pour respecter strictement cet ordre, coordonner le merge/redéploiement avec
+l'application SQL. Si le front arrive avant la migration, les anciennes lectures
+SQL continuent de clôturer les enchères ; la migration crée le job et retire ces
+effets de bord dans la même transaction. Après migration, une clôture peut prendre
+jusqu'au prochain passage du job (une minute, hors surcharge/échec).
+Vérifier ensuite les exécutions dans `cron.job_run_details` et le drift.
+
 ## Vérifications locales
 
 ```sh
