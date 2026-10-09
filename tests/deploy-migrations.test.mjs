@@ -97,6 +97,32 @@ test("historical nontransactional migrations are explicitly refused when pending
   assert.deepEqual(incompatible, ["20261005000001_cards_category_index.sql"]);
 });
 
+test("catalogue omits redundant NOT NULL constraints but detects a real missing NOT NULL", async t => {
+  const { db } = await replayMigrations(); t.after(() => db.close());
+  const sql = readFileSync(new URL("../scripts/schema-catalog.sql", import.meta.url), "utf8");
+  const catalog = async () => (await db.query(sql)).rows.map(r => JSON.parse(Object.values(r)[0]));
+  const before = await catalog();
+  assert.ok(!before.some(r => r.kind === "constraint" && r.value.definition.startsWith("NOT NULL ")));
+  assert.equal(before.find(r => r.kind === "column" && r.name === "public.user_profiles.bio").value.not_null, true);
+  await db.exec("alter table public.user_profiles alter column bio drop not null");
+  const after = await catalog();
+  assert.equal(after.find(r => r.kind === "column" && r.name === "public.user_profiles.bio").value.not_null, false);
+  const directory = mkdtempSync(path.join(tmpdir(), "yokkai-not-null-test-"));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const production = path.join(directory, "catalog.jsonl");
+  const compare = rows => {
+    writeFileSync(production, rows.map(r => JSON.stringify(r)).join("\n"));
+    return spawnSync(process.execPath, ["scripts/compare-schema-catalog.mjs", production], { encoding: "utf8", env: { ...process.env, DRIFT_MIGRATIONS_JSON: undefined } });
+  };
+  const identical = compare(before);
+  assert.equal(identical.status, 0, identical.stderr);
+  assert.match(identical.stdout, /0 divergences/);
+  const missing = compare(after);
+  assert.equal(missing.status, 1, missing.stderr);
+  assert.match(missing.stdout, /CHANGED column: public.user_profiles.bio/);
+  assert.match(missing.stdout, /1 divergences/);
+});
+
 test("pre-deployment catalogue detects structural drift as well as grants and functions", async t => {
   const { db } = await replayMigrations(); t.after(() => db.close());
   const sql = readFileSync(new URL("../scripts/schema-catalog.sql", import.meta.url), "utf8");
