@@ -1,12 +1,9 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
 
-// Disposable database only: mimic Supabase defaults before creating application objects.
-export async function replayMigrations({ migrations: selected } = {}) {
-  const db = new PGlite();
-  try {
-    await db.exec(`
-      create role anon; create role authenticated; create role service_role bypassrls;
+// Shared Supabase bootstrap for disposable PGlite and PostgreSQL databases.
+export const bootstrapSQL = `
+
       create schema auth;
       create table auth.users(id uuid primary key, raw_user_meta_data jsonb);
       create function auth.uid() returns uuid language sql stable as
@@ -38,7 +35,14 @@ export async function replayMigrations({ migrations: selected } = {}) {
       alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
       alter default privileges in schema public grant execute on functions to anon, authenticated, service_role;
       alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
-    `);
+    `;
+
+// Disposable database only: mimic Supabase defaults before creating application objects.
+export async function replayMigrations({ migrations: selected } = {}) {
+  const db = new PGlite();
+  try {
+    await db.exec(`      create role anon; create role authenticated; create role service_role bypassrls;
+${bootstrapSQL}`);
     const directory = new URL("../supabase/migrations/", import.meta.url);
     const available = readdirSync(directory).filter((name) => name.endsWith(".sql")).sort();
     const migrations = selected ?? available;
