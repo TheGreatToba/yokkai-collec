@@ -7,7 +7,9 @@ stable
 security definer
 set search_path = ''
 as $$
-  select pseudo from public.user_profiles where user_id = auth.uid();
+  -- Reuse the existing session-scoped reader, exposing only its pseudo.
+  select case when auth.uid() is null then null
+    else public.get_game_info()->'user'->>'name' end;
 $$;
 
 -- Supabase defaults grant EXECUTE to service_role too; this RPC is session-only.
