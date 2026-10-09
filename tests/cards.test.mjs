@@ -10,7 +10,7 @@ const owned = (n, user = "alice", rarity = "C") => ({ id: String(n).padStart(6, 
   user_id: user, date_obtention: new Date(1800000000000 + n * 1000).toISOString(), rarity,
   is_shiny: false, is_evolved: false, is_first_owner: rarity === "LR", folder_id: null, custom_image_url: null, cards: card(n % 3, rarity) });
 
-function setup({ catalogue = [], collection = [], apiLimit = 500 } = {}) {
+function setup({ catalogue = [], collection = [], apiLimit = 500, decisionDropRates } = {}) {
   let now = 1800000000000;
   let user = "alice";
   let listener;
@@ -52,7 +52,8 @@ function setup({ catalogue = [], collection = [], apiLimit = 500 } = {}) {
       if (rpcError) return { data: null, error: rpcError };
       if (name === "get_game_info") return { data: { user: { id: user, name: user },
         categories: ["Anime/Manga"], rarities: ["C", "R", "SR", "SSR", "LR"],
-        dropRates: [{ rarity: "C", percent: 71.9 }, { rarity: "R", percent: 20 }, { rarity: "SR", percent: 7 }, { rarity: "SSR", percent: 1 }, { rarity: "LR", percent: 0.1 }], shinyRate: 0.1, karasBalance }, error: null };
+        dropRates: [{ rarity: "C", percent: 71.9 }, { rarity: "R", percent: 20 }, { rarity: "SR", percent: 7 }, { rarity: "SSR", percent: 1 }, { rarity: "LR", percent: 0.1 }], shinyRate: 0.1, karasBalance,
+        ...(decisionDropRates === undefined ? {} : { decisionDropRates }) }, error: null };
       if (name === "get_regular_pack_status") return { data: { available: 1, maximum: 5,
         serverNow: 1000000, nextPackAt: 1000000 + 60000 }, error: null };
       if (name === "open_regular_pack") {
@@ -231,4 +232,14 @@ test("une URL Imgur refusée affiche un message français sans mojibake", async 
   await assert.rejects(api.setCardCustomImage("000001", "https://example.test/image.png"), {
     message: "Saisissez un lien Imgur valide commençant par https://i.imgur.com/ ou https://imgur.com/.",
   });
+});
+
+test("game info forwards isolated Decision rates and accepts the old database response", async () => {
+  const rates = [{ rarity: "SR", percent: 90 }, { rarity: "SSR", percent: 9 }, { rarity: "LR", percent: 1 }];
+  const { api } = setup({ decisionDropRates: rates });
+  const first = await api.getGameInfo();
+  assert.deepEqual(Array.from(first.decisionDropRates, rate => ({ ...rate })), rates);
+  first.decisionDropRates[0].percent = 0;
+  assert.equal((await api.getGameInfo()).decisionDropRates[0].percent, 90);
+  assert.equal((await setup().api.getGameInfo()).decisionDropRates, undefined);
 });
