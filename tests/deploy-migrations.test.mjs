@@ -102,6 +102,8 @@ test("pre-deployment catalogue detects structural drift as well as grants and fu
   const sql = readFileSync(new URL("../scripts/schema-catalog.sql", import.meta.url), "utf8");
   const catalog = async () => (await db.query(sql)).rows.map(r => JSON.parse(Object.values(r)[0]));
   const before = await catalog();
+  assert.ok(before.some(r => r.kind === "column" && r.name === "public.cards.id" && r.value.not_null === true));
+  assert.ok(!before.some(r => r.kind === "constraint" && /^NOT NULL\b/.test(r.value.definition)));
   await db.exec("alter table public.cards add column unexpected_drift integer; drop index public.cards_rarete_base_idx;");
   const after = await catalog();
   assert.ok(after.some(r => r.kind === "column" && r.name === "public.cards.unexpected_drift"));
