@@ -251,24 +251,20 @@ test("confirmation : lien absent, expiré, refusé ou mauvais type", async () =>
   assert.match(expired.headers.get("location"), /confirmation=erreur$/);
 });
 
-test("session : utilisateur vérifié par Auth et pseudo lu seulement pour son identifiant", async () => {
-  let selectedId;
+test("session : utilisateur vérifié par Auth et pseudo lu via RPC sans identifiant", async () => {
+  const calls = [];
   const session = loadModule("../lib/auth/session.ts", {
     "server-only": {},
     react: { cache: (fn) => fn },
     "next/headers": { cookies: async () => ({}) },
     "@/utils/supabase/server": { createClient: () => ({
       auth: { getUser: async () => ({ data: { user: { id: "verified-id" } }, error: null }) },
-      from: (table) => {
-        assert.equal(table, "user_profiles");
-        return { select: () => ({ eq: (column, id) => {
-          assert.equal(column, "user_id"); selectedId = id;
-          return { maybeSingle: async () => ({ data: { pseudo: "DB pseudo" }, error: null }) };
-        } }) };
-      },
+      rpc: async (...args) => { calls.push(args); return { data: "DB pseudo", error: null }; },
     }) },
   });
   const user = await session.getCurrentUser();
   assert.equal(await session.getCurrentPseudo(user.id), "DB pseudo");
-  assert.equal(selectedId, "verified-id");
+  assert.equal(user.id, "verified-id");
+  assert.equal(await session.getCurrentPseudo("someone-else"), "DB pseudo");
+  assert.deepEqual(calls, [["get_current_pseudo"], ["get_current_pseudo"]]);
 });

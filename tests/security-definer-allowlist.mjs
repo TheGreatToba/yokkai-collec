@@ -2,6 +2,7 @@
 // Trigger entries retain historical authenticated grants; PostgreSQL rejects direct calls
 // to returns-trigger functions (they can only run in a trigger context).
 const allowlist = {
+  "public.get_current_pseudo()": ["authenticated"], // Returns only auth.uid()'s pseudo; no parameters or private profile fields.
   "public.admin_get_player(uuid)": ["authenticated"], // Admin-only account and inventory projection.
   "public.admin_list_players(text, integer, integer)": ["authenticated"], // Admin-only paginated account search.
   "public.admin_remove_player_card(uuid)": ["authenticated"], // Admin-only removal of one owned copy, including safe auction cancellation.
