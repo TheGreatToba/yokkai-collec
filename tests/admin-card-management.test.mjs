@@ -410,6 +410,19 @@ test("la migration supprime Kirby: Right Back at Ya! et ses exemplaires", async 
   assert.match(migration, /if pending_trades <> 0 then/);
 });
 
+test("la migration supprime NieR:Automata Ver1.1a Cour 2 et ses exemplaires", async () => {
+  const migration = await read("supabase/migrations/20261009000012_remove_nier_automata_cour_2_cards.sql");
+  assert.match(migration, /franchise = 'NieR:Automata Ver1.1a Cour 2'/);
+  assert.match(migration, /perform public\.credit_karas\(sale\.buyer_id, sale\.current_price\)/);
+  assert.match(migration, /delete from public\.auctions\s+where id = sale\.id/);
+  assert.match(migration, /delete from public\.card_shares/);
+  assert.match(migration, /delete from public\.decision_pack_choices/);
+  assert.match(migration, /update public\.user_cards\s+set is_locked = false/);
+  assert.match(migration, /delete from public\.user_cards\s+where card_id = any\(target_card_ids\)/);
+  assert.match(migration, /delete from public\.cards\s+where id = any\(target_card_ids\)/);
+  assert.match(migration, /if pending_trades <> 0 then/);
+});
+
 test("la migration Kingdom conserve l'import manuel et supprime les copies des imports doublons", async () => {
   const migration = await read("supabase/migrations/20261007000004_remove_kingdom_duplicate_imports.sql");
   assert.match(migration, /franchise = 'Kingdom Season 2'/);
