@@ -385,6 +385,18 @@ test("la migration supprime la licence PERSONA5 the Animation et ses exemplaires
   assert.match(migration, /if pending_trades <> 0 then/);
 });
 
+test("la migration supprime Pokémon: The First Movie et rembourse toute mise active", async () => {
+  const migration = await read("supabase/migrations/20261009000010_remove_pokemon_first_movie_cards.sql");
+  assert.match(migration, /franchise = U&'Pok\\00E9mon: The First Movie'/);
+  assert.match(migration, /where status = 'active'[\s\S]+card_instance_id = any\(target_instance_ids\)/);
+  assert.match(migration, /perform public\.credit_karas\(sale\.buyer_id, sale\.current_price\)/);
+  assert.match(migration, /delete from public\.auctions\s+where id = sale\.id/);
+  assert.match(migration, /update public\.user_cards\s+set is_locked = false/);
+  assert.match(migration, /delete from public\.user_cards\s+where card_id = any\(target_card_ids\)/);
+  assert.match(migration, /delete from public\.cards\s+where id = any\(target_card_ids\)/);
+  assert.match(migration, /if pending_trades <> 0 then/);
+});
+
 test("la migration Kingdom conserve l'import manuel et supprime les copies des imports doublons", async () => {
   const migration = await read("supabase/migrations/20261007000004_remove_kingdom_duplicate_imports.sql");
   assert.match(migration, /franchise = 'Kingdom Season 2'/);
