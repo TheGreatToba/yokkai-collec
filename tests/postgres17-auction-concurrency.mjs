@@ -113,3 +113,28 @@ await asPlayer(a, `select public.place_bid('${x}',160)`);
 assert.equal(Number(await query(`select extract(epoch from (ends_at-'${before}'::timestamptz)) from public.auctions where id='${x}';`)), 60);
 assert.equal(await query("select has_function_privilege('anon','public.place_bid(uuid,integer)','EXECUTE');"), "f");
 console.log("Auction rules preserved: self-raise delta, seller refusal, minimum bid, insufficient funds, 60s extension and anon denied");
+
+// Settlement skips the locked row; the bid must recheck the deadline after waiting.
+await query(`update public.auctions set ends_at=clock_timestamp()-interval '1 second' where id='${x}';`);
+const expiryState = () => query(`select json_build_object(
+  'auction',(select row_to_json(sale) from public.auctions sale where id='${x}'),
+  'balances',(select json_agg(karas_balance order by user_id) from public.user_profiles),
+  'bids',(select count(*) from public.bids),
+  'notifications',(select count(*) from public.notifications));`);
+const expiredBefore = await expiryState();
+const expiryGate = session(`begin; select id from public.auctions where id='${x}' for update; select 'READY';`);
+await until(() => expiryGate.output().includes("READY"), "expired auction row locked");
+const lateBid = session(`set application_name='ci-expired-bid'; set statement_timeout='12s'; begin; set local role authenticated; select set_config('request.jwt.claim.sub','${b}',true); select public.place_bid('${x}',170); commit;`);
+lateBid.child.stdin.end();
+const lateResult = Promise.allSettled([lateBid.done]);
+try {
+  await until(async () => await query("select count(*) from pg_stat_activity where application_name='ci-expired-bid' and wait_event_type='Lock';") === "1", "late bidder waits after SKIP LOCKED settlement");
+} finally {
+  expiryGate.child.stdin.end("commit;\n");
+  await expiryGate.done;
+}
+const [lateOutcome] = await lateResult;
+assert.equal(lateOutcome.status, "rejected", "An expired auction skipped by settlement must refuse the waiting bid");
+assert.match(lateOutcome.reason.message, /AUCTION_CLOSED/);
+assert.equal(await expiryState(), expiredBefore, "Refused late bid preserves auction, balances, bids and notifications");
+console.log("Expired auction: real authenticated bidder refused after SKIP LOCKED and row-lock wait; all state preserved");
