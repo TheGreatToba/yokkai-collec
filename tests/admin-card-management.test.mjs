@@ -423,6 +423,23 @@ test("la migration supprime NieR:Automata Ver1.1a Cour 2 et ses exemplaires", as
   assert.match(migration, /if pending_trades <> 0 then/);
 });
 
+test("la migration supprime uniquement les cinq licences Persona demandées", async () => {
+  const migration = await read("supabase/migrations/20261009000014_remove_persona_franchise_cards.sql");
+  for (const franchise of [
+    "Persona 3 the Movie: #1 Spring of Birth",
+    "Persona 3 the Movie: #2 Midsummer Knight''s Dream",
+    "Persona 4 the Animation",
+    "Persona4 the Golden ANIMATION",
+    "Persona -trinity soul-",
+  ]) assert.match(migration, new RegExp(franchise.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.doesNotMatch(migration, /Persona 3 the Movie: #3 Falling Down/);
+  assert.match(migration, /perform public\.credit_karas\(sale\.buyer_id, sale\.current_price\)/);
+  assert.match(migration, /update public\.user_cards\s+set is_locked = false/);
+  assert.match(migration, /delete from public\.user_cards\s+where card_id = any\(target_card_ids\)/);
+  assert.match(migration, /delete from public\.cards\s+where id = any\(target_card_ids\)/);
+  assert.match(migration, /if pending_trades <> 0 then/);
+});
+
 test("la migration Kingdom conserve l'import manuel et supprime les copies des imports doublons", async () => {
   const migration = await read("supabase/migrations/20261007000004_remove_kingdom_duplicate_imports.sql");
   assert.match(migration, /franchise = 'Kingdom Season 2'/);
