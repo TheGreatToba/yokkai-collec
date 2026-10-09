@@ -19,6 +19,7 @@ test("le panneau admin affiche et traite les signalements enrichis", async () =>
   const list = await read("app/admin/reports/report-list.tsx");
   const actions = await read("app/admin/reports/actions.ts");
   const migration = await read("supabase/migrations/20261009000002_admin_reports_dashboard.sql");
+  const auditMigration = await read("supabase/migrations/20261009000003_audit_report_status_changes.sql");
   assert.match(page, /admin_search_reports/); assert.match(page, /<AdminNavigation/); assert.match(page, /<ReportList/);
   assert.match(page, /admin_get_player/); assert.match(page, /<ReportedPlayerModal/);
   assert.match(list, /playerHrefBase.*report\.reportedId/); assert.doesNotMatch(list, /\/admin\/players\?player=/);
@@ -27,6 +28,11 @@ test("le panneau admin affiche et traite les signalements enrichis", async () =>
   assert.match(migration, /if not public\.is_current_user_admin\(\)/);
   assert.match(migration, /join auth\.users reporter_auth/); assert.match(migration, /reportedIsBanned/);
   assert.match(migration, /revoke all on function public\.admin_search_reports[\s\S]+from public,anon,authenticated/);
+  assert.match(auditMigration, /report\.status\.change/);
+  assert.match(auditMigration, /'previous_status',previous_status/);
+  assert.match(auditMigration, /'new_status',p_status/);
+  assert.match(auditMigration, /for update/);
+  assert.match(auditMigration, /if not public\.is_current_user_admin\(\)/);
 });
 
 test("les données joueurs et le bannissement restent derrière des RPC admin", async () => {

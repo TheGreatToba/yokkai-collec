@@ -54,6 +54,7 @@ test("blocage et signalement : RPC réelles, confidentialitÃ© et contre-preuve
   await db.query("insert into public.user_profiles(user_id,pseudo,last_seen_at,presence_active) values ($1,'Alice',now(),true),($2,'Bob',now(),true),($3,'Charlie',now(),true)",[a,b,c]);
   const original=(await db.query("select proname,prosrc from pg_proc where pronamespace='public'::regnamespace and proname in ('create_trade_offer','respond_trade_offer','search_users','get_public_profile','get_profile') order by proname")).rows;
   await db.exec(migration(next));
+  await db.exec(migration("20261009000003_audit_report_status_changes"));
   assert.deepEqual((await db.query("select proname,prosrc from pg_proc where pronamespace='public'::regnamespace and proname in ('create_trade_offer','respond_trade_offer','search_users','get_public_profile','get_profile') order by proname")).rows,original);
   const as=async(id,sql,args=[])=>{
     await db.exec("set role authenticated"); await db.query("select set_config('request.jwt.claim.sub',$1,false)",[id]);
@@ -142,6 +143,13 @@ test("blocage et signalement : RPC réelles, confidentialitÃ© et contre-preuve
     assert.equal((await call(c,"admin_list_reports")).length,10);
     await call(c,"admin_set_report_status",[report,"reviewed"]);
     assert.equal((await db.query("select status from public.user_reports where id=$1",[report])).rows[0].status,"reviewed");
+    assert.deepEqual((await db.query("select admin_user_id,action,metadata from public.admin_audit_logs where action='report.status.change'")).rows,[{
+      admin_user_id:c,
+      action:"report.status.change",
+      metadata:{report_id:report,target_user_id:c,previous_status:"pending",new_status:"reviewed"},
+    }]);
+    await call(c,"admin_set_report_status",[report,"reviewed"]);
+    assert.equal((await db.query("select count(*)::int count from public.admin_audit_logs where action='report.status.change'")).rows[0].count,1);
     assert.deepEqual(await call(b,"list_blocked_users"),[]);
     await call(b,"report_user",[c,"other","profile",null,"",true]);
     assert.equal((await call(b,"list_blocked_users"))[0].id,c);
