@@ -1,6 +1,4 @@
 // Exact overloads and roles only. Every addition requires an access justification.
-// Trigger entries retain historical authenticated grants; PostgreSQL rejects direct calls
-// to returns-trigger functions (they can only run in a trigger context).
 const allowlist = {
   "public.admin_get_player(uuid)": ["authenticated"], // Admin-only account and inventory projection.
   "public.admin_list_players(text, integer, integer)": ["authenticated"], // Admin-only paginated account search.
@@ -53,11 +51,6 @@ const allowlist = {
   "public.mark_notification_read(uuid)": ["authenticated"], // Player marks only their own notification.
   "public.mark_offline()": ["authenticated"], // Updates the current player's presence.
   "public.move_card_to_folder(uuid, uuid)": ["authenticated"], // Moves an owned card to an owned folder.
-  "public.on_auction_won_achievement()": ["authenticated"], // Trigger-only auction reward bookkeeping; no direct RPC call possible.
-  "public.on_card_acquired_achievements()": ["authenticated"], // Trigger-only card achievement bookkeeping; no direct RPC call possible.
-  "public.on_decision_pack_completed_achievement()": ["authenticated"], // Trigger-only pack achievement bookkeeping; no direct RPC call possible.
-  "public.on_profile_create_achievement_stats()": ["authenticated"], // Trigger-only profile statistics initialization; no direct RPC call possible.
-  "public.on_trade_completed_achievement()": ["authenticated"], // Trigger-only trade achievement bookkeeping; no direct RPC call possible.
   "public.open_decision_pack()": ["authenticated"], // Opens the current player's available decision pack.
   "public.open_regular_pack()": ["authenticated"], // Opens the current player's available regular pack.
   "public.place_bid(uuid, integer)": ["authenticated"], // Player bids with validated funds and auction state.
