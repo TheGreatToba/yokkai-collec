@@ -46,7 +46,7 @@ function setup({ catalogue = [], collection = [], apiLimit = 500 } = {}) {
       return query;
     },
     async rpc(name, args) {
-      if (!["evolve_ssr_card", "discard_collection_card", "discard_decision_pack_card", "get_pack_destruction_values"].includes(name)) assert.equal(args, undefined); // Draw parameters remain server-owned.
+      if (!["evolve_ssr_card", "discard_collection_card", "discard_decision_pack_card", "get_pack_destruction_values", "set_card_custom_image"].includes(name)) assert.equal(args, undefined); // Draw parameters remain server-owned.
       calls.push({ rpc: name });
       await rpcHook?.();
       if (rpcError) return { data: null, error: rpcError };
@@ -223,4 +223,12 @@ test("une carte aux enchères affiche une erreur métier lors de sa destruction"
     api.discardPackCard("000001", "regular"),
     /Cette carte est placée aux enchères, elle ne peut pas être détruite\./,
   );
+});
+
+test("une URL Imgur refusée affiche un message français sans mojibake", async () => {
+  const { api, rpcError } = setup();
+  rpcError({ message: "INVALID_IMGUR_URL", code: "P0001" });
+  await assert.rejects(api.setCardCustomImage("000001", "https://example.test/image.png"), {
+    message: "Saisissez un lien Imgur valide commençant par https://i.imgur.com/ ou https://imgur.com/.",
+  });
 });
