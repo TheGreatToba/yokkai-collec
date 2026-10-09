@@ -40,7 +40,7 @@ function failure(error: { message?: string; code?: string }) {
     FOLDER_NAME_TAKEN: "Un dossier porte déjà ce nom.",
     FOLDER_NOT_FOUND: "Ce dossier n’existe plus.",
   };
-  if (error.message === "INVALID_IMGUR_URL") return new Error("Saisissez un lien Imgur valide commenÃ§ant par https://i.imgur.com/ ou https://imgur.com/.");
+  if (error.message === "INVALID_IMGUR_URL") return new Error("Saisissez un lien Imgur valide commençant par https://i.imgur.com/ ou https://imgur.com/.");
   if (error.message && messages[error.message]) return new Error(messages[error.message]);
   if (error.code === "PGRST301") return new Error(messages.AUTH_REQUIRED);
   if (error.code === "42501") return new Error("Vos données sont temporairement inaccessibles. Actualisez la page ou reconnectez-vous.");
