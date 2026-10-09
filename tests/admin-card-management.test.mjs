@@ -397,6 +397,19 @@ test("la migration supprime Pokémon: The First Movie et rembourse toute mise ac
   assert.match(migration, /if pending_trades <> 0 then/);
 });
 
+test("la migration supprime Kirby: Right Back at Ya! et ses exemplaires", async () => {
+  const migration = await read("supabase/migrations/20261009000011_remove_kirby_right_back_cards.sql");
+  assert.match(migration, /franchise = 'Kirby: Right Back at Ya!'/);
+  assert.match(migration, /perform public\.credit_karas\(sale\.buyer_id, sale\.current_price\)/);
+  assert.match(migration, /delete from public\.auctions\s+where id = sale\.id/);
+  assert.match(migration, /delete from public\.card_shares/);
+  assert.match(migration, /delete from public\.decision_pack_choices/);
+  assert.match(migration, /update public\.user_cards\s+set is_locked = false/);
+  assert.match(migration, /delete from public\.user_cards\s+where card_id = any\(target_card_ids\)/);
+  assert.match(migration, /delete from public\.cards\s+where id = any\(target_card_ids\)/);
+  assert.match(migration, /if pending_trades <> 0 then/);
+});
+
 test("la migration Kingdom conserve l'import manuel et supprime les copies des imports doublons", async () => {
   const migration = await read("supabase/migrations/20261007000004_remove_kingdom_duplicate_imports.sql");
   assert.match(migration, /franchise = 'Kingdom Season 2'/);
