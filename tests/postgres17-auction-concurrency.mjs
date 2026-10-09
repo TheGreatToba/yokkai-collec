@@ -36,6 +36,7 @@ await query("create role postgres login nosuperuser bypassrls createrole; create
 const version = await query("select version();");
 assert.match(version, /PostgreSQL 17\.6\b/);
 console.log(version);
+assert.deepEqual(JSON.parse(await query("select json_build_object('superuser',rolsuper,'bypassrls',rolbypassrls) from pg_roles where rolname='postgres';")), { superuser: false, bypassrls: true });
 await query(`set role postgres; ${bootstrapSQL}`);
 const directory = new URL("../supabase/migrations/", import.meta.url);
 const migrations = readdirSync(directory).filter(n => n.endsWith(".sql")).sort();
@@ -70,7 +71,7 @@ for (let iteration = 1; iteration <= 50; iteration++) {
   const gate = session("select pg_advisory_lock(721934); select 'READY';");
   await until(() => gate.output().includes("READY"), "coordinator lock");
   const bid = (player, auction, label) => {
-    const s = session(`set application_name='${label}'; set statement_timeout='12s'; begin; set local role authenticated; select set_config('request.jwt.claim.sub','${player}',true); select public.place_bid('${auction}',120); commit;`);
+    const s = session(`set application_name='${label}'; set statement_timeout='12s'; begin; set local role authenticated; select set_config('request.jwt.claim.sub','${player}',true); select current_user; select public.place_bid('${auction}',120); commit;`);
     s.child.stdin.end(); return s;
   };
   const [first, second] = iteration % 2
@@ -89,6 +90,7 @@ for (let iteration = 1; iteration <= 50; iteration++) {
   const results = await bids;
   const errors = results.filter(r => r.status === "rejected").map(r => r.reason.message);
   assert.deepEqual(errors, [], `Crossed bids iteration ${iteration}: ${errors.join("\n")}`);
+  assert.ok(results.every(r => r.value.includes("\nauthenticated\n")), "Both callers use the real player role");
   const state = JSON.parse(await query(`select json_build_object(
     'balances',(select json_agg(karas_balance order by user_id) from public.user_profiles where user_id in ('${a}','${b}')),
     'buyers',(select json_agg(buyer_id order by id) from public.auctions where id in ('${x}','${y}')),
