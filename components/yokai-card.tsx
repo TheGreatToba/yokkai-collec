@@ -2,20 +2,23 @@
 
 import type { CSSProperties } from "react";
 import type { Rarity } from "@/lib/data/cards";
+import { CardReportButton } from "@/components/card-report-button";
 import "@/styles/cards.css";
 
 export type YokaiCardProps = {
+  id?: string;
   rarity: Rarity; shiny?: boolean; name: string; image?: string;
   category: string; anime?: string; number?: string | number; animated?: boolean; className?: string; fallbackImage?: string; catalogueImage?: string;
 };
 const spots = [[12,18],[78,26],[20,62],[70,58],[48,14],[84,46],[8,40],[58,70]];
 
-export function YokaiCard({ rarity, shiny = false, name, image, category, anime, animated = true, className = "", fallbackImage, catalogueImage }: YokaiCardProps) {
+export function YokaiCard({ id, rarity, shiny = false, name, image, category, anime, animated = true, className = "", fallbackImage, catalogueImage }: YokaiCardProps) {
   const holo = shiny && (rarity === "SSR" || rarity === "LR");
   const franchise = anime?.trim();
   const sparkCount = !animated ? 0 : holo ? 8 : rarity === "LR" ? 4 : rarity === "SSR" ? 3 : 0;
-  return <div className={`yk-card yk-rarity-${rarity} ${holo ? "yk-shiny" : ""} ${animated ? "yk-animated" : ""} ${className}`} role="img" aria-label={`${name}, ${rarity}${holo ? " Shiny" : ""}, ${franchise || category}`}>
-    <div className="yk-card-clip" aria-hidden="true">
+  const reportable = !!id && /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id);
+  return <div className={`yk-card yk-rarity-${rarity} ${holo ? "yk-shiny" : ""} ${animated ? "yk-animated" : ""} ${className}`}>
+    <div className="yk-card-clip" role="img" aria-label={`${name}, ${rarity}${holo ? " Shiny" : ""}, ${franchise || category}`}>
       <div className="yk-card-frame" />
       {holo && <div className="yk-shiny-frame" />}
       <div className="yk-card-interior">
@@ -39,6 +42,7 @@ export function YokaiCard({ rarity, shiny = false, name, image, category, anime,
         </div>
       </div>
     </div>
+    {reportable && <CardReportButton cardId={id} cardName={name}/>}
   </div>;
 }
 

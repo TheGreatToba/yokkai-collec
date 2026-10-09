@@ -5,9 +5,11 @@ const allowlist = {
   "public.admin_remove_player_card(uuid)": ["authenticated"], // Admin-only removal of one owned copy, including safe auction cancellation.
   "public.admin_set_user_ban(uuid, boolean)": ["authenticated"], // Admin-only moderation action with self/admin protection.
   "public.admin_search_reports(text, text, integer, integer)": ["authenticated"], // Admin-only enriched report dashboard.
+  "public.admin_search_card_reports(text, text, integer, integer)": ["authenticated"], // Admin-only catalogue report dashboard.
   "public.admin_card_reference_counts(uuid)": ["authenticated"], // Admin RPC checks administrator status before reading references.
   "public.admin_list_reports(text, integer, integer)": ["authenticated"], // Moderation RPC checks administrator status.
   "public.admin_set_report_status(uuid, text)": ["authenticated"], // Moderation update checks administrator status.
+  "public.admin_set_card_report_status(uuid, text)": ["authenticated"], // Card moderation update checks administrator status.
   "public.block_user(uuid)": ["authenticated"], // Player can block users for their own account.
   "public.cancel_auction(uuid)": ["authenticated"], // Seller can cancel their own eligible auction.
   "public.cancel_trade_offer(uuid)": ["authenticated"], // Participant can cancel their own eligible trade.
@@ -56,6 +58,7 @@ const allowlist = {
   "public.place_bid(uuid, integer)": ["authenticated"], // Player bids with validated funds and auction state.
   "public.remove_friend(uuid)": ["authenticated"], // Player removes their own friendship.
   "public.report_user(uuid, text, text, uuid, text, boolean)": ["authenticated"], // Creates a validated report under the current player's identity.
+  "public.report_card(uuid, text)": ["authenticated"], // Creates a validated catalogue-card report under the current player's identity.
   "public.respond_friend_request(uuid, boolean)": ["authenticated"], // Recipient responds to their own request.
   "public.respond_trade_offer(uuid, text)": ["authenticated"], // Trade participant responds with asset validation.
   "public.search_cards(text, integer)": ["authenticated"], // Game catalogue search for signed-in players.
