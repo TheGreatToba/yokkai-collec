@@ -33,7 +33,10 @@ from (
   select 'constraint', n.nspname || '.' || c.relname || '.' || con.conname,
     jsonb_build_object('definition', pg_get_constraintdef(con.oid), 'validated', con.convalidated)
   from pg_constraint con join pg_class c on c.oid=con.conrelid join pg_namespace n on n.oid=c.relnamespace
-  where n.nspname='public'
+  -- PostgreSQL 18 exposes NOT NULL attributes as pg_constraint rows (contype
+  -- 'n'), while older production versions do not. Columns above already carry
+  -- attnotnull, so including these rows would create cross-version false drift.
+  where n.nspname='public' and con.contype<>'n'
   union all
   select 'index', n.nspname || '.' || c.relname,
     jsonb_build_object('definition', pg_get_indexdef(i.indexrelid), 'valid', i.indisvalid, 'ready', i.indisready)
