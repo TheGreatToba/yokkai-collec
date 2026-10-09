@@ -373,6 +373,17 @@ test("la migration supprime uniquement HAE-IN CHA SR et son exemplaire", async (
   assert.match(migration, /if pending_trades <> 0 then/);
 });
 
+test("la migration supprime la licence PERSONA5 the Animation et ses exemplaires", async () => {
+  const migration = await read("supabase/migrations/20261009000009_remove_persona5_animation_cards.sql");
+  assert.match(migration, /lower\(btrim\(franchise\)\) = lower\('PERSONA5 the Animation'\)/);
+  assert.match(migration, /delete from public\.card_shares/);
+  assert.match(migration, /delete from public\.decision_pack_choices/);
+  assert.match(migration, /delete from public\.user_cards\s+where card_id = any\(target_card_ids\)/);
+  assert.match(migration, /delete from public\.cards\s+where id = any\(target_card_ids\)/);
+  assert.match(migration, /if linked_auctions <> 0 then/);
+  assert.match(migration, /if pending_trades <> 0 then/);
+});
+
 test("la migration Kingdom conserve l'import manuel et supprime les copies des imports doublons", async () => {
   const migration = await read("supabase/migrations/20261007000004_remove_kingdom_duplicate_imports.sql");
   assert.match(migration, /franchise = 'Kingdom Season 2'/);
