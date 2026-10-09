@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type KeyboardEvent, type MouseEvent } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { reportCard, type CardReportReason } from "@/lib/data/card-reports";
 import { Button, Feedback, Modal } from "@/components/ui";
@@ -11,7 +11,7 @@ const reasons: { value: CardReportReason; label: string }[] = [
   { value: "duplicate_card", label: "Doublon de carte" },
 ];
 
-export function CardReportButton({ cardId, cardName }: { cardId: string; cardName: string }) {
+export function CardReportButton({ cardId, cardName, className = "" }: { cardId: string; cardName: string; className?: string }) {
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState<CardReportReason | "">("");
@@ -20,9 +20,7 @@ export function CardReportButton({ cardId, cardName }: { cardId: string; cardNam
   const [sent, setSent] = useState(false);
   useEffect(() => { const frame=requestAnimationFrame(()=>setMounted(true)); return()=>cancelAnimationFrame(frame); }, []);
 
-  const show = (event: MouseEvent | KeyboardEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
+  const show = () => {
     setOpen(true);
     setError("");
     setSent(false);
@@ -43,15 +41,13 @@ export function CardReportButton({ cardId, cardName }: { cardId: string; cardNam
   };
 
   return <>
-    <span
-      className="yk-card-report-trigger"
-      role="button"
-      tabIndex={0}
+    <Button
+      variant="danger"
+      className={className}
       aria-label={`Signaler la carte ${cardName}`}
       title="Signaler cette carte"
       onClick={show}
-      onKeyDown={event => { if (event.key === "Enter" || event.key === " ") show(event); }}
-    ><span aria-hidden="true">⚑</span><span>Signaler</span></span>
+    ><span aria-hidden="true">⚑</span> Signaler cette carte</Button>
     {mounted && open && createPortal(
       <div onClick={event => event.stopPropagation()} onKeyDown={event => event.stopPropagation()}>
         <Modal open={open} onClose={close} title="Signaler cette carte" className="yk-card-report-modal">

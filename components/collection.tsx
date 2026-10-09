@@ -9,6 +9,7 @@ import { Button, Chip, Feedback, Karas, Modal, Pagination, SelectionBar, Selecti
 import { YokaiCard } from "@/components/yokai-card";
 import { CardShell } from "@/components/card-shell";
 import { CardShareButton, MyCardShares } from "@/components/card-sharing";
+import { CardReportButton } from "@/components/card-report-button";
 import { CARD_PAGE_SIZES } from "@/lib/ui/pagination";
 import { COLLECTION_SORTS, isCollectionSort, sortCollection } from "@/lib/ui/collection-sort";
 import { matchesCardSearch } from "@/lib/ui/card-search";
@@ -239,6 +240,7 @@ export function CollectionView({ cards, categories, presentation = {}, readOnly 
         {(selectedGroup?.cards.length??0)>1&&<div className="yk-copy-picker"><span className="yk-section-title">Exemplaire affiché</span><div>{selectedGroup?.cards.map((card,index)=><button type="button" key={card.instanceId} aria-label={`Exemplaire ${index+1}${card.locked?", protégé":""}`} aria-pressed={card.instanceId===selected.instanceId} onClick={()=>setSelectedId(card.instanceId)}><span>{index+1}{card.customImageUrl?" ✦":""}</span>{card.locked?<ProtectedIcon size={12}/>:presentation[card.instanceId]?.frozen?" ⏳":""}</button>)}</div></div>}
         <dl className="yk-detail-facts"><div><dt>Catégorie</dt><dd>{selected.category}</dd></div><div><dt>Obtenue le</dt><dd>{formatDate(selected.obtainedAt,true)}</dd></div><div><dt>Exemplaires</dt><dd>{selectedGroup?.cards.length??1}</dd></div>{selectedMeta?.marketValue!=null&&<div><dt>Valeur de marché</dt><dd><Karas amount={selectedMeta.marketValue}/></dd></div>}</dl>
         {!readOnly&&<CardShareButton key={selected.instanceId} instanceId={selected.instanceId} name={selected.name}/>}
+        <CardReportButton cardId={selected.id} cardName={selected.name} className="mt-4 w-full"/>
         {selectedGroupFrozen&&(adminRemoval?<Feedback tone="error" title="Carte actuellement aux enchères">Le retrait administratif annulera aussi la vente et remboursera automatiquement le meilleur enchérisseur.</Feedback>:<Feedback tone="error" title="Carte gelée car en enchère">Cette carte ne peut pas être remise aux enchères ni supprimée jusqu’à ce que la vente soit terminée ou que la carte soit retirée des enchères.</Feedback>)}
         {resolvedTradeHref&&!selected.locked&&<Link className="yk-button yk-button-primary mt-6 flex w-full justify-center" href={resolvedTradeHref(selected)}>Proposer un échange</Link>}
         {!readOnly&&(onCreateAuction||(selected.rarity==="SSR"&&!selected.shiny))&&<div className="yk-detail-actions">
