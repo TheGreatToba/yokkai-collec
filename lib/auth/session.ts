@@ -14,8 +14,9 @@ export async function getCurrentPseudo(userId: string) {
   if (!userId) return null;
   const supabase = createClient(await cookies());
   // Identity comes exclusively from the session JWT, never the caller's userId.
-  const { data, error } = await supabase.rpc("get_current_pseudo");
-  return !error && typeof data === "string" ? data : null;
+  const { data, error } = await supabase.rpc("get_game_info");
+  const pseudo = data?.user?.name;
+  return !error && typeof pseudo === "string" ? pseudo : null;
 }
 
 export async function getCurrentKarasBalance(

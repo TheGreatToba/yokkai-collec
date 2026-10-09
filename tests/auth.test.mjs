@@ -259,12 +259,12 @@ test("session : utilisateur vérifié par Auth et pseudo lu via RPC sans identif
     "next/headers": { cookies: async () => ({}) },
     "@/utils/supabase/server": { createClient: () => ({
       auth: { getUser: async () => ({ data: { user: { id: "verified-id" } }, error: null }) },
-      rpc: async (...args) => { calls.push(args); return { data: "DB pseudo", error: null }; },
+      rpc: async (...args) => { calls.push(args); return { data: { user: { name: "DB pseudo" } }, error: null }; },
     }) },
   });
   const user = await session.getCurrentUser();
   assert.equal(await session.getCurrentPseudo(user.id), "DB pseudo");
   assert.equal(user.id, "verified-id");
   assert.equal(await session.getCurrentPseudo("someone-else"), "DB pseudo");
-  assert.deepEqual(calls, [["get_current_pseudo"], ["get_current_pseudo"]]);
+  assert.deepEqual(calls, [["get_game_info"], ["get_game_info"]]);
 });

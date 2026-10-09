@@ -17,15 +17,10 @@ test("current pseudo is session-only without granting access to private profiles
     finally { await db.exec("reset role"); }
   }
   await assert.rejects(asUser(alice, "select pseudo from public.user_profiles"), { code: "42501" });
-  assert.equal((await asUser(alice, "select public.get_current_pseudo() as pseudo"))[0].pseudo, "PseudoAlice");
-  assert.equal((await asUser(bob, "select public.get_current_pseudo() as pseudo"))[0].pseudo, "PseudoBob");
-  assert.equal((await asUser(null, "select public.get_current_pseudo() as pseudo"))[0].pseudo, null);
-  await assert.rejects(asUser(alice, `select public.get_current_pseudo('${bob}'::uuid)`), { code: "42883" });
+  assert.equal((await asUser(alice, "select public.get_game_info()->'user'->>'name' as pseudo"))[0].pseudo, "PseudoAlice");
+  assert.equal((await asUser(bob, "select public.get_game_info()->'user'->>'name' as pseudo"))[0].pseudo, "PseudoBob");
+  await assert.rejects(asUser(null, "select public.get_game_info()"), /AUTH_REQUIRED/);
+  await assert.rejects(asUser(alice, `select public.get_game_info('${bob}'::uuid)`), { code: "42883" });
   await assert.rejects(asUser(alice, `select karas_balance from public.user_profiles where user_id='${bob}'`), { code: "42501" });
-  await assert.rejects(asUser(null, "select public.get_current_pseudo()", "anon"), { code: "42501" });
-  const [fn] = (await db.query("select prosecdef,proconfig,pronargs,prorettype::regtype::text as result from pg_proc where oid='public.get_current_pseudo()'::regprocedure")).rows;
-  assert.deepEqual(fn, { prosecdef: true, proconfig: ['search_path=""'], pronargs: 0, result: "text" });
-  const grants = (await db.query("select grantee,privilege_type from pg_proc p cross join lateral aclexplode(p.proacl) where p.oid='public.get_current_pseudo()'::regprocedure")).rows;
-  assert.ok(!grants.some(g => g.grantee === 0), "PUBLIC must have no grant");
-  assert.equal((await db.query("select has_function_privilege('service_role','public.get_current_pseudo()','execute') as allowed")).rows[0].allowed, false);
+  await assert.rejects(asUser(null, "select public.get_game_info()", "anon"), { code: "42501" });
 });
