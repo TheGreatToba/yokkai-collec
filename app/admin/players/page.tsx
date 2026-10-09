@@ -6,19 +6,11 @@ import { requireAdminPage } from "@/lib/auth/admin";
 import { getCurrentKarasBalance, getCurrentPseudo } from "@/lib/auth/session";
 import { createClient } from "@/utils/supabase/server";
 import { AdminNavigation } from "../admin-navigation";
-import { PlayerManager, type AdminPlayer, type AdminPlayerDetail } from "./player-manager";
+import { PlayerManager } from "./player-manager";
+import { playerDetailFromRpc, playerFromRpc } from "./player-data";
 
 export const dynamic = "force-dynamic";
 const PAGE_SIZE = 50;
-
-function playerFromRpc(value: Record<string, unknown>): AdminPlayer {
-  return {
-    userId: String(value.userId ?? ""), pseudo: String(value.pseudo ?? "Joueur"), email: String(value.email ?? ""),
-    createdAt: String(value.createdAt ?? ""), lastSeenAt: typeof value.lastSeenAt === "string" ? value.lastSeenAt : null,
-    cardsCount: Number(value.cardsCount ?? 0), karasBalance: Number(value.karasBalance ?? 0),
-    isBanned: value.isBanned === true, isAdmin: value.isAdmin === true,
-  };
-}
 
 export default async function AdminPlayersPage({ searchParams }: { searchParams: Promise<{ q?: string; page?: string; player?: string }> }) {
   const admin = await requireAdminPage();
@@ -37,14 +29,7 @@ export default async function AdminPlayersPage({ searchParams }: { searchParams:
   const payload = (listResult.data ?? {}) as Record<string, unknown>;
   const players = (Array.isArray(payload.players) ? payload.players : []).map(item => playerFromRpc(item as Record<string, unknown>));
   const total = Number(payload.total ?? 0);
-  const rawDetail = detailResult.data as Record<string, unknown> | null;
-  const selected = rawDetail ? {
-    ...playerFromRpc(rawDetail),
-    cards: Array.isArray(rawDetail.cards) ? rawDetail.cards.map(card => {
-      const item = card as Record<string, unknown>;
-      return { instanceId: String(item.instanceId), cardId:String(item.cardId), name: String(item.name), category: String(item.category), franchise: String(item.franchise ?? ""), rarity: String(item.rarity) as "C" | "R" | "SR" | "SSR" | "LR", imageUrl: String(item.imageUrl), catalogueImage:String(item.catalogueImage), customImageUrl:typeof item.customImageUrl==="string"?item.customImageUrl:null, obtainedAt: String(item.obtainedAt), shiny: item.shiny === true, evolved:item.evolved===true, firstOwner:item.firstOwner===true, locked:item.locked===true, activeAuctionId:typeof item.activeAuctionId==="string"?item.activeAuctionId:null };
-    }) : [],
-  } satisfies AdminPlayerDetail : null;
+  const selected = playerDetailFromRpc(detailResult.data as Record<string, unknown> | null);
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const href = (target: number) => `/admin/players?${new URLSearchParams({ ...(query ? { q: query } : {}), page: String(target) })}`;
   return <div className="min-h-screen bg-slate-950 text-white">

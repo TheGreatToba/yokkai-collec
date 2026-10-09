@@ -45,7 +45,7 @@ function BanControl({ player }: { player: AdminPlayer }) {
   </>;
 }
 
-export function PlayerManager({ players, selected }: { players: AdminPlayer[]; selected: AdminPlayerDetail | null }) {
+export function PlayerDetailPanel({ selected }: { selected: AdminPlayerDetail | null }) {
   const router = useRouter();
   const [collectionOpen, setCollectionOpen] = useState(false);
   const [collectionError, setCollectionError] = useState("");
@@ -53,6 +53,19 @@ export function PlayerManager({ players, selected }: { players: AdminPlayer[]; s
   const presentation = useMemo<Record<string,CollectionPresentation>>(() => Object.fromEntries((selected?.cards ?? []).filter(card=>card.activeAuctionId).map(card=>[card.instanceId,{auctionId:card.activeAuctionId!,frozen:{remaining:"En enchère"}}])), [selected]);
   const categories = useMemo(() => [...new Set(collection.map(card=>card.category))].sort((a,b)=>a.localeCompare(b,"fr")), [collection]);
   async function removeCard(instanceId:string) { setCollectionError("");const result=await removePlayerCardAction(instanceId);if(!result.ok){setCollectionError(result.message);throw new Error(result.message);}router.refresh(); }
+  return <div>
+    <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-5">
+      {!selected ? <div className="py-12 text-center text-slate-400"><p className="font-semibold text-white">Sélectionne un joueur</p><p className="mt-2 text-sm">Son compte et ses cartes apparaîtront ici.</p></div> : <>
+        <div className="flex items-start justify-between gap-4"><div className="min-w-0"><p className="text-xs uppercase tracking-widest text-cyan-300">Compte joueur</p><h2 className="mt-1 truncate text-2xl font-black">{selected.pseudo}</h2><p className="truncate text-sm text-slate-400">{selected.email}</p></div><BanControl player={selected}/></div>
+        <dl className="mt-5 grid grid-cols-2 gap-3 text-sm"><div className="rounded-xl bg-slate-950 p-3"><dt className="text-slate-500">Karas</dt><dd className="mt-1 font-bold text-amber-300">{selected.karasBalance.toLocaleString("fr-FR")}</dd></div><div className="rounded-xl bg-slate-950 p-3"><dt className="text-slate-500">Cartes</dt><dd className="mt-1 font-bold">{selected.cardsCount}</dd></div><div className="col-span-2 rounded-xl bg-slate-950 p-3"><dt className="text-slate-500">Dernière activité</dt><dd className="mt-1">{selected.lastSeenAt ? new Date(selected.lastSeenAt).toLocaleString("fr-FR") : "Jamais vue en ligne"}</dd></div></dl>
+        <div className="mt-6 rounded-xl border border-white/10 bg-slate-950 p-4"><div className="flex items-center justify-between gap-3"><div><h3 className="font-bold">Collection</h3><p className="mt-1 text-xs text-slate-500">{selected.cards.length} exemplaire{selected.cards.length === 1 ? "" : "s"}</p></div><button className="yk-button yk-button-secondary" onClick={()=>setCollectionOpen(true)} type="button">Voir la collection</button></div></div>
+      </>}
+    </div>
+    <Modal open={collectionOpen&&!!selected} onClose={()=>{setCollectionOpen(false);setCollectionError("");}} title={`Collection de ${selected?.pseudo ?? "ce joueur"}`} className="yk-friend-collection-modal">{collectionError&&<p role="alert" className="yk-feedback yk-feedback-error mb-4">{collectionError}</p>}<CollectionView cards={collection} categories={categories} presentation={presentation} readOnly adminRemoval onDiscard={removeCard}/></Modal>
+  </div>;
+}
+
+export function PlayerManager({ players, selected }: { players: AdminPlayer[]; selected: AdminPlayerDetail | null }) {
   return <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,.85fr)]">
     <section className="overflow-hidden rounded-2xl border border-white/10 bg-slate-900/70">
       <div className="border-b border-white/10 px-5 py-4"><h2 className="text-lg font-bold">Joueurs ({players.length})</h2></div>
@@ -61,13 +74,6 @@ export function PlayerManager({ players, selected }: { players: AdminPlayer[]; s
         <Link className="yk-button yk-button-secondary" href={`/admin/players?player=${player.userId}`}>Voir le joueur</Link>
       </article>)}</div> : <p className="p-8 text-center text-slate-400">Aucun joueur trouvé.</p>}
     </section>
-    <aside className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 xl:sticky xl:top-24 xl:self-start">
-      {!selected ? <div className="py-12 text-center text-slate-400"><p className="font-semibold text-white">Sélectionne un joueur</p><p className="mt-2 text-sm">Son compte et ses cartes apparaîtront ici.</p></div> : <>
-        <div className="flex items-start justify-between gap-4"><div className="min-w-0"><p className="text-xs uppercase tracking-widest text-cyan-300">Compte joueur</p><h2 className="mt-1 truncate text-2xl font-black">{selected.pseudo}</h2><p className="truncate text-sm text-slate-400">{selected.email}</p></div><BanControl player={selected}/></div>
-        <dl className="mt-5 grid grid-cols-2 gap-3 text-sm"><div className="rounded-xl bg-slate-950 p-3"><dt className="text-slate-500">Karas</dt><dd className="mt-1 font-bold text-amber-300">{selected.karasBalance.toLocaleString("fr-FR")}</dd></div><div className="rounded-xl bg-slate-950 p-3"><dt className="text-slate-500">Cartes</dt><dd className="mt-1 font-bold">{selected.cardsCount}</dd></div><div className="col-span-2 rounded-xl bg-slate-950 p-3"><dt className="text-slate-500">Dernière activité</dt><dd className="mt-1">{selected.lastSeenAt ? new Date(selected.lastSeenAt).toLocaleString("fr-FR") : "Jamais vue en ligne"}</dd></div></dl>
-        <div className="mt-6 rounded-xl border border-white/10 bg-slate-950 p-4"><div className="flex items-center justify-between gap-3"><div><h3 className="font-bold">Collection</h3><p className="mt-1 text-xs text-slate-500">{selected.cards.length} exemplaire{selected.cards.length === 1 ? "" : "s"}</p></div><button className="yk-button yk-button-secondary" onClick={()=>setCollectionOpen(true)} type="button">Voir la collection</button></div></div>
-      </>}
-    </aside>
-    <Modal open={collectionOpen&&!!selected} onClose={()=>{setCollectionOpen(false);setCollectionError("");}} title={`Collection de ${selected?.pseudo ?? "ce joueur"}`} className="yk-friend-collection-modal">{collectionError&&<p role="alert" className="yk-feedback yk-feedback-error mb-4">{collectionError}</p>}<CollectionView cards={collection} categories={categories} presentation={presentation} readOnly adminRemoval onDiscard={removeCard}/></Modal>
+    <aside className="xl:sticky xl:top-24 xl:self-start"><PlayerDetailPanel selected={selected}/></aside>
   </div>;
 }

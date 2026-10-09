@@ -6,7 +6,9 @@ import { requireAdminPage } from "@/lib/auth/admin";
 import { getCurrentKarasBalance, getCurrentPseudo } from "@/lib/auth/session";
 import { createClient } from "@/utils/supabase/server";
 import { AdminNavigation } from "../admin-navigation";
+import { playerDetailFromRpc } from "../players/player-data";
 import { ReportList, type AdminReport } from "./report-list";
+import { ReportedPlayerModal } from "./reported-player-modal";
 
 export const dynamic = "force-dynamic";
 const PAGE_SIZE = 30;
@@ -24,31 +26,39 @@ function reportFromRpc(value: Record<string, unknown>): AdminReport {
   };
 }
 
-export default async function AdminReportsPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string; page?: string }> }) {
+export default async function AdminReportsPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string; page?: string; player?: string }> }) {
   const admin = await requireAdminPage();
   const client = createClient(await cookies());
   const params = await searchParams;
   const query = params.q?.trim().slice(0, 100) ?? "";
   const status = allowedStatuses.has(params.status ?? "") ? params.status! : "";
   const page = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
-  const [name, karas, result] = await Promise.all([
+  const playerId = /^[0-9a-f-]{36}$/i.test(params.player ?? "") ? params.player! : null;
+  const [name, karas, result, detailResult] = await Promise.all([
     getCurrentPseudo(admin.id), getCurrentKarasBalance(client),
     client.rpc("admin_search_reports", { p_status: status || null, p_query: query, p_limit: PAGE_SIZE, p_offset: (page - 1) * PAGE_SIZE }),
+    playerId ? client.rpc("admin_get_player", { p_user_id: playerId }) : Promise.resolve({ data: null, error: null }),
   ]);
   if (result.error) throw new Error(result.error.message);
+  if (detailResult.error) throw new Error(detailResult.error.message);
   const payload = (result.data ?? {}) as Record<string, unknown>;
   const reports = (Array.isArray(payload.reports) ? payload.reports : []).map(item => reportFromRpc(item as Record<string, unknown>));
   const total = Number(payload.total ?? 0);
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const href = (target: number) => `/admin/reports?${new URLSearchParams({ ...(query ? { q: query } : {}), ...(status ? { status } : {}), page: String(target) })}`;
+  const baseParams = { ...(query ? { q: query } : {}), ...(status ? { status } : {}), page: String(page) };
+  const href = (target: number) => `/admin/reports?${new URLSearchParams({ ...baseParams, page: String(target) })}`;
+  const closeHref = `/admin/reports?${new URLSearchParams(baseParams)}`;
+  const playerHrefBase = `/admin/reports?${new URLSearchParams(baseParams)}&player=`;
+  const selectedPlayer = playerDetailFromRpc(detailResult.data as Record<string, unknown> | null);
   return <div className="min-h-screen bg-slate-950 text-white">
     <Topbar view="admin" account={<AccountMenu/>} name={name ?? undefined} karas={karas}/>
     <main id="main-content" className="px-4 py-8 sm:px-8"><div className="mx-auto max-w-7xl space-y-8">
       <header><p className="text-sm font-semibold uppercase tracking-widest text-cyan-300">Administration</p><h1 className="text-3xl font-black">Signalements des joueurs</h1><p className="mt-1 text-sm text-slate-400">Consulte et classe les signalements transmis par la communauté.</p></header>
       <AdminNavigation/>
       <section className="rounded-2xl border border-cyan-300/20 bg-slate-900/70 p-5"><form className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_14rem_auto_auto]" method="get"><input aria-label="Rechercher un signalement" className="yk-field-control" defaultValue={query} maxLength={100} name="q" placeholder="Pseudo ou adresse e-mail…"/><select aria-label="Statut du signalement" className="yk-field-control" defaultValue={status} name="status"><option value="">Tous les statuts</option><option value="pending">En attente</option><option value="reviewed">Traités</option><option value="dismissed">Ignorés</option></select><button className="yk-button" type="submit">Filtrer</button>{(query || status) && <Link className="yk-button yk-button-secondary" href="/admin/reports">Effacer</Link>}</form><p className="mt-3 text-xs text-slate-500">{total} signalement{total === 1 ? "" : "s"} trouvé{total === 1 ? "" : "s"}</p></section>
-      <ReportList reports={reports}/>
+      <ReportList reports={reports} playerHrefBase={playerHrefBase}/>
       {pages > 1 && <nav aria-label="Pagination des signalements" className="flex items-center justify-center gap-3"><Link aria-disabled={page === 1} className={`yk-button yk-button-secondary ${page === 1 ? "pointer-events-none opacity-50" : ""}`} href={href(page - 1)}>Précédent</Link><span className="text-sm text-slate-400">Page {page} sur {pages}</span><Link aria-disabled={page === pages} className={`yk-button yk-button-secondary ${page === pages ? "pointer-events-none opacity-50" : ""}`} href={href(page + 1)}>Suivant</Link></nav>}
     </div></main>
+    <ReportedPlayerModal player={selectedPlayer} closeHref={closeHref}/>
   </div>;
 }

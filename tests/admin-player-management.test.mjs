@@ -20,6 +20,8 @@ test("le panneau admin affiche et traite les signalements enrichis", async () =>
   const actions = await read("app/admin/reports/actions.ts");
   const migration = await read("supabase/migrations/20261009000002_admin_reports_dashboard.sql");
   assert.match(page, /admin_search_reports/); assert.match(page, /<AdminNavigation/); assert.match(page, /<ReportList/);
+  assert.match(page, /admin_get_player/); assert.match(page, /<ReportedPlayerModal/);
+  assert.match(list, /playerHrefBase.*report\.reportedId/); assert.doesNotMatch(list, /\/admin\/players\?player=/);
   assert.match(list, /Signalé par/); assert.match(list, /Joueur signalé/); assert.match(list, /Marquer comme traité/);
   assert.match(actions, /requireAdminAction\(\)/); assert.match(actions, /admin_set_report_status/);
   assert.match(migration, /if not public\.is_current_user_admin\(\)/);

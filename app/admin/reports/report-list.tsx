@@ -53,7 +53,7 @@ function reportDate(value: string) {
   return new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Paris" }).format(new Date(value));
 }
 
-export function ReportList({ reports }: { reports: AdminReport[] }) {
+export function ReportList({ reports, playerHrefBase }: { reports: AdminReport[]; playerHrefBase: string }) {
   if (!reports.length) return <section className="rounded-2xl border border-white/10 bg-slate-900/70 p-10 text-center text-slate-400">Aucun signalement trouvé.</section>;
   return <section className="space-y-4">{reports.map(report => {
     const status = statuses[report.status];
@@ -63,8 +63,8 @@ export function ReportList({ reports }: { reports: AdminReport[] }) {
         <span className="text-xs text-slate-600">#{report.id.slice(0, 8)}</span>
       </div>
       <div className="mt-5 grid gap-3 md:grid-cols-2">
-        <div className="rounded-xl bg-slate-950 p-4"><p className="text-xs uppercase tracking-widest text-slate-500">Signalé par</p><p className="mt-2 font-bold">{report.reporterPseudo}</p><p className="text-sm text-slate-400">{report.reporterEmail}</p><Link className="mt-3 inline-block text-sm font-semibold text-cyan-300 hover:text-cyan-200" href={`/admin/players?player=${report.reporterId}`}>Voir ce joueur →</Link></div>
-        <div className="rounded-xl border border-red-300/15 bg-red-950/20 p-4"><p className="text-xs uppercase tracking-widest text-red-300/70">Joueur signalé</p><p className="mt-2 font-bold">{report.reportedPseudo}</p><p className="text-sm text-slate-400">{report.reportedEmail}</p><Link className="mt-3 inline-block text-sm font-semibold text-cyan-300 hover:text-cyan-200" href={`/admin/players?player=${report.reportedId}`}>Ouvrir sa fiche admin →</Link></div>
+        <div className="rounded-xl bg-slate-950 p-4"><p className="text-xs uppercase tracking-widest text-slate-500">Signalé par</p><p className="mt-2 font-bold">{report.reporterPseudo}</p><p className="text-sm text-slate-400">{report.reporterEmail}</p><Link className="mt-3 inline-block text-sm font-semibold text-cyan-300 hover:text-cyan-200" href={`${playerHrefBase}${report.reporterId}`}>Voir ce joueur →</Link></div>
+        <div className="rounded-xl border border-red-300/15 bg-red-950/20 p-4"><p className="text-xs uppercase tracking-widest text-red-300/70">Joueur signalé</p><p className="mt-2 font-bold">{report.reportedPseudo}</p><p className="text-sm text-slate-400">{report.reportedEmail}</p><Link className="mt-3 inline-block text-sm font-semibold text-cyan-300 hover:text-cyan-200" href={`${playerHrefBase}${report.reportedId}`}>Ouvrir sa fiche admin →</Link></div>
       </div>
       <div className="mt-4 rounded-xl border border-white/10 bg-slate-950 p-4"><p className="text-xs uppercase tracking-widest text-slate-500">Contexte</p><p className="mt-2 text-sm font-semibold">{report.contextType === "auction_chat" ? "Message dans le chat d’une enchère" : "Profil du joueur"}</p>{report.snapshot.message && <blockquote className="mt-3 border-l-2 border-cyan-400 pl-3 text-sm text-slate-300">{report.snapshot.message}</blockquote>}{report.snapshot.gifUrl && <a className="mt-3 inline-block text-sm font-semibold text-cyan-300 hover:text-cyan-200" href={report.snapshot.gifUrl} rel="noreferrer" target="_blank">Voir le GIF signalé ↗</a>}{report.details && <div className="mt-4"><p className="text-xs font-semibold text-slate-500">Détails du signalement</p><p className="mt-1 whitespace-pre-wrap text-sm text-slate-300">{report.details}</p></div>}</div>
       <div className="mt-4"><ReportActions report={report}/></div>
