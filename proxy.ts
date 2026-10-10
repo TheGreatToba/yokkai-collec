@@ -61,6 +61,9 @@ export async function proxy(request: NextRequest) {
   }
 
   const pathname = request.nextUrl.pathname;
+  if(process.env.NODE_ENV==="production"&&(pathname==="/design-system"||pathname.startsWith("/design-system/"))){
+    return new Response("Not found",{status:404,headers:{"X-Robots-Tag":"noindex, nofollow"}});
+  }
   if (/^\/partage\/[0-9a-f]{32}(?:\/image\/(?:og|story|square))?$/.test(pathname)) {
     return NextResponse.next();
   }
@@ -70,6 +73,7 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/design-system/:path*",
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };
