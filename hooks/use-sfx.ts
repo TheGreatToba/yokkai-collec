@@ -6,12 +6,27 @@ export type SfxName = "rumble" | "tear" | "flip" | "slide" | "sr" | "ssr" | "lr"
 const STORAGE_KEY = "yokkai-sound-enabled";
 const CHANGE_EVENT = "yokkai:sound-change";
 
+type AmbientNavigator = Navigator & { audioSession?: { type: string } };
+
+function allowNonInterruptingAudio() {
+  const mobile = window.matchMedia("(pointer: coarse)").matches;
+  if (!mobile) return true;
+  const session = (navigator as AmbientNavigator).audioSession;
+  if (!session) return false;
+  try {
+    session.type = "ambient";
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** Local audio assets; missing/blocked audio must never interrupt a pack opening. */
 export function useSfx() {
   const [enabled, setEnabled] = useState(true);
   const sounds = useRef(new Map<SfxName, HTMLAudioElement>());
   const play = useCallback((name: SfxName) => {
-    if (!enabled) return;
+    if (!enabled || !allowNonInterruptingAudio()) return;
     let audio = sounds.current.get(name);
     if (!audio) {
       audio = new Audio(`/assets/sfx/${name}.wav`);
