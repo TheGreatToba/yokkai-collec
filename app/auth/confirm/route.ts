@@ -2,6 +2,21 @@ import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
+function publicOrigin(request: NextRequest) {
+  const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  if (configuredUrl) {
+    try {
+      const site = new URL(configuredUrl);
+      if (["http:", "https:"].includes(site.protocol) && !site.username && !site.password) {
+        return site.origin;
+      }
+    } catch {
+      // Fall back to the request origin when the optional setting is invalid.
+    }
+  }
+  return request.nextUrl.origin;
+}
+
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
   const tokenHash = params.get("token_hash");
@@ -25,7 +40,7 @@ export async function GET(request: NextRequest) {
     confirmed
       ? recoveryRequested ? "/reinitialiser-mot-de-passe" : "/"
       : recoveryRequested ? "/mot-de-passe-oublie?lien=erreur" : "/connexion?confirmation=erreur",
-    request.url,
+    publicOrigin(request),
   ));
   response.headers.set("Cache-Control", "private, no-store");
   response.headers.set("Referrer-Policy", "no-referrer");
