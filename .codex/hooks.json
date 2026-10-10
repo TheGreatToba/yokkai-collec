@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "C:/Users/walid/AppData/Local/Programs/Python/Python313/Scripts/graphify.EXE hook-check"
+            "command": "node scripts/graphify-hook.mjs hook-check"
           }
         ]
       }
