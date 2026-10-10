@@ -31,6 +31,7 @@ const allowlist = {
   "public.get_decision_pack_status()": ["authenticated"], // Reads the current player's pack state.
   "public.get_friend_collection(uuid)": ["authenticated"], // Collection read enforces friendship and privacy.
   "public.get_friendships()": ["authenticated"], // Reads the current player's social relationships.
+  "public.get_friendships_page(jsonb, integer)": ["authenticated"], // Bounded pages only expose auth.uid() relationships, preserving the existing privacy and ordering.
   "public.get_game_info()": ["authenticated"], // Narrow access to the current player's balance and game state.
   "public.get_my_active_auction_cards()": ["authenticated"], // Reads the current player's auctioned cards.
   "public.get_pack_destruction_values(uuid[])": ["authenticated"], // Estimates rewards for the player's eligible cards.
