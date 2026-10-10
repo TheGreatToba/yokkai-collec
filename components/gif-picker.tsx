@@ -72,12 +72,12 @@ export function GifPicker({disabled,onSelect}:{disabled?:boolean;onSelect:(gif:G
       <div className="yk-gif-categories" aria-label="Catégories de GIF">{GIF_CATEGORIES.map(category=><button type="button" key={category.label} className={query===category.term?"is-active":undefined} onClick={()=>choose(category.term)}>{category.label}</button>)}</div>
       <label className="sr-only" htmlFor="auction-gif-search">Rechercher un GIF</label>
       <div className="yk-gif-search"><span aria-hidden="true">⌕</span><input id="auction-gif-search" type="search" autoFocus value={query} onChange={event=>setQuery(event.target.value)} placeholder="Rechercher sur GIPHY…"/>{query&&<button type="button" aria-label="Effacer la recherche" onClick={()=>setQuery("")}>×</button>}</div>
-      <div className="yk-gif-results" aria-busy={loading&&offset===0}>{gifs.map(gif=><button type="button" key={gif.id} aria-label={`Aperçu : ${gif.title}`} onClick={()=>setSelected(gif)}><img src={gif.previewUrl} alt={gif.title} loading="lazy"/></button>)}</div>
+      <div className="yk-gif-results" aria-busy={loading&&offset===0}>{gifs.map(gif=><button type="button" key={gif.id} aria-label={`Aperçu : ${gif.title}`} onClick={()=>setSelected(gif)}><img src={gif.previewUrl} alt={gif.title} loading="lazy" decoding="async"/></button>)}</div>
       {loading&&offset===0&&<div className="yk-gif-loading" role="status">Chargement des GIF…</div>}
       {!loading&&!error&&!gifs.length&&<p>Aucun GIF trouvé.</p>}
       {error&&<p role="alert">{error}</p>}
       {hasMore&&!error&&<button type="button" className="yk-gif-more" disabled={loading} onClick={()=>setOffset(value=>value+PAGE_SIZE)}>{loading?"Chargement…":"Charger plus"}</button>}
-      {selected&&<div className="yk-gif-preview" role="dialog" aria-label="Aperçu du GIF"><img src={selected.previewUrl} alt={selected.title}/><div><button type="button" onClick={()=>setSelected(null)}>Annuler</button><button type="button" onClick={sendSelected}>Envoyer ce GIF</button></div></div>}
+      {selected&&<div className="yk-gif-preview" role="dialog" aria-label="Aperçu du GIF"><img src={selected.previewUrl} alt={selected.title} decoding="async"/><div><button type="button" onClick={()=>setSelected(null)}>Annuler</button><button type="button" onClick={sendSelected}>Envoyer ce GIF</button></div></div>}
       <a href="https://giphy.com" target="_blank" rel="noreferrer">Powered by GIPHY</a>
     </section>}
   </div>;

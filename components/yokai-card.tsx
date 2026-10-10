@@ -1,6 +1,7 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import type { CSSProperties, SyntheticEvent } from "react";
+import Image from "next/image";
 import type { Rarity } from "@/lib/data/cards";
 import "@/styles/cards.css";
 
@@ -10,10 +11,28 @@ export type YokaiCardProps = {
 };
 const spots = [[12,18],[78,26],[20,62],[70,58],[48,14],[84,46],[8,40],[58,70]];
 
+function optimizableCatalogueImage(image?:string) {
+  if(!image||!process.env.NEXT_PUBLIC_SUPABASE_URL)return false;
+  try {
+    const source=new URL(image),supabase=new URL(process.env.NEXT_PUBLIC_SUPABASE_URL);
+    return source.protocol==="https:"&&source.origin===supabase.origin&&!source.username&&!source.password
+      &&source.pathname.startsWith("/storage/v1/object/public/card-images/")&&!source.search&&!source.hash;
+  } catch { return false; }
+}
+
 export function YokaiCard({ rarity, shiny = false, name, image, category, anime, animated = true, className = "", fallbackImage, catalogueImage }: YokaiCardProps) {
   const holo = shiny && (rarity === "SSR" || rarity === "LR");
   const franchise = anime?.trim();
   const sparkCount = !animated ? 0 : holo ? 8 : rarity === "LR" ? 4 : rarity === "SSR" ? 3 : 0;
+  const optimized=optimizableCatalogueImage(image);
+  const artProps={src:image??"",width:300,height:420,loading:"lazy" as const,decoding:"async" as const,
+    onError:(event:SyntheticEvent<HTMLImageElement>)=>{
+      const fallback=fallbackImage??catalogueImage??(optimized?image:undefined);
+      if(fallback&&event.currentTarget.src!==fallback){
+        event.currentTarget.removeAttribute("srcset");
+        event.currentTarget.src=fallback;
+      }
+    }};
   return <div className={`yk-card yk-rarity-${rarity} ${holo ? "yk-shiny" : ""} ${animated ? "yk-animated" : ""} ${className}`}>
     <div className="yk-card-clip" role="img" aria-label={`${name}, ${rarity}${holo ? " Shiny" : ""}, ${franchise || category}`}>
       <div className="yk-card-frame" />
@@ -22,12 +41,9 @@ export function YokaiCard({ rarity, shiny = false, name, image, category, anime,
         <div className="yk-card-ring" />
         {rarity === "LR" && <div className="yk-card-line" />}
         {image && <div className="yk-card-art">
-          {/* Unrestricted catalogue illustrations use their existing source URLs. */}
+          {/* Only public catalogue storage is proxied; custom and external sources stay native. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={image} alt="" width={300} height={420} loading="lazy" decoding="async" onError={event => {
-            const fallback = fallbackImage ?? catalogueImage;
-            if (fallback && event.currentTarget.src !== fallback) event.currentTarget.src = fallback;
-          }} />
+          {optimized?<Image {...artProps} alt="" sizes="(max-width: 640px) 45vw, (max-width: 1024px) 25vw, 200px"/>:<img {...artProps} alt=""/>}
         </div>}
         <div className="yk-card-foil" />
         {holo && <div className="yk-holo" />}

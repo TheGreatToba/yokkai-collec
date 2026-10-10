@@ -1,8 +1,14 @@
 import type { NextConfig } from "next";
 
+const supabaseImageOrigin=process.env.NEXT_PUBLIC_SUPABASE_URL?new URL(process.env.NEXT_PUBLIC_SUPABASE_URL):undefined;
+
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1", "192.168.100.20"],
   poweredByHeader: false,
+  images: {
+    remotePatterns: supabaseImageOrigin?.protocol==="https:"?[new URL("/storage/v1/object/public/card-images/**",supabaseImageOrigin)]:[],
+    maximumRedirects: 0,
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: "8mb",

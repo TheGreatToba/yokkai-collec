@@ -44,7 +44,7 @@ export function SelectionBar({ count, value, busy, error, itemLabel = "carte", o
 export function Avatar({ name, image, online, size = 40 }: { name: string; image?: string; online?: boolean; size?: number }) {
   return <span className="relative inline-flex shrink-0 items-center justify-center rounded-full border border-accent-gold/40 bg-veil font-display font-semibold text-accent-gold" style={{ width: size, height: size }}>
     {/* eslint-disable-next-line @next/next/no-img-element */}
-    {image ? <img src={image} alt={name} width={size} height={size} className="size-full rounded-full object-cover" /> : <span aria-label={name}>{name.slice(0, 1).toLocaleUpperCase("fr-FR") || "?"}</span>}
+    {image ? <img src={image} alt={name} width={size} height={size} loading="lazy" decoding="async" className="size-full rounded-full object-cover" /> : <span aria-label={name}>{name.slice(0, 1).toLocaleUpperCase("fr-FR") || "?"}</span>}
     {online !== undefined && <span aria-label={online ? "En ligne" : "Hors ligne"} className={`absolute right-0 bottom-0 size-2.5 rounded-full border-2 border-night ${online ? "bg-success" : "bg-ink-3"}`} />}
   </span>;
 }

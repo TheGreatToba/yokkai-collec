@@ -44,6 +44,7 @@ function load(relative) {
   }).outputText;
   vm.runInNewContext(code, {
     exports,
+    URL,process:{env:{NODE_ENV:"test"}},
     require: name => {
       if (name.endsWith(".css")) return {};
       if (name === "@/lib/data/cards") return {
@@ -63,6 +64,13 @@ function load(relative) {
   return exports;
 }
 const render = (component, props) => renderToStaticMarkup(React.createElement(component, props));
+
+test("offscreen avatars defer loading and decode asynchronously without losing their alt text",()=>{
+  const {Avatar}=load("components/ui/index.tsx");
+  const html=render(Avatar,{name:"Player",image:"https://example.test/avatar.png",size:32});
+  assert.match(html,/loading="lazy"/); assert.match(html,/decoding="async"/);
+  assert.match(html,/alt="Player"/); assert.match(html,/width="32"/); assert.match(html,/height="32"/);
+});
 
 test("route and root layout errors offer retry without exposing internal details", () => {
   for (const relative of ["app/error.tsx", "app/global-error.tsx"]) {
