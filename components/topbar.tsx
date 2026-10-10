@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useEffect, useState, type ReactNode } from "react";
 import type { CollectedCard } from "@/lib/data/cards";
 import { Avatar, Karas } from "@/components/ui";
@@ -60,7 +59,7 @@ export function Topbar({ view, account, name: providedName, karas, notifications
   return <>
     <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-full focus:bg-accent-gold focus:p-3 focus:text-void">Aller au contenu</a>
     <header className="yk-topbar" data-mobile-menu={mobileMenu ? "open" : "closed"}>
-      <Link href="/" className="yk-brand" aria-label="Yokkai Collec’, accueil"><Image className="yk-brand-logo" src="/assets/yokkai-collec-logo.png" alt="Yokkai Collec’" width={120} height={80} priority /></Link>
+      <Link href="/" className="yk-brand" aria-label="Yokkai Collec’, accueil"><span className="yk-logo">Y</span><span>Yokkai<br />Collec’</span></Link>
       <nav id="primary-navigation" aria-label="Navigation principale" className="yk-primary-nav">
         <Link href="/boosters" aria-current={view === "packs" ? "page" : undefined}>Boosters</Link>
         <Link href="/collection" aria-current={view === "collection" ? "page" : undefined}>Collection</Link>
