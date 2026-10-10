@@ -18,7 +18,16 @@ export function tradeErrorMessage(code:string){const messages:Record<string,stri
 let client:ReturnType<typeof createClient>|undefined;const db=()=>client??=createClient();
 async function call<T>(name:string,args?:Record<string,unknown>):Promise<T>{const {data,error}=await db().rpc(name,args);if(error)throw new Error(tradeErrorMessage(error.message));return data as T;}
 export const getTradeContext=async(friendId:string)=>{const context=await call<TradeContext>("get_trade_context",{p_friend_id:friendId});const ownCards=await withLiveCardFranchises(context.ownCards);const friendCards=await withLiveCardFranchises(context.friendCards);return {...context,ownCards,friendCards};};
-export const listTradeOffers=async()=>{const offers=await call<TradeOffer[]>("list_trade_offers");return Promise.all(offers.map(async offer=>({...offer,offeredCards:await withLiveCardFranchises(offer.offeredCards),requestedCards:await withLiveCardFranchises(offer.requestedCards)})));};
+export const listTradeOffers=async()=>{
+  const offers=await call<TradeOffer[]>("list_trade_offers");
+  const cards=await withLiveCardFranchises(offers.flatMap(offer=>[...offer.offeredCards,...offer.requestedCards]));
+  let offset=0;
+  return offers.map(offer=>{
+    const offeredCards=cards.slice(offset,offset+=offer.offeredCards.length);
+    const requestedCards=cards.slice(offset,offset+=offer.requestedCards.length);
+    return {...offer,offeredCards,requestedCards};
+  });
+};
 export const createTradeOffer=(input:{toUser:string;offeredCardIds:string[];offeredKaras:number;requestedCardIds:string[];requestedKaras:number;parentOfferId?:string|null})=>call<string>("create_trade_offer",{p_to_user:input.toUser,p_offered_card_ids:input.offeredCardIds,p_offered_karas:input.offeredKaras,p_requested_card_ids:input.requestedCardIds,p_requested_karas:input.requestedKaras,p_parent_offer_id:input.parentOfferId??null});
 export async function cancelTradeOffer(id:string){const {data,error}=await db().rpc("cancel_trade_offer",{p_offer_id:id});if(error){if(error.message==="TRADE_ALREADY_CANCELLED")return true;throw new Error(tradeErrorMessage(error.message));}return data as boolean;}
 export async function respondTradeOffer(id:string,action:"accept"|"decline") { const accepted=await call<boolean>("respond_trade_offer",{p_offer_id:id,p_action:action});if(action==="accept"&&accepted)invalidatePlayerSnapshots(["collection","balance"]);return accepted; }
