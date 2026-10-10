@@ -99,3 +99,6 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Check design-system is unavailable in production
+        run: node tests/design-system-production.mjs

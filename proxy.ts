@@ -61,6 +61,9 @@ export async function proxy(request: NextRequest) {
   }
 
   const pathname = request.nextUrl.pathname;
+  if(process.env.NODE_ENV==="production"&&(pathname==="/design-system"||pathname.startsWith("/design-system/"))){
+    return new Response("Not found",{status:404,headers:{"X-Robots-Tag":"noindex, nofollow"}});
+  }
   if (/^\/partage\/[0-9a-f]{32}(?:\/image\/(?:og|story|square))?$/.test(pathname)) {
     return NextResponse.next();
   }
