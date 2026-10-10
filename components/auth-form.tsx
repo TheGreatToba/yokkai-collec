@@ -86,5 +86,8 @@ export function AuthForm({
         {signup ? "Se connecter" : "Rejoindre la chasse"}
       </Link>
     </p>
+    {!signup && <p className="yk-auth-switch">
+      <Link href="/mot-de-passe-oublie" className="yk-auth-link">Mot de passe oublié ?</Link>
+    </p>}
   </form>;
 }

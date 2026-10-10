@@ -973,6 +973,14 @@ test("les pages Paramètres et Admin transmettent le solde de Karas à la Topbar
   assert.match(admin, /<Topbar view="admin"[\s\S]{0,200}karas=\{karas\}/);
 });
 
+test("les paramètres permettent de changer le mot de passe après vérification de l’actuel", () => {
+  const settings = readFileSync(path.join(root, "components/settings.tsx"), "utf8");
+  assert.match(settings, /name="currentPassword"/);
+  assert.match(settings, /name="password"/);
+  assert.match(settings, /name="confirmPassword"/);
+  assert.match(settings, /useActionState\(changePassword/);
+});
+
 test("tri de la Collection : rareté par défaut, dates, nom français et ordre stable", () => {
   const { sortCollection, COLLECTION_SORTS, DEFAULT_COLLECTION_SORT, isCollectionSort } = load("lib/ui/collection-sort.ts");
   const make = (instanceId, name, rarity, shiny, obtainedAt) => ({ ...card, instanceId, name, rarity, shiny, obtainedAt });
