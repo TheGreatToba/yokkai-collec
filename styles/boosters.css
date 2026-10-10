@@ -140,7 +140,9 @@
 .yk-lr-stardust { position: absolute; left: 0; top: 0; width: 3.5px; height: 3.5px; border-radius: 50%; background: #fff4b8; box-shadow: 0 0 10px #ffd700; opacity: 0; transform: rotate(var(--star-angle)) translate(var(--star-dist)) rotate(calc(-1 * var(--star-angle))); animation: yk-lr-stardust-orbit 3s calc(3.5s + var(--star-delay)) ease-in-out infinite alternate both; }
 
 /* Reveal screen dressing (layout, slots, actions). The deck, flip and SR/SSR/LR stages above stay untouched. */
-.yk-reveal-screen { margin-top: var(--layout-gutter); }
+.yk-game-main:has(.yk-reveal-screen) { padding-top: var(--layout-gutter-compact); }
+.yk-game-main:has(.yk-reveal-screen) > .yk-pack-page-heading { display: none; }
+.yk-reveal-screen { margin-top: 0; }
 .yk-reveal-header { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: end; gap: calc(var(--spacing) * 2) var(--layout-gutter-compact); padding-bottom: var(--layout-gutter-compact); border-bottom: 1px solid var(--color-veil); }
 .yk-reveal-copy { grid-row: 1 / span 2; }
 .yk-reveal-progress { grid-column: 2; grid-row: 2; display: flex; justify-self: end; gap: calc(var(--spacing) * 1.5); }
@@ -148,7 +150,7 @@
 .yk-reveal-progress .yk-progress-done { background: var(--color-accent-gold); }
 .yk-reveal-progress .yk-progress-current { background: var(--color-focus); box-shadow: var(--shadow-chip); }
 .yk-decision-banner { max-width: var(--booster-reveal-max); margin: var(--layout-gutter) auto 0; padding: var(--layout-gutter-compact) var(--layout-gutter); border: 1px solid color-mix(in srgb,var(--color-karas) 35%,transparent); border-radius: var(--radius-panel); background: color-mix(in srgb,var(--color-karas) 8%,var(--color-surface)); box-shadow: var(--shadow-gold); text-align: center; }
-.yk-reveal-grid { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: var(--layout-gutter) var(--booster-reveal-gap); max-width: var(--booster-reveal-max); margin: var(--layout-gutter) auto 0; }
+.yk-reveal-grid { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: var(--layout-gutter-compact) var(--booster-reveal-gap); max-width: var(--booster-reveal-max); margin: var(--layout-gutter-compact) auto 0; }
 .yk-reveal-slot { position: relative; min-width: 0; display: flex; flex-direction: column; align-items: stretch; animation: yk-slot-enter var(--pack-opening-fade-duration) var(--ease-standard) both; animation-delay: calc(var(--stagger-item) * var(--slot-i, 0)); }
 .yk-slot-placeholder { aspect-ratio: 5 / 7; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--spacing) * 2); border: 1px dashed var(--color-veil-strong); border-radius: var(--radius-card); background: color-mix(in srgb,var(--color-surface) 60%,transparent); transition: border-color var(--duration-fast) var(--ease-standard),box-shadow var(--duration-fast) var(--ease-standard); }
 .yk-slot-next .yk-slot-placeholder { border-style: solid; border-color: var(--color-focus); box-shadow: var(--shadow-chip); }
@@ -184,7 +186,7 @@
 .yk-lost .yk-card { filter: grayscale(1) brightness(.6); opacity: .3; transform: scale(.92); }
 .yk-lost-stamp { position: absolute; left: 10%; right: 10%; top: 45%; padding: 8px; border: 2px solid var(--color-danger); color: var(--color-danger); transform: rotate(-15deg); font-size: clamp(9px,1.5vw,18px); font-weight: 700; text-align: center; letter-spacing: .12em; }
 .yk-reveal-footer { display: flex; flex-direction: column; align-items: center; gap: calc(var(--spacing) * 2); margin-top: var(--layout-gutter); padding-top: var(--layout-gutter); border-top: 1px solid var(--color-veil); text-align: center; }
-.yk-reveal-summary { max-width: var(--booster-reveal-max); margin: calc(var(--layout-gutter) * 1.5) auto 0; padding: var(--layout-gutter); border: 1px solid var(--color-veil); border-radius: var(--radius-panel); background: linear-gradient(180deg,color-mix(in srgb,var(--color-veil) 24%,var(--color-surface)),var(--color-surface)); box-shadow: var(--shadow-card); text-align: center; }
+.yk-reveal-summary { max-width: var(--booster-reveal-max); margin: var(--layout-gutter-compact) auto 0; padding: var(--layout-gutter-compact); border: 1px solid var(--color-veil); border-radius: var(--radius-panel); background: linear-gradient(180deg,color-mix(in srgb,var(--color-veil) 24%,var(--color-surface)),var(--color-surface)); box-shadow: var(--shadow-card); text-align: center; }
 .yk-reveal-summary-decision { border-color: color-mix(in srgb,var(--color-karas) 35%,transparent); box-shadow: var(--shadow-card),var(--shadow-gold); }
 .yk-reveal-summary-decision h2 { color: var(--color-karas); }
 .yk-pack-badge { position: absolute; z-index: 2; top: var(--layout-gutter-compact); left: var(--layout-gutter-compact); }
