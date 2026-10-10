@@ -37,6 +37,9 @@ test("catalogue keeps exact totals and fresh page rows while reusing counts only
   assert.ok(s.calls.every(c=>c.orders.join() ==="nom,id"));
   await s.api.getCataloguePage({pageSize:48});assert.equal(s.calls.at(-1).count,undefined);
   for(const filter of [{query:"card anime"},{category:"Anime"},{rarity:"SR"}])await s.api.getCataloguePage(filter);
+  assert.deepEqual(JSON.parse(JSON.stringify(s.calls[4].filters)),[
+    "nom.ilike.%card%,franchise.ilike.%card%","nom.ilike.%anime%,franchise.ilike.%anime%",
+  ],"one OR per term, combined with AND by PostgREST");
   assert.equal(s.calls.filter(c=>c.count==="exact").length,4);
   s.tick(30001);await s.api.getCataloguePage();assert.equal(s.calls.at(-1).count,"exact");
   s.fail(true);await assert.rejects(s.api.getCataloguePage({query:"retry"}));
