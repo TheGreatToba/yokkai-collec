@@ -4,7 +4,7 @@ import { Readable } from "node:stream";
 import { gzipSync } from "node:zlib";
 import test from "node:test";
 import { publicImageFetch, validateImageURL } from "../lib/server/public-image-fetch.mjs";
-import { downloadImage } from "../scripts/import-cards.mjs";
+import { downloadImage, retry } from "../scripts/import-cards.mjs";
 
 const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64");
 
@@ -95,4 +95,23 @@ test("redirects to internal URLs fail without a second request", async () => {
   await assert.rejects(downloadImage("https://images.example.com/image", (url, init) => publicImageFetch(url, init, deps)), /HTTP 302/);
   assert.equal(deps.state.requests, 1);
   assert.equal(deps.state.connections, 1);
+});
+
+test("network failures retain fetch retries but DNS security refusals are permanent", async () => {
+  let requests = 0;
+  const request = () => {
+    const req = new EventEmitter();
+    req.end = () => queueMicrotask(() => {
+      requests++;
+      req.emit("error", Object.assign(new Error("network unavailable"), { code: "ECONNRESET" }));
+    });
+    return req;
+  };
+  await assert.rejects(retry(() => publicImageFetch("https://images.example.com/image", {}, { request }),
+    3, async () => {}), /network unavailable/);
+  assert.equal(requests, 3);
+  const deps = transport([{ address: "127.0.0.1", family: 4 }]);
+  await assert.rejects(retry(() => downloadImage("https://images.example.com/image", (url, init) => publicImageFetch(url, init, deps)),
+    3, async () => {}), /publique/);
+  assert.equal(deps.state.requests, 1);
 });
