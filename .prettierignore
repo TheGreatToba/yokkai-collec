@@ -16,3 +16,5 @@ pnpm-lock.yaml
 Yokkai Collec' UI design/
 # Cinematic JSX is protected by a byte-level regression fingerprint.
 components/boosters.tsx
+# Read as raw gradient data by ImageResponse; its parser rejects multiline values.
+styles/card-tokens.css
