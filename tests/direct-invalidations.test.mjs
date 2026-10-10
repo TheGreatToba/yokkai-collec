@@ -1,3 +1,4 @@
+import { normalizeWhitespace } from "./helpers/normalize-whitespace.mjs";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -161,19 +162,40 @@ test("les consommateurs réconcilient les seules portées utiles sans toucher au
     new URL("../components/achievements.tsx", import.meta.url),
     "utf8"
   );
-  assert.match(game, /subscribePlayerSnapshotInvalidation\(scopes =>/);
-  assert.match(game, /scopes\.includes\("balance"\).*getGameInfo/s);
-  assert.match(game, /scopes\.includes\("collection"\).*getUserCollection/s);
+  assert.match(
+    normalizeWhitespace(game),
+    normalizeWhitespace(/subscribePlayerSnapshotInvalidation\(scopes =>/)
+  );
+  assert.match(
+    normalizeWhitespace(game),
+    normalizeWhitespace(/scopes\.includes\("balance"\).*getGameInfo/s)
+  );
+  assert.match(
+    normalizeWhitespace(game),
+    normalizeWhitespace(/scopes\.includes\("collection"\).*getUserCollection/s)
+  );
   const subscriptionStart = game.lastIndexOf(
     "subscribePlayerSnapshotInvalidation"
   );
   const subscription = game.slice(subscriptionStart, subscriptionStart + 500);
   assert.doesNotMatch(
-    subscription,
-    /setDraw|setRevealed|setStatus|setDecisionStatus/
+    normalizeWhitespace(subscription),
+    normalizeWhitespace(/setDraw|setRevealed|setStatus|setDecisionStatus/)
   );
-  assert.match(community, /subscribePlayerSnapshotInvalidation/);
-  assert.match(community, /screen==="profile"&&isMe/);
-  assert.match(achievements, /subscribePlayerSnapshotInvalidation/);
-  assert.match(achievements, /setBalance\(result\.balance\)/);
+  assert.match(
+    normalizeWhitespace(community),
+    normalizeWhitespace(/subscribePlayerSnapshotInvalidation/)
+  );
+  assert.match(
+    normalizeWhitespace(community),
+    normalizeWhitespace(/screen==="profile"&&isMe/)
+  );
+  assert.match(
+    normalizeWhitespace(achievements),
+    normalizeWhitespace(/subscribePlayerSnapshotInvalidation/)
+  );
+  assert.match(
+    normalizeWhitespace(achievements),
+    normalizeWhitespace(/setBalance\(result\.balance\)/)
+  );
 });

@@ -1,3 +1,4 @@
+import { normalizeWhitespace } from "./helpers/normalize-whitespace.mjs";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -80,18 +81,30 @@ test("le polling Marché reste à 3 s et conserve l'anti-snipe", () => {
     new URL("../components/community-views.tsx", import.meta.url),
     "utf8"
   );
-  assert.match(source, /window\.setInterval\(\(\)=>void refresh\(\),3000\)/);
   assert.match(
-    source,
-    /auctionReconciliationScopes\(marketRef\.current\?\?\[\],next,viewerRef\.current\)/
+    normalizeWhitespace(source),
+    normalizeWhitespace(/window\.setInterval\(\(\)=>void refresh\(\),3000\)/)
   );
   assert.match(
-    source,
-    /auctionReconciliationScopes\(auctionRef\.current\?\[auctionRef\.current\]:\[\],\[next\],viewerRef\.current\)/
+    normalizeWhitespace(source),
+    normalizeWhitespace(
+      /auctionReconciliationScopes\(marketRef\.current\?\?\[\],next,viewerRef\.current\)/
+    )
   );
   assert.match(
-    source,
-    /Date\.parse\(next\.endsAt\)>Date\.parse\(previous\.endsAt\)/
+    normalizeWhitespace(source),
+    normalizeWhitespace(
+      /auctionReconciliationScopes\(auctionRef\.current\?\[auctionRef\.current\]:\[\],\[next\],viewerRef\.current\)/
+    )
   );
-  assert.match(source, /animation\.market\.extensionNotice/);
+  assert.match(
+    normalizeWhitespace(source),
+    normalizeWhitespace(
+      /Date\.parse\(next\.endsAt\)>Date\.parse\(previous\.endsAt\)/
+    )
+  );
+  assert.match(
+    normalizeWhitespace(source),
+    normalizeWhitespace(/animation\.market\.extensionNotice/)
+  );
 });

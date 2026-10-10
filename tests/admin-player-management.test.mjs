@@ -1,3 +1,4 @@
+import { normalizeWhitespace } from "./helpers/normalize-whitespace.mjs";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
@@ -116,23 +117,48 @@ test("la fiche joueur affiche son inventaire et confirme la modération", async 
   const manager = await read("app/admin/players/player-manager.tsx");
   const actions = await read("app/admin/players/actions.ts");
   const collection = await read("components/collection.tsx");
-  assert.match(manager, /<CollectionView/);
-  assert.match(manager, /yk-friend-collection-modal/);
-  assert.match(manager, /readOnly adminRemoval onDiscard=\{removeCard\}/);
   assert.match(
-    manager,
-    /title=\{player\.isBanned \? "Débannir ce joueur \?" : "Bannir ce joueur \?"\}/
+    normalizeWhitespace(manager),
+    normalizeWhitespace(/<CollectionView/)
   );
-  assert.match(actions, /requireAdminAction\(\)/);
-  assert.match(actions, /admin_set_user_ban/);
-  assert.match(actions, /admin_remove_player_card/);
-  assert.match(collection, /adminRemoval \? false/);
   assert.match(
-    collection,
-    /Le retrait administratif annulera aussi la vente et remboursera automatiquement/
+    normalizeWhitespace(manager),
+    normalizeWhitespace(/yk-friend-collection-modal/)
+  );
+  assert.match(
+    normalizeWhitespace(manager),
+    normalizeWhitespace(/readOnly adminRemoval onDiscard=\{removeCard\}/)
+  );
+  assert.match(
+    normalizeWhitespace(manager),
+    normalizeWhitespace(
+      /title=\{player\.isBanned \? "Débannir ce joueur \?" : "Bannir ce joueur \?"\}/
+    )
+  );
+  assert.match(
+    normalizeWhitespace(actions),
+    normalizeWhitespace(/requireAdminAction\(\)/)
+  );
+  assert.match(
+    normalizeWhitespace(actions),
+    normalizeWhitespace(/admin_set_user_ban/)
+  );
+  assert.match(
+    normalizeWhitespace(actions),
+    normalizeWhitespace(/admin_remove_player_card/)
+  );
+  assert.match(
+    normalizeWhitespace(collection),
+    normalizeWhitespace(/adminRemoval \? false/)
+  );
+  assert.match(
+    normalizeWhitespace(collection),
+    normalizeWhitespace(
+      /Le retrait administratif annulera aussi la vente et remboursera automatiquement/
+    )
   );
   assert.doesNotMatch(
-    manager + actions,
-    /SERVICE_ROLE|SECRET_KEY|createAdminClient/
+    normalizeWhitespace(manager + actions),
+    normalizeWhitespace(/SERVICE_ROLE|SECRET_KEY|createAdminClient/)
   );
 });

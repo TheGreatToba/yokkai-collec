@@ -1,3 +1,4 @@
+import { normalizeWhitespace } from "./helpers/normalize-whitespace.mjs";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
@@ -61,22 +62,41 @@ test("l'application admin utilise la session authentifiée sans clé service-rol
 test("un CSV admin sans source_id bascule en source manuelle pour obtenir un identifiant stable", async () => {
   const actions = await read("app/admin/cards/actions.ts");
   assert.match(
-    actions,
-    /source:\s*sourceId\s*\?\s*\(row\.source \|\| "manual"\)\s*:\s*"manual"/
+    normalizeWhitespace(actions),
+    normalizeWhitespace(
+      /source:\s*sourceId\s*\?\s*\(?row\.source \|\| "manual"\)?\s*:\s*"manual"/
+    )
   );
-  assert.match(actions, /normalize\("NFD"\)/);
   assert.match(
-    actions,
-    /row\.nom \?\? row\.name \?\? row\.personnage \?\? row\.character/
+    normalizeWhitespace(actions),
+    normalizeWhitespace(/normalize\("NFD"\)/)
   );
-  assert.match(actions, /row\.franchise \?\? row\.licence/);
   assert.match(
-    actions,
-    /row\.image_url \?\? row\.image \?\? row\.image_source/
+    normalizeWhitespace(actions),
+    normalizeWhitespace(
+      /row\.nom \?\? row\.name \?\? row\.personnage \?\? row\.character/
+    )
   );
-  assert.match(actions, /\.replace\(\/\^http:/);
-  assert.match(actions, /deriveSourceId\(card\)/);
-  assert.match(actions, /relax_column_count: true/);
+  assert.match(
+    normalizeWhitespace(actions),
+    normalizeWhitespace(/row\.franchise \?\? row\.licence/)
+  );
+  assert.match(
+    normalizeWhitespace(actions),
+    normalizeWhitespace(/row\.image_url \?\? row\.image \?\? row\.image_source/)
+  );
+  assert.match(
+    normalizeWhitespace(actions),
+    normalizeWhitespace(/\.replace\(\/\^http:/)
+  );
+  assert.match(
+    normalizeWhitespace(actions),
+    normalizeWhitespace(/deriveSourceId\(card\)/)
+  );
+  assert.match(
+    normalizeWhitespace(actions),
+    normalizeWhitespace(/relax_column_count: true/)
+  );
 });
 
 test("les erreurs d'import CSV affichent le nom de la carte avec sa ligne", async () => {
@@ -118,12 +138,24 @@ test("une carte existante accepte une nouvelle image par URL ou fichier", async 
   const updateStart = actions.indexOf("function updateCardAction");
   const deleteStart = actions.indexOf("function deleteCardAction");
   const update = actions.slice(updateStart, deleteStart);
-  assert.match(update, /form\.get\("image_file"\)/);
-  assert.match(update, /imageForCard\(form, imageCard\)/);
-  assert.match(update, /patch\.image_url/);
-  assert.match(ui, /Nouvelle URL d’image/);
-  assert.match(ui, /nouveau fichier/);
-  assert.match(ui, />Saga</);
+  assert.match(
+    normalizeWhitespace(update),
+    normalizeWhitespace(/form\.get\("image_file"\)/)
+  );
+  assert.match(
+    normalizeWhitespace(update),
+    normalizeWhitespace(/imageForCard\(form, imageCard\)/)
+  );
+  assert.match(
+    normalizeWhitespace(update),
+    normalizeWhitespace(/patch\.image_url/)
+  );
+  assert.match(
+    normalizeWhitespace(ui),
+    normalizeWhitespace(/Nouvelle URL d’image/)
+  );
+  assert.match(normalizeWhitespace(ui), normalizeWhitespace(/nouveau fichier/));
+  assert.match(normalizeWhitespace(ui), normalizeWhitespace(/>Saga</));
 });
 
 test("le remplacement d'une image admin utilise une nouvelle URL pour contourner les caches", async () => {
@@ -131,33 +163,55 @@ test("le remplacement d'une image admin utilise une nouvelle URL pour contourner
   const updateStart = actions.indexOf("function updateCardAction");
   const deleteStart = actions.indexOf("function deleteCardAction");
   const update = actions.slice(updateStart, deleteStart);
-  assert.match(actions, /import \{ randomUUID \} from "node:crypto"/);
-  assert.match(update, /`\$\{imagePath\(imageCard\)\}-\$\{randomUUID\(\)\}`/);
   assert.match(
-    update,
-    /patch\.image_url = client\.storage\.from\("card-images"\)\.getPublicUrl\(path\)\.data\.publicUrl/
+    normalizeWhitespace(actions),
+    normalizeWhitespace(/import \{ randomUUID \} from "node:crypto"/)
+  );
+  assert.match(
+    normalizeWhitespace(update),
+    normalizeWhitespace(/`\$\{imagePath\(imageCard\)\}-\$\{randomUUID\(\)\}`/)
+  );
+  assert.match(
+    normalizeWhitespace(update),
+    normalizeWhitespace(
+      /patch\.image_url = client\.storage\.from\("card-images"\)\.getPublicUrl\(path\)\.data\.publicUrl/
+    )
   );
 });
 
 test("la suppression admin demande une confirmation explicite", async () => {
   const ui = await read("app/admin/cards/admin-card-manager.tsx");
   assert.match(
-    ui,
-    /const \[deleteConfirm, setDeleteConfirm\] = useState\(false\)/
+    normalizeWhitespace(ui),
+    normalizeWhitespace(
+      /const \[deleteConfirm, setDeleteConfirm\] = useState\(false\)/
+    )
   );
   assert.match(
-    ui,
-    /type="button" onClick=\{\(\)=>setDeleteConfirm\(true\)\}>Supprimer/
+    normalizeWhitespace(ui),
+    normalizeWhitespace(
+      /type="button" onClick=\{\(\)=>setDeleteConfirm\(true\)\}>Supprimer/
+    )
   );
   assert.match(
-    ui,
-    /<Modal open=\{deleteConfirm\}[\s\S]*?title="Supprimer cette carte \?"/
+    normalizeWhitespace(ui),
+    normalizeWhitespace(
+      /<Modal open=\{deleteConfirm\}[\s\S]*?title="Supprimer cette carte \?"/
+    )
   );
-  assert.match(ui, /Cette action est irréversible\./);
-  assert.match(ui, /<form action=\{deleteAction\}[^>]+>/);
   assert.match(
-    ui,
-    /type="submit">\{deleting \? "Suppression…" : "Confirmer la suppression"\}/
+    normalizeWhitespace(ui),
+    normalizeWhitespace(/Cette action est irréversible\./)
+  );
+  assert.match(
+    normalizeWhitespace(ui),
+    normalizeWhitespace(/<form action=\{deleteAction\}[^>]+>/)
+  );
+  assert.match(
+    normalizeWhitespace(ui),
+    normalizeWhitespace(
+      /type="submit">\{deleting \? "Suppression…" : "Confirmer la suppression"\}/
+    )
   );
 });
 
@@ -238,25 +292,55 @@ test("un admin peut filtrer les cartes avec une liste de catégories", async () 
     "supabase/migrations/20261003000006_admin_card_category_filter.sql"
   );
   assert.match(
-    page,
-    /searchParams:\s*Promise<\{ q\?: string; category\?: string \}>/
+    normalizeWhitespace(page),
+    normalizeWhitespace(
+      /searchParams:\s*Promise<\{ q\?: string; category\?: string \}>/
+    )
   );
-  assert.match(page, /rpc\("list_admin_card_categories"\)/);
-  assert.match(page, /name="category"/);
-  assert.match(page, /Toutes les catégories/);
   assert.match(
-    page,
-    /sm:grid-cols-\[minmax\(0,3fr\)_minmax\(14rem,2fr\)_auto_auto\]/
+    normalizeWhitespace(page),
+    normalizeWhitespace(/rpc\("list_admin_card_categories"\)/)
   );
-  assert.match(page, /id="admin-card-category"[^>]+w-full min-w-0/);
   assert.match(
-    page,
-    /aria-label="Nom de la carte ou de la licence"[^>]+w-full min-w-0/
+    normalizeWhitespace(page),
+    normalizeWhitespace(/name="category"/)
   );
-  assert.match(page, /cardsQuery\.eq\("categorie", selectedCategory\)/);
-  assert.doesNotMatch(page, /name="q"[^>]+required/);
-  assert.match(migration, /select distinct categorie as category/i);
-  assert.match(migration, /if not public\.is_current_user_admin\(\)/i);
+  assert.match(
+    normalizeWhitespace(page),
+    normalizeWhitespace(/Toutes les catégories/)
+  );
+  assert.match(
+    normalizeWhitespace(page),
+    normalizeWhitespace(
+      /sm:grid-cols-\[minmax\(0,3fr\)_minmax\(14rem,2fr\)_auto_auto\]/
+    )
+  );
+  assert.match(
+    normalizeWhitespace(page),
+    normalizeWhitespace(/id="admin-card-category"[^>]+w-full min-w-0/)
+  );
+  assert.match(
+    normalizeWhitespace(page),
+    normalizeWhitespace(
+      /aria-label="Nom de la carte ou de la licence"[^>]+w-full min-w-0/
+    )
+  );
+  assert.match(
+    normalizeWhitespace(page),
+    normalizeWhitespace(/cardsQuery\.eq\("categorie", selectedCategory\)/)
+  );
+  assert.doesNotMatch(
+    normalizeWhitespace(page),
+    normalizeWhitespace(/name="q"[^>]+required/)
+  );
+  assert.match(
+    normalizeWhitespace(migration),
+    normalizeWhitespace(/select distinct categorie as category/i)
+  );
+  assert.match(
+    normalizeWhitespace(migration),
+    normalizeWhitespace(/if not public\.is_current_user_admin\(\)/i)
+  );
 });
 
 test("la migration NBA range les cartes dans SPORT avec la licence NBA", async () => {

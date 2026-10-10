@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import { normalizeWhitespace } from "./helpers/normalize-whitespace.mjs";
 
 const game = readFileSync(
   new URL("../components/game.tsx", import.meta.url),
@@ -18,6 +19,12 @@ test("la révélation remonte les cartes et masque le grand en-tête de page", (
     css,
     /\.yk-game-main:has\(\.yk-reveal-screen\)[^{]*\{[^}]*padding-top:/
   );
-  assert.match(css, /> \.yk-pack-page-heading \{ display: none; \}/);
-  assert.match(css, /\.yk-reveal-screen \{ margin-top: 0; \}/);
+  assert.match(
+    normalizeWhitespace(css),
+    normalizeWhitespace(/> \.yk-pack-page-heading \{ display: none; \}/)
+  );
+  assert.match(
+    normalizeWhitespace(css),
+    normalizeWhitespace(/\.yk-reveal-screen \{ margin-top: 0; \}/)
+  );
 });

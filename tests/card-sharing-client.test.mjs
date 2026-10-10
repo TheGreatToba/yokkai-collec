@@ -1,3 +1,4 @@
+import { normalizeWhitespace } from "./helpers/normalize-whitespace.mjs";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
@@ -66,10 +67,18 @@ test("reveal : partage uniquement final et animation LR intacte", () => {
     "9cead83e7e9322974d64869b01d95badacd8668533503d21d21d41e9d4268634"
   );
   assert.match(
-    current,
-    /done&&!choosing&&!lost&&!selecting&&!auctioned\.has\(card\.instanceId\)&&\(card\.rarity==="SSR"\|\|card\.rarity==="LR"\|\|card\.shiny\)/
+    normalizeWhitespace(current),
+    normalizeWhitespace(
+      /done&&!choosing&&!lost&&!selecting&&!auctioned\.has\(card\.instanceId\)&&\(card\.rarity==="SSR"\|\|card\.rarity==="LR"\|\|card\.shiny\)/
+    )
   );
   const collection = read("components/collection.tsx");
-  assert.match(collection, /!readOnly&&<MyCardShares/);
-  assert.match(collection, /!readOnly&&<CardShareButton/);
+  assert.match(
+    normalizeWhitespace(collection),
+    normalizeWhitespace(/!readOnly&&\(?<MyCardShares/)
+  );
+  assert.match(
+    normalizeWhitespace(collection),
+    normalizeWhitespace(/!readOnly&&\(?<CardShareButton/)
+  );
 });

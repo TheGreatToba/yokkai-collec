@@ -1,3 +1,4 @@
+import { normalizeWhitespace } from "./helpers/normalize-whitespace.mjs";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
@@ -95,9 +96,18 @@ test("card reports appear only in detail modals with the three reasons", () => {
     new URL("../components/collection.tsx", import.meta.url),
     "utf8"
   );
-  assert.doesNotMatch(cardComponent, /CardReportButton|yk-card-report-trigger/);
-  assert.match(catalogue, /CardReportButton cardId=\{selected\.id\}/);
-  assert.match(collection, /CardReportButton cardId=\{selected\.id\}/);
+  assert.doesNotMatch(
+    normalizeWhitespace(cardComponent),
+    normalizeWhitespace(/CardReportButton|yk-card-report-trigger/)
+  );
+  assert.match(
+    normalizeWhitespace(catalogue),
+    normalizeWhitespace(/CardReportButton cardId=\{selected\.id\}/)
+  );
+  assert.match(
+    normalizeWhitespace(collection),
+    normalizeWhitespace(/CardReportButton cardId=\{selected\.id\}/)
+  );
   for (const reason of ["image_issue", "wrong_license", "duplicate_card"])
     assert.match(modal, new RegExp(reason));
 });

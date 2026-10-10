@@ -1,3 +1,4 @@
+import { normalizeWhitespace } from "./helpers/normalize-whitespace.mjs";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -121,33 +122,64 @@ test("la page Échanges poll toutes les 3 s sans chevauchement et respecte la vi
     new URL("../components/trades.tsx", import.meta.url),
     "utf8"
   );
-  assert.match(source, /TRADE_POLL_INTERVAL_MS = 3000/);
   assert.match(
-    source,
-    /if\(loading\|\|document\.visibilityState==="hidden"\)return/
-  );
-  assert.match(source, /loading=true/);
-  assert.match(source, /finally\{loading=false;\}/);
-  assert.match(
-    source,
-    /window\.setInterval\(\(\)=>void refresh\(\),pollIntervalMs\)/
-  );
-  assert.match(source, /addEventListener\("visibilitychange",onVisible\)/);
-  assert.match(source, /removeEventListener\("visibilitychange",onVisible\)/);
-  assert.match(source, /adapter\.listOffers\(\)/);
-  assert.match(
-    source,
-    /invalidatePlayerSnapshots\(\["collection","balance"\]\)/
+    normalizeWhitespace(source),
+    normalizeWhitespace(/TRADE_POLL_INTERVAL_MS = 3000/)
   );
   assert.match(
-    source,
-    /pruneUnavailableSelection\(offeredRef\.current,nextContext\.ownCards\)/
+    normalizeWhitespace(source),
+    normalizeWhitespace(
+      /if\(loading\|\|document\.visibilityState==="hidden"\)return/
+    )
   );
   assert.match(
-    source,
-    /pruneUnavailableSelection\(requestedRef\.current,nextContext\.friendCards\)/
+    normalizeWhitespace(source),
+    normalizeWhitespace(/loading=true/)
   );
-  assert.match(source, /setSelectionNotice\(/);
+  assert.match(
+    normalizeWhitespace(source),
+    normalizeWhitespace(/finally\{loading=false;\}/)
+  );
+  assert.match(
+    normalizeWhitespace(source),
+    normalizeWhitespace(
+      /window\.setInterval\(\(\)=>void refresh\(\),pollIntervalMs\)/
+    )
+  );
+  assert.match(
+    normalizeWhitespace(source),
+    normalizeWhitespace(/addEventListener\("visibilitychange",onVisible\)/)
+  );
+  assert.match(
+    normalizeWhitespace(source),
+    normalizeWhitespace(/removeEventListener\("visibilitychange",onVisible\)/)
+  );
+  assert.match(
+    normalizeWhitespace(source),
+    normalizeWhitespace(/adapter\.listOffers\(\)/)
+  );
+  assert.match(
+    normalizeWhitespace(source),
+    normalizeWhitespace(
+      /invalidatePlayerSnapshots\(\["collection","balance"\]\)/
+    )
+  );
+  assert.match(
+    normalizeWhitespace(source),
+    normalizeWhitespace(
+      /pruneUnavailableSelection\(offeredRef\.current,nextContext\.ownCards\)/
+    )
+  );
+  assert.match(
+    normalizeWhitespace(source),
+    normalizeWhitespace(
+      /pruneUnavailableSelection\(requestedRef\.current,nextContext\.friendCards\)/
+    )
+  );
+  assert.match(
+    normalizeWhitespace(source),
+    normalizeWhitespace(/setSelectionNotice\(/)
+  );
 });
 
 test("la soumission conserve l’orientation des lots sans inverser les identifiants", () => {
@@ -232,8 +264,10 @@ test("deux annulations dans le même tick ne déclenchent qu’un seul appel RPC
     "utf8"
   );
   assert.match(
-    source,
-    /runTradeCancellation\(cancellationLock,adapter\.cancel,id\)/
+    normalizeWhitespace(source),
+    normalizeWhitespace(
+      /runTradeCancellation\(cancellationLock,adapter\.cancel,id\)/
+    )
   );
 });
 
@@ -361,14 +395,21 @@ test("les actions d’examen sont désactivées dès que l’offre change ou dis
     "utf8"
   );
   assert.match(
-    source,
-    /setAccepting\(current=>current&&tradeOfferIsActionable\(current.id,history\)/
+    normalizeWhitespace(source),
+    normalizeWhitespace(
+      /setAccepting\(current=>current&&tradeOfferIsActionable\(current.id,history\)/
+    )
   );
   assert.match(
-    source,
-    /const actionable=offer\?\.incoming&&offer.status==="pending"/
+    normalizeWhitespace(source),
+    normalizeWhitespace(
+      /const actionable=offer\?\.incoming&&offer.status==="pending"/
+    )
   );
-  assert.match(source, /\{actionable&&<>/);
+  assert.match(
+    normalizeWhitespace(source),
+    normalizeWhitespace(/\{actionable&&\(?<>/)
+  );
 });
 
 test("l’identifiant d’examen survit au passage dans l’historique et résout la liste complète", () => {
@@ -427,14 +468,24 @@ test("l’annulation reste disponible uniquement pour une offre envoyée en atte
     "utf8"
   );
   assert.match(
-    source,
-    /const cancellable=offer&&!offer\.incoming&&offer\.status==="pending"/
+    normalizeWhitespace(source),
+    normalizeWhitespace(
+      /const cancellable=offer&&!offer\.incoming&&offer\.status==="pending"/
+    )
   );
-  assert.match(source, /onCancel=\{tab==="sent"\?setCancelling:undefined\}/);
-  assert.match(source, /Cette proposition a été annulée/);
   assert.match(
-    source,
-    /disabled=\{busy\} onClick=\{\(\)=>cancelling&&void cancel/
+    normalizeWhitespace(source),
+    normalizeWhitespace(/onCancel=\{tab==="sent"\?setCancelling:undefined\}/)
+  );
+  assert.match(
+    normalizeWhitespace(source),
+    normalizeWhitespace(/Cette proposition a été annulée/)
+  );
+  assert.match(
+    normalizeWhitespace(source),
+    normalizeWhitespace(
+      /disabled=\{busy\} onClick=\{\(\)=>cancelling&&void cancel/
+    )
   );
 });
 
@@ -470,11 +521,19 @@ test("une acceptation devenue impossible traduit TRADE_NOT_PENDING et recharge l
   );
   const failure = respond.slice(respond.indexOf("catch"));
   assert.match(
-    failure,
-    /setError\(e instanceof Error \? e\.message : "Action impossible\."\)/
+    normalizeWhitespace(failure),
+    normalizeWhitespace(
+      /setError\(e instanceof Error \? e\.message : "Action impossible\."\)/
+    )
   );
-  assert.match(failure, /try\{await reload\(\);\}catch\{\}/);
-  assert.match(source, /resolveTradeReview\(reviewedId,offers\)/);
+  assert.match(
+    normalizeWhitespace(failure),
+    normalizeWhitespace(/try\{await reload\(\);\}catch\{\}/)
+  );
+  assert.match(
+    normalizeWhitespace(source),
+    normalizeWhitespace(/resolveTradeReview\(reviewedId,offers\)/)
+  );
 });
 
 test("le popover dépend uniquement de son ID et les liens conservent ami et carte", () => {
@@ -482,11 +541,19 @@ test("le popover dépend uniquement de son ID et les liens conservent ami et car
     new URL("../components/trades.tsx", import.meta.url),
     "utf8"
   );
-  assert.match(source, /Modal open=\{!!reviewedId\}/);
-  assert.match(source, /resolveTradeReview\(reviewedId,offers\)/);
+  assert.match(
+    normalizeWhitespace(source),
+    normalizeWhitespace(/Modal open=\{!!reviewedId\}/)
+  );
+  assert.match(
+    normalizeWhitespace(source),
+    normalizeWhitespace(/resolveTradeReview\(reviewedId,offers\)/)
+  );
   assert.doesNotMatch(
-    source,
-    /resolveTradeReview\(reviewedId,received\)|open=\{!!reviewedOffer\}/
+    normalizeWhitespace(source),
+    normalizeWhitespace(
+      /resolveTradeReview\(reviewedId,received\)|open=\{!!reviewedOffer\}/
+    )
   );
   const route = readFileSync(
     new URL("../components/community-views.tsx", import.meta.url),
@@ -498,7 +565,16 @@ test("le popover dépend uniquement de son ID et les liens conservent ami et car
     new URL("../components/ui/index.tsx", import.meta.url),
     "utf8"
   );
-  assert.match(modal, /open && !ref.current\?\.open/);
-  assert.match(modal, /event.shiftKey/);
-  assert.match(modal, /trigger\?\.isConnected/);
+  assert.match(
+    normalizeWhitespace(modal),
+    normalizeWhitespace(/open && !ref.current\?\.open/)
+  );
+  assert.match(
+    normalizeWhitespace(modal),
+    normalizeWhitespace(/event.shiftKey/)
+  );
+  assert.match(
+    normalizeWhitespace(modal),
+    normalizeWhitespace(/trigger\?\.isConnected/)
+  );
 });
