@@ -1,18 +1,59 @@
 # Yokkai Collec’
 
-Prototype v0.1 : Next.js App Router, TypeScript, Tailwind CSS et ESLint.
-Périmètre : `v0.1-mvp.md`. La vision à long terme est dans `spec-complete-vision.md`.
+Jeu de collection de cartes : Regular Packs et Decision Packs, collection,
+Karas, enchères, échanges entre amis, profils, succès et partage de cartes.
+L’état de jeu est stocké dans Supabase/PostgreSQL ; le navigateur ne fait pas
+les tirages et ne détient pas la sauvegarde de référence.
 
-## Démarrage
+## Architecture
 
-Node.js 22 et npm :
+- Next.js 16 (App Router et Proxy), React 19, TypeScript et Tailwind CSS 4.
+- `app/` porte les routes et Server Actions ; `components/` l’interface ;
+  `lib/data/` les adaptateurs Supabase et caches en mémoire.
+- `utils/supabase/` gère les clients navigateur/SSR et le renouvellement des
+  cookies. Les mutations de jeu passent par des RPC SQL authentifiées.
+- `supabase/migrations/` est la source versionnée du schéma, des droits, des
+  règles métier et des jobs cron. PostgreSQL 17 est auto-hébergé sur le VPS.
+- Storage héberge les images. Next optimise les images du bucket public
+  `card-images` autorisé ; les autres sources conservent leur rendu direct.
+
+Le catalogue et la collection sont paginés. Les listes d’échanges, enchères et
+amis utilisent des RPC paginées, puis chargent toutes les pages pour préserver
+l’affichage actuel. Le total du catalogue est conservé 30 secondes en mémoire ;
+les lignes de chaque page sont relues. Les pollings se suspendent en arrière-plan.
+La CSP est actuellement en **Report-Only**, pas encore bloquante.
+
+## Démarrage local
+
+Prérequis : Node.js 22, npm et un projet Supabase configuré (ou Docker pour
+Supabase local). Depuis un clone, installer les dépendances puis renseigner
+`.env.local` à partir de `.env.example` :
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Ouvrir http://localhost:3000 pour les packs, et `/collection` pour la collection.
+`npm ci` active également le hook qui refuse les pushes directs sur `master`.
+Ouvrir http://localhost:3000 ; les pages de jeu nécessitent une session.
+Les aperçus `/design-system` sont réservés au développement (404 en production).
+
+Variables :
+
+| Variable | Usage |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | URL de l’API Supabase |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Clé publique, avec RLS et droits RPC |
+| `NEXT_PUBLIC_SITE_URL` | Origine du front pour les confirmations email |
+| `NEXT_PUBLIC_GIPHY_API_KEY` | Clé publique GIPHY pour le sélecteur du chat, si utilisé |
+| `MAINTENANCE_MODE` | Page statique 503 quand `true` |
+| `SUPABASE_SECRET_KEY` ou `SUPABASE_SERVICE_ROLE_KEY` | Scripts administratifs uniquement |
+
+Une clé serveur ne doit jamais porter le préfixe `NEXT_PUBLIC_`, être envoyée au
+navigateur, publiée dans Git ou copiée dans une conversation. `.env.local` reste
+ignoré. Pour une instance locale déjà démarrée avec `npx supabase start`,
+`npm run local:configure` écrit sa configuration locale uniquement.
+Voir [Supabase](supabase/README.md) pour Auth, RPC et import du catalogue.
 
 ## Migrations en production
 
@@ -66,77 +107,38 @@ effets de bord dans la même transaction. Après migration, une clôture peut pr
 jusqu'au prochain passage du job (une minute, hors surcharge/échec).
 Vérifier ensuite les exécutions dans `cron.job_run_details` et le drift.
 
-## Vérifications locales
+## Vérifications
 
 ```sh
 npm run lint
+npx tsc --noEmit
 npm test
 npm run build
+node tests/design-system-production.mjs
+npm audit --omit=dev --audit-level=high
 ```
 
-Les tests couvrent les seuils de tirage, le tri, les doublons, la sauvegarde,
-la régénération (y compris après une absence), le plafond et une sauvegarde corrompue.
-Ils vérifient aussi la restauration après rechargement, le maintien de l’échéance
-après ouverture, un échec d’écriture et les accès concurrents entre deux onglets simulés.
+Le build utilise les variables publiques ; des valeurs factices suffisent en CI.
+Le contrôle design-system démarre le build production et vérifie les 404 des aperçus.
+Les tests couvrent les adaptateurs, l’isolation des joueurs, les RPC, les packs,
+les triggers, les enchères et les migrations. Ils ne font pas d’import en prod.
 
-## Données et règles
+La CI rejoue toutes les migrations sur PGlite avec les droits par défaut Supabase
+et bloque les numéros en double ainsi que les SECURITY DEFINER ouvertes sans
+justification dans `tests/security-definer-allowlist.mjs`. Le bootstrap cron
+PGlite enregistre les jobs sans les exécuter ; les commandes sont testées
+séparément. Un autre job rejoue le schéma sur `supabase/postgres:17.6.1.136`
+(PostgreSQL 17.6) et vérifie 50 surenchères croisées avec deux sessions réelles.
 
-- Tout accès aux données passe par les fonctions asynchrones de `lib/data/cards.ts`.
-  Le catalogue contient 30 cartes et des images SVG placeholder autonomes,
-  réparties entre Anime/Manga, Sport et Cinéma.
-- Un utilisateur local unique ; aucune authentification ni base de données.
-- Chaque carte est tirée indépendamment : C 59 %, R 25 %, SR 10 %, SSR 5 %, LR 1 %.
-  Une LR tirée a ensuite 5 % de chances d’être Shiny. Une SSR tirée n’est jamais Shiny.
-  Les doublons sont possibles et ont chacun un identifiant et une date d’obtention.
-- Choix de démarrage : une réserve pleine de 5 packs à la création du compte, collection vide.
-- Un pack de 5 cartes toutes les 15 minutes, stock maximal de 5.
-  Le temps écoulé hors ligne est pris en compte. Au plafond, le compteur s’arrête ;
-  ouvrir un pack relance un délai complet de 15 minutes.
-- La collection et le compteur sont enregistrés dans localStorage sous
-  `yokkai-collec-v1`. Les données appartiennent à ce navigateur et cette origine.
-- Le tirage entier est sauvegardé avant sa révélation. Quitter ou recharger
-  pendant l’animation conserve toutes les cartes dans la collection.
-  La progression visuelle de la révélation n’est pas persistée.
-- Les cartes se révèlent au clic, dans l’ordre C → R → SR → SSR → LR.
-- Trois exemplaires SSR non-Shiny identiques peuvent être consommés depuis la collection
-  pour créer une SSR Shiny évoluée du même personnage. C’est la seule façon d’obtenir une SSR Shiny.
-- Un Decision Pack est disponible toutes les 24 heures, indépendamment des Regular
-  Packs. Il propose cinq cartes (SR 96,5 %, SSR 3 %, LR 0,5 %) et une seule est conservée.
-  Un choix en attente est sauvegardé côté serveur et ne peut pas être relancé.
-- L’écran de reveal permet de détruire immédiatement une carte d’un Regular ou
-  Decision Pack. La dernière option d’un Decision Pack ne peut pas être détruite.
-- Chaque profil possède un solde de Karas, initialisé à 0 et affiché dans la
-  topbar. Les opérations atomiques de crédit et débit sont réservées au serveur ;
-  le marché crédite désormais les vendeurs lors du règlement des enchères.
-- Le marché permet de publier une carte pour 15 min, 30 min, 1 h, 4 h, 12 h ou
-  24 h, de miser par paliers d’au moins 10 Karas et de suivre une enchère. Une
-  carte publiée est gelée jusqu’à la vente ou l’expiration. Les mises sont
-  débitées immédiatement, l’ancien meneur est remboursé atomiquement et une
-  mise dans les cinq dernières minutes prolonge la vente d’une minute.
-- Les vues du marché couvrent les ventes actives, mes enchères, les enchères
-  gagnées et les cartes vendues/non vendues, avec filtres de rareté et tris par
-  prix ou fin imminente. Le détail affiche l’historique complet des mises.
-- Le profil permet de rechercher un joueur par pseudo, d’envoyer une demande
-  d’ami et de consulter les demandes reçues, envoyées et acceptées. Une demande
-  peut aussi être initiée directement depuis le profil public d’un joueur.
-- Les amis peuvent proposer des échanges combinant plusieurs exemplaires et un
-  montant optionnel de Karas de chaque côté. Le destinataire peut accepter,
-  refuser ou créer une contre-offre. L’acceptation revérifie et transfère toutes
-  les possessions dans une transaction unique.
-- La collection est paginée par groupes de 20 cartes avec des numéros de page.
-  Les exemplaires peuvent être classés dans un dossier personnel optionnel.
-- Une LR, obtenue uniquement par tirage direct, porte la mention « Premier propriétaire »
-  et sa date d’obtention.
-- Un trigger retire automatiquement une carte de la wishlist dès qu’un exemplaire
-  rejoint `user_cards`, quelle que soit la source de l’acquisition.
-- La collection affiche les plus rares en premier, propose deux filtres et
-  une modale de détail (fermeture par bouton, Échap ou clic sur le fond).
-- Les sauvegardes invalides sont conservées et signalées, jamais écrasées automatiquement.
-- Lorsque Web Locks est disponible, toutes les opérations sur l’état du joueur
-  partagent un verrou entre onglets, y compris les lectures qui régénèrent les packs.
-  Sans cette API, utiliser un seul onglet pour éviter les écritures concurrentes.
+## Travail en équipe et suivi
 
-Les fonctions publiques sont asynchrones pour permettre de remplacer leur
-implémentation par un accès à une DB sans changer leurs appels dans les composants.
-Les données locales et l’horloge du navigateur ne constituent pas une protection
-contre la modification manuelle ; ce prototype reste un jeu local.
+Créer une branche depuis `origin/master` à jour, ouvrir une PR et attendre une
+CI verte. Coolify redéploie le front au merge ; une évolution doit rester
+compatible avec la base tant que sa migration n’est pas appliquée.
+Les migrations existantes ne s’éditent pas : ajouter une nouvelle version unique.
+Les anciennes sauvegardes localStorage ne sont ni lues ni importées dans le jeu.
+Les taux et délais sont définis côté SQL et exposés par les RPC, pas par ce README.
+
+Voir [le workflow d’équipe](docs/COLLABORATION.md), [l’audit](AUDIT.md) et
+[les chantiers différés](docs/TODO.md). `v0.1-mvp.md` et `spec-complete-vision.md`
+sont des documents historiques/de conception, pas le descriptif de la production.
