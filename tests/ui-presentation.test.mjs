@@ -63,6 +63,36 @@ function load(relative) {
   return exports;
 }
 const render = (component, props) => renderToStaticMarkup(React.createElement(component, props));
+
+test("route and root layout errors offer retry without exposing internal details", () => {
+  for (const relative of ["app/error.tsx", "app/global-error.tsx"]) {
+    assert.ok(existsSync(path.join(root, relative)), `${relative} doit prendre en charge les erreurs`);
+    assert.match(readFileSync(path.join(root, relative), "utf8"), /^["']use client["']/);
+    const ErrorPage = load(relative).default;
+    let retries = 0;
+    const props = { error: new Error("PRIVATE_DATABASE_DETAILS"), retry: () => { retries++; } };
+    const html = render(ErrorPage, props);
+    assert.match(html, /Impossible d’afficher cette page/);
+    assert.match(html, /Réessayer/);
+    assert.doesNotMatch(html, /PRIVATE_DATABASE_DETAILS/);
+    if (relative.includes("global-error")) {
+      assert.match(html, /<html lang="fr"/);
+      assert.match(html, /<body/);
+    }
+    const buttons = [];
+    function visit(node) {
+      if (!React.isValidElement(node)) return;
+      if (typeof node.type === "function") return visit(node.type(node.props));
+      if (node.type === "button") buttons.push(node);
+      React.Children.forEach(node.props.children, visit);
+    }
+    visit(ErrorPage(props));
+    assert.equal(buttons.length, 1);
+    assert.equal(buttons[0].props.type, "button");
+    buttons[0].props.onClick();
+    assert.equal(retries, 1, "Le bouton doit relancer la récupération du segment");
+  }
+});
 const card = { id: "card-a", instanceId: "copy-a", name: "Carte de test", category: "Test", rarity: "SSR", image: "/test-image.png", obtainedAt: "2026-09-24T10:00:00Z" };
 
 test("les titres H1 utilisent la police locale HYWenHei-85W", () => {
