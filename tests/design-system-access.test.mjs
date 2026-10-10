@@ -14,7 +14,8 @@ test("design-system denies production requests before session refresh and retain
       assert.equal(name,"@/utils/supabase/proxy");return{updateSession:()=>{sessions++;return{passed:true};}};
     }};
     vm.runInNewContext(code,context);
-    for(const pathname of ["/design-system","/design-system/","/design-system/future-preview/nested"]){
+    assert.ok(context.exports.config.matcher.includes("/design-system/:path*"),"asset suffixes must not bypass the production guard");
+    for(const pathname of ["/design-system","/design-system/","/design-system/future-preview/nested","/design-system/preview.svg"]){
       const response=await context.exports.proxy({nextUrl:{pathname}});
       if(env==="production"){assert.equal(response.status,404);assert.equal(sessions,0);}
       else assert.equal(response.passed,true);
