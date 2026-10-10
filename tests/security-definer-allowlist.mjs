@@ -45,10 +45,12 @@ const allowlist = {
   "public.keep_decision_pack_card(uuid)": ["authenticated"], // Player keeps their own eligible pack choice.
   "public.list_admin_card_categories()": ["authenticated"], // Admin catalogue access verifies administrator status.
   "public.list_auctions()": ["authenticated"], // Marketplace listing applies viewer visibility rules.
+  "public.list_auctions_page(jsonb, integer)": ["authenticated"], // Bounded marketplace pages retain the current viewer's visibility rules.
   "public.list_blocked_users()": ["authenticated"], // Lists only the current player's blocks.
   "public.list_card_shares(integer)": ["authenticated"], // Lists only the current player's shares.
   "public.list_notifications(integer)": ["authenticated"], // Lists only the current player's notifications.
   "public.list_trade_offers()": ["authenticated"], // Lists trades involving the current player.
+  "public.list_trade_offers_page(jsonb, integer)": ["authenticated"], // Bounded trade pages only include offers involving auth.uid().
   "public.list_wishlist(text)": ["authenticated"], // Wishlist read applies viewer privacy rules.
   "public.mark_notification_read(uuid)": ["authenticated"], // Player marks only their own notification.
   "public.mark_offline()": ["authenticated"], // Updates the current player's presence.

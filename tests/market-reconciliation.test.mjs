@@ -3,9 +3,11 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
+import {readRpcPages} from "../lib/data/rpc-pages.mjs";
 
 function marketApi(){
   const context={exports:{},Map,Set,require:name=>{
+    if(name==="@/lib/data/rpc-pages.mjs")return{readRpcPages};
     if(name==="@/utils/supabase/client")return{createClient:()=>({})};
     if(name==="@/lib/data/cards")return{invalidatePlayerSnapshots(){},withLiveCardFranchises:async cards=>cards};
     assert.fail("Import inattendu: "+name);

@@ -3,15 +3,16 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
+import { readRpcPages } from "../lib/data/rpc-pages.mjs";
 
 function setup(offers, { failCards = false } = {}) {
   const requests = [];
   const client = {
     auth: { onAuthStateChange() {} },
     async rpc(name) {
-      assert.equal(name, "list_trade_offers");
+      assert.equal(name, "list_trade_offers_page");
       requests.push({ rpc: name });
-      return { data: offers, error: null };
+      return { data: { items: offers, nextCursor: null }, error: null };
     },
     from(table) {
       assert.equal(table, "cards");
@@ -29,6 +30,7 @@ function setup(offers, { failCards = false } = {}) {
   };
   let cards;
   const require = name => {
+    if (name === "@/lib/data/rpc-pages.mjs") return { readRpcPages };
     if (name === "@/utils/supabase/client") return { createClient: () => client };
     if (name === "@/lib/data/cards") return cards;
     if (name === "@/lib/ui/card-search") return {};
