@@ -4,7 +4,30 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
-import { authError, pseudoValidationError, validateCredentials, type AuthState } from "@/lib/auth/forms";
+import {
+  authError,
+  pseudoValidationError,
+  validateCredentials,
+  validateEmail,
+  validateNewPassword,
+  validatePasswordChange,
+  type AuthState,
+} from "@/lib/auth/forms";
+
+function configuredSiteOrigin() {
+  const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.NODE_ENV !== "production" ? "http://localhost:3000" : "");
+  try {
+    const site = new URL(configuredUrl);
+    const secureProtocol = process.env.NODE_ENV === "production"
+      ? site.protocol === "https:"
+      : ["http:", "https:"].includes(site.protocol);
+    if (!secureProtocol || site.username || site.password) return undefined;
+    return site.origin;
+  } catch {
+    return undefined;
+  }
+}
 
 function errorCode(error: unknown) {
   if (typeof error !== "object" || error === null || !("code" in error)) return undefined;
@@ -103,13 +126,8 @@ export async function signUp(_state: AuthState, form: FormData): Promise<AuthSta
   let hasSession = false;
   try {
     // Use a configured origin, never an untrusted Host/next query parameter.
-    const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL ||
-      (process.env.NODE_ENV !== "production" ? "http://localhost:3000" : "");
-    const site = new URL(configuredUrl);
-    const secureProtocol = process.env.NODE_ENV === "production"
-      ? site.protocol === "https:"
-      : ["http:", "https:"].includes(site.protocol);
-    if (!secureProtocol || site.username || site.password) {
+    const siteOrigin = configuredSiteOrigin();
+    if (!siteOrigin) {
       return { error: authError(), values };
     }
     const supabase = createClient(await cookies());
@@ -124,7 +142,7 @@ export async function signUp(_state: AuthState, form: FormData): Promise<AuthSta
     const { data, error } = await supabase.auth.signUp({
       email: input.email,
       password: input.password,
-      options: { data: { pseudo: input.pseudo }, emailRedirectTo: `${site.origin}/auth/confirm` },
+      options: { data: { pseudo: input.pseudo }, emailRedirectTo: `${siteOrigin}/auth/confirm` },
     });
     if (error) {
       logAuthErrorInDevelopment("sign-up", error);
@@ -147,6 +165,73 @@ export async function signUp(_state: AuthState, form: FormData): Promise<AuthSta
   if (!hasSession) return { success: true, values };
   revalidatePath("/", "layout");
   redirect("/");
+}
+
+export async function requestPasswordReset(_state: AuthState, form: FormData): Promise<AuthState> {
+  const { email, error } = validateEmail(form);
+  const values = { email, pseudo: "" };
+  if (error) return { fields: { email: error }, values };
+  const siteOrigin = configuredSiteOrigin();
+  if (!siteOrigin) return { error: authError(), values };
+  try {
+    const supabase = createClient(await cookies());
+    const result = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${siteOrigin}/auth/confirm?next=/reinitialiser-mot-de-passe`,
+    });
+    if (result.error && [429, 500, 502, 503, 504].includes(result.error.status ?? 0)) {
+      return { error: authError(result.error.code, result.error.status), values };
+    }
+  } catch (error) {
+    if (isTransientNetworkError(error)) return { error: authError(), values };
+  }
+  // Do not reveal whether the address belongs to an account.
+  return { success: true, values };
+}
+
+export async function updateRecoveredPassword(_state: AuthState, form: FormData): Promise<AuthState> {
+  const input = validateNewPassword(form);
+  if (!input.valid) return { fields: input.fields };
+  try {
+    const supabase = createClient(await cookies());
+    const { data: { user }, error: sessionError } = await supabase.auth.getUser();
+    if (sessionError || !user) {
+      return { error: "Ce lien de réinitialisation est invalide ou a expiré." };
+    }
+    const { error } = await supabase.auth.updateUser({ password: input.password });
+    if (error) return { error: authError(error.code, error.status) };
+    await supabase.auth.signOut({ scope: "global" });
+  } catch {
+    return { error: authError() };
+  }
+  revalidatePath("/", "layout");
+  redirect("/connexion?mot-de-passe=modifie");
+}
+
+export async function changePassword(_state: AuthState, form: FormData): Promise<AuthState> {
+  const input = validatePasswordChange(form);
+  if (!input.valid) return { fields: input.fields };
+  try {
+    const supabase = createClient(await cookies());
+    const { data: { user }, error: sessionError } = await supabase.auth.getUser();
+    if (sessionError || !user?.email) return { error: "Votre session a expiré. Reconnectez-vous puis réessayez." };
+
+    const verification = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: input.currentPassword,
+    });
+    if (verification.error?.code === "invalid_credentials") {
+      return { fields: { currentPassword: "Le mot de passe actuel est incorrect." } };
+    }
+    if (verification.error) return { error: authError(verification.error.code, verification.error.status) };
+    if (verification.data.user?.id !== user.id) return { error: authError() };
+
+    const { error } = await supabase.auth.updateUser({ password: input.password });
+    if (error) return { error: authError(error.code, error.status) };
+  } catch (error) {
+    return { error: authError(errorCode(error), errorStatus(error)) };
+  }
+  revalidatePath("/", "layout");
+  return { success: true };
 }
 
 export async function signOut(): Promise<AuthState> {

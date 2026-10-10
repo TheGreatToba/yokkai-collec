@@ -1,7 +1,7 @@
 export type AuthState = {
   error?: string;
   success?: boolean;
-  fields?: Partial<Record<"email" | "password" | "pseudo", string>>;
+  fields?: Partial<Record<"email" | "currentPassword" | "password" | "confirmPassword" | "pseudo", string>>;
   values?: { email: string; pseudo: string };
 };
 
@@ -35,6 +35,49 @@ export function validateCredentials(form: FormData, signup: boolean) {
   const pseudoError = signup ? pseudoValidationError(pseudo) : undefined;
   if (pseudoError) fields.pseudo = pseudoError;
   return { email, password, pseudo, fields, valid: Object.keys(fields).length === 0 };
+}
+
+export function validateEmail(form: FormData) {
+  const value = form.get("email");
+  const email = typeof value === "string" ? value.trim() : "";
+  return {
+    email,
+    error: email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+      ? undefined
+      : "Indiquez une adresse email valide.",
+  };
+}
+
+export function validateNewPassword(form: FormData) {
+  const passwordValue = form.get("password");
+  const confirmationValue = form.get("confirmPassword");
+  const password = typeof passwordValue === "string" ? passwordValue : "";
+  const confirmation = typeof confirmationValue === "string" ? confirmationValue : "";
+  const fields: NonNullable<AuthState["fields"]> = {};
+  if (password.length < 8 || password.length > 128) {
+    fields.password = "Choisissez un mot de passe de 8 à 128 caractères.";
+  }
+  if (confirmation !== password) {
+    fields.confirmPassword = "Les deux mots de passe ne correspondent pas.";
+  }
+  return { password, fields, valid: Object.keys(fields).length === 0 };
+}
+
+export function validatePasswordChange(form: FormData) {
+  const currentValue = form.get("currentPassword");
+  const currentPassword = typeof currentValue === "string" ? currentValue : "";
+  const next = validateNewPassword(form);
+  const fields = { ...next.fields };
+  if (!currentPassword) fields.currentPassword = "Indiquez votre mot de passe actuel.";
+  if (currentPassword && currentPassword === next.password) {
+    fields.password = "Le nouveau mot de passe doit être différent de l’actuel.";
+  }
+  return {
+    currentPassword,
+    password: next.password,
+    fields,
+    valid: Object.keys(fields).length === 0,
+  };
 }
 
 export function authError(code?: string, status?: number) {

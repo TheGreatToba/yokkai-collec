@@ -81,6 +81,91 @@ test("inscription : validation serveur et conservation exacte du mot de passe", 
   assert.equal(forms.validateCredentials(form({ password: "old" }), false).valid, true);
 });
 
+test("réinitialisation : validation de l’email et confirmation identique", () => {
+  const validPassword = "x".repeat(12);
+  assert.match(forms.validateEmail(form({ email: "incorrect" })).error, /email valide/);
+  assert.equal(forms.validateEmail(form({ email: "  joueur@example.com " })).email, "joueur@example.com");
+  assert.equal(forms.validateNewPassword(form({ password: validPassword, confirmPassword: validPassword })).valid, true);
+  const mismatch = forms.validateNewPassword(form({ password: "x".repeat(5), confirmPassword: "y".repeat(5) }));
+  assert.match(mismatch.fields.password, /8 à 128/);
+  assert.match(mismatch.fields.confirmPassword, /ne correspondent pas/);
+});
+
+test("paramètres : validation du mot de passe actuel et du nouveau", () => {
+  const validPassword = "x".repeat(12);
+  const missing = forms.validatePasswordChange(form({ currentPassword: "", password: validPassword, confirmPassword: validPassword }));
+  assert.match(missing.fields.currentPassword, /actuel/);
+  const identical = forms.validatePasswordChange(form({ currentPassword: validPassword, password: validPassword, confirmPassword: validPassword }));
+  assert.match(identical.fields.password, /différent/);
+});
+
+test("réinitialisation : demande non énumérable et retour canonique", async () => {
+  let sent;
+  const api = actions({
+    resetPasswordForEmail: async (email, options) => {
+      sent = { email, options };
+      return { error: { code: "user_not_found", status: 400 } };
+    },
+  });
+  const result = await api.requestPasswordReset({}, form());
+  assert.equal(result.success, true);
+  assert.equal(sent.email, "joueur@example.com");
+  assert.equal(sent.options.redirectTo, "https://yokkai.example/auth/confirm?next=/reinitialiser-mot-de-passe");
+  assert.equal(JSON.stringify(result).includes("user_not_found"), false);
+});
+
+test("réinitialisation : changement authentifié, fermeture globale et retour connexion", async () => {
+  const validPassword = "x".repeat(12);
+  const calls = [];
+  const api = actions({
+    getUser: async () => ({ data: { user: { id: "verified-id" } }, error: null }),
+    updateUser: async attributes => { calls.push(["update", attributes]); return { error: null }; },
+    signOut: async options => { calls.push(["signout", options]); return { error: null }; },
+  });
+  await assert.rejects(
+    api.updateRecoveredPassword({}, form({ password: validPassword, confirmPassword: validPassword })),
+    /REDIRECT:\/connexion\?mot-de-passe=modifie/,
+  );
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0][0], "update");
+  assert.equal(calls[0][1].password, validPassword);
+  assert.equal(calls[1][0], "signout");
+  assert.equal(calls[1][1].scope, "global");
+  assert.equal(api.revalidated.length, 1);
+});
+
+test("paramètres : le mot de passe actuel est revérifié avant modification", async () => {
+  const currentPassword = "x".repeat(11);
+  const nextPassword = "y".repeat(12);
+  const calls = [];
+  const api = actions({
+    getUser: async () => ({ data: { user: { id: "verified-id", email: "joueur@example.com" } }, error: null }),
+    signInWithPassword: async credentials => {
+      calls.push(["verify", credentials]);
+      return { data: { user: { id: "verified-id" } }, error: null };
+    },
+    updateUser: async attributes => { calls.push(["update", attributes]); return { error: null }; },
+  });
+  const result = await api.changePassword({}, form({ currentPassword, password: nextPassword, confirmPassword: nextPassword }));
+  assert.equal(result.success, true);
+  assert.equal(calls[0][1].email, "joueur@example.com");
+  assert.equal(calls[0][1].password, currentPassword);
+  assert.equal(calls[1][1].password, nextPassword);
+  assert.equal(api.revalidated.length, 1);
+});
+
+test("paramètres : un mauvais mot de passe actuel ne permet aucune modification", async () => {
+  let updates = 0;
+  const api = actions({
+    getUser: async () => ({ data: { user: { id: "verified-id", email: "joueur@example.com" } }, error: null }),
+    signInWithPassword: async () => ({ data: { user: null }, error: { code: "invalid_credentials", status: 400 } }),
+    updateUser: async () => { updates += 1; return { error: null }; },
+  });
+  const result = await api.changePassword({}, form({ currentPassword: "x".repeat(11), password: "y".repeat(12), confirmPassword: "y".repeat(12) }));
+  assert.match(result.fields.currentPassword, /incorrect/);
+  assert.equal(updates, 0);
+});
+
 test("inscription : règles du pseudo et comptage Unicode", () => {
   assert.match(forms.validateCredentials(form({ pseudo: "ab" }), true).fields.pseudo, /au moins 3/);
   assert.match(forms.validateCredentials(form({ pseudo: "a".repeat(31) }), true).fields.pseudo, /30 caractères maximum/);
@@ -239,9 +324,9 @@ test("confirmation : code PKCE et token email, redirection interne sans tokens e
   }
 });
 
-test("confirmation : lien absent, expiré, refusé ou mauvais type", async () => {
+test("confirmation : lien absent, expiré ou refusé", async () => {
   const invalid = confirm({});
-  for (const query of ["", "token_hash=hash&type=recovery", "error=access_denied&code=ignored"]) {
+  for (const query of ["", "error=access_denied&code=ignored"]) {
     const response = await invalid(new NextRequest(`https://yokkai.example/auth/confirm?${query}`));
     assert.equal(response.headers.get("location"), "https://yokkai.example/connexion?confirmation=erreur");
   }
@@ -249,6 +334,23 @@ test("confirmation : lien absent, expiré, refusé ou mauvais type", async () =>
     new NextRequest("https://yokkai.example/auth/confirm?code=expired"),
   );
   assert.match(expired.headers.get("location"), /confirmation=erreur$/);
+});
+
+test("confirmation : récupération par code ou token vers la page de nouveau mot de passe", async () => {
+  const handler = confirm({
+    exchangeCodeForSession: async () => ({ error: null }),
+    verifyOtp: async input => {
+      assert.equal(input.type, "recovery");
+      return { error: null };
+    },
+  });
+  for (const query of [
+    "code=valid&next=/reinitialiser-mot-de-passe",
+    "token_hash=hash&type=recovery",
+  ]) {
+    const response = await handler(new NextRequest(`https://yokkai.example/auth/confirm?${query}`));
+    assert.equal(response.headers.get("location"), "https://yokkai.example/reinitialiser-mot-de-passe");
+  }
 });
 
 test("session : utilisateur vérifié par Auth et pseudo lu via RPC sans identifiant", async () => {

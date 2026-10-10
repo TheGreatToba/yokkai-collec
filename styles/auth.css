@@ -16,7 +16,8 @@
 .yk-auth-form fieldset:disabled { opacity: .68; }
 .yk-auth-form .auth-input { min-height: 50px; }
 .yk-auth-form [role="alert"] { overflow-wrap: anywhere; line-height: 1.55; }
-.yk-auth-form :is(#pseudo-error,#email-error,#password-error) { margin-top: calc(var(--spacing) * 2); color: var(--color-danger-ink); font-size: 12px; }
+.yk-auth-notice { margin-bottom: calc(var(--spacing) * 5); border: 1px solid color-mix(in srgb,var(--color-success) 35%,transparent); border-radius: var(--radius-panel); padding: calc(var(--spacing) * 4); background: color-mix(in srgb,var(--color-success) 8%,var(--color-surface)); color: var(--color-success); font-size: 13px; line-height: 1.55; }
+.yk-auth-form :is(#pseudo-error,#email-error,#password-error,#confirm-password-error) { margin-top: calc(var(--spacing) * 2); color: var(--color-danger-ink); font-size: 12px; }
 .yk-auth-submit { width: 100%; min-height: 50px; }
 .yk-auth-submit[aria-busy="true"]::before { width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: var(--radius-pill); animation: yk-ui-spin var(--duration-slow) linear infinite; content: ""; }
 .yk-auth-switch { color: var(--color-ink-2); font-size: 13px; text-align: center; }
