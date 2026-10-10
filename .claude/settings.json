@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "C:/Users/walid/AppData/Local/Programs/Python/Python313/Scripts/graphify.EXE hook-guard search",
+            "command": "node scripts/graphify-hook.mjs hook-guard search",
             "timeout": 10
           }
         ]
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "C:/Users/walid/AppData/Local/Programs/Python/Python313/Scripts/graphify.EXE hook-guard read",
+            "command": "node scripts/graphify-hook.mjs hook-guard read",
             "timeout": 10
           }
         ]
