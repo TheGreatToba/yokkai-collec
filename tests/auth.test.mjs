@@ -303,12 +303,12 @@ test("déconnexion locale, propagation des erreurs et redirection après succès
   assert.match(failed.error, /échoué/);
 });
 
-function confirm(auth) {
+function confirm(auth, env = {}) {
   return loadModule("../app/auth/confirm/route.ts", {
     "next/headers": { cookies: async () => ({}) },
     "next/server": { NextResponse },
     "@/utils/supabase/server": { createClient: () => ({ auth }) },
-  }).GET;
+  }, { process: { env } }).GET;
 }
 
 test("confirmation : code PKCE et token email, redirection interne sans tokens et sans cache", async () => {
@@ -351,6 +351,19 @@ test("confirmation : récupération par code ou token vers la page de nouveau mo
     const response = await handler(new NextRequest(`https://yokkai.example/auth/confirm?${query}`));
     assert.equal(response.headers.get("location"), "https://yokkai.example/reinitialiser-mot-de-passe");
   }
+});
+
+test("confirmation : utilise le domaine public configuré derrière le proxy", async () => {
+  const handler = confirm({
+    exchangeCodeForSession: async () => ({ error: null }),
+  }, { NEXT_PUBLIC_SITE_URL: "https://yokkai-collec.com" });
+  const response = await handler(new NextRequest(
+    "https://localhost:3000/auth/confirm?code=valid&next=/reinitialiser-mot-de-passe",
+  ));
+  assert.equal(
+    response.headers.get("location"),
+    "https://yokkai-collec.com/reinitialiser-mot-de-passe",
+  );
 });
 
 test("session : utilisateur vérifié par Auth et pseudo lu via RPC sans identifiant", async () => {
