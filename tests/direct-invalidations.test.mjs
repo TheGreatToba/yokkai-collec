@@ -3,11 +3,13 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
+import { readRpcPages } from "../lib/data/rpc-pages.mjs";
 
 function load(relativePath,{results={},failures={}}={}) {
   const invalidations=[];const calls=[];const order=[];
   const rpc=async(name,args)=>{calls.push({name,args});order.push("rpc:"+name);if(failures[name])return{data:null,error:{message:failures[name]}};return{data:results[name]??null,error:null};};
   const context={exports:{},require:name=>{
+    if(name==="@/lib/data/rpc-pages.mjs")return{readRpcPages};
     if(name==="@/utils/supabase/client")return{createClient:()=>({rpc})};
     if(name==="@/lib/data/cards")return{
       invalidatePlayerSnapshots:scopes=>{invalidations.push([...scopes]);order.push("invalidate:"+scopes.join(","));},

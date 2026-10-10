@@ -53,7 +53,7 @@ function load(relative) {
       if (name === "@/components/ui") return load("components/ui/index.tsx");
       if (name.startsWith("@/")) {
         const modulePath = name.slice(2);
-        const relative = ["tsx", "ts"].map(extension => `${modulePath}.${extension}`).find(candidate => existsSync(path.join(root, candidate)));
+        const relative = (modulePath.endsWith(".mjs") ? [modulePath] : ["tsx", "ts"].map(extension => `${modulePath}.${extension}`)).find(candidate => existsSync(path.join(root, candidate)));
         if (!relative) throw new Error(`Module local introuvable : ${name}`);
         return load(relative);
       }

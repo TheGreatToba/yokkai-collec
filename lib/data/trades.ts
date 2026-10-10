@@ -1,4 +1,5 @@
 import {createClient} from "@/utils/supabase/client";
+import {readRpcPages} from "@/lib/data/rpc-pages.mjs";
 import {invalidatePlayerSnapshots,withLiveCardFranchises,type CollectedCard} from "@/lib/data/cards";
 
 export type TradeContext={friend:{id:string;pseudo:string;avatarUrl?:string|null};balance:number;ownCards:CollectedCard[];friendCards:CollectedCard[]};
@@ -16,10 +17,10 @@ export function tradeStatusPresentation(status?:string):{label:string;tone:"gold
 export function resolveTradeReview(id:string|undefined,offers:readonly TradeOffer[]){return id?offers.find(offer=>offer.id===id):undefined;}
 export function tradeErrorMessage(code:string){const messages:Record<string,string>={FRIENDS_ONLY:"Cette proposition ne peut plus être envoyée car vous n’êtes plus amis.",INVALID_TRADE_KARAS:"Le montant de Karas est invalide.",EMPTY_TRADE:"Ajoutez au moins une carte ou des Karas.",DUPLICATE_TRADE_CARD:"Une même carte ne peut apparaître qu’une fois.",TRADE_CARD_UNAVAILABLE:"Une carte sélectionnée n’est plus disponible.",TRADE_CARD_FROZEN:"Une carte sélectionnée est désormais en vente.",CARD_LOCKED:"Une carte sélectionnée est désormais verrouillée.",TRADE_NOT_COUNTERABLE:"Cette offre ne peut plus recevoir de contre-proposition.",TRADE_NOT_PENDING:"Cette offre n’est plus en attente.",TRADE_NOT_FOUND:"Cette offre est introuvable.",TRADE_NOT_AUTHOR:"Seul l’auteur de cette offre peut l’annuler.",TRADE_ALREADY_ACCEPTED:"Cette offre a déjà été acceptée.",TRADE_ALREADY_DECLINED:"Cette offre a déjà été refusée.",TRADE_ALREADY_CANCELLED:"Cette offre a déjà été annulée.",TRADE_ALREADY_COUNTERED:"Cette offre a déjà reçu une contre-proposition.",TRADE_INSUFFICIENT_KARAS:"Ton solde ou celui de ton ami ne contient plus assez de Karas pour accepter cet échange."};return messages[code]??"Impossible de traiter cet échange. Réessayez.";}
 let client:ReturnType<typeof createClient>|undefined;const db=()=>client??=createClient();
-async function call<T>(name:string,args?:Record<string,unknown>):Promise<T>{const {data,error}=await db().rpc(name,args);if(error)throw new Error(tradeErrorMessage(error.message));return data as T;}
+async function call<T>(name:string,args?:Record<string,unknown>,paged=false):Promise<T>{const {data,error}=paged?await readRpcPages(db().rpc.bind(db()),name):await db().rpc(name,args);if(error)throw new Error(tradeErrorMessage(error.message??""));return data as T;}
 export const getTradeContext=async(friendId:string)=>{const context=await call<TradeContext>("get_trade_context",{p_friend_id:friendId});const ownCards=await withLiveCardFranchises(context.ownCards);const friendCards=await withLiveCardFranchises(context.friendCards);return {...context,ownCards,friendCards};};
 export const listTradeOffers=async()=>{
-  const offers=await call<TradeOffer[]>("list_trade_offers");
+  const offers=await call<TradeOffer[]>("list_trade_offers",undefined,true);
   const cards=await withLiveCardFranchises(offers.flatMap(offer=>[...offer.offeredCards,...offer.requestedCards]));
   let offset=0;
   return offers.map(offer=>{
