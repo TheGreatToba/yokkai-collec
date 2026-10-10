@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/client";
+import { readRpcPages } from "@/lib/data/rpc-pages.mjs";
 
 export type FriendshipStatus = "none"|"incoming"|"outgoing"|"accepted"|"self";
 export type FriendUser = {id:string;pseudo:string;avatarUrl?:string|null;status?:FriendshipStatus;requestId?:string;createdAt?:string;isOnline?:boolean;lastSeenAt?:string|null};
@@ -40,14 +41,20 @@ function friendlyFailure(error:unknown){
   return new FriendsError("Le service des amis est momentanément indisponible. Réessayez dans un instant.",failure.code);
 }
 
-async function call<T>(name:string,args?:Record<string,unknown>):Promise<T>{
-  let result:Awaited<ReturnType<ReturnType<typeof db>["rpc"]>>;
-  try{result=await db().rpc(name,args);}catch(error){logFailure(name,error);throw friendlyFailure(error);}
+async function call<T>(name:string,args?:Record<string,unknown>,paged=false):Promise<T>{
+  let result:{data:unknown;error:SupabaseFailure|null};
+  try{result=paged?await readRpcPages(db().rpc.bind(db()),name):await db().rpc(name,args);}catch(error){logFailure(name,error);throw friendlyFailure(error);}
   if(result.error){logFailure(name,result.error);throw friendlyFailure(result.error);}
   return result.data as T;
 }
 export const searchUsers=(query:string)=>call<FriendUser[]>("search_users",{p_query:query});
-export const getFriendships=()=>call<Friendships>("get_friendships");
+export const getFriendships=async():Promise<Friendships>=>{
+  const data=await call<Friendships|{bucket:keyof Friendships;friend:FriendUser}[]>("get_friendships",undefined,true);
+  if(!Array.isArray(data))return data; // Legacy database before the grouped migration.
+  const lists:Friendships={friends:[],incoming:[],outgoing:[]};
+  for(const item of data)lists[item.bucket].push(item.friend);
+  return lists;
+};
 export async function touchPresence(){
   const {data}=await db().auth.getSession();
   if(!data.session?.user)return false;

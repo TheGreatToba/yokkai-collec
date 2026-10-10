@@ -3,18 +3,41 @@ import vm from "node:vm";
 import assert from "node:assert/strict";
 import test from "node:test";
 import ts from "typescript";
+import { readRpcPages } from "../lib/data/rpc-pages.mjs";
 
-function setup(handler,{nodeEnv="development"}={}){
+function setup(handler,{nodeEnv="development",paged=false}={}){
   const logs=[];const calls=[];
-  const client={auth:{async getSession(){return {data:{session:{user:{id:"viewer"}}}};}},async rpc(name,args){calls.push({name,args});return handler(name,args);}};
+  const client={auth:{async getSession(){return {data:{session:{user:{id:"viewer"}}}};}},async rpc(name,args){calls.push({name,args});if(name==="get_friendships_page"&&!paged)return{data:null,error:{code:"PGRST202",message:"missing"}};return handler(name,args);}};
   const context={exports:{},process:{env:{NODE_ENV:nodeEnv}},console:{error:(...args)=>logs.push(args)},
-    require:(name)=>{assert.equal(name,"@/utils/supabase/client");return {createClient:()=>client};}};
+    require:(name)=>{if(name==="@/lib/data/rpc-pages.mjs")return{readRpcPages};assert.equal(name,"@/utils/supabase/client");return {createClient:()=>client};}};
   const source=ts.transpileModule(readFileSync(new URL("../lib/data/friends.ts",import.meta.url),"utf8"),{
     compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020},
   }).outputText;
   vm.runInNewContext(source,context);
   return {api:context.exports,logs,calls};
 }
+
+test("friendships load every page without changing the three ordered lists",async()=>{
+  const items=Array.from({length:251},(_,i)=>({bucket:["friends","incoming","outgoing"][i%3],friend:{id:`friend-${i}`,pseudo:`Name ${i}`}}));
+  const {api,calls}=setup(async(name,args)=>{
+    if(name==="get_friendships")return{data:{friends:[],incoming:[],outgoing:[]},error:null};
+    assert.equal(name,"get_friendships_page");
+    const offset=Number(args.p_cursor?.id??0);
+    return{data:{items:items.slice(offset,offset+100),nextCursor:offset+100<items.length?{id:String(offset+100)}:null},error:null};
+  },{paged:true});
+  const result=await api.getFriendships();
+  for(const bucket of ["friends","incoming","outgoing"]){
+    assert.deepEqual(Array.from(result[bucket],item=>item.id),items.filter(item=>item.bucket===bucket).map(item=>item.friend.id));
+  }
+  assert.equal(calls.length,3);
+  assert.ok(calls.every(call=>call.name==="get_friendships_page"));
+});
+
+test("friends pagination never falls back on authorization failure",async()=>{
+  const {api,calls}=setup(async()=>({data:null,error:{code:"42501",message:"permission denied"}}),{paged:true});
+  await assert.rejects(api.getFriendships(),/pas autoris/i);
+  assert.deepEqual(calls.map(call=>call.name),["get_friendships_page"]);
+});
 
 test("amis : erreurs métier, autorisation et réseau ont des messages distincts",async()=>{
   const business=setup(async()=>({data:null,error:{message:"CANNOT_FRIEND_SELF",code:"P0001"}}));
@@ -38,7 +61,7 @@ test("amis : une relation existante distingue ami, demande envoyÃ©e et demande
       ?{data:null,error:{message:"FRIENDSHIP_EXISTS",code:"P0001"}}
       :{data:lists,error:null});
     await assert.rejects(api.sendFriendRequest("target"),message);
-    assert.deepEqual(calls.map(call=>call.name),["send_friend_request","get_friendships"]);
+    assert.deepEqual(calls.map(call=>call.name),["send_friend_request","get_friendships_page","get_friendships"]);
   }
 });
 
