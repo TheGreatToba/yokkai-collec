@@ -7,6 +7,7 @@ import { parseArgs } from "node:util";
 import { setTimeout as delay } from "node:timers/promises";
 import { parse } from "csv-parse";
 import { createClient } from "@supabase/supabase-js";
+import { publicImageFetch, validateImageURL } from "../lib/server/public-image-fetch.mjs";
 
 const COLUMNS = ["source_id", "nom", "categorie", "franchise", "franchise_romaji",
   "image_url", "favoris_count", "rarete_base", "source"];
@@ -81,7 +82,7 @@ export function retryAfterMilliseconds(value, now = Date.now()) {
   return Number.isNaN(date) ? 0 : Math.max(0, date - now);
 }
 
-export function createImageRequestLimiter(fetchImage = fetch, {
+export function createImageRequestLimiter(fetchImage = publicImageFetch, {
   sleep = delay,
   now = Date.now,
   imgurIntervalMs = 2000,
@@ -130,9 +131,9 @@ export async function retry(operation, attempts = 3, sleep = delay) {
   }
 }
 
-export async function downloadImage(url, fetchImage = fetch, timeoutMs = 30000) {
+export async function downloadImage(url, fetchImage = publicImageFetch, timeoutMs = 30000) {
   // Never forward the Supabase client's authorization headers to image hosts.
-  const source = new URL(url);
+  const source = validateImageURL(url);
   const headers = {
     Accept: "image/avif,image/webp,image/apng,image/jpeg,image/png,image/gif,image/*;q=0.8,*/*;q=0.1",
     "User-Agent": "Mozilla/5.0 (compatible; Yokkai-Collec-Image-Importer/0.2; +https://yokkai.fr)",
@@ -142,7 +143,7 @@ export async function downloadImage(url, fetchImage = fetch, timeoutMs = 30000) 
   }
   const response = await fetchImage(url, {
     headers,
-    redirect: "follow",
+    redirect: "manual",
     signal: AbortSignal.timeout(timeoutMs),
   });
   if (!response.ok) {
@@ -283,7 +284,7 @@ export async function compareNameCategoryImport({ rows, client }) {
 }
 
 export async function applyNameCategoryImport({ plan, client, bucket = "card-images",
-  concurrency = 5, fetchImage = fetch, log = console.log, onFailure = async () => {}, sleep = delay }) {
+  concurrency = 5, fetchImage = publicImageFetch, log = console.log, onFailure = async () => {}, sleep = delay }) {
   const limitedFetch = createImageRequestLimiter(fetchImage, { sleep });
   const work = [
     ...plan.updates.map((item, index) => ({ ...item, kind: "update", index: index + 1 })),
@@ -347,7 +348,7 @@ export async function prepareStorage(client, bucket) {
 }
 
 export async function importCards({ rows, client, bucket = "card-images", batchSize = 100,
-  concurrency = 5, limit = Infinity, dryRun = false, fetchImage = fetch,
+  concurrency = 5, limit = Infinity, dryRun = false, fetchImage = publicImageFetch,
   log = console.log, onFailure = async () => {}, sleep = delay }) {
   const stats = { read: 0, imported: 0, valid: 0, skipped: 0, duplicates: 0, batches: 0 };
   const limitedFetch = createImageRequestLimiter(fetchImage, { sleep });

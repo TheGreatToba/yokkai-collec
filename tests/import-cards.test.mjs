@@ -17,6 +17,15 @@ const image = () => new Response(validPng, {
 });
 const silent = () => {};
 
+test("image import refuses internal addresses before sending a request", async () => {
+  let requests = 0;
+  for (const url of ["https://127.0.0.1/image.png", "https://169.254.169.254/image.png",
+    "https://[::1]/image.png", "http://example.com/image.png", "https://user:secret@example.com/image.png"]) {
+    await assert.rejects(downloadImage(url, async () => { requests++; return image(); }), /HTTPS|publique|identifiants/);
+  }
+  assert.equal(requests, 0);
+});
+
 test("plan (nom, categorie) : updates, inserts et collisions strictes", () => {
   const existing = [{ ...validateCard({ ...row(), source_id: "old", nom: "IU", categorie: "KPOP" }),
     id: "stable-id", image_url: "https://project.supabase.co/old" }];
@@ -154,7 +163,7 @@ test("lots, échec image ignoré, erreurs journalisées et reprise sans doublons
     fetchImage: async (url, init) => {
       assert.match(init.headers.Accept, /^image\//);
       assert.match(init.headers["User-Agent"], /Yokkai-Collec-Image-Importer/);
-      assert.equal(init.redirect, "follow");
+      assert.equal(init.redirect, "manual");
       requests++;
       if (url.endsWith("2.png")) return new Response("missing", { status: 404 });
       return image();
