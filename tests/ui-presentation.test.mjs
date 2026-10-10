@@ -844,7 +844,8 @@ test("la recherche multi-termes partage une sémantique ET entre Collection, Cat
   const cards = readFileSync(path.join(root, "lib/data/cards.ts"), "utf8");
   assert.match(collection, /matchesCardSearch\(query,\[c\.name,c\.category,c\.anime\]\)/);
   assert.match(community, /matchesCardSearch\(query,\[a\.card\.name,a\.card\.anime\]\)/);
-  assert.match(cards, /for \(const term of cardSearchTerms\(query\)\) request = request\.or/);
+  assert.match(cards, /const terms\s*=\s*cardSearchTerms\(query\)/);
+  assert.match(cards, /for\s*\(const term of terms\)\s*request\s*=\s*request\.or/);
   assert.ok(existsSync(path.join(root, "app/design-system/multi-term-search-preview/page.tsx")));
 });
 

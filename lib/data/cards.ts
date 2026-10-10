@@ -147,13 +147,23 @@ export async function getCataloguePage({ query = "", category = "", rarity = "",
   const safePage = Math.max(1, Math.trunc(page));
   const safePageSize = Math.min(60, Math.max(1, Math.trunc(pageSize)));
   const from = (safePage - 1) * safePageSize;
-  let request = db().from("cards").select(cardFields, { count: "exact" });
-  for (const term of cardSearchTerms(query)) request = request.or(`nom.ilike.%${term}%,franchise.ilike.%${term}%`);
-  if (category) request = request.eq("categorie", category);
-  if (rarity) request = request.eq("rarete_base", rarity);
-  const { data, error, count } = await request.order("nom").order("id").range(from, from + safePageSize - 1);
-  if (error) throw failure(error);
-  return { cards: ((data ?? []) as CardRow[]).map(cardFromRow), total: count ?? 0 };
+  const terms=cardSearchTerms(query);
+  async function readPage(count?:"exact") {
+    let request=db().from("cards").select(cardFields,count?{count}:undefined);
+    for(const term of terms)request=request.or(`nom.ilike.%${term}%,franchise.ilike.%${term}%`);
+    if(category)request=request.eq("categorie",category);
+    if(rarity)request=request.eq("rarete_base",rarity);
+    const result=await request.order("nom").order("id").range(from,from+safePageSize-1);
+    if(result.error)throw failure(result.error);
+    return result;
+  }
+  let rows:CardRow[]|undefined;
+  // Keep exact pagination; imports may update the total on the next 30-second refresh.
+  const total=await cache.memo<number>(`catalogue:${JSON.stringify([terms,category,rarity])}`,30_000,async()=>{
+    const result=await readPage("exact");rows=(result.data??[]) as CardRow[];return result.count??0;
+  });
+  rows??=((await readPage()).data??[]) as CardRow[];
+  return {cards:rows.map(cardFromRow),total};
 }
 
 export async function getGameInfo(): Promise<GameInfo> {

@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
+import { pg_trgm } from "@electric-sql/pglite/contrib/pg_trgm";
 
 // Shared Supabase bootstrap for disposable PGlite and PostgreSQL databases.
 export const bootstrapSQL = `
@@ -38,7 +39,7 @@ export const bootstrapSQL = `
 
 // Disposable database only: mimic Supabase defaults before creating application objects.
 export async function replayMigrations({ migrations: selected } = {}) {
-  const db = new PGlite();
+  const db = new PGlite({extensions:{pg_trgm}});
   try {
     await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
 ${bootstrapSQL}`);
