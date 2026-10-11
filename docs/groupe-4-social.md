@@ -43,10 +43,10 @@ YOKKAI COLLEC' - MON PROFIL (ÉDITION)
 
 ### 1.2 Fiche d'Interaction & Sélection des Cartes en Vitrine
 
-* **Changer une carte en vitrine** : Clic sur `[Changer]` ou `[ + ]` -> Ouvre un mini-sélecteur d'inventaire en modale compacte.
-* **Sélection d'emplacement** : Seules les cartes possédées en propre peuvent être assignées.
-* **Limiteur de texte Bio** : Compteur dynamique `112 / 300`. Si `> 300`, la bordure du champ passe en rouge `#FF3355` avec désactivation du bouton `Enregistrer`.
-* **Validation** : Clic sur `ENREGISTRER` -> Notification Toast vert `#00E699` : *"Profil mis à jour avec succès !"*.
+- **Changer une carte en vitrine** : Clic sur `[Changer]` ou `[ + ]` -> Ouvre un mini-sélecteur d'inventaire en modale compacte.
+- **Sélection d'emplacement** : Seules les cartes possédées en propre peuvent être assignées.
+- **Limiteur de texte Bio** : Compteur dynamique `112 / 300`. Si `> 300`, la bordure du champ passe en rouge `#FF3355` avec désactivation du bouton `Enregistrer`.
+- **Validation** : Clic sur `ENREGISTRER` -> Notification Toast vert `#00E699` : _"Profil mis à jour avec succès !"_.
 
 ---
 
@@ -84,12 +84,12 @@ YOKKAI COLLEC' - PROFIL PUBLIC : @ShadowMaster
 
 ### 2.2 Matrice des 4 États du Bouton "Ajouter en ami"
 
-| État | Intitulé & Style du Bouton | Description & Action au clic |
-| --- | --- | --- |
-| **1. Pas ami** | `[ + AJOUTER EN AMI ]` (Bouton Primaire) | Envoie une demande. Passe immédiatement à l'État 2 avec micro-animation. |
-| **2. Demande envoyée** | `[ DEMANDE EN ATTENTE ]` (Secondaire / Désactivé) | Représente l'attente de confirmation. Clic possible pour `Annuler la demande`. |
-| **3. Demande reçue** | `[ ACCEPTATION ]` & `[ REFUSER ]` (Dual Buttons) | Apparaît si l'autre joueur nous a déjà demandé. `Accepter` (Vert `#00E699`), `Refuser` (`#FF3355`). |
-| **4. Déjà ami** | `[ AMIS ✓ ]` (Badge Vert) + `[ PROPOSER UN ÉCHANGE ]` | Indique l'amitié active et offre l'action directe d'ouverture de l'écran d'échange. |
+| État                   | Intitulé & Style du Bouton                            | Description & Action au clic                                                                        |
+| ---------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| **1. Pas ami**         | `[ + AJOUTER EN AMI ]` (Bouton Primaire)              | Envoie une demande. Passe immédiatement à l'État 2 avec micro-animation.                            |
+| **2. Demande envoyée** | `[ DEMANDE EN ATTENTE ]` (Secondaire / Désactivé)     | Représente l'attente de confirmation. Clic possible pour `Annuler la demande`.                      |
+| **3. Demande reçue**   | `[ ACCEPTATION ]` & `[ REFUSER ]` (Dual Buttons)      | Apparaît si l'autre joueur nous a déjà demandé. `Accepter` (Vert `#00E699`), `Refuser` (`#FF3355`). |
+| **4. Déjà ami**        | `[ AMIS ✓ ]` (Badge Vert) + `[ PROPOSER UN ÉCHANGE ]` | Indique l'amitié active et offre l'action directe d'ouverture de l'écran d'échange.                 |
 
 ---
 
@@ -138,9 +138,9 @@ AMIS ET DEMANDES
 
 ```
 
-* **Mes Amis (Vide)** : *"Vous n'avez pas encore d'ami. Recherchez des membres pour échanger vos cartes !"*
-* **Demandes reçues (Vide)** : *"Aucune demande d'ami en attente."*
-* **Demandes envoyées (Vide)** : *"Aucune demande d'ami envoyée en cours."*
+- **Mes Amis (Vide)** : _"Vous n'avez pas encore d'ami. Recherchez des membres pour échanger vos cartes !"_
+- **Demandes reçues (Vide)** : _"Aucune demande d'ami en attente."_
+- **Demandes envoyées (Vide)** : _"Aucune demande d'ami envoyée en cours."_
 
 ---
 

@@ -11,17 +11,19 @@ import {
   validateEmail,
   validateNewPassword,
   validatePasswordChange,
-  type AuthState,
+  type AuthState
 } from "@/lib/auth/forms";
 
 function configuredSiteOrigin() {
-  const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL ||
+  const configuredUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
     (process.env.NODE_ENV !== "production" ? "http://localhost:3000" : "");
   try {
     const site = new URL(configuredUrl);
-    const secureProtocol = process.env.NODE_ENV === "production"
-      ? site.protocol === "https:"
-      : ["http:", "https:"].includes(site.protocol);
+    const secureProtocol =
+      process.env.NODE_ENV === "production"
+        ? site.protocol === "https:"
+        : ["http:", "https:"].includes(site.protocol);
     if (!secureProtocol || site.username || site.password) return undefined;
     return site.origin;
   } catch {
@@ -30,18 +32,25 @@ function configuredSiteOrigin() {
 }
 
 function errorCode(error: unknown) {
-  if (typeof error !== "object" || error === null || !("code" in error)) return undefined;
+  if (typeof error !== "object" || error === null || !("code" in error))
+    return undefined;
   return typeof error.code === "string" ? error.code : undefined;
 }
 
 function errorStatus(error: unknown) {
-  if (typeof error !== "object" || error === null || !("status" in error)) return undefined;
+  if (typeof error !== "object" || error === null || !("status" in error))
+    return undefined;
   return typeof error.status === "number" ? error.status : undefined;
 }
 
 function authErrorDiagnostic(error: unknown) {
   if (typeof error !== "object" || error === null) {
-    return { code: undefined, status: undefined, kind: typeof error, message: String(error) };
+    return {
+      code: undefined,
+      status: undefined,
+      kind: typeof error,
+      message: String(error)
+    };
   }
   const status = "status" in error ? error.status : undefined;
   const name = "name" in error ? error.name : undefined;
@@ -51,23 +60,32 @@ function authErrorDiagnostic(error: unknown) {
     status: typeof status === "number" ? status : undefined,
     kind: typeof name === "string" ? name : "object",
     // Provider messages are useful diagnostically; redact any email-like value defensively.
-    message: typeof message === "string"
-      ? message.replace(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g, "[email redacted]")
-      : undefined,
+    message:
+      typeof message === "string"
+        ? message.replace(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g, "[email redacted]")
+        : undefined
   };
 }
 
-function logAuthErrorInDevelopment(operation: "sign-in" | "sign-up", error: unknown) {
+function logAuthErrorInDevelopment(
+  operation: "sign-in" | "sign-up",
+  error: unknown
+) {
   if (process.env.NODE_ENV !== "production") {
-    console.error(`Authentication ${operation} failed`, authErrorDiagnostic(error));
+    console.error(
+      `Authentication ${operation} failed`,
+      authErrorDiagnostic(error)
+    );
   }
 }
 
 async function checkPseudoAvailability(
   supabase: ReturnType<typeof createClient>,
-  pseudo: string,
+  pseudo: string
 ) {
-  const { data, error } = await supabase.rpc("is_pseudo_available", { p_pseudo: pseudo });
+  const { data, error } = await supabase.rpc("is_pseudo_available", {
+    p_pseudo: pseudo
+  });
   if (error) {
     logAuthErrorInDevelopment("sign-up", error);
     return undefined;
@@ -89,12 +107,19 @@ export async function checkPseudoAvailabilityWhileTyping(pseudo: string) {
 
 function isTransientNetworkError(error: unknown) {
   if (typeof error !== "object" || error === null) return false;
-  const name = "name" in error && typeof error.name === "string" ? error.name : "";
-  const message = "message" in error && typeof error.message === "string" ? error.message : "";
+  const name =
+    "name" in error && typeof error.name === "string" ? error.name : "";
+  const message =
+    "message" in error && typeof error.message === "string"
+      ? error.message
+      : "";
   return name === "TypeError" || /fetch|network|timeout|socket/i.test(message);
 }
 
-export async function signIn(_state: AuthState, form: FormData): Promise<AuthState> {
+export async function signIn(
+  _state: AuthState,
+  form: FormData
+): Promise<AuthState> {
   const input = validateCredentials(form, false);
   const values = { email: input.email, pseudo: "" };
   if (!input.valid) return { fields: input.fields, values };
@@ -119,7 +144,10 @@ export async function signIn(_state: AuthState, form: FormData): Promise<AuthSta
   redirect("/");
 }
 
-export async function signUp(_state: AuthState, form: FormData): Promise<AuthState> {
+export async function signUp(
+  _state: AuthState,
+  form: FormData
+): Promise<AuthState> {
   const input = validateCredentials(form, true);
   const values = { email: input.email, pseudo: input.pseudo };
   if (!input.valid) return { fields: input.fields, values };
@@ -131,27 +159,36 @@ export async function signUp(_state: AuthState, form: FormData): Promise<AuthSta
       return { error: authError(), values };
     }
     const supabase = createClient(await cookies());
-    const pseudoAvailable = await checkPseudoAvailability(supabase, input.pseudo);
+    const pseudoAvailable = await checkPseudoAvailability(
+      supabase,
+      input.pseudo
+    );
     if (pseudoAvailable === false) {
       return {
         fields: { pseudo: "Ce pseudo est déjà pris, essaie-en un autre." },
-        values,
+        values
       };
     }
     if (pseudoAvailable === undefined) return { error: authError(), values };
     const { data, error } = await supabase.auth.signUp({
       email: input.email,
       password: input.password,
-      options: { data: { pseudo: input.pseudo }, emailRedirectTo: `${siteOrigin}/auth/confirm` },
+      options: {
+        data: { pseudo: input.pseudo },
+        emailRedirectTo: `${siteOrigin}/auth/confirm`
+      }
     });
     if (error) {
       logAuthErrorInDevelopment("sign-up", error);
       if (error.code === "unexpected_failure") {
-        const availableAfterFailure = await checkPseudoAvailability(supabase, input.pseudo);
+        const availableAfterFailure = await checkPseudoAvailability(
+          supabase,
+          input.pseudo
+        );
         if (availableAfterFailure === false) {
           return {
             fields: { pseudo: "Ce pseudo est déjà pris, essaie-en un autre." },
-            values,
+            values
           };
         }
       }
@@ -167,7 +204,10 @@ export async function signUp(_state: AuthState, form: FormData): Promise<AuthSta
   redirect("/");
 }
 
-export async function requestPasswordReset(_state: AuthState, form: FormData): Promise<AuthState> {
+export async function requestPasswordReset(
+  _state: AuthState,
+  form: FormData
+): Promise<AuthState> {
   const { email, error } = validateEmail(form);
   const values = { email, pseudo: "" };
   if (error) return { fields: { email: error }, values };
@@ -176,10 +216,16 @@ export async function requestPasswordReset(_state: AuthState, form: FormData): P
   try {
     const supabase = createClient(await cookies());
     const result = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${siteOrigin}/auth/confirm?next=/reinitialiser-mot-de-passe`,
+      redirectTo: `${siteOrigin}/auth/confirm?next=/reinitialiser-mot-de-passe`
     });
-    if (result.error && [429, 500, 502, 503, 504].includes(result.error.status ?? 0)) {
-      return { error: authError(result.error.code, result.error.status), values };
+    if (
+      result.error &&
+      [429, 500, 502, 503, 504].includes(result.error.status ?? 0)
+    ) {
+      return {
+        error: authError(result.error.code, result.error.status),
+        values
+      };
     }
   } catch (error) {
     if (isTransientNetworkError(error)) return { error: authError(), values };
@@ -188,16 +234,24 @@ export async function requestPasswordReset(_state: AuthState, form: FormData): P
   return { success: true, values };
 }
 
-export async function updateRecoveredPassword(_state: AuthState, form: FormData): Promise<AuthState> {
+export async function updateRecoveredPassword(
+  _state: AuthState,
+  form: FormData
+): Promise<AuthState> {
   const input = validateNewPassword(form);
   if (!input.valid) return { fields: input.fields };
   try {
     const supabase = createClient(await cookies());
-    const { data: { user }, error: sessionError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: sessionError
+    } = await supabase.auth.getUser();
     if (sessionError || !user) {
       return { error: "Ce lien de réinitialisation est invalide ou a expiré." };
     }
-    const { error } = await supabase.auth.updateUser({ password: input.password });
+    const { error } = await supabase.auth.updateUser({
+      password: input.password
+    });
     if (error) return { error: authError(error.code, error.status) };
     await supabase.auth.signOut({ scope: "global" });
   } catch {
@@ -207,25 +261,41 @@ export async function updateRecoveredPassword(_state: AuthState, form: FormData)
   redirect("/connexion?mot-de-passe=modifie");
 }
 
-export async function changePassword(_state: AuthState, form: FormData): Promise<AuthState> {
+export async function changePassword(
+  _state: AuthState,
+  form: FormData
+): Promise<AuthState> {
   const input = validatePasswordChange(form);
   if (!input.valid) return { fields: input.fields };
   try {
     const supabase = createClient(await cookies());
-    const { data: { user }, error: sessionError } = await supabase.auth.getUser();
-    if (sessionError || !user?.email) return { error: "Votre session a expiré. Reconnectez-vous puis réessayez." };
+    const {
+      data: { user },
+      error: sessionError
+    } = await supabase.auth.getUser();
+    if (sessionError || !user?.email)
+      return {
+        error: "Votre session a expiré. Reconnectez-vous puis réessayez."
+      };
 
     const verification = await supabase.auth.signInWithPassword({
       email: user.email,
-      password: input.currentPassword,
+      password: input.currentPassword
     });
     if (verification.error?.code === "invalid_credentials") {
-      return { fields: { currentPassword: "Le mot de passe actuel est incorrect." } };
+      return {
+        fields: { currentPassword: "Le mot de passe actuel est incorrect." }
+      };
     }
-    if (verification.error) return { error: authError(verification.error.code, verification.error.status) };
+    if (verification.error)
+      return {
+        error: authError(verification.error.code, verification.error.status)
+      };
     if (verification.data.user?.id !== user.id) return { error: authError() };
 
-    const { error } = await supabase.auth.updateUser({ password: input.password });
+    const { error } = await supabase.auth.updateUser({
+      password: input.password
+    });
     if (error) return { error: authError(error.code, error.status) };
   } catch (error) {
     return { error: authError(errorCode(error), errorStatus(error)) };

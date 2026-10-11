@@ -20,7 +20,7 @@ export async function getCurrentPseudo(userId: string) {
 }
 
 export async function getCurrentKarasBalance(
-  existingClient?: ReturnType<typeof createClient>,
+  existingClient?: ReturnType<typeof createClient>
 ) {
   const supabase = existingClient ?? createClient(await cookies());
   const { data, error } = await supabase.rpc("get_game_info");

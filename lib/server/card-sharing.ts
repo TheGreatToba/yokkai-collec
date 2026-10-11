@@ -20,12 +20,18 @@ export const isShareId = (value: string) => /^[0-9a-f]{32}$/.test(value);
 export function isShareImageUrl(url: string): boolean {
   try {
     const source = new URL(url);
-    if (source.protocol !== "https:" || source.username || source.password) return false;
-    if (source.origin === "https://i.imgur.com" || source.origin === "https://imgur.com") {
+    if (source.protocol !== "https:" || source.username || source.password)
+      return false;
+    if (
+      source.origin === "https://i.imgur.com" ||
+      source.origin === "https://imgur.com"
+    ) {
       return source.pathname.length > 1;
     }
-    return source.origin === new URL(getSupabaseConfig().url).origin &&
-      source.pathname.startsWith("/storage/v1/object/public/card-images/");
+    return (
+      source.origin === new URL(getSupabaseConfig().url).origin &&
+      source.pathname.startsWith("/storage/v1/object/public/card-images/")
+    );
   } catch {
     return false;
   }
@@ -38,8 +44,8 @@ function db() {
       auth: {
         persistSession: false,
         autoRefreshToken: false,
-        detectSessionInUrl: false,
-      },
+        detectSessionInUrl: false
+      }
     });
   }
   return client;
@@ -50,23 +56,30 @@ export async function getSharedCard(id: string): Promise<SharedCard | null> {
   const database = db() as unknown as {
     rpc: (
       name: string,
-      args: Record<string, string>,
+      args: Record<string, string>
     ) => Promise<{ data: unknown; error: unknown }>;
   };
   const { data, error } = await database.rpc("get_shared_card", {
-    p_share_id: id,
+    p_share_id: id
   });
-  if (error || !data || typeof data!=="object" || Array.isArray(data)) return null;
+  if (error || !data || typeof data !== "object" || Array.isArray(data))
+    return null;
   const value = data as Record<string, unknown>;
-  if (typeof value.cardName!=="string" || typeof value.franchise!=="string" ||
-      typeof value.rarity!=="string" || !rarities.has(value.rarity as Rarity) ||
-      typeof value.shiny!=="boolean" || typeof value.catalogueImageUrl!=="string") return null;
+  if (
+    typeof value.cardName !== "string" ||
+    typeof value.franchise !== "string" ||
+    typeof value.rarity !== "string" ||
+    !rarities.has(value.rarity as Rarity) ||
+    typeof value.shiny !== "boolean" ||
+    typeof value.catalogueImageUrl !== "string"
+  )
+    return null;
   return {
     cardName: value.cardName,
     franchise: value.franchise,
     rarity: value.rarity as Rarity,
     shiny: value.shiny,
     catalogueImageUrl: value.catalogueImageUrl,
-    ...(typeof value.pseudo === "string" ? { pseudo: value.pseudo } : {}),
+    ...(typeof value.pseudo === "string" ? { pseudo: value.pseudo } : {})
   };
 }

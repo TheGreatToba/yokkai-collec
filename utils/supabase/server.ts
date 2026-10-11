@@ -13,13 +13,13 @@ export function createClient(cookieStore: Awaited<ReturnType<typeof cookies>>) {
       setAll(cookiesToSet) {
         try {
           cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options),
+            cookieStore.set(name, value, options)
           );
         } catch {
           // Server Components cannot write cookies. The proxy refreshes them
           // before rendering; Server Actions and Route Handlers can write here.
         }
-      },
-    },
+      }
+    }
   });
 }

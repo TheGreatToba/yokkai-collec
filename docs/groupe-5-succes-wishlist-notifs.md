@@ -1,4 +1,3 @@
-
 # Spécification Technique & Fiches d'Interaction : Étape 6
 
 ---
@@ -52,11 +51,11 @@ GRILLE DES SUCCÈS
 
 ### 1.2 Fiche d'Interaction & États des Cartes de Succès
 
-| Etat du Succès | Style Visuel de la Carte | Indication de Progression | Action Utilisateur |
-| --- | --- | --- | --- |
-| **1. En cours** | Card `#0F0C1D`, border `#1D1844`, texte `#A29DBE` | Barre violette `#5244B5` + ratio numérique (ex: `7/10`) | Aucune action (Bouton informatif gris `#3E385D`) |
-| **2. Complété** | Border dorée `#FFB700`, `--glow-gold-sm` active | Barre dorée `#FFCC33` à `100%` + mention `COMPLÉTÉ !` | Bouton Primaire Doré `RÉCLAMÉ {N} KARAS` |
-| **3. Réclamé** | Card légèrement assombrie (Opacité `0.75`), border `#1D1844` | Barre dorée à `100%` + mention `RÉCLAMÉ` | Badge Vert `#00E699` `RÉCLAMÉ ✓` |
+| Etat du Succès  | Style Visuel de la Carte                                     | Indication de Progression                               | Action Utilisateur                               |
+| --------------- | ------------------------------------------------------------ | ------------------------------------------------------- | ------------------------------------------------ |
+| **1. En cours** | Card `#0F0C1D`, border `#1D1844`, texte `#A29DBE`            | Barre violette `#5244B5` + ratio numérique (ex: `7/10`) | Aucune action (Bouton informatif gris `#3E385D`) |
+| **2. Complété** | Border dorée `#FFB700`, `--glow-gold-sm` active              | Barre dorée `#FFCC33` à `100%` + mention `COMPLÉTÉ !`   | Bouton Primaire Doré `RÉCLAMÉ {N} KARAS`         |
+| **3. Réclamé**  | Card légèrement assombrie (Opacité `0.75`), border `#1D1844` | Barre dorée à `100%` + mention `RÉCLAMÉ`                | Badge Vert `#00E699` `RÉCLAMÉ ✓`                 |
 
 #### Animation au clic sur "Réclamer"
 
@@ -101,12 +100,10 @@ Recevez une alerte dès qu'une de ces cartes est mise aux enchères sur le march
 
 ### 2.2 Fiche d'Interaction & État Vide (Empty State)
 
-* **Retirer de la Wishlist** :
-* Clic sur le bouton `[ Retirer ]` (ou icône Cœur brisé) sous la carte.
-* La carte se retire avec une animation de sortie `Scale 1 -> 0` + `Opacité 0` (`200ms fast`).
-* Les autres cartes de la grille se resserrent en `Framer Motion Layout`.
-
-
+- **Retirer de la Wishlist** :
+- Clic sur le bouton `[ Retirer ]` (ou icône Cœur brisé) sous la carte.
+- La carte se retire avec une animation de sortie `Scale 1 -> 0` + `Opacité 0` (`200ms fast`).
+- Les autres cartes de la grille se resserrent en `Framer Motion Layout`.
 
 #### État Vide (Empty State Wishlist)
 
@@ -174,25 +171,23 @@ YOKKAI COLLEC' - OVERLAY PANNEAU NOTIFICATIONS (WIDTH 400PX)
 
 ### 3.2 Spécification des 6 Types de Notifications
 
-| Type de Notification | Icône & Code Couleur | Titre Exemple | Description & Action |
-| --- | --- | --- | --- |
-| **1. Wishlist aux enchères** | 💛 Cœur d'Or (`#FFB700`) | *Carte Wishlist aux enchères !* | "Kuro Kitsune (LR) est en vente pour 4 500 K." -> Clic redirige vers le détail de l'enchère. |
-| **2. Surenchéri** | 🚨 Alerte Rouge (`#FF3355`) | *Vous avez été surenchéri !* | "Une nouvelle offre a été posée sur Aoi Dragon." -> Clic redirige vers l'enchère pour surenchérir. |
-| **3. Enchère remportée** | 👑 Couronne Verte (`#00E699`) | *Enchère remportée !* | "Vous avez remporté l'enchère pour Ren Cyber !" -> Redirige vers la collection. |
-| **4. Demande d'ami** | 👤 Profil Violet (`#5244B5`) | *Nouvelle demande d'ami* | "@CyberSamurai vous a envoyé une demande d'ami." -> Clic ouvre la page Amis. |
-| **5. Offre d'échange** | 🔄 Flèches Oranges (`#FF9900`) | *Proposition d'échange reçue* | "@KpopFan99 vous propose un échange." -> Clic ouvre le module d'échange. |
-| **6. Succès débloqué** | 🏆 Trophée Doré (`#FFCC33`) | *Succès débloqué !* | "Succès : Premier pas dans le marché (+100 K)." -> Clic ouvre la page Succès. |
+| Type de Notification         | Icône & Code Couleur           | Titre Exemple                   | Description & Action                                                                               |
+| ---------------------------- | ------------------------------ | ------------------------------- | -------------------------------------------------------------------------------------------------- |
+| **1. Wishlist aux enchères** | 💛 Cœur d'Or (`#FFB700`)       | _Carte Wishlist aux enchères !_ | "Kuro Kitsune (LR) est en vente pour 4 500 K." -> Clic redirige vers le détail de l'enchère.       |
+| **2. Surenchéri**            | 🚨 Alerte Rouge (`#FF3355`)    | _Vous avez été surenchéri !_    | "Une nouvelle offre a été posée sur Aoi Dragon." -> Clic redirige vers l'enchère pour surenchérir. |
+| **3. Enchère remportée**     | 👑 Couronne Verte (`#00E699`)  | _Enchère remportée !_           | "Vous avez remporté l'enchère pour Ren Cyber !" -> Redirige vers la collection.                    |
+| **4. Demande d'ami**         | 👤 Profil Violet (`#5244B5`)   | _Nouvelle demande d'ami_        | "@CyberSamurai vous a envoyé une demande d'ami." -> Clic ouvre la page Amis.                       |
+| **5. Offre d'échange**       | 🔄 Flèches Oranges (`#FF9900`) | _Proposition d'échange reçue_   | "@KpopFan99 vous propose un échange." -> Clic ouvre le module d'échange.                           |
+| **6. Succès débloqué**       | 🏆 Trophée Doré (`#FFCC33`)    | _Succès débloqué !_             | "Succès : Premier pas dans le marché (+100 K)." -> Clic ouvre la page Succès.                      |
 
 ### 3.3 États du Panneau de Notifications
 
 #### A. État "Lu" vs "Non Lu"
 
-* **Non lu** : Fond `#16122B`, border-left `3px solid #5244B5` (ou la couleur du type), pastille bleue lumineuse `#00E5FF` à gauche.
-* **Lu** : Fond transparent / `#0F0C1D`, border-left `none`, texte légèrement adouci (Opacité `0.7`).
-* **Bouton "Tout marquer comme lu"** :
-* Un clic efface toutes les pastilles bleues et passe le fond de tous les items en état lu via une transition `Fast (200ms)`.
-
-
+- **Non lu** : Fond `#16122B`, border-left `3px solid #5244B5` (ou la couleur du type), pastille bleue lumineuse `#00E5FF` à gauche.
+- **Lu** : Fond transparent / `#0F0C1D`, border-left `none`, texte légèrement adouci (Opacité `0.7`).
+- **Bouton "Tout marquer comme lu"** :
+- Un clic efface toutes les pastilles bleues et passe le fond de tous les items en état lu via une transition `Fast (200ms)`.
 
 #### B. État Vide (Empty Notifications)
 

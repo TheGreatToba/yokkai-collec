@@ -1,47 +1,339 @@
-.yk-card { container: yokai / inline-size; position: relative; width: 100%; aspect-ratio: 5 / 7; border-radius: 12px; box-shadow: var(--card-glow); isolation: isolate; }
-.yk-card-clip { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; }
-.yk-card-frame,.yk-shiny-frame { position: absolute; inset: -50%; background: var(--card-frame); }
-.yk-card-interior { position: absolute; inset: var(--card-inset); border-radius: 10px; overflow: hidden; background: var(--card-bg); }
-.yk-card-interior::after { content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none; background: linear-gradient(to bottom,rgba(0,0,0,.78) 0%,rgba(0,0,0,.34) 14%,transparent 30%,transparent 58%,rgba(0,0,0,.48) 76%,rgba(0,0,0,.94) 100%); }
-.yk-card-ring { position: absolute; left: 15%; right: 15%; top: 22%; aspect-ratio: 1; border: 1px solid var(--card-ring); border-radius: 50%; }
-.yk-card-line { position: absolute; inset: 4cqw; border: 1px solid var(--card-line); border-radius: 7px; z-index: 2; pointer-events: none; }
-.yk-card-art { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; mask-image: linear-gradient(to bottom,transparent 0%,black 10%,black 84%,transparent 100%); }
-.yk-card-art img { width: 100%; height: 100%; object-fit: cover; }
-.yk-card-foil,.yk-holo { position: absolute; inset: 0; pointer-events: none; background: var(--card-foil); background-size: var(--card-foil-size,100% 100%); }
-.yk-card-content { position: absolute; inset: 0; z-index: 3; padding: 6cqw; display: flex; flex-direction: column; justify-content: space-between; }
-.yk-card-top { display: flex; justify-content: space-between; align-items: center; gap: 4px; }
-.yk-card-badges { display: flex; align-items: center; gap: 2cqw; }
-.yk-card-badge,.yk-shiny-badge { font-size: clamp(8px,6.5cqw,13px); font-weight: 700; letter-spacing: .06em; padding: 1px 6px; border-radius: 4px; white-space: nowrap; background: var(--card-badge); color: var(--card-badge-ink); border: 1px solid var(--card-badge-border); }
-.yk-card-bottom { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; }
-.yk-card-name { max-width: 100%; font-family: var(--font-card-name); font-weight: 700; font-size: clamp(10px,8.5cqw,20px); letter-spacing: .04em; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.yk-card-category { min-width: 0; max-width: calc(100% - 11cqw); font-size: clamp(7px,5.5cqw,12px); font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--color-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.yk-card-anime { max-width: 100%; font-size: clamp(7px,5.5cqw,12px); font-weight: 600; letter-spacing: .06em; color: rgba(255,255,255,.88); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.yk-card-name,.yk-card-category,.yk-card-anime,.yk-card-missing { text-shadow: 0 1px 2px #000,0 2px 5px #000,0 0 12px #000; }
-.yk-card-missing { text-align: center; font-family: var(--font-jp); font-size: 7cqw; color: var(--color-ink-3); }
-.yk-sparkle { position: absolute; width: 1em; height: 1em; color: var(--card-spark); line-height: 1; animation: yk-twinkle 2.6s ease-in-out infinite; pointer-events: none; }
-.yk-animated { animation: var(--card-pulse,none); }
-.yk-animated .yk-card-frame { animation: var(--card-spin,none); }
-.yk-animated .yk-card-foil { animation: var(--card-sweep,none); }
-.yk-shiny { --card-glow-color: var(--holo-glow); --card-glow: 0 0 0 1px var(--holo-glow),0 10px 30px var(--holo-glow); --card-pulse: yk-pulse 2.2s ease-in-out infinite; --card-spark: var(--holo-spark); }
-.yk-shiny-frame { background: var(--holo-frame); mix-blend-mode: screen; opacity: .75; }
-.yk-animated .yk-shiny-frame { animation: yk-spin 4s linear infinite; }
-.yk-shiny-badge { background: var(--holo-badge); color: var(--color-void); border-color: var(--holo-spark); }
-.yk-holo { background: var(--holo-foil); background-size: 300% 300%; mix-blend-mode: screen; }
-.yk-animated .yk-holo { animation: yk-holo 4.5s ease-in-out infinite alternate; }
-.yk-shiny .yk-card-art::after { content: ''; position: absolute; inset: -35%; pointer-events: none; opacity: .5; background: linear-gradient(112deg,transparent 34%,rgba(255,255,255,.08) 41%,rgba(200,230,255,.72) 48%,rgba(255,184,236,.42) 53%,transparent 62%); mix-blend-mode: screen; transform: translateX(-55%) rotate(4deg); }
-.yk-shiny.yk-animated .yk-card-art::after { animation: yk-shiny-glint 3.2s ease-in-out infinite; }
-.yk-shiny .yk-card-interior { box-shadow: inset 0 0 28px color-mix(in srgb,var(--holo-glow) 55%,transparent); }
-.yk-card-back { width: 100%; aspect-ratio: 5 / 7; border: 1px solid color-mix(in srgb,var(--color-accent-gold) 48%,transparent); border-radius: 12px; background: #050507 url('/assets/card-back.png') center / cover no-repeat; box-shadow: 0 0 0 1px color-mix(in srgb,var(--color-void) 90%,transparent),0 10px 28px color-mix(in srgb,var(--color-void) 88%,transparent),0 0 18px color-mix(in srgb,var(--color-accent-gold) 16%,transparent); }
-@container yokai (max-width: 90px) {
-  .yk-card-badge,.yk-shiny-badge { font-size: 7cqw; padding: 1cqw 2cqw; border-width: .6px; }
-  .yk-card-name { font-size: 8.5cqw; }
-  .yk-card-category { font-size: 5.5cqw; letter-spacing: .08em; }
-  .yk-card-anime { font-size: 5.5cqw; }
+.yk-card {
+  container: yokai / inline-size;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 5 / 7;
+  border-radius: 12px;
+  box-shadow: var(--card-glow);
+  isolation: isolate;
 }
-@keyframes yk-spin { to { transform: rotate(360deg); } }
-@keyframes yk-sweep { 0% { background-position: 160% 0; } 60%,100% { background-position: -60% 0; } }
-@keyframes yk-holo { from { background-position: 0% 30%; } to { background-position: 100% 70%; } }
-@keyframes yk-pulse { 0%,100% { box-shadow: 0 0 0 1px var(--card-glow-color),0 10px 26px var(--card-glow-color); } 50% { box-shadow: 0 0 0 1px var(--card-glow-color),0 0 58px var(--card-glow-color); } }
-@keyframes yk-twinkle { 0%,100% { opacity: 0; transform: scale(.3) rotate(0deg); } 50% { opacity: 1; transform: scale(1) rotate(45deg); } }
-@keyframes yk-shiny-glint { 0%,18% { transform: translateX(-65%) rotate(4deg); opacity: 0; } 42% { opacity: .72; } 68%,100% { transform: translateX(65%) rotate(4deg); opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .yk-sparkle { display: none; } }
+.yk-card-clip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+}
+.yk-card-frame,
+.yk-shiny-frame {
+  position: absolute;
+  inset: -50%;
+  background: var(--card-frame);
+}
+.yk-card-interior {
+  position: absolute;
+  inset: var(--card-inset);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--card-bg);
+}
+.yk-card-interior::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.78) 0%,
+    rgba(0, 0, 0, 0.34) 14%,
+    transparent 30%,
+    transparent 58%,
+    rgba(0, 0, 0, 0.48) 76%,
+    rgba(0, 0, 0, 0.94) 100%
+  );
+}
+.yk-card-ring {
+  position: absolute;
+  left: 15%;
+  right: 15%;
+  top: 22%;
+  aspect-ratio: 1;
+  border: 1px solid var(--card-ring);
+  border-radius: 50%;
+}
+.yk-card-line {
+  position: absolute;
+  inset: 4cqw;
+  border: 1px solid var(--card-line);
+  border-radius: 7px;
+  z-index: 2;
+  pointer-events: none;
+}
+.yk-card-art {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 10%,
+    black 84%,
+    transparent 100%
+  );
+}
+.yk-card-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.yk-card-foil,
+.yk-holo {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--card-foil);
+  background-size: var(--card-foil-size, 100% 100%);
+}
+.yk-card-content {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  padding: 6cqw;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.yk-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+}
+.yk-card-badges {
+  display: flex;
+  align-items: center;
+  gap: 2cqw;
+}
+.yk-card-badge,
+.yk-shiny-badge {
+  font-size: clamp(8px, 6.5cqw, 13px);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 1px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  background: var(--card-badge);
+  color: var(--card-badge-ink);
+  border: 1px solid var(--card-badge-border);
+}
+.yk-card-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+.yk-card-name {
+  max-width: 100%;
+  font-family: var(--font-card-name);
+  font-weight: 700;
+  font-size: clamp(10px, 8.5cqw, 20px);
+  letter-spacing: 0.04em;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.yk-card-category {
+  min-width: 0;
+  max-width: calc(100% - 11cqw);
+  font-size: clamp(7px, 5.5cqw, 12px);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.yk-card-anime {
+  max-width: 100%;
+  font-size: clamp(7px, 5.5cqw, 12px);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.88);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.yk-card-name,
+.yk-card-category,
+.yk-card-anime,
+.yk-card-missing {
+  text-shadow:
+    0 1px 2px #000,
+    0 2px 5px #000,
+    0 0 12px #000;
+}
+.yk-card-missing {
+  text-align: center;
+  font-family: var(--font-jp);
+  font-size: 7cqw;
+  color: var(--color-ink-3);
+}
+.yk-sparkle {
+  position: absolute;
+  width: 1em;
+  height: 1em;
+  color: var(--card-spark);
+  line-height: 1;
+  animation: yk-twinkle 2.6s ease-in-out infinite;
+  pointer-events: none;
+}
+.yk-animated {
+  animation: var(--card-pulse, none);
+}
+.yk-animated .yk-card-frame {
+  animation: var(--card-spin, none);
+}
+.yk-animated .yk-card-foil {
+  animation: var(--card-sweep, none);
+}
+.yk-shiny {
+  --card-glow-color: var(--holo-glow);
+  --card-glow: 0 0 0 1px var(--holo-glow), 0 10px 30px var(--holo-glow);
+  --card-pulse: yk-pulse 2.2s ease-in-out infinite;
+  --card-spark: var(--holo-spark);
+}
+.yk-shiny-frame {
+  background: var(--holo-frame);
+  mix-blend-mode: screen;
+  opacity: 0.75;
+}
+.yk-animated .yk-shiny-frame {
+  animation: yk-spin 4s linear infinite;
+}
+.yk-shiny-badge {
+  background: var(--holo-badge);
+  color: var(--color-void);
+  border-color: var(--holo-spark);
+}
+.yk-holo {
+  background: var(--holo-foil);
+  background-size: 300% 300%;
+  mix-blend-mode: screen;
+}
+.yk-animated .yk-holo {
+  animation: yk-holo 4.5s ease-in-out infinite alternate;
+}
+.yk-shiny .yk-card-art::after {
+  content: "";
+  position: absolute;
+  inset: -35%;
+  pointer-events: none;
+  opacity: 0.5;
+  background: linear-gradient(
+    112deg,
+    transparent 34%,
+    rgba(255, 255, 255, 0.08) 41%,
+    rgba(200, 230, 255, 0.72) 48%,
+    rgba(255, 184, 236, 0.42) 53%,
+    transparent 62%
+  );
+  mix-blend-mode: screen;
+  transform: translateX(-55%) rotate(4deg);
+}
+.yk-shiny.yk-animated .yk-card-art::after {
+  animation: yk-shiny-glint 3.2s ease-in-out infinite;
+}
+.yk-shiny .yk-card-interior {
+  box-shadow: inset 0 0 28px
+    color-mix(in srgb, var(--holo-glow) 55%, transparent);
+}
+.yk-card-back {
+  width: 100%;
+  aspect-ratio: 5 / 7;
+  border: 1px solid
+    color-mix(in srgb, var(--color-accent-gold) 48%, transparent);
+  border-radius: 12px;
+  background: #050507 url("/assets/card-back.png") center / cover no-repeat;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--color-void) 90%, transparent),
+    0 10px 28px color-mix(in srgb, var(--color-void) 88%, transparent),
+    0 0 18px color-mix(in srgb, var(--color-accent-gold) 16%, transparent);
+}
+@container yokai (max-width: 90px) {
+  .yk-card-badge,
+  .yk-shiny-badge {
+    font-size: 7cqw;
+    padding: 1cqw 2cqw;
+    border-width: 0.6px;
+  }
+  .yk-card-name {
+    font-size: 8.5cqw;
+  }
+  .yk-card-category {
+    font-size: 5.5cqw;
+    letter-spacing: 0.08em;
+  }
+  .yk-card-anime {
+    font-size: 5.5cqw;
+  }
+}
+@keyframes yk-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes yk-sweep {
+  0% {
+    background-position: 160% 0;
+  }
+  60%,
+  100% {
+    background-position: -60% 0;
+  }
+}
+@keyframes yk-holo {
+  from {
+    background-position: 0% 30%;
+  }
+  to {
+    background-position: 100% 70%;
+  }
+}
+@keyframes yk-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px var(--card-glow-color),
+      0 10px 26px var(--card-glow-color);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px var(--card-glow-color),
+      0 0 58px var(--card-glow-color);
+  }
+}
+@keyframes yk-twinkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.3) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1) rotate(45deg);
+  }
+}
+@keyframes yk-shiny-glint {
+  0%,
+  18% {
+    transform: translateX(-65%) rotate(4deg);
+    opacity: 0;
+  }
+  42% {
+    opacity: 0.72;
+  }
+  68%,
+  100% {
+    transform: translateX(65%) rotate(4deg);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .yk-sparkle {
+    display: none;
+  }
+}

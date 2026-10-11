@@ -4,22 +4,28 @@ import test from "node:test";
 import { PGlite } from "@electric-sql/pglite";
 
 const migration = readFileSync(
-  new URL("../supabase/migrations/20261005000002_optimize_category_achievement_progress.sql", import.meta.url),
-  "utf8",
+  new URL(
+    "../supabase/migrations/20261005000002_optimize_category_achievement_progress.sql",
+    import.meta.url
+  ),
+  "utf8"
 );
 const indexMigration = readFileSync(
-  new URL("../supabase/migrations/20261005000001_cards_category_index.sql", import.meta.url),
-  "utf8",
+  new URL(
+    "../supabase/migrations/20261005000001_cards_category_index.sql",
+    import.meta.url
+  ),
+  "utf8"
 );
 
 const players = [
   "00000000-0000-0000-0000-000000000001",
   "00000000-0000-0000-0000-000000000002",
   "00000000-0000-0000-0000-000000000003",
-  "00000000-0000-0000-0000-000000000004",
+  "00000000-0000-0000-0000-000000000004"
 ];
 
-test("la progression par catégorie optimisée reste strictement identique", async (t) => {
+test("la progression par catégorie optimisée reste strictement identique", async t => {
   const db = new PGlite();
   t.after(() => db.close());
   await db.exec(`
@@ -72,28 +78,43 @@ test("la progression par catégorie optimisée reste strictement identique", asy
     end;
     $$;
   `);
-  assert.match(indexMigration, /create index concurrently if not exists cards_categorie_idx/i);
+  assert.match(
+    indexMigration,
+    /create index concurrently if not exists cards_categorie_idx/i
+  );
   assert.doesNotMatch(indexMigration, /\bbegin\b|\bcommit\b/i);
   await db.exec(indexMigration.replace(/ concurrently/i, ""));
 
-  const addCards = async (category, count, rarity = "C") => (await db.query(
-    "insert into public.cards(categorie,rarete_base) select $1,$3 from generate_series(1,$2) returning id",
-    [category, count, rarity],
-  )).rows.map(({ id }) => id);
+  const addCards = async (category, count, rarity = "C") =>
+    (
+      await db.query(
+        "insert into public.cards(categorie,rarete_base) select $1,$3 from generate_series(1,$2) returning id",
+        [category, count, rarity]
+      )
+    ).rows.map(({ id }) => id);
   const alpha = await addCards("Alpha", 3);
   const beta = await addCards("Beta", 2);
   const gamma = await addCards("Gamma", 1, "LR");
   const uncategorized = await addCards(null, 1);
-  await db.query(`insert into public.user_cards(user_id,card_id) values
+  await db.query(
+    `insert into public.user_cards(user_id,card_id) values
     ($1,$5),
     ($2,$5),($2,$5),($2,$6),
     ($3,$5),($3,$6),($3,$7),($3,$8),($3,$9),($3,$10),
-    ($4,$11)`, [...players, ...alpha, ...beta, ...gamma, ...uncategorized]);
-  await db.query("update public.user_cards set is_shiny=true where user_id=$1", [players[0]]);
-  await db.query(`insert into public.user_achievement_stats
+    ($4,$11)`,
+    [...players, ...alpha, ...beta, ...gamma, ...uncategorized]
+  );
+  await db.query(
+    "update public.user_cards set is_shiny=true where user_id=$1",
+    [players[0]]
+  );
+  await db.query(
+    `insert into public.user_achievement_stats
     (user_id,regular_packs_opened,decision_packs_completed,auctions_won,trades_completed,ssr_evolved_to_lr)
     select player,ordinality,ordinality+1,ordinality+2,ordinality+3,ordinality+4
-    from unnest($1::uuid[]) with ordinality as players(player,ordinality)`, [players]);
+    from unnest($1::uuid[]) with ordinality as players(player,ordinality)`,
+    [players]
+  );
 
   const conditions = [
     "regular_packs_opened",
@@ -104,29 +125,45 @@ test("la progression par catégorie optimisée reste strictement identique", asy
     "unique_cards_collected",
     "first_lr_card",
     "shiny_cards_collected",
-    "cards_collected_category_percent",
+    "cards_collected_category_percent"
   ];
   const outputs = async () => {
     const values = [];
     for (const player of players) {
       for (const condition of conditions) {
-        values.push(Number((await db.query(
-          "select public.achievement_progress($1,$2) value",
-          [player, condition],
-        )).rows[0].value));
+        values.push(
+          Number(
+            (
+              await db.query(
+                "select public.achievement_progress($1,$2) value",
+                [player, condition]
+              )
+            ).rows[0].value
+          )
+        );
       }
     }
     return values;
   };
 
   const before = await outputs();
-  assert.deepEqual(before.filter((_, index) => index % conditions.length === 8), [33, 66, 100, 0]);
+  assert.deepEqual(
+    before.filter((_, index) => index % conditions.length === 8),
+    [33, 66, 100, 0]
+  );
   await db.exec(migration);
   assert.deepEqual(await outputs(), before);
 
   await db.exec("truncate public.user_cards, public.cards");
-  assert.equal(Number((await db.query(
-    "select public.achievement_progress($1,'cards_collected_category_percent') value",
-    [players[0]],
-  )).rows[0].value), 0);
+  assert.equal(
+    Number(
+      (
+        await db.query(
+          "select public.achievement_progress($1,'cards_collected_category_percent') value",
+          [players[0]]
+        )
+      ).rows[0].value
+    ),
+    0
+  );
 });

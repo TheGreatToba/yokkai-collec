@@ -1,5 +1,3 @@
-
-
 # Spécification Technique & Fiches d'Interaction : Étape 7
 
 ---
@@ -8,19 +6,16 @@
 
 ### 1.1 Directives d'Alignement Design System
 
-* **Conservation stricte** : Aucune modification de la structure, de l'ordre des sections ou des textes originaux.
-* **Palette & Surfaces** :
-* Fond général : `#090714` (`--bg-main`).
-* Sections alternées & Hero : `#04000B` (`--bg-deep`) avec gradients sombres radiaux.
-* Cartes de fonctionnalités & Cartes de démonstration : `#0F0C1D` (`--bg-surface`), bordures `#1D1844`.
+- **Conservation stricte** : Aucune modification de la structure, de l'ordre des sections ou des textes originaux.
+- **Palette & Surfaces** :
+- Fond général : `#090714` (`--bg-main`).
+- Sections alternées & Hero : `#04000B` (`--bg-deep`) avec gradients sombres radiaux.
+- Cartes de fonctionnalités & Cartes de démonstration : `#0F0C1D` (`--bg-surface`), bordures `#1D1844`.
 
-
-* **Animations au Scroll & Visites** :
-* **Apparition des sections** : Fondu ascendant `Moyenne (350ms cubic-bezier(0.16, 1, 0.3, 1))`, opacité `0 -> 1`, translateY `20px -> 0px`.
-* **Grille de démonstration de cartes** : Animation `Stagger` (30ms d'intervalle entre chaque carte).
-* **Survol des Boutons CTA** : Transitions `Courte (200ms)`, lueur discrète `--glow-gold-sm` ou `#5244B5`.
-
-
+- **Animations au Scroll & Visites** :
+- **Apparition des sections** : Fondu ascendant `Moyenne (350ms cubic-bezier(0.16, 1, 0.3, 1))`, opacité `0 -> 1`, translateY `20px -> 0px`.
+- **Grille de démonstration de cartes** : Animation `Stagger` (30ms d'intervalle entre chaque carte).
+- **Survol des Boutons CTA** : Transitions `Courte (200ms)`, lueur discrète `--glow-gold-sm` ou `#5244B5`.
 
 ---
 
@@ -169,18 +164,15 @@ YOKKAI COLLEC' - CONNEXION (DESKTOP)
 
 ### 2.2 Fiche d'Interaction & États des Champs
 
-* **État Repos (Default)** : Field background `#04000B`, border `1px solid #1D1844`, placeholder `#625C83`.
-* **État Focus** : Field border passe à `#5244B5`, halo de focus `0 0 10px rgba(82, 68, 181, 0.3)` via transition `Fast (200ms)`.
-* **État Chargement (Bouton)** :
-* Clic sur `Se connecter` -> Desactivation du bouton.
-* Icône de Spinner rotatif `#F2F0FF` à la place du texte. Durée minimale `500ms`.
+- **État Repos (Default)** : Field background `#04000B`, border `1px solid #1D1844`, placeholder `#625C83`.
+- **État Focus** : Field border passe à `#5244B5`, halo de focus `0 0 10px rgba(82, 68, 181, 0.3)` via transition `Fast (200ms)`.
+- **État Chargement (Bouton)** :
+- Clic sur `Se connecter` -> Desactivation du bouton.
+- Icône de Spinner rotatif `#F2F0FF` à la place du texte. Durée minimale `500ms`.
 
-
-* **État Erreur** :
-* Border du champ concerné passe en rouge `#FF3355` avec halo `0 0 10px rgba(255, 51, 85, 0.3)`.
-* Message sous le bloc : *"Email ou mot de passe incorrect."* (Texte `#FF3355` 13px).
-
-
+- **État Erreur** :
+- Border du champ concerné passe en rouge `#FF3355` avec halo `0 0 10px rgba(255, 51, 85, 0.3)`.
+- Message sous le bloc : _"Email ou mot de passe incorrect."_ (Texte `#FF3355` 13px).
 
 ---
 
@@ -247,23 +239,20 @@ YOKKAI COLLEC' - INSCRIPTION (DESKTOP)
 
 ### 3.2 Fiche d'Interaction & Validation Pseudo
 
-* **Champ Pseudo** :
-* Validation dynamique à la saisie (debounce `300ms`).
-* En cas de pseudo indisponible : La bordure passe en rouge `#FF3355` et le message *"Ce pseudo est déjà pris, essaie-en un autre."* s'affiche sous le champ.
+- **Champ Pseudo** :
+- Validation dynamique à la saisie (debounce `300ms`).
+- En cas de pseudo indisponible : La bordure passe en rouge `#FF3355` et le message _"Ce pseudo est déjà pris, essaie-en un autre."_ s'affiche sous le champ.
 
-
-* **Redirection & Bienvenue** :
-* Dès validation réussie de l'inscription : Redirection immédiate vers la page **Sélection des Boosters** avec déclenchement de la notification Toast vert `#00E699` : *"Bienvenue dans la chasse ! Votre premier booster est disponible."*.
-
-
+- **Redirection & Bienvenue** :
+- Dès validation réussie de l'inscription : Redirection immédiate vers la page **Sélection des Boosters** avec déclenchement de la notification Toast vert `#00E699` : _"Bienvenue dans la chasse ! Votre premier booster est disponible."_.
 
 ---
 
 ## 4. Tableau Synthétique des Formats Responsive (Étape 7)
 
-| Écran / Composant | Desktop (>= 1024px) | Mobile (< 768px) |
-| --- | --- | --- |
-| **Landing Hero** | Layout 2 colonnes avec cartes en éventail | 1 colonne centrée, carte unique LR, CTA Full-Width |
-| **Grille Raretés LP** | Ligne horizontale de 5 raretés | Swiper horizontal scrollable avec flèches |
-| **Formulaires Auth** | Card centrée de `460px` de largeur | Conteneur fluide `100% width` avec padding `16px` |
-| **Topbar Auth** | Topbar complète avec solde & navigation | Header minimaliste avec Logo + Bouton de fermeture `[X]` |
+| Écran / Composant     | Desktop (>= 1024px)                       | Mobile (< 768px)                                         |
+| --------------------- | ----------------------------------------- | -------------------------------------------------------- |
+| **Landing Hero**      | Layout 2 colonnes avec cartes en éventail | 1 colonne centrée, carte unique LR, CTA Full-Width       |
+| **Grille Raretés LP** | Ligne horizontale de 5 raretés            | Swiper horizontal scrollable avec flèches                |
+| **Formulaires Auth**  | Card centrée de `460px` de largeur        | Conteneur fluide `100% width` avec padding `16px`        |
+| **Topbar Auth**       | Topbar complète avec solde & navigation   | Header minimaliste avec Logo + Bouton de fermeture `[X]` |

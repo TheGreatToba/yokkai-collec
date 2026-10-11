@@ -7,8 +7,16 @@ import ts from "typescript";
 
 function loadProxy(getClaims) {
   const source = ts.transpileModule(
-    readFileSync(new URL("../utils/supabase/proxy.ts", import.meta.url), "utf8"),
-    { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } },
+    readFileSync(
+      new URL("../utils/supabase/proxy.ts", import.meta.url),
+      "utf8"
+    ),
+    {
+      compilerOptions: {
+        module: ts.ModuleKind.CommonJS,
+        target: ts.ScriptTarget.ES2020
+      }
+    }
   ).outputText;
   const context = {
     exports: {},
@@ -16,15 +24,22 @@ function loadProxy(getClaims) {
     require(name) {
       if (name === "next/server") return { NextResponse };
       if (name === "@/utils/supabase/config") {
-        return { getSupabaseConfig: () => ({ url: "https://example.supabase.co", key: "test-key" }) };
+        return {
+          getSupabaseConfig: () => ({
+            url: "https://example.supabase.co",
+            key: "test-key"
+          })
+        };
       }
       if (name === "@supabase/ssr") {
-        return { createServerClient: (_url, _key, { cookies }) => ({
-          auth: { getClaims: () => getClaims(cookies) },
-        }) };
+        return {
+          createServerClient: (_url, _key, { cookies }) => ({
+            auth: { getClaims: () => getClaims(cookies) }
+          })
+        };
       }
       throw new Error(`Unexpected import: ${name}`);
-    },
+    }
   };
   vm.runInNewContext(source, context);
   return context.exports.updateSession;
@@ -32,7 +47,7 @@ function loadProxy(getClaims) {
 
 test("le proxy vérifie la session et laisse passer un visiteur sans cookie", async () => {
   let checked = false;
-  const updateSession = loadProxy(async (cookies) => {
+  const updateSession = loadProxy(async cookies => {
     assert.equal(cookies.getAll().length, 0);
     checked = true;
     return { data: null, error: null };
@@ -45,22 +60,41 @@ test("le proxy vérifie la session et laisse passer un visiteur sans cookie", as
 
 test("le renouvellement propage les cookies au rendu et au navigateur sans perdre les en-têtes", async () => {
   const request = new NextRequest("http://localhost/collection", {
-    headers: { cookie: "session=expired; old-chunk=obsolete" },
+    headers: { cookie: "session=expired; old-chunk=obsolete" }
   });
-  const updateSession = loadProxy(async (cookies) => {
-    assert.equal(cookies.getAll().find(({ name }) => name === "session").value, "expired");
-    cookies.setAll([
-      { name: "session", value: "refreshed", options: { path: "/", sameSite: "lax", secure: true } },
-    ], { "Cache-Control": "private, no-cache, no-store, must-revalidate, max-age=0", Expires: "0", Pragma: "no-cache" });
+  const updateSession = loadProxy(async cookies => {
+    assert.equal(
+      cookies.getAll().find(({ name }) => name === "session").value,
+      "expired"
+    );
+    cookies.setAll(
+      [
+        {
+          name: "session",
+          value: "refreshed",
+          options: { path: "/", sameSite: "lax", secure: true }
+        }
+      ],
+      {
+        "Cache-Control":
+          "private, no-cache, no-store, must-revalidate, max-age=0",
+        Expires: "0",
+        Pragma: "no-cache"
+      }
+    );
     // Supabase only delivers cache headers on the first write of a request.
-    cookies.setAll([
-      { name: "old-chunk", value: "", options: { path: "/", maxAge: 0 } },
-    ], {});
+    cookies.setAll(
+      [{ name: "old-chunk", value: "", options: { path: "/", maxAge: 0 } }],
+      {}
+    );
     return { data: { claims: { sub: "user-id" } }, error: null };
   });
   const response = await updateSession(request);
   assert.equal(request.cookies.get("session").value, "refreshed");
-  assert.match(response.headers.get("x-middleware-request-cookie"), /session=refreshed/);
+  assert.match(
+    response.headers.get("x-middleware-request-cookie"),
+    /session=refreshed/
+  );
   assert.equal(response.cookies.get("session").value, "refreshed");
   assert.equal(response.cookies.get("session").secure, true);
   assert.equal(response.cookies.get("session").sameSite, "lax");

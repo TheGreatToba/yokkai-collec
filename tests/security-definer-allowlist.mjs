@@ -4,8 +4,12 @@ const allowlist = {
   "public.admin_list_players(text, integer, integer)": ["authenticated"], // Admin-only paginated account search.
   "public.admin_remove_player_card(uuid)": ["authenticated"], // Admin-only removal of one owned copy, including safe auction cancellation.
   "public.admin_set_user_ban(uuid, boolean)": ["authenticated"], // Admin-only moderation action with self/admin protection.
-  "public.admin_search_reports(text, text, integer, integer)": ["authenticated"], // Admin-only enriched report dashboard.
-  "public.admin_search_card_reports(text, text, integer, integer)": ["authenticated"], // Admin-only catalogue report dashboard.
+  "public.admin_search_reports(text, text, integer, integer)": [
+    "authenticated"
+  ], // Admin-only enriched report dashboard.
+  "public.admin_search_card_reports(text, text, integer, integer)": [
+    "authenticated"
+  ], // Admin-only catalogue report dashboard.
   "public.admin_card_reference_counts(uuid)": ["authenticated"], // Admin RPC checks administrator status before reading references.
   "public.admin_list_reports(text, integer, integer)": ["authenticated"], // Moderation RPC checks administrator status.
   "public.admin_set_report_status(uuid, text)": ["authenticated"], // Moderation update checks administrator status.
@@ -17,7 +21,9 @@ const allowlist = {
   "public.create_auction(uuid, integer, integer)": ["authenticated"], // Player lists an owned eligible card.
   "public.create_card_share(uuid, boolean)": ["authenticated"], // Player shares their own card.
   "public.create_folder(text)": ["authenticated"], // Player creates their own collection folder.
-  "public.create_trade_offer(uuid, uuid[], integer, uuid[], integer, uuid)": ["authenticated"], // Player proposes a validated trade with owned assets.
+  "public.create_trade_offer(uuid, uuid[], integer, uuid[], integer, uuid)": [
+    "authenticated"
+  ], // Player proposes a validated trade with owned assets.
   "public.delete_card_share(text)": ["authenticated"], // Owner revokes their card share.
   "public.delete_folder(uuid)": ["authenticated"], // Owner removes their folder.
   "public.discard_collection_card(uuid)": ["authenticated"], // Player discards their own eligible card.
@@ -61,7 +67,9 @@ const allowlist = {
   "public.open_regular_pack()": ["authenticated"], // Opens the current player's available regular pack.
   "public.place_bid(uuid, integer)": ["authenticated"], // Player bids with validated funds and auction state.
   "public.remove_friend(uuid)": ["authenticated"], // Player removes their own friendship.
-  "public.report_user(uuid, text, text, uuid, text, boolean)": ["authenticated"], // Creates a validated report under the current player's identity.
+  "public.report_user(uuid, text, text, uuid, text, boolean)": [
+    "authenticated"
+  ], // Creates a validated report under the current player's identity.
   "public.report_card(uuid, text)": ["authenticated"], // Creates a validated catalogue-card report under the current player's identity.
   "public.respond_friend_request(uuid, boolean)": ["authenticated"], // Recipient responds to their own request.
   "public.respond_trade_offer(uuid, text)": ["authenticated"], // Trade participant responds with asset validation.
@@ -76,6 +84,6 @@ const allowlist = {
   "public.toggle_wishlist(uuid)": ["authenticated"], // Updates only the current player's wishlist.
   "public.touch_presence()": ["authenticated"], // Refreshes only the current player's presence.
   "public.unblock_user(uuid)": ["authenticated"], // Removes only the current player's block.
-  "public.update_profile(text, text, uuid[], uuid)": ["authenticated"], // Updates only the current player's profile and owned showcase cards.
+  "public.update_profile(text, text, uuid[], uuid)": ["authenticated"] // Updates only the current player's profile and owned showcase cards.
 };
 export default allowlist;
