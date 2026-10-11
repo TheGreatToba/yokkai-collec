@@ -113,6 +113,14 @@ test("les titres H1 utilisent la police locale HYWenHei-85W", () => {
   assert.ok(existsSync(path.join(root, "app/fonts/hywenhei-85w/HYWenHei-85W.ttf")));
 });
 
+test("la page d’accueil utilise le logo doré de la navigation", () => {
+  const landing = readFileSync(path.join(root, "app/page.tsx"), "utf8");
+  const css = readFileSync(path.join(root, "styles/landing.css"), "utf8");
+  assert.match(landing, /header-logo-gold\.png/);
+  assert.match(landing, /className="yk-landing-brand-image"/);
+  assert.match(css, /\.yk-landing-brand \{ display: inline-flex; width: 112px;/);
+});
+
 test("la police HYWenHei remplace la police d'affichage sauf pour les noms sur les cartes", () => {
   const css = readFileSync(path.join(root, "app/globals.css"), "utf8");
   const ui = readFileSync(path.join(root, "styles/ui.css"), "utf8");
