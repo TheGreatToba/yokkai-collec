@@ -17,6 +17,7 @@ export type YokaiCardProps = {
   className?: string;
   fallbackImage?: string;
   catalogueImage?: string;
+  imageSizes?: string;
 };
 const spots = [
   [12, 18],
@@ -58,7 +59,8 @@ export function YokaiCard({
   animated = true,
   className = "",
   fallbackImage,
-  catalogueImage
+  catalogueImage,
+  imageSizes
 }: YokaiCardProps) {
   const holo = shiny && (rarity === "SSR" || rarity === "LR");
   const franchise = anime?.trim();
@@ -71,7 +73,8 @@ export function YokaiCard({
         : rarity === "SSR"
           ? 3
           : 0;
-  const optimized = optimizableCatalogueImage(image);
+  // Only grid callers opt in. Details/reveals/zoom keep the original bytes.
+  const optimized = !!imageSizes && optimizableCatalogueImage(image);
   const artProps = {
     src: image ?? "",
     width: 300,
@@ -106,11 +109,7 @@ export function YokaiCard({
               {/* Only public catalogue storage is proxied; custom and external sources stay native. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               {optimized ? (
-                <Image
-                  {...artProps}
-                  alt=""
-                  sizes="(max-width: 640px) 45vw, (max-width: 1024px) 25vw, 200px"
-                />
+                <Image {...artProps} alt="" sizes={imageSizes} quality={85} />
               ) : (
                 <img {...artProps} alt="" />
               )}

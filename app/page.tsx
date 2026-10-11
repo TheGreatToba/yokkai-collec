@@ -133,7 +133,7 @@ export default async function Home() {
                 className={`yk-landing-card yk-landing-card-${index + 1}`}
                 key={card.name}
               >
-                <YokaiCard {...card} />
+                <YokaiCard {...card} imageSizes="100vw" />
               </div>
             ))}
             <span
