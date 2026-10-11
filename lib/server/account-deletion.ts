@@ -44,7 +44,10 @@ export async function deleteAccount(userId: string, client?: SupabaseClient) {
         !o ||
         o.bucket !== "avatars" ||
         typeof o.name !== "string" ||
-        !o.name.startsWith(`${userId}/`)
+        !o.name.startsWith(`${userId}/`) ||
+        o.name
+          .split("/")
+          .some((segment: string) => segment === "." || segment === "..")
     )
   )
     throw new Error("ACCOUNT_DELETION_STORAGE_MANIFEST_INVALID");

@@ -105,6 +105,7 @@ test("foreign paths and unexpected buckets are refused before Storage/Auth delet
     null,
     [{ bucket: "cards", name: `${id}/x` }],
     [{ bucket: "avatars", name: "another-player/x" }],
+    [{ bucket: "avatars", name: `${id}/../another-player/x` }],
     [null]
   ]) {
     const h = harness({ manifest });
