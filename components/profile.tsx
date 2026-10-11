@@ -29,6 +29,8 @@ import { getWishlist, type WishlistCard } from "@/lib/data/wishlist";
 import { matchesCardSearch } from "@/lib/ui/card-search";
 
 const FEATURED_CARD_LIMIT = 5;
+const PROFILE_CARD_IMAGE_SIZES =
+  "(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 190px";
 
 function Featured({
   cards,
@@ -57,7 +59,7 @@ function Featured({
     <div className="yk-card-grid yk-featured-stage">
       {cards.map(card => (
         <div key={card.instanceId}>
-          <YokaiCard {...card} imageSizes="100vw" />
+          <YokaiCard {...card} imageSizes={PROFILE_CARD_IMAGE_SIZES} />
         </div>
       ))}
       {Array.from(
@@ -310,7 +312,7 @@ function Editor({
                   {...card}
                   image={featured ? card.image : card.catalogueImage}
                   animated={false}
-                  imageSizes="100vw"
+                  imageSizes={PROFILE_CARD_IMAGE_SIZES}
                 />
                 <span>{featured ? "Sélectionnée" : "Choisir"}</span>
               </button>
@@ -521,7 +523,11 @@ function FriendWishlist({
                 aria-label={`Voir ${card.name} dans le catalogue`}
               >
                 <CardShell>
-                  <YokaiCard {...card} animated={false} imageSizes="100vw" />
+                  <YokaiCard
+                    {...card}
+                    animated={false}
+                    imageSizes={PROFILE_CARD_IMAGE_SIZES}
+                  />
                 </CardShell>
               </Link>
             ))}
@@ -787,7 +793,11 @@ export function ProfileExperience({
                   key={card.id}
                   className="rounded-panel border border-veil bg-surface p-3 hover:border-accent-gold"
                 >
-                  <YokaiCard {...card} animated={false} imageSizes="100vw" />
+                  <YokaiCard
+                    {...card}
+                    animated={false}
+                    imageSizes={PROFILE_CARD_IMAGE_SIZES}
+                  />
                 </Link>
               ))}
             </div>

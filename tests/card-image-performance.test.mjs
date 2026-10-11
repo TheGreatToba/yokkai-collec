@@ -123,7 +123,7 @@ test("optimizer failure clears srcset and falls back to the original catalogue i
   assert.equal(target.srcset, "");
 });
 
-test("only grids resize images at quality 85; details and reveals keep the original", () => {
+test("only grids resize images at quality 75; details and reveals keep the original", () => {
   const { YokaiCard } = load("../components/yokai-card.tsx");
   const card = {
     name: "Card",
@@ -139,16 +139,16 @@ test("only grids resize images at quality 85; details and reveals keep the origi
     React.createElement(YokaiCard, { ...card, imageSizes: "100vw" })
   );
   assert.match(grid, /data-optimized="true"/);
-  assert.match(grid, /quality="85"/);
+  assert.match(grid, /quality="75"/);
   assert.match(grid, /sizes="100vw"/);
-  assert.ok(load("../next.config.ts").default.images.qualities.includes(85));
+  assert.ok(load("../next.config.ts").default.images.qualities.includes(75));
   const { props } = getImgProps(
     {
       src: catalogue,
       width: 300,
       height: 420,
       sizes: "100vw",
-      quality: 85,
+      quality: 75,
       loading: "lazy"
     },
     {
@@ -163,7 +163,7 @@ test("only grids resize images at quality 85; details and reveals keep the origi
     const [url, descriptor] = entry.split(" ");
     assert.equal(
       new URL(url, "https://front.test").searchParams.get("q"),
-      "85"
+      "75"
     );
     return Number(descriptor.slice(0, -1));
   });
