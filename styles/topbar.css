@@ -1,6 +1,6 @@
 .yk-topbar { position: sticky; top: 0; z-index: 30; display: grid; width: 100%; max-width: 100vw; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: var(--layout-gutter); min-height: var(--topbar-height); padding-inline: var(--layout-gutter); background: color-mix(in srgb,var(--color-night) 88%,transparent); backdrop-filter: blur(12px); border-bottom: 1px solid var(--color-veil); box-shadow: 0 1px 0 color-mix(in srgb,var(--color-focus) 12%,transparent); }
-.yk-brand { display: flex; flex-shrink: 0; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 17px; line-height: 1.1; font-weight: 700; }
-.yk-logo { display: grid; width: 34px; height: 34px; place-items: center; border: 1px solid var(--color-accent-gold); border-radius: var(--radius-input); background: var(--color-void); color: var(--color-accent-gold); }
+.yk-brand { display: flex; width: 104px; flex-shrink: 0; align-items: center; }
+.yk-brand-image { display: block; width: 100%; height: auto; max-height: 52px; object-fit: contain; filter: drop-shadow(0 0 7px color-mix(in srgb,var(--color-accent-neon) 28%,transparent)); }
 .yk-primary-nav { display: flex; align-self: stretch; min-width: 0; justify-content: center; overflow-x: auto; scrollbar-width: none; }
 .yk-primary-nav::-webkit-scrollbar { display: none; }
 .yk-primary-nav > * { display: flex; position: relative; align-items: center; white-space: nowrap; padding-inline: 10px; color: var(--color-ink-3); font-size: 13px; font-weight: 600; transition: color var(--duration-fast) var(--ease-standard),background var(--duration-fast) var(--ease-standard); }
@@ -60,7 +60,7 @@
 .yk-account-panel form p,.yk-account-unavailable { padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3) 0; color: var(--color-danger-ink); font-size: var(--text-xs); }
 @keyframes yk-account-panel-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
 @keyframes yk-topbar-panel-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
-@media (max-width: 1180px) { .yk-topbar { gap: 10px; padding-inline: var(--layout-gutter-compact); } .yk-primary-nav > * { padding-inline: 8px; font-size: 12px; } .yk-brand > span:last-child { display: none; } }
+@media (max-width: 1180px) { .yk-topbar { gap: 10px; padding-inline: var(--layout-gutter-compact); } .yk-primary-nav > * { padding-inline: 8px; font-size: 12px; } .yk-brand { width: 82px; } }
 @media (max-width: 900px) {
   .yk-topbar { grid-template-columns: auto 1fr; }
   .yk-menu-toggle { display: grid; }
@@ -71,5 +71,5 @@
   .yk-primary-nav > [aria-current="page"]::after { inset: 9px auto 9px 0; width: 2px; height: auto; }
   .yk-topbar-actions { grid-column: 2; grid-row: 1; justify-self: end; }
 }
-@media (max-width: 620px) { .yk-topbar-actions { gap: 5px; } .yk-topbar-actions > .yk-icon-button:nth-child(2), .yk-balance, .yk-topbar-actions > a[aria-label="Mon profil"], .yk-topbar-actions > button[aria-label="Options du compte"] { display: none; } .yk-topbar-actions .yk-icon-button { width: 38px; height: 38px; } .yk-notifications { position: fixed; top: var(--topbar-height); right: var(--layout-gutter-compact); left: var(--layout-gutter-compact); width: auto; max-height: calc(100dvh - var(--topbar-height) - var(--layout-gutter-compact)); } .yk-account-panel { position: fixed; top: calc(var(--topbar-height) + var(--spacing)); right: var(--layout-gutter-compact); left: auto; } .yk-account-karas { display: block; } .yk-notification-list { max-height: calc(100dvh - var(--topbar-height) - calc(var(--spacing) * 22)); } }
+@media (max-width: 620px) { .yk-brand { width: 68px; } .yk-topbar-actions { gap: 5px; } .yk-topbar-actions > .yk-icon-button:nth-child(2), .yk-balance, .yk-topbar-actions > a[aria-label="Mon profil"], .yk-topbar-actions > button[aria-label="Options du compte"] { display: none; } .yk-topbar-actions .yk-icon-button { width: 38px; height: 38px; } .yk-notifications { position: fixed; top: var(--topbar-height); right: var(--layout-gutter-compact); left: var(--layout-gutter-compact); width: auto; max-height: calc(100dvh - var(--topbar-height) - var(--layout-gutter-compact)); } .yk-account-panel { position: fixed; top: calc(var(--topbar-height) + var(--spacing)); right: var(--layout-gutter-compact); left: auto; } .yk-account-karas { display: block; } .yk-notification-list { max-height: calc(100dvh - var(--topbar-height) - calc(var(--spacing) * 22)); } }
 @media (prefers-reduced-motion: reduce) { .yk-notifications, .yk-account-panel, .yk-topbar[data-mobile-menu="open"] .yk-primary-nav { animation-name: yk-topbar-fade-in; } @keyframes yk-topbar-fade-in { from { opacity: 0; } to { opacity: 1; } } }

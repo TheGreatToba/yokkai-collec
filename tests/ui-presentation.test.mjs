@@ -505,6 +505,8 @@ test("l’avatar ouvre un menu profil compact avec résumé et actions", () => {
   const topbar = readFileSync(path.join(root, "components/topbar.tsx"), "utf8");
   const account = readFileSync(path.join(root, "components/account-menu.tsx"), "utf8");
   const css = readFileSync(path.join(root, "styles/topbar.css"), "utf8");
+  assert.match(topbar, /header-logo-gold\.png/);
+  assert.match(css, /\.yk-brand \{ display: flex; width: 104px;/);
   assert.match(topbar, /aria-label="Ouvrir mon compte"/);
   assert.match(topbar, /panel==="account"/);
   assert.match(topbar, /className="yk-account-panel"/);
