@@ -290,11 +290,12 @@ export function Avatar({
   online,
   size = 40
 }: {
-  name: string;
+  name: string | null | undefined;
   image?: string;
   online?: boolean;
   size?: number;
 }) {
+  const displayName = name || "Joueur supprimé";
   return (
     <span
       className="relative inline-flex shrink-0 items-center justify-center rounded-full border border-accent-gold/40 bg-veil font-display font-semibold text-accent-gold"
@@ -304,7 +305,7 @@ export function Avatar({
       {image ? (
         <img
           src={image}
-          alt={name}
+          alt={displayName}
           width={size}
           height={size}
           loading="lazy"
@@ -312,8 +313,8 @@ export function Avatar({
           className="size-full rounded-full object-cover"
         />
       ) : (
-        <span aria-label={name}>
-          {name.slice(0, 1).toLocaleUpperCase("fr-FR") || "?"}
+        <span aria-label={displayName}>
+          {displayName.slice(0, 1).toLocaleUpperCase("fr-FR") || "?"}
         </span>
       )}
       {online !== undefined && (

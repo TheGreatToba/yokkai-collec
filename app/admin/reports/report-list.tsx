@@ -165,12 +165,14 @@ export function ReportList({
                 </p>
                 <p className="mt-2 font-bold">{report.reporterPseudo}</p>
                 <p className="text-sm text-slate-400">{report.reporterEmail}</p>
-                <Link
-                  className="mt-3 inline-block text-sm font-semibold text-cyan-300 hover:text-cyan-200"
-                  href={`${playerHrefBase}${report.reporterId}`}
-                >
-                  Voir ce joueur →
-                </Link>
+                {report.reporterId && (
+                  <Link
+                    className="mt-3 inline-block text-sm font-semibold text-cyan-300 hover:text-cyan-200"
+                    href={`${playerHrefBase}${report.reporterId}`}
+                  >
+                    Voir ce joueur →
+                  </Link>
+                )}
               </div>
               <div className="rounded-xl border border-red-300/15 bg-red-950/20 p-4">
                 <p className="text-xs uppercase tracking-widest text-red-300/70">
@@ -178,12 +180,14 @@ export function ReportList({
                 </p>
                 <p className="mt-2 font-bold">{report.reportedPseudo}</p>
                 <p className="text-sm text-slate-400">{report.reportedEmail}</p>
-                <Link
-                  className="mt-3 inline-block text-sm font-semibold text-cyan-300 hover:text-cyan-200"
-                  href={`${playerHrefBase}${report.reportedId}`}
-                >
-                  Ouvrir sa fiche admin →
-                </Link>
+                {report.reportedId && (
+                  <Link
+                    className="mt-3 inline-block text-sm font-semibold text-cyan-300 hover:text-cyan-200"
+                    href={`${playerHrefBase}${report.reportedId}`}
+                  >
+                    Ouvrir sa fiche admin →
+                  </Link>
+                )}
               </div>
             </div>
             <div className="mt-4 rounded-xl border border-white/10 bg-slate-950 p-4">
