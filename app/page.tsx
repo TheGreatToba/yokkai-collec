@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { YokaiCard } from "@/components/yokai-card";
 import { getCurrentUser } from "@/lib/auth/session";
 import "@/styles/landing.css";
@@ -20,7 +21,7 @@ export default async function Home() {
   const primaryHref = user ? "/boosters" : "/inscription";
   return <div className="yk-landing">
     <header className="yk-landing-header">
-      <Link href="/" className="yk-landing-brand" aria-label="Yokkai Collec’, accueil"><span className="yk-landing-logo">Y</span><span>Yokkai<br />Collec’</span></Link>
+      <Link href="/" className="yk-landing-brand" aria-label="Yokkai Collec’, accueil"><Image className="yk-landing-brand-image" src="/assets/header-logo-gold.png" alt="" width={1774} height={887} priority /></Link>
       <nav aria-label="Navigation d’accueil" className="yk-landing-nav"><a href="#concept">Le concept</a>{user ? <Link href="/boosters" className="yk-landing-login">Entrer dans le jeu</Link> : <Link href="/connexion" className="yk-landing-login">Connexion</Link>}</nav>
     </header>
     <main id="main-content">
