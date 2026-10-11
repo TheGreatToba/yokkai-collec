@@ -605,7 +605,7 @@ print(out.decode(),end='');sys.exit(p.wait())`;
     );
     result = run({ malformed: true }, "--apply", "APPLY");
     assert.equal(result.status, 2);
-    assert.doesNotMatch(result.stderr, /divergence detected/);
+    assert.doesNotMatch(result.stdout + result.stderr, /divergence detected/);
     assert.deepEqual(
       calls().map(c => c.kind),
       ["registry", "drift"]
@@ -643,7 +643,7 @@ print(out.decode(),end='');sys.exit(p.wait())`;
       assert.equal(result.status, 3, result.stdout + result.stderr);
       assert.match(result.stdout + result.stderr, /connection interrupted/);
       assert.doesNotMatch(
-        result.stderr,
+        result.stdout + result.stderr,
         /divergence detected|production changed/
       );
       assert.deepEqual(
