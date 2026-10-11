@@ -37,6 +37,7 @@ function failure(error: { message?: string; code?: string }) {
     CARD_NOT_OWNED: "Cette carte n’est plus dans votre collection.",
     CARD_FROZEN: "Cette carte est placée aux enchères, elle ne peut pas être détruite.",
     CARD_LOCKED: "Cette carte est verrouillée. Déverrouillez-la avant cette action.",
+    INVALID_CARD_SELECTION: "Sélection de cartes invalide. Sélectionnez entre 1 et 500 exemplaires.",
     FOLDER_NAME_TAKEN: "Un dossier porte déjà ce nom.",
     FOLDER_NOT_FOUND: "Ce dossier n’existe plus.",
   };
@@ -330,6 +331,13 @@ export async function deleteFolder(folderId: string): Promise<void> {
 export async function moveCardToFolder(instanceId: string, folderId: string | null): Promise<void> {
   const id = await playerId();
   const { error } = await db().rpc("move_card_to_folder", { p_card_instance_id: instanceId, p_folder_id: folderId });
+  if (error) throw failure(error);
+  await assertPlayer(id); cache.delete(`collection:${id}`);
+}
+
+export async function moveCardsToFolder(instanceIds: string[], folderId: string | null): Promise<void> {
+  const id = await playerId();
+  const { error } = await db().rpc("move_cards_to_folder", { p_card_instance_ids: instanceIds, p_folder_id: folderId });
   if (error) throw failure(error);
   await assertPlayer(id); cache.delete(`collection:${id}`);
 }
