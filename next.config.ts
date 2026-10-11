@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1", "192.168.100.20"],
   poweredByHeader: false,
   images: {
+    qualities: [75, 85], // Keep cached fronts' quality-75 requests valid.
     remotePatterns:
       supabaseImageOrigin?.protocol === "https:"
         ? [

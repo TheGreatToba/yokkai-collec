@@ -1242,6 +1242,7 @@ export function CollectionView({
                                       {...owned}
                                       image={owned.image}
                                       {...presentation[owned.instanceId]}
+                                      imageSizes="100vw"
                                     />
                                   </CardShell>
                                 </button>
@@ -1434,7 +1435,12 @@ export function CollectionView({
                           }
                         >
                           <CardShell>
-                            <YokaiCard {...card} image={card.image} {...meta} />
+                            <YokaiCard
+                              {...card}
+                              image={card.image}
+                              {...meta}
+                              imageSizes="100vw"
+                            />
                           </CardShell>
                           {selecting && eligible.length > 0 && (
                             <span
