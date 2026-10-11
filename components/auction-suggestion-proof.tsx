@@ -17,14 +17,20 @@ const proofCard: CollectedCard = {
   folderId: null,
   shiny: false,
   isEvolved: false,
-  isFirstOwner: true,
+  isFirstOwner: true
 };
 
-export function AuctionSuggestionProof({ disabled = false }: { disabled?: boolean }) {
-  return <CollectionView
-    cards={[proofCard]}
-    categories={["Anime/Manga"]}
-    onCreateAuction={async () => {}}
-    loadCardDiscovery={async () => ({ marketValue: disabled ? null : 240 })}
-  />;
+export function AuctionSuggestionProof({
+  disabled = false
+}: {
+  disabled?: boolean;
+}) {
+  return (
+    <CollectionView
+      cards={[proofCard]}
+      categories={["Anime/Manga"]}
+      onCreateAuction={async () => {}}
+      loadCardDiscovery={async () => ({ marketValue: disabled ? null : 240 })}
+    />
+  );
 }

@@ -1,24 +1,38 @@
 import type { NextConfig } from "next";
 
-const supabaseImageOrigin=process.env.NEXT_PUBLIC_SUPABASE_URL?new URL(process.env.NEXT_PUBLIC_SUPABASE_URL):undefined;
+const supabaseImageOrigin = process.env.NEXT_PUBLIC_SUPABASE_URL
+  ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL)
+  : undefined;
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1", "192.168.100.20"],
   poweredByHeader: false,
   images: {
-    remotePatterns: supabaseImageOrigin?.protocol==="https:"?[new URL("/storage/v1/object/public/card-images/**",supabaseImageOrigin)]:[],
-    maximumRedirects: 0,
+    remotePatterns:
+      supabaseImageOrigin?.protocol === "https:"
+        ? [
+            new URL(
+              "/storage/v1/object/public/card-images/**",
+              supabaseImageOrigin
+            )
+          ]
+        : [],
+    maximumRedirects: 0
   },
   experimental: {
     serverActions: {
-      bodySizeLimit: "8mb",
-    },
+      bodySizeLimit: "8mb"
+    }
   },
   async headers() {
     const isDev = process.env.NODE_ENV === "development";
     const supabase = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const origin = supabase ? new URL(supabase).origin : "";
-    const connections = [origin, origin.replace(/^http/, "ws"), "https://api.giphy.com"].filter(Boolean);
+    const connections = [
+      origin,
+      origin.replace(/^http/, "ws"),
+      "https://api.giphy.com"
+    ].filter(Boolean);
     // Static Next.js pages need inline hydration scripts and inline component styles.
     // Report-Only first: inspect browser violations before a separate enforcing PR.
     const csp = [
@@ -33,7 +47,7 @@ const nextConfig: NextConfig = {
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
-      "frame-src 'none'",
+      "frame-src 'none'"
     ].join("; ");
     return [
       {
@@ -46,12 +60,13 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
-          },
-        ],
-      },
+            value:
+              "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+          }
+        ]
+      }
     ];
-  },
+  }
 };
 
 export default nextConfig;

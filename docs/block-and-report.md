@@ -92,6 +92,7 @@ get_profile applique côté serveur friends_allowed := viewer=target.user_id OR 
 Les amis publics contiennent id/pseudo/avatarUrl uniquement, sans isOnline/lastSeenAt.
 get_friendships renvoie ces statuts seulement pour les amitiés accepted impliquant auth.uid().
 Aucune correction de visibilité dans cette PR.
+
 ## Résultat du déploiement SQL
 
 Coordination Discord confirmée avant intervention. Sauvegarde pg_dump validée par pg_restore --list

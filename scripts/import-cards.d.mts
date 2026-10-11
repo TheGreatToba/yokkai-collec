@@ -8,7 +8,9 @@ export function deriveSourceId(row: Record<string, string>): string;
 export function validateCard(row: Record<string, string>): ImportedCard;
 export function validateImageBytes(bytes: Buffer, contentType: string): void;
 export function imagePath(card: ImportedCard): string;
-export function downloadImage(url: string): Promise<{ bytes: Buffer; contentType: string; finalUrl: string }>;
+export function downloadImage(
+  url: string
+): Promise<{ bytes: Buffer; contentType: string; finalUrl: string }>;
 export function prepareStorage(client: unknown, bucket: string): Promise<void>;
 export function importCards(options: Record<string, unknown>): Promise<{
   read: number;

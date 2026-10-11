@@ -10,13 +10,19 @@ export type CardShellProps = {
   demoState?: "hover" | "tilt" | "reflection";
 };
 
-export function CardShell({ children, className = "", demoState }: CardShellProps) {
+export function CardShell({
+  children,
+  className = "",
+  demoState
+}: CardShellProps) {
   const shellRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const shell = shellRef.current;
     if (!shell || demoState) return;
-    const precisePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const precisePointer = window.matchMedia(
+      "(hover: hover) and (pointer: fine)"
+    );
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let frame = 0;
 
@@ -28,16 +34,39 @@ export function CardShell({ children, className = "", demoState }: CardShellProp
       shell.style.removeProperty("--shell-reflect-opacity");
     };
     const move = (event: PointerEvent) => {
-      if (!precisePointer.matches || reducedMotion.matches || event.pointerType === "touch") return;
+      if (
+        !precisePointer.matches ||
+        reducedMotion.matches ||
+        event.pointerType === "touch"
+      )
+        return;
       const bounds = shell.getBoundingClientRect();
-      const x = Math.max(-1, Math.min(1, ((event.clientX - bounds.left) / bounds.width - .5) * 2));
-      const y = Math.max(-1, Math.min(1, ((event.clientY - bounds.top) / bounds.height - .5) * 2));
+      const x = Math.max(
+        -1,
+        Math.min(1, ((event.clientX - bounds.left) / bounds.width - 0.5) * 2)
+      );
+      const y = Math.max(
+        -1,
+        Math.min(1, ((event.clientY - bounds.top) / bounds.height - 0.5) * 2)
+      );
       window.cancelAnimationFrame(frame);
       frame = window.requestAnimationFrame(() => {
-        shell.style.setProperty("--shell-tilt-x", `${(-y * animation.cardShell.tiltX).toFixed(2)}deg`);
-        shell.style.setProperty("--shell-tilt-y", `${(x * animation.cardShell.tiltY).toFixed(2)}deg`);
-        shell.style.setProperty("--shell-reflect-x", `${(x * animation.cardShell.reflectionTravel).toFixed(1)}%`);
-        shell.style.setProperty("--shell-reflect-opacity", `${animation.cardShell.reflectionOpacity}`);
+        shell.style.setProperty(
+          "--shell-tilt-x",
+          `${(-y * animation.cardShell.tiltX).toFixed(2)}deg`
+        );
+        shell.style.setProperty(
+          "--shell-tilt-y",
+          `${(x * animation.cardShell.tiltY).toFixed(2)}deg`
+        );
+        shell.style.setProperty(
+          "--shell-reflect-x",
+          `${(x * animation.cardShell.reflectionTravel).toFixed(1)}%`
+        );
+        shell.style.setProperty(
+          "--shell-reflect-opacity",
+          `${animation.cardShell.reflectionOpacity}`
+        );
       });
     };
 
@@ -54,5 +83,16 @@ export function CardShell({ children, className = "", demoState }: CardShellProp
     };
   }, [demoState]);
 
-  return <div ref={shellRef} className={`yk-card-shell ${demoState ? `yk-card-shell-demo-${demoState}` : ""} ${className}`} data-card-shell="true"><div className="yk-card-shell-plane">{children}<span className="yk-card-shell-reflection" aria-hidden="true" /></div></div>;
+  return (
+    <div
+      ref={shellRef}
+      className={`yk-card-shell ${demoState ? `yk-card-shell-demo-${demoState}` : ""} ${className}`}
+      data-card-shell="true"
+    >
+      <div className="yk-card-shell-plane">
+        {children}
+        <span className="yk-card-shell-reflection" aria-hidden="true" />
+      </div>
+    </div>
+  );
 }

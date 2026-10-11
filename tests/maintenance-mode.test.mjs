@@ -8,7 +8,12 @@ import ts from "typescript";
 function loadProxy(maintenanceMode) {
   const source = ts.transpileModule(
     readFileSync(new URL("../proxy.ts", import.meta.url), "utf8"),
-    { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } },
+    {
+      compilerOptions: {
+        module: ts.ModuleKind.CommonJS,
+        target: ts.ScriptTarget.ES2020
+      }
+    }
   ).outputText;
   let sessionChecks = 0;
   const context = {
@@ -18,10 +23,15 @@ function loadProxy(maintenanceMode) {
     require(name) {
       if (name === "next/server") return { NextResponse };
       if (name === "@/utils/supabase/proxy") {
-        return { updateSession: () => { sessionChecks += 1; return new Response("application"); } };
+        return {
+          updateSession: () => {
+            sessionChecks += 1;
+            return new Response("application");
+          }
+        };
       }
       throw new Error(`Unexpected import: ${name}`);
-    },
+    }
   };
   vm.runInNewContext(source, context);
   return { proxy: context.exports.proxy, sessionChecks: () => sessionChecks };
@@ -30,7 +40,9 @@ function loadProxy(maintenanceMode) {
 test("le mode maintenance intercepte toutes les routes avant la session", async () => {
   for (const path of ["/", "/collection", "/api/private-action"]) {
     const loaded = loadProxy("true");
-    const response = await loaded.proxy(new NextRequest(`http://localhost${path}`));
+    const response = await loaded.proxy(
+      new NextRequest(`http://localhost${path}`)
+    );
     const html = await response.text();
 
     assert.equal(response.status, 503);
@@ -43,7 +55,9 @@ test("le mode maintenance intercepte toutes les routes avant la session", async 
 
 test("une valeur autre que true laisse fonctionner l'application", async () => {
   const loaded = loadProxy("false");
-  const response = await loaded.proxy(new NextRequest("http://localhost/collection"));
+  const response = await loaded.proxy(
+    new NextRequest("http://localhost/collection")
+  );
 
   assert.equal(await response.text(), "application");
   assert.equal(loaded.sessionChecks(), 1);
@@ -51,15 +65,25 @@ test("une valeur autre que true laisse fonctionner l'application", async () => {
 
 test("seules les routes publiques de partage contournent le rafraîchissement de session", async () => {
   const id = "a".repeat(32);
-  for (const path of [`/partage/${id}`, ...["og","story","square"].map(format=>`/partage/${id}/image/${format}`)]) {
+  for (const path of [
+    `/partage/${id}`,
+    ...["og", "story", "square"].map(format => `/partage/${id}/image/${format}`)
+  ]) {
     const loaded = loadProxy("false");
-    const response = await loaded.proxy(new NextRequest(`http://localhost${path}`));
-    assert.equal(response.status,200);
-    assert.equal(loaded.sessionChecks(),0,path);
+    const response = await loaded.proxy(
+      new NextRequest(`http://localhost${path}`)
+    );
+    assert.equal(response.status, 200);
+    assert.equal(loaded.sessionChecks(), 0, path);
   }
-  for (const path of ["/collection",`/partage/${id}x`,`/partage/${id}/image/raw`,"/partage/not-hex"]) {
+  for (const path of [
+    "/collection",
+    `/partage/${id}x`,
+    `/partage/${id}/image/raw`,
+    "/partage/not-hex"
+  ]) {
     const loaded = loadProxy("false");
     await loaded.proxy(new NextRequest(`http://localhost${path}`));
-    assert.equal(loaded.sessionChecks(),1,path);
+    assert.equal(loaded.sessionChecks(), 1, path);
   }
 });

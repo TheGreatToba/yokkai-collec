@@ -19,23 +19,23 @@ API métier manquent, et aucun navigateur n’est exposé par l’environnement.
 
 ## Correspondance et état
 
-| Écran | Route / composants | État réel |
-|---|---|---|
-| Fondations | `app/layout.tsx`, `tailwind.config.ts`, `styles/ui.css`, `components/ui/` | Cinzel, Sora, Noto Serif JP via next/font ; boutons, chips, statuts, karas, avatar, dialog natif et toast |
-| Carte | `components/yokai-card.tsx`, `styles/cards.css` | 5:7, container queries, images réelles, cinq cadres, Shiny, animations, dos PNG |
-| Topbar | `components/topbar.tsx` | Navigation, recherche, notifications, solde toujours affiché, profil et options de compte |
-| Boosters | `/`, `components/boosters.tsx` | Regular branché sur la transaction existante ; déchirure, pile, flip, rangement, SR/SSR/LR, récap, NEW et doublons dérivés de la collection avant ouverture |
-| Decision Pack | `BoosterReveal` | Choix, confirmation et état PERDUE prêts en présentation ; ouverture désactivée, API absente |
-| Collection | `/collection`, `components/collection.tsx` | Filtres, comptes par rareté, tri, dates, doublons, sélection multiple, détail et tilt ; actions métier désactivées |
-| Profil personnel | `/profil` | Pseudo, date d’inscription, cartes et comptes réels ; emplacements mis en avant et fonctions sociales indisponibles |
-| Profil public | `/profil/[id]` | État indisponible tant que l’API publique manque ; aucune édition ni sélection multiple en lecture seule |
-| Marché | `/marche`, `MarketView` | Quatre onglets, filtres et présentation grille/liste ; état indisponible faute de données |
-| Enchère | `/marche/[id]`, `AuctionView` | Présentation contrôlée à deux colonnes, historique sous la carte ; route en état indisponible faute d’adaptateur API |
-| Échanges | `/echanges` | Structure donner/recevoir et état indisponible ; pas de proposition fictive |
-| Recherche | `/recherche` | Catalogue réel via le getter existant `getAllCards()`, recherche, pagination d’affichage, détail latéral |
-| Wishlist | `/wishlist` | En-tête, emplacement d’alerte, accès au catalogue et état indisponible |
-| Design system | `/design-system` | Galerie explicite d’exemples de composants, distincts des données de partie |
-| Sons | `hooks/use-sfx.ts`, `public/assets/sfx/` | Neuf WAV placeholders originaux, bouton couper/activer, erreurs audio non bloquantes |
+| Écran            | Route / composants                                                        | État réel                                                                                                                                                   |
+| ---------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Fondations       | `app/layout.tsx`, `tailwind.config.ts`, `styles/ui.css`, `components/ui/` | Cinzel, Sora, Noto Serif JP via next/font ; boutons, chips, statuts, karas, avatar, dialog natif et toast                                                   |
+| Carte            | `components/yokai-card.tsx`, `styles/cards.css`                           | 5:7, container queries, images réelles, cinq cadres, Shiny, animations, dos PNG                                                                             |
+| Topbar           | `components/topbar.tsx`                                                   | Navigation, recherche, notifications, solde toujours affiché, profil et options de compte                                                                   |
+| Boosters         | `/`, `components/boosters.tsx`                                            | Regular branché sur la transaction existante ; déchirure, pile, flip, rangement, SR/SSR/LR, récap, NEW et doublons dérivés de la collection avant ouverture |
+| Decision Pack    | `BoosterReveal`                                                           | Choix, confirmation et état PERDUE prêts en présentation ; ouverture désactivée, API absente                                                                |
+| Collection       | `/collection`, `components/collection.tsx`                                | Filtres, comptes par rareté, tri, dates, doublons, sélection multiple, détail et tilt ; actions métier désactivées                                          |
+| Profil personnel | `/profil`                                                                 | Pseudo, date d’inscription, cartes et comptes réels ; emplacements mis en avant et fonctions sociales indisponibles                                         |
+| Profil public    | `/profil/[id]`                                                            | État indisponible tant que l’API publique manque ; aucune édition ni sélection multiple en lecture seule                                                    |
+| Marché           | `/marche`, `MarketView`                                                   | Quatre onglets, filtres et présentation grille/liste ; état indisponible faute de données                                                                   |
+| Enchère          | `/marche/[id]`, `AuctionView`                                             | Présentation contrôlée à deux colonnes, historique sous la carte ; route en état indisponible faute d’adaptateur API                                        |
+| Échanges         | `/echanges`                                                               | Structure donner/recevoir et état indisponible ; pas de proposition fictive                                                                                 |
+| Recherche        | `/recherche`                                                              | Catalogue réel via le getter existant `getAllCards()`, recherche, pagination d’affichage, détail latéral                                                    |
+| Wishlist         | `/wishlist`                                                               | En-tête, emplacement d’alerte, accès au catalogue et état indisponible                                                                                      |
+| Design system    | `/design-system`                                                          | Galerie explicite d’exemples de composants, distincts des données de partie                                                                                 |
+| Sons             | `hooks/use-sfx.ts`, `public/assets/sfx/`                                  | Neuf WAV placeholders originaux, bouton couper/activer, erreurs audio non bloquantes                                                                        |
 
 ## Données et actions manquantes
 

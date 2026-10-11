@@ -25,12 +25,17 @@ test("classe les cartes COMICS sans licence selon leur univers", async () => {
   `);
 
   const migration = readFileSync(
-    new URL("../supabase/migrations/20261004000012_classify_comics_franchises.sql", import.meta.url),
-    "utf8",
+    new URL(
+      "../supabase/migrations/20261004000012_classify_comics_franchises.sql",
+      import.meta.url
+    ),
+    "utf8"
   );
   await db.exec(migration);
 
-  const { rows } = await db.query("select id, franchise from public.cards order by id");
+  const { rows } = await db.query(
+    "select id, franchise from public.cards order by id"
+  );
   assert.deepEqual(rows, [
     { id: 1, franchise: "Marvel" },
     { id: 2, franchise: "DC Comics" },
@@ -40,6 +45,6 @@ test("classe les cartes COMICS sans licence selon leur univers", async () => {
     { id: 6, franchise: "Licence existante" },
     { id: 7, franchise: null },
     { id: 8, franchise: null },
-    { id: 9, franchise: "Invincible" },
+    { id: 9, franchise: "Invincible" }
   ]);
 });

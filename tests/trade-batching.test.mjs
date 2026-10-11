@@ -16,34 +16,49 @@ function setup(offers, { failCards = false } = {}) {
     },
     from(table) {
       assert.equal(table, "cards");
-      return { select(fields) {
-        assert.equal(fields, "id,franchise");
-        return { async in(column, ids) {
-          assert.equal(column, "id");
-          requests.push({ ids: [...ids] });
-          assert.ok(ids.length <= 200, "gateway URL limit");
-          return { data: ids.map(id => ({ id, franchise: `Live ${id}` })),
-            error: failCards ? { code: "42501" } : null };
-        } };
-      } };
-    },
+      return {
+        select(fields) {
+          assert.equal(fields, "id,franchise");
+          return {
+            async in(column, ids) {
+              assert.equal(column, "id");
+              requests.push({ ids: [...ids] });
+              assert.ok(ids.length <= 200, "gateway URL limit");
+              return {
+                data: ids.map(id => ({ id, franchise: `Live ${id}` })),
+                error: failCards ? { code: "42501" } : null
+              };
+            }
+          };
+        }
+      };
+    }
   };
   let cards;
   const require = name => {
     if (name === "@/lib/data/rpc-pages.mjs") return { readRpcPages };
-    if (name === "@/utils/supabase/client") return { createClient: () => client };
+    if (name === "@/utils/supabase/client")
+      return { createClient: () => client };
     if (name === "@/lib/data/cards") return cards;
     if (name === "@/lib/ui/card-search") return {};
-    if (name === "@/lib/data/player-state") return {
-      createPlayerSnapshotCache: () => ({}), subscribePlayerSnapshotInvalidation() {},
-    };
+    if (name === "@/lib/data/player-state")
+      return {
+        createPlayerSnapshotCache: () => ({}),
+        subscribePlayerSnapshotInvalidation() {}
+      };
     assert.fail(`Unexpected import: ${name}`);
   };
   function load(path) {
     const context = { exports: {}, require };
-    const source = ts.transpileModule(readFileSync(new URL(path, import.meta.url), "utf8"), {
-      compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
-    }).outputText;
+    const source = ts.transpileModule(
+      readFileSync(new URL(path, import.meta.url), "utf8"),
+      {
+        compilerOptions: {
+          module: ts.ModuleKind.CommonJS,
+          target: ts.ScriptTarget.ES2020
+        }
+      }
+    ).outputText;
     vm.runInNewContext(source, context);
     return context.exports;
   }
@@ -51,33 +66,72 @@ function setup(offers, { failCards = false } = {}) {
   return { api: load("../lib/data/trades.ts"), requests };
 }
 
-const copy = (id, instanceId) => ({ id, instanceId, name: id, anime: "stale",
-  image: `custom-${instanceId}`, customImageUrl: `custom-${instanceId}`, locked: true });
+const copy = (id, instanceId) => ({
+  id,
+  instanceId,
+  name: id,
+  anime: "stale",
+  image: `custom-${instanceId}`,
+  customImageUrl: `custom-${instanceId}`,
+  locked: true
+});
 
 test("trade history batches live franchises once without changing offers or copies", async t => {
   const measured = [];
   for (const count of [1, 10, 100]) {
-    const offers = Array.from({ length: count }, (_, i) => ({ id: `offer-${i}`, status: "pending",
-      offeredCards: [copy("same", `give-${i}`)], requestedCards: [copy("same", `take-${i}`)] }));
+    const offers = Array.from({ length: count }, (_, i) => ({
+      id: `offer-${i}`,
+      status: "pending",
+      offeredCards: [copy("same", `give-${i}`)],
+      requestedCards: [copy("same", `take-${i}`)]
+    }));
     const before = JSON.stringify(offers);
     const { api, requests } = setup(offers);
     const result = await api.listTradeOffers();
-    t.diagnostic(`${count} offers: ${requests.length} requests (1 RPC + ${requests.filter(r => r.ids).length} cards)`);
+    t.diagnostic(
+      `${count} offers: ${requests.length} requests (1 RPC + ${requests.filter(r => r.ids).length} cards)`
+    );
     measured.push(requests.length);
     assert.equal(JSON.stringify(offers), before, "input must not be mutated");
-    assert.deepEqual(JSON.parse(JSON.stringify(result)), offers.map(offer => ({ ...offer,
-      offeredCards: offer.offeredCards.map(card => ({ ...card, anime: "Live same" })),
-      requestedCards: offer.requestedCards.map(card => ({ ...card, anime: "Live same" })) })));
+    assert.deepEqual(
+      JSON.parse(JSON.stringify(result)),
+      offers.map(offer => ({
+        ...offer,
+        offeredCards: offer.offeredCards.map(card => ({
+          ...card,
+          anime: "Live same"
+        })),
+        requestedCards: offer.requestedCards.map(card => ({
+          ...card,
+          anime: "Live same"
+        }))
+      }))
+    );
   }
-  assert.deepEqual(measured, [2, 2, 2], "shared catalogue id must be fetched once across all offers");
+  assert.deepEqual(
+    measured,
+    [2, 2, 2],
+    "shared catalogue id must be fetched once across all offers"
+  );
 });
 
 test("trade batching keeps gateway batches bounded and handles empty lots and read failures", async () => {
-  const offers = [{ id: "empty", offeredCards: [], requestedCards: [] },
-    { id: "large", offeredCards: Array.from({ length: 451 }, (_, i) => copy(`card-${i}`, `copy-${i}`)), requestedCards: [] }];
+  const offers = [
+    { id: "empty", offeredCards: [], requestedCards: [] },
+    {
+      id: "large",
+      offeredCards: Array.from({ length: 451 }, (_, i) =>
+        copy(`card-${i}`, `copy-${i}`)
+      ),
+      requestedCards: []
+    }
+  ];
   const { api, requests } = setup(offers);
   assert.equal((await api.listTradeOffers())[1].offeredCards.length, 451);
   assert.equal(requests.length, 4, "1 RPC + 3 bounded catalogue batches");
   assert.deepEqual((await setup([]).api.listTradeOffers()).length, 0);
-  await assert.rejects(setup(offers, { failCards: true }).api.listTradeOffers(), /inaccessibles/);
+  await assert.rejects(
+    setup(offers, { failCards: true }).api.listTradeOffers(),
+    /inaccessibles/
+  );
 });

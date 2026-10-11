@@ -18,7 +18,9 @@ Le lien email PKCE doit être ouvert dans le navigateur de l’inscription ; pou
 la confirmation dans un autre navigateur, le modèle Confirm signup peut utiliser :
 
 ```html
-<a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email">Confirmer mon adresse email</a>
+<a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email"
+  >Confirmer mon adresse email</a
+>
 ```
 
 La route accepte les deux formats, établit les cookies et redirige vers le jeu.
