@@ -7,6 +7,19 @@ export type Category = string;
 export type Card = { id: string; name: string; category: Category; anime?: string; rarity: Rarity; image: string; wishlisted?: boolean };
 export type CataloguePage = { cards: Card[]; total: number };
 export type LicenseCatalogueTotal = { license: string; total: number };
+export type PaniniAlbumProgress = LicenseCatalogueTotal & {
+  owned: number;
+  percent: number;
+};
+export type PaniniAlbumPage = {
+  items: PaniniAlbumProgress[];
+  total: number;
+};
+export type PaniniAlbumCard = Card & { owned: boolean };
+export type PaniniAlbumCardPage = {
+  items: PaniniAlbumCard[];
+  total: number;
+};
 export type CollectedCard = Card & { instanceId: string; obtainedAt: string; shiny: boolean; isEvolved: boolean; isFirstOwner: boolean; locked?: boolean; folderId: string | null; catalogueImage: string; customImageUrl: string | null; destructionValue?: number };
 export type Folder = { id: string; name: string };
 export type ActiveAuctionCard = { instanceId: string; auctionId: string; endsAt: string };
@@ -154,6 +167,66 @@ export async function getLicenseCatalogueTotals(): Promise<LicenseCatalogueTotal
     }
     return [...totals].map(([license, total]) => ({ license, total }));
   });
+}
+
+export async function getPaniniAlbumsPage({
+  query = "",
+  category = "",
+  page = 1,
+  pageSize = 72
+}: {
+  query?: string;
+  category?: string;
+  page?: number;
+  pageSize?: number;
+} = {}): Promise<PaniniAlbumPage> {
+  const safePage = Math.max(1, Math.trunc(page));
+  const safePageSize = Math.min(72, Math.max(1, Math.trunc(pageSize)));
+  const { data, error } = await db().rpc("get_panini_albums_page", {
+    p_query: query,
+    p_category: category,
+    p_offset: (safePage - 1) * safePageSize,
+    p_limit: safePageSize
+  });
+  if (error) throw failure(error);
+  const result = data as PaniniAlbumPage | null;
+  return {
+    items: result?.items ?? [],
+    total: result?.total ?? 0
+  };
+}
+
+export async function getPaniniAlbumCardsPage({
+  license,
+  query = "",
+  category = "",
+  ownedOnly = false,
+  page = 1,
+  pageSize = 24
+}: {
+  license: string;
+  query?: string;
+  category?: string;
+  ownedOnly?: boolean;
+  page?: number;
+  pageSize?: number;
+}): Promise<PaniniAlbumCardPage> {
+  const safePage = Math.max(1, Math.trunc(page));
+  const safePageSize = Math.min(60, Math.max(1, Math.trunc(pageSize)));
+  const { data, error } = await db().rpc("get_panini_album_cards_page", {
+    p_license: license,
+    p_query: query,
+    p_category: category,
+    p_owned_only: ownedOnly,
+    p_offset: (safePage - 1) * safePageSize,
+    p_limit: safePageSize
+  });
+  if (error) throw failure(error);
+  const result = data as PaniniAlbumCardPage | null;
+  return {
+    items: result?.items ?? [],
+    total: result?.total ?? 0
+  };
 }
 
 export async function searchCards(query: string, limit = 30): Promise<Card[]> {

@@ -3,9 +3,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import type { Card, CollectedCard, Folder, Rarity } from "@/lib/data/cards";
-import type { LicenseCatalogueTotal } from "@/lib/data/cards";
+import { useEffect, useMemo, useState } from "react";
+import type {
+  CollectedCard,
+  Folder,
+  PaniniAlbumCardPage,
+  PaniniAlbumPage,
+  Rarity
+} from "@/lib/data/cards";
 import {
   Button,
   Chip,
@@ -35,11 +40,6 @@ import {
   consumptionPlan,
   groupCollection
 } from "@/lib/ui/collection-groups";
-import {
-  buildLicenseCatalogueTotals,
-  buildLicenseProgress,
-  paniniAlbumForCard
-} from "@/lib/ui/license-progress";
 
 // Optional display metadata, separate from the existing business types.
 export type CollectionPresentation = {
@@ -164,8 +164,6 @@ function AuctionIcon({ size = 14 }: { size?: number }) {
 export function CollectionView({
   cards,
   categories,
-  licenseTotals = [],
-  catalogueCards = [],
   presentation = {},
   readOnly = false,
   adminRemoval = false,
@@ -184,12 +182,12 @@ export function CollectionView({
   onSetCustomImage,
   onDiscard,
   onDiscardMany,
+  loadPaniniAlbums,
+  loadPaniniAlbumCards,
   loadCardDiscovery = getCardDiscovery
 }: {
   cards: CollectedCard[];
   categories: string[];
-  licenseTotals?: LicenseCatalogueTotal[];
-  catalogueCards?: Card[];
   presentation?: Record<string, CollectionPresentation>;
   totals?: Partial<Record<Rarity, number>>;
   readOnly?: boolean;
@@ -219,6 +217,20 @@ export function CollectionView({
   ) => Promise<void>;
   onDiscard?: (instanceId: string) => Promise<void>;
   onDiscardMany?: (instanceIds: string[]) => Promise<void>;
+  loadPaniniAlbums?: (options: {
+    query?: string;
+    category?: string;
+    page?: number;
+    pageSize?: number;
+  }) => Promise<PaniniAlbumPage>;
+  loadPaniniAlbumCards?: (options: {
+    license: string;
+    query?: string;
+    category?: string;
+    ownedOnly?: boolean;
+    page?: number;
+    pageSize?: number;
+  }) => Promise<PaniniAlbumCardPage>;
   loadCardDiscovery?: (
     cardId: string
   ) => Promise<{ marketValue: number | null }>;
@@ -293,79 +305,175 @@ export function CollectionView({
     CARD_PAGE_SIZES[0]
   );
   const [hideMissingCards, setHideMissingCards] = useState(false);
+  const [paniniAlbums, setPaniniAlbums] = useState<PaniniAlbumPage>({
+    items: [],
+    total: 0
+  });
+  const [paniniCards, setPaniniCards] = useState<PaniniAlbumCardPage>({
+    items: [],
+    total: 0
+  });
+  const [paniniBusy, setPaniniBusy] = useState(false);
+  const [paniniError, setPaniniError] = useState("");
   const selected = cards.find(c => c.instanceId === selectedId);
   const selectedMeta = selected ? presentation[selected.instanceId] : undefined;
-  const filtered = sortCollection(
-    cards.filter(
-      c =>
-        matchesCardSearch(query, [c.name, c.category, c.anime]) &&
-        (!category || c.category === category) &&
-        (!rarity || c.rarity === rarity) &&
-        (!shinyOnly || c.shiny) &&
-        (!folder ||
-          (folder === LOCKED_FOLDER
-            ? !!c.locked
-            : folder === "unfiled"
-              ? !c.folderId
-              : c.folderId === folder)) &&
-        (!auctionOnly || !!presentation[c.instanceId]?.frozen)
-    ),
-    sort
+  const filtered = useMemo(
+    () =>
+      sortCollection(
+        cards.filter(
+          c =>
+            matchesCardSearch(query, [c.name, c.category, c.anime]) &&
+            (!category || c.category === category) &&
+            (!rarity || c.rarity === rarity) &&
+            (!shinyOnly || c.shiny) &&
+            (!folder ||
+              (folder === LOCKED_FOLDER
+                ? !!c.locked
+                : folder === "unfiled"
+                  ? !c.folderId
+                  : c.folderId === folder)) &&
+            (!auctionOnly || !!presentation[c.instanceId]?.frozen)
+        ),
+        sort
+      ),
+    [
+      auctionOnly,
+      cards,
+      category,
+      folder,
+      presentation,
+      query,
+      rarity,
+      shinyOnly,
+      sort
+    ]
   );
   const groups = groupCollection(filtered);
-  const allGroupsByKey = new Map(
-    groupCollection(cards).map(group => [group.key, group])
+  const allGroupsByKey = useMemo(
+    () => new Map(groupCollection(cards).map(group => [group.key, group])),
+    [cards]
   );
-  const paniniCatalogueTotals = catalogueCards.length
-    ? buildLicenseCatalogueTotals(catalogueCards)
-    : licenseTotals;
-  const licenseProgress = buildLicenseProgress(cards, paniniCatalogueTotals);
-  const catalogueLicensesForCategory = new Set(
-    catalogueCards
-      .filter(card => !category || card.category === category)
-      .map(paniniAlbumForCard)
-  );
-  const filteredLicenseProgress = licenseProgress.filter(
-    item =>
-      catalogueLicensesForCategory.has(item.license) &&
-      matchesCardSearch(query, [item.license])
-  );
-  const paniniAlbumPageCount = Math.max(
-    1,
-    Math.ceil(filteredLicenseProgress.length / 72)
-  );
+  const paniniAlbumPageCount = Math.max(1, Math.ceil(paniniAlbums.total / 72));
   const activePaniniAlbumPage = Math.min(paniniAlbumPage, paniniAlbumPageCount);
-  const visibleLicenseProgress = filteredLicenseProgress.slice(
-    (activePaniniAlbumPage - 1) * 72,
-    activePaniniAlbumPage * 72
-  );
-  const selectedLicenseCards = selectedLicense
-    ? catalogueCards
-        .filter(
-          card =>
-            paniniAlbumForCard(card) === selectedLicense &&
-            (!category || card.category === category)
-        )
-        .sort((a, b) => a.name.localeCompare(b.name, "fr"))
-    : [];
-  const ownedByCardId = new Map<string, CollectedCard>();
-  for (const card of cards) {
-    if (!ownedByCardId.has(card.id)) ownedByCardId.set(card.id, card);
-  }
-  const filteredLicenseCards = selectedLicenseCards.filter(
-    card =>
-      matchesCardSearch(query, [card.name]) &&
-      (!hideMissingCards || ownedByCardId.has(card.id))
+  const ownedByCardId = useMemo(() => {
+    const owned = new Map<string, CollectedCard>();
+    for (const card of cards) {
+      if (!owned.has(card.id)) owned.set(card.id, card);
+    }
+    return owned;
+  }, [cards]);
+  const selectedLicenseOwned = selectedLicense
+    ? cards.filter(card => {
+        const specialCategory = [
+          "ARTIST",
+          "DISNEY CHANNEL",
+          "FILM",
+          "INTERNET PERSONALITY",
+          "KPOP",
+          "WWE"
+        ].includes(card.category.trim().toUpperCase());
+        return specialCategory
+          ? card.category.trim().toUpperCase() === selectedLicense.toUpperCase()
+          : card.anime?.trim() === selectedLicense;
+      }).length
+    : 0;
+  const selectedAlbum = paniniAlbums.items.find(
+    album => album.license === selectedLicense
   );
   const paniniPageCount = Math.max(
     1,
-    Math.ceil(filteredLicenseCards.length / paniniPageSize)
+    Math.ceil(paniniCards.total / paniniPageSize)
   );
   const activePaniniPage = Math.min(paniniPage, paniniPageCount);
-  const visibleLicenseCards = filteredLicenseCards.slice(
-    (activePaniniPage - 1) * paniniPageSize,
-    activePaniniPage * paniniPageSize
-  );
+
+  useEffect(() => {
+    if (viewMode !== "panini" || selectedLicense || !loadPaniniAlbums) return;
+    let active = true;
+    const timer = window.setTimeout(() => {
+      setPaniniBusy(true);
+      setPaniniError("");
+      void loadPaniniAlbums({
+        query,
+        category,
+        page: activePaniniAlbumPage,
+        pageSize: 72
+      })
+        .then(
+          result => {
+            if (active) setPaniniAlbums(result);
+          },
+          error => {
+            if (active)
+              setPaniniError(
+                error instanceof Error
+                  ? error.message
+                  : "Impossible de charger les albums."
+              );
+          }
+        )
+        .finally(() => {
+          if (active) setPaniniBusy(false);
+        });
+    }, 250);
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [
+    activePaniniAlbumPage,
+    category,
+    loadPaniniAlbums,
+    query,
+    selectedLicense,
+    viewMode
+  ]);
+
+  useEffect(() => {
+    if (viewMode !== "panini" || !selectedLicense || !loadPaniniAlbumCards)
+      return;
+    let active = true;
+    const timer = window.setTimeout(() => {
+      setPaniniBusy(true);
+      setPaniniError("");
+      void loadPaniniAlbumCards({
+        license: selectedLicense,
+        query,
+        category,
+        ownedOnly: hideMissingCards,
+        page: activePaniniPage,
+        pageSize: paniniPageSize
+      })
+        .then(
+          result => {
+            if (active) setPaniniCards(result);
+          },
+          error => {
+            if (active)
+              setPaniniError(
+                error instanceof Error
+                  ? error.message
+                  : "Impossible de charger les cartes de cet album."
+              );
+          }
+        )
+        .finally(() => {
+          if (active) setPaniniBusy(false);
+        });
+    }, 250);
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [
+    activePaniniPage,
+    category,
+    hideMissingCards,
+    loadPaniniAlbumCards,
+    paniniPageSize,
+    query,
+    selectedLicense,
+    viewMode
+  ]);
   const pageCount = Math.max(1, Math.ceil(groups.length / pageSize));
   const activePage = Math.min(page, pageCount);
   const visibleGroups = groups.slice(
@@ -1162,12 +1270,8 @@ export function CollectionView({
                           <h2>{selectedLicense}</h2>
                         </div>
                         <p>
-                          {
-                            selectedLicenseCards.filter(card =>
-                              ownedByCardId.has(card.id)
-                            ).length
-                          }{" "}
-                          / {selectedLicenseCards.length} cartes
+                          {selectedAlbum?.owned ?? selectedLicenseOwned} /{" "}
+                          {selectedAlbum?.total ?? paniniCards.total} cartes
                         </p>
                       </div>
                       <div className="yk-panini-controls">
@@ -1214,17 +1318,30 @@ export function CollectionView({
                             : "Cacher les cartes non possédées"}
                         </button>
                       </div>
-                      {filteredLicenseCards.length === 0 && (
-                        <div className="yk-panini-empty">
-                          <strong>Aucune carte trouvée</strong>
-                          <p>Essaie un autre nom de personnage.</p>
+                      {paniniError && (
+                        <div className="yk-panini-empty" role="alert">
+                          <strong>Chargement impossible</strong>
+                          <p>{paniniError}</p>
                         </div>
                       )}
+                      {paniniBusy && (
+                        <div className="yk-panini-empty" role="status">
+                          <strong>Chargement de l’album…</strong>
+                        </div>
+                      )}
+                      {!paniniBusy &&
+                        !paniniError &&
+                        paniniCards.total === 0 && (
+                          <div className="yk-panini-empty">
+                            <strong>Aucune carte trouvée</strong>
+                            <p>Essaie un autre nom de personnage.</p>
+                          </div>
+                        )}
                       <ul
                         className="yk-panini-slots"
                         aria-label={`Cartes de la licence ${selectedLicense}`}
                       >
-                        {visibleLicenseCards.map(card => {
+                        {paniniCards.items.map(card => {
                           const owned = ownedByCardId.get(card.id);
                           return (
                             <li key={card.id}>
@@ -1259,7 +1376,7 @@ export function CollectionView({
                           );
                         })}
                       </ul>
-                      {filteredLicenseCards.length > 0 && (
+                      {paniniCards.total > 0 && (
                         <div className="yk-collection-pagination yk-panini-pagination">
                           <Pagination
                             page={activePaniniPage}
@@ -1294,10 +1411,9 @@ export function CollectionView({
                           <h2>Mes albums par licence</h2>
                         </div>
                         <p>
-                          {filteredLicenseProgress.length} licence
-                          {filteredLicenseProgress.length > 1 ? "s" : ""}{" "}
-                          affichée
-                          {filteredLicenseProgress.length > 1 ? "s" : ""}
+                          {paniniAlbums.total} licence
+                          {paniniAlbums.total > 1 ? "s" : ""} affichée
+                          {paniniAlbums.total > 1 ? "s" : ""}
                         </p>
                       </div>
                       <label className="yk-panini-search">
@@ -1324,14 +1440,27 @@ export function CollectionView({
                           placeholder="Rechercher une licence…"
                         />
                       </label>
-                      {filteredLicenseProgress.length === 0 ? (
+                      {paniniError && (
+                        <div className="yk-panini-empty" role="alert">
+                          <strong>Chargement impossible</strong>
+                          <p>{paniniError}</p>
+                        </div>
+                      )}
+                      {paniniBusy && (
+                        <div className="yk-panini-empty" role="status">
+                          <strong>Chargement des albums…</strong>
+                        </div>
+                      )}
+                      {!paniniBusy &&
+                      !paniniError &&
+                      paniniAlbums.total === 0 ? (
                         <div className="yk-panini-empty">
                           <strong>Aucune licence trouvée</strong>
                           <p>Essaie un autre nom dans la barre de recherche.</p>
                         </div>
-                      ) : (
+                      ) : !paniniBusy && !paniniError ? (
                         <ul className="yk-panini-grid">
-                          {visibleLicenseProgress.map(item => (
+                          {paniniAlbums.items.map(item => (
                             <li key={item.license}>
                               <button
                                 type="button"
@@ -1356,8 +1485,8 @@ export function CollectionView({
                             </li>
                           ))}
                         </ul>
-                      )}
-                      {filteredLicenseProgress.length > 0 && (
+                      ) : null}
+                      {paniniAlbums.total > 0 && (
                         <div className="yk-collection-pagination yk-panini-pagination">
                           <Pagination
                             page={activePaniniAlbumPage}
