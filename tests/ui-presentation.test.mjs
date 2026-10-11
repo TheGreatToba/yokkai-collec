@@ -673,6 +673,9 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
   const boosterStyles = readFileSync(path.join(root, "styles/boosters.css"), "utf8");
   assert.match(source, /Garder cette carte et perdre les \{cards\.length - 1\} autres \?/);
   assert.match(boosterStyles,/\.yk-reveal-selection-mode \{[^}]*width: auto;[^}]*min-height: 32px;/);
+  assert.match(boosterStyles,/\.yk-invocation\[open\] \{ display: grid; place-items: center; overflow: hidden; \}/);
+  assert.match(boosterStyles,/\.yk-invocation > div:first-child \{ position: absolute;/);
+  assert.match(boosterStyles,/\.yk-invocation > div:last-child \{ grid-area: 1 \/ 1;/);
   assert.match(boosterStyles,/@media \(max-width: 40rem\) \{[\s\S]*\.yk-reveal-progress \{ grid-column: 1; grid-row: 2; justify-self: start; \}[\s\S]*\.yk-reveal-selection-mode \{ grid-column: 2; grid-row: 2; \}/);
 });
 
