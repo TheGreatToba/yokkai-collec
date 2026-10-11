@@ -322,45 +322,30 @@ export async function deleteCardAction(
   form: FormData
 ): Promise<AdminActionState> {
   try {
-    const admin = await requireAdminAction();
+    await requireAdminAction();
     const id = value(form, "id");
     if (!/^[0-9a-f-]{36}$/i.test(id))
       throw new Error("Identifiant de carte invalide.");
     const client = createClient(await cookies());
-    const { data: card, error: readError } = await client
-      .from("cards")
-      .select("*")
-      .eq("id", id)
-      .single();
-    if (readError) throw readError;
-    const { data: references, error: referenceError } = await client.rpc(
-      "admin_card_reference_counts",
-      {
-        p_card_id: id
-      }
-    );
-    if (referenceError) throw referenceError;
-    const owned = Number(references?.owned ?? 0);
-    const choices = Number(references?.choices ?? 0);
-    if (owned + choices > 0) {
-      throw new Error(
-        `Suppression refusée : ${owned} copie(s) possédée(s), ${choices} choix actif(s).`
-      );
-    }
-    const { error: deleteError } = await client
-      .from("cards")
-      .delete()
-      .eq("id", id);
-    if (deleteError) throw deleteError;
-    const { error: auditError } = await client.from("admin_audit_logs").insert({
-      admin_user_id: admin.id,
-      action: "card.delete",
-      card_id: id,
-      card_snapshot: card
+    const { data, error } = await client.rpc("admin_delete_card", {
+      p_card_id: id
     });
-    if (auditError) throw auditError;
+    if (error) throw error;
+    const result = data as {
+      name?: string;
+      ownedCopiesRemoved?: number;
+      auctionsCancelled?: number;
+      pendingTradesDeclined?: number;
+    } | null;
     revalidatePath("/admin/cards");
-    return { ok: true, message: `${card.nom} a été supprimée.` };
+    return {
+      ok: true,
+      message:
+        `${result?.name ?? "La carte"} a été supprimée avec ` +
+        `${Number(result?.ownedCopiesRemoved ?? 0)} copie(s), ` +
+        `${Number(result?.auctionsCancelled ?? 0)} enchère(s) et ` +
+        `${Number(result?.pendingTradesDeclined ?? 0)} échange(s) en attente.`
+    };
   } catch (error) {
     return initialFailure(
       error instanceof Error ? error.message : "Suppression impossible."

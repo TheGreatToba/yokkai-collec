@@ -203,6 +203,8 @@ test("la suppression admin demande une confirmation explicite", async () => {
     normalizeWhitespace(ui),
     normalizeWhitespace(/Cette action est irréversible\./)
   );
+  assert.match(ui, /Toutes les copies possédées seront/);
+  assert.match(ui, /remboursement de la mise/);
   assert.match(
     normalizeWhitespace(ui),
     normalizeWhitespace(/<form action=\{deleteAction\}[^>]+>/)
@@ -212,6 +214,46 @@ test("la suppression admin demande une confirmation explicite", async () => {
     normalizeWhitespace(
       /type="submit">\{deleting \? "Suppression…" : "Confirmer la suppression"\}/
     )
+  );
+});
+
+test("un admin peut supprimer une carte possédée et nettoyer ses usages", async () => {
+  const actions = await read("app/admin/cards/actions.ts");
+  const migration = await read(
+    "supabase/migrations/20261011000001_admin_delete_owned_card.sql"
+  );
+  const deleteStart = actions.indexOf("function deleteCardAction");
+  const deletion = actions.slice(deleteStart);
+
+  assert.match(deletion, /requireAdminAction\(\)/);
+  assert.match(deletion, /rpc\(\s*"admin_delete_card"/);
+  assert.doesNotMatch(deletion, /Suppression refusée/);
+  assert.match(
+    migration,
+    /create or replace function public\.admin_delete_card/
+  );
+  assert.match(migration, /if not public\.is_current_user_admin\(\)/);
+  assert.match(
+    migration,
+    /update public\.trade_offers[\s\S]+status = 'declined'/
+  );
+  assert.match(
+    migration,
+    /perform public\.credit_karas\(sale\.buyer_id, sale\.current_price\)/
+  );
+  assert.match(migration, /delete from public\.auctions where id = sale\.id/);
+  assert.match(migration, /set kept_choice_id = null/);
+  assert.match(migration, /delete from public\.card_shares/);
+  assert.match(migration, /delete from public\.decision_pack_choices/);
+  assert.match(
+    migration,
+    /delete from public\.user_cards where card_id = p_card_id/
+  );
+  assert.match(migration, /delete from public\.cards where id = p_card_id/);
+  assert.match(migration, /'card\.delete'/);
+  assert.match(
+    migration,
+    /grant execute on function public\.admin_delete_card\(uuid\) to authenticated/
   );
 });
 
