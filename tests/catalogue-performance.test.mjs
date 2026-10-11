@@ -77,6 +77,7 @@ function setup() {
   const context = {
     exports: {},
     require: n => {
+      if (n === "@/lib/data/read-request") return {};
       if (n === "@/lib/data/player-state") return state.exports;
       if (n === "@/utils/supabase/client")
         return { createClient: () => client };

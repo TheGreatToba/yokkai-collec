@@ -1,3 +1,4 @@
+import { readRequest, resumePages, type PageCheckpoint } from "@/lib/data/read-request";
 import { createClient } from "@/utils/supabase/client";
 import { cardSearchTerms } from "@/lib/ui/card-search";
 import { createPlayerSnapshotCache, PLAYER_SNAPSHOT_TTL, publishPlayerSnapshotInvalidation, subscribePlayerSnapshotInvalidation, type PlayerSnapshotScope } from "@/lib/data/player-state";
@@ -66,12 +67,12 @@ function cardFromRow(row: CardRow): Card {
   return { id: row.id, name: row.nom, category: row.categorie, anime: row.franchise || undefined, rarity: row.rarete_base, image: row.image_url };
 }
 
-export async function withLiveCardFranchises<T extends Card>(cards: T[]): Promise<T[]> {
+export async function withLiveCardFranchises<T extends Card>(cards: T[], bounded = false): Promise<T[]> {
   if (!cards.length) return cards;
   const ids = [...new Set(cards.map(card => card.id))];
   // Batched: the gateway rejects GET URLs above ~25 KB (≈700 uuids) with a bare 400.
   const batches = Array.from({ length: Math.ceil(ids.length / FRANCHISE_BATCH) }, (_, i) => ids.slice(i * FRANCHISE_BATCH, (i + 1) * FRANCHISE_BATCH));
-  const results = await Promise.all(batches.map(batch => db().from("cards").select("id,franchise").in("id", batch)));
+  const results = await Promise.all(batches.map(batch => { const query = db().from("cards").select("id,franchise").in("id", batch); return bounded ? readRequest(signal => query.abortSignal(signal)) : query; }));
   const failed = results.find(result => result.error);
   if (failed?.error) throw failure(failed.error);
   const rows = results.flatMap(result => result.data as {id:string;franchise:string|null}[]);
@@ -79,9 +80,10 @@ export async function withLiveCardFranchises<T extends Card>(cards: T[]): Promis
   return cards.map(card => ({ ...card, anime: franchises.get(card.id) }));
 }
 
-async function withPackDestructionValues<T extends Card & {instanceId:string}>(cards:T[]):Promise<(T & {destructionValue:number})[]> {
+async function withPackDestructionValues<T extends Card & {instanceId:string}>(cards:T[], bounded = false):Promise<(T & {destructionValue:number})[]> {
   if(!cards.length)return [];
-  const {data,error}=await db().rpc("get_pack_destruction_values",{p_instance_ids:cards.map(card=>card.instanceId)});
+  const query=db().rpc("get_pack_destruction_values",{p_instance_ids:cards.map(card=>card.instanceId)});
+  const {data,error}=await (bounded ? readRequest(signal => query.abortSignal(signal)) : query);
   if(error)throw failure(error);
   const values=data as Record<string,number>;
   return cards.map(card=>{
@@ -93,6 +95,7 @@ async function withPackDestructionValues<T extends Card & {instanceId:string}>(c
 
 // Memory-only caches avoid reloading the collection at every one-second UI tick.
 const cache = createPlayerSnapshotCache();
+const collectionPages = new Map<string, PageCheckpoint<OwnedRow>>();
 let client: ReturnType<typeof createClient> | undefined;
 function db() {
   if (!client) {
@@ -102,6 +105,7 @@ function db() {
       if (session?.user.id !== userId) {
         userId = session?.user.id;
         cache.clear();
+        collectionPages.clear();
       }
     });
   }
@@ -110,19 +114,20 @@ function db() {
 
 // Local session read: getClaims calls /auth/v1/user on every poll when Auth signs
 // with a symmetric secret (self-hosted). RLS still enforces ownership server-side.
-async function playerId() {
-  const { data, error } = await db().auth.getSession();
+async function playerId(bounded = false) {
+  const { data, error } = bounded ? await readRequest(() => db().auth.getSession()) : await db().auth.getSession();
   const id = data?.session?.user.id;
   if (error || !id) throw failure({ message: "AUTH_REQUIRED" });
   return id;
 }
 
-async function assertPlayer(id: string) {
-  if (await playerId() !== id) throw failure({ message: "AUTH_REQUIRED" });
+async function assertPlayer(id: string, bounded = false) {
+  if (await playerId(bounded) !== id) throw failure({ message: "AUTH_REQUIRED" });
 }
 
 function clearPlayerSnapshotCaches(scopes: readonly PlayerSnapshotScope[]) {
   for (const scope of scopes) cache.deleteScope(scope);
+  if (scopes.includes("collection")) collectionPages.clear();
 }
 
 export function invalidatePlayerSnapshots(scopes: readonly PlayerSnapshotScope[]) {
@@ -263,74 +268,78 @@ export async function getCataloguePage({ query = "", category = "", rarity = "",
 }
 
 export async function getGameInfo(): Promise<GameInfo> {
-  const id = await playerId();
+  const id = await playerId(true);
   const info = await cache.memo<GameInfo>(`info:${id}`, PLAYER_SNAPSHOT_TTL.balance, async () => {
-    const { data, error } = await db().rpc("get_game_info");
+    const { data, error } = await readRequest(signal => db().rpc("get_game_info").abortSignal(signal));
     if (error) throw failure(error);
     return data as GameInfo;
   });
-  await assertPlayer(id);
+  await assertPlayer(id, true);
   return { ...info, user: { ...info.user }, categories: [...info.categories],
     rarities: [...info.rarities], dropRates: info.dropRates.map((rate) => ({ ...rate })),
     decisionDropRates: info.decisionDropRates?.map(rate => ({ ...rate })) };
 }
 
 export async function getUserCollection(): Promise<CollectedCard[]> {
-  const id = await playerId();
+  const id = await playerId(true);
   const collection = await cache.memo<CollectedCard[]>(`collection:${id}`, PLAYER_SNAPSHOT_TTL.collection, async () => {
-    const cards: CollectedCard[] = [];
-    let cursor: string | undefined;
-    while (true) {
+    const checkpoint = collectionPages.get(id) ?? { rows: [] };
+    collectionPages.set(id, checkpoint);
+    const rows = await resumePages(checkpoint, PAGE_SIZE, async cursor => {
       let query = db().from("user_cards").select(`id,date_obtention,is_shiny,is_evolved,is_first_owner,is_locked,folder_id,custom_image_url,cards!inner(${cardFields})`)
         .eq("user_id", id).order("id").limit(PAGE_SIZE);
       if (cursor) query = query.gt("id", cursor);
-      const { data, error } = await query;
+      const { data, error } = await readRequest(signal => query.abortSignal(signal));
       if (error) throw failure(error);
-      if (!data?.length) break;
-      const rows = data as unknown as OwnedRow[];
-      cards.push(...rows.map((row) => ({ ...cardFromRow(row.cards), image: row.custom_image_url || row.cards.image_url,
-        catalogueImage: row.cards.image_url, customImageUrl: row.custom_image_url, instanceId: row.id,
-        obtainedAt: row.date_obtention, shiny: row.is_shiny, isEvolved: row.is_evolved,
-        isFirstOwner: row.is_first_owner, locked: row.is_locked, folderId: row.folder_id })));
-      cursor = rows[rows.length - 1].id;
-    }
+      return (data ?? []) as unknown as OwnedRow[];
+    });
+    if (collectionPages.get(id) === checkpoint) collectionPages.delete(id);
+    const cards = rows.map(row => ({ ...cardFromRow(row.cards), image: row.custom_image_url || row.cards.image_url,
+      catalogueImage: row.cards.image_url, customImageUrl: row.custom_image_url, instanceId: row.id,
+      obtainedAt: row.date_obtention, shiny: row.is_shiny, isEvolved: row.is_evolved,
+      isFirstOwner: row.is_first_owner, locked: row.is_locked, folderId: row.folder_id }));
     return cards.sort((a, b) => rank[b.rarity] - rank[a.rarity] ||
       Date.parse(b.obtainedAt) - Date.parse(a.obtainedAt) || a.instanceId.localeCompare(b.instanceId));
   });
-  await assertPlayer(id);
+  await assertPlayer(id, true);
   return collection.map((card) => ({ ...card }));
 }
 
-export async function getActiveAuctionCards(): Promise<ActiveAuctionCard[]> {
-  const id = await playerId();
-  const { data, error } = await db().rpc("get_my_active_auction_cards");
+export async function getActiveAuctionCards(sharePending = false): Promise<ActiveAuctionCard[]> {
+  const id = await playerId(true);
+  const { data, error } = await (sharePending ? cache.memo(`read:get_my_active_auction_cards:${id}`, 0, () => readRequest(signal => db().rpc("get_my_active_auction_cards").abortSignal(signal))) : readRequest(signal => db().rpc("get_my_active_auction_cards").abortSignal(signal)));
   if (error) throw failure(error);
-  await assertPlayer(id);
+  await assertPlayer(id, true);
   return (data as ActiveAuctionCard[]).map(auction => ({ ...auction }));
 }
 
-export async function getPackStatus(): Promise<PackStatus> {
-  const id = await playerId();
-  const { data, error } = await db().rpc("get_regular_pack_status");
+export async function getPackStatus(sharePending = false): Promise<PackStatus> {
+  const id = await playerId(true);
+  const { data, error } = await (sharePending ? cache.memo(`read:get_regular_pack_status:${id}`, 0, () => readRequest(signal => db().rpc("get_regular_pack_status").abortSignal(signal))) : readRequest(signal => db().rpc("get_regular_pack_status").abortSignal(signal)));
   if (error) throw failure(error);
-  await assertPlayer(id);
+  await assertPlayer(id, true);
   const status = data as PackStatus & { serverNow: number };
   // Display clock only: availability and consumption always use database time.
   return { available: status.available, maximum: status.maximum,
     nextPackAt: status.nextPackAt === null ? null : Date.now() + status.nextPackAt - status.serverNow };
 }
 
-export async function getDecisionPackStatus(): Promise<DecisionPackStatus> {
-  const id = await playerId();
-  const { data, error } = await db().rpc("get_decision_pack_status");
-  if (error) throw failure(error);
-  await assertPlayer(id);
-  const status = data as DecisionPackStatus & { serverNow: number };
+export async function getDecisionPackStatus(includeCardDetails = true): Promise<DecisionPackStatus> {
+  const id = await playerId(true);
+  const read = async () => {
+    const { data, error } = await readRequest(signal => db().rpc("get_decision_pack_status").abortSignal(signal));
+    if (error) throw failure(error);
+    return data as DecisionPackStatus & { serverNow: number };
+  };
+  const status = includeCardDetails ? await read() : await cache.memo(`read:decision:${id}`, 0, read);
+  // Initial panels need only availability and pending.length. Opening retains
+  // its existing enrichment path, without delaying either initial status.
+  const pending = includeCardDetails ? await cache.memo(`read:decision-details:${id}`, 0, async () =>
+    withPackDestructionValues(await withLiveCardFranchises(status.pending, true), true)) : status.pending;
+  await assertPlayer(id, true);
   return { available: status.available,
-    nextPackAt: Date.now() + status.nextPackAt - status.serverNow,
-    pending: await withPackDestructionValues(await withLiveCardFranchises(status.pending)) };
+    nextPackAt: Date.now() + status.nextPackAt - status.serverNow, pending };
 }
-
 export async function openBooster(): Promise<CollectedCard[]> {
   const id = await playerId();
   try {
@@ -344,6 +353,7 @@ export async function openBooster(): Promise<CollectedCard[]> {
   } finally {
     // The server may have committed even if the response was lost.
     cache.delete(`collection:${id}`);
+    collectionPages.delete(id);
   }
 }
 
@@ -356,6 +366,7 @@ export async function evolveSsrCard(instanceIds: string[]): Promise<CollectedCar
     return (await withLiveCardFranchises([data as CollectedCard]))[0];
   } finally {
     cache.delete(`collection:${id}`);
+    collectionPages.delete(id);
   }
 }
 
@@ -379,6 +390,7 @@ export async function keepDecisionPackCard(choiceId: string): Promise<DecisionPa
   } finally {
     // The automatically discarded Decision cards credit Karas too.
     cache.delete(`collection:${id}`);
+    collectionPages.delete(id);
     cache.delete(`info:${id}`);
   }
 }
@@ -396,15 +408,16 @@ export async function discardPackCard(instanceId: string, kind: "regular" | "dec
     // Destruction and its Karas credit are committed together server-side.
     // Refresh both snapshots even if the RPC response itself was lost.
     cache.delete(`collection:${id}`);
+    collectionPages.delete(id);
     cache.delete(`info:${id}`);
   }
 }
 
-export async function getFolders(): Promise<Folder[]> {
-  const id = await playerId();
-  const { data, error } = await db().from("folders").select("id,nom").eq("user_id", id).order("nom");
+export async function getFolders(sharePending = false): Promise<Folder[]> {
+  const id = await playerId(true);
+  const { data, error } = await (sharePending ? cache.memo(`read:folders:${id}`, 0, () => readRequest(signal => db().from("folders").select("id,nom").eq("user_id", id).order("nom").abortSignal(signal))) : readRequest(signal => db().from("folders").select("id,nom").eq("user_id", id).order("nom").abortSignal(signal)));
   if (error) throw failure(error);
-  await assertPlayer(id);
+  await assertPlayer(id, true);
   return (data as { id: string; nom: string }[]).map(folder => ({ id: folder.id, name: folder.nom }));
 }
 
@@ -421,6 +434,7 @@ export async function deleteFolder(folderId: string): Promise<void> {
   const { error } = await db().rpc("delete_folder", { p_folder_id: folderId });
   if (error) throw failure(error);
   await assertPlayer(id); cache.delete(`collection:${id}`);
+    collectionPages.delete(id);
 }
 
 export async function moveCardToFolder(instanceId: string, folderId: string | null): Promise<void> {
@@ -428,6 +442,7 @@ export async function moveCardToFolder(instanceId: string, folderId: string | nu
   const { error } = await db().rpc("move_card_to_folder", { p_card_instance_id: instanceId, p_folder_id: folderId });
   if (error) throw failure(error);
   await assertPlayer(id); cache.delete(`collection:${id}`);
+    collectionPages.delete(id);
 }
 
 export async function moveCardsToFolder(instanceIds: string[], folderId: string | null): Promise<void> {
@@ -435,6 +450,7 @@ export async function moveCardsToFolder(instanceIds: string[], folderId: string 
   const { error } = await db().rpc("move_cards_to_folder", { p_card_instance_ids: instanceIds, p_folder_id: folderId });
   if (error) throw failure(error);
   await assertPlayer(id); cache.delete(`collection:${id}`);
+    collectionPages.delete(id);
 }
 
 export async function setCollectionCardLocked(instanceId: string, locked: boolean): Promise<void> {
@@ -450,5 +466,6 @@ export async function setCardCustomImage(instanceId: string, imageUrl: string | 
     if (error) throw failure(error);
     await assertPlayer(id);
     return (await withLiveCardFranchises([data as CollectedCard]))[0];
-  } finally { cache.delete(`collection:${id}`); }
+  } finally { cache.delete(`collection:${id}`);
+    collectionPages.delete(id); }
 }

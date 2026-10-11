@@ -43,9 +43,16 @@ const base = {
 };
 function profileApi(response) {
   return load("lib/data/profile.ts", {
+    "@/lib/data/read-request": {
+      readRequest: load => load(new AbortController().signal)
+    },
     "@/utils/supabase/client": {
       createClient: () => ({
-        rpc: async () => ({ data: response, error: null })
+        rpc: () => {
+          const result = Promise.resolve({ data: response, error: null });
+          result.abortSignal = () => result;
+          return result;
+        }
       })
     },
     "@/lib/data/cards": { withLiveCardFranchises: async cards => cards },

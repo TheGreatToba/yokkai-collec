@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Cinzel, Sora, Noto_Serif_JP } from "next/font/google";
 import localFont from "next/font/local";
+import { BoostersLoadPriority } from "@/components/boosters-load-priority";
 import { PresenceHeartbeat } from "@/components/presence-heartbeat";
 import "./globals.css";
 import "../styles/ui.css";
@@ -52,9 +53,20 @@ export default function RootLayout({
       lang="fr"
       className={`h-full antialiased ${cinzel.variable} ${sora.variable} ${noto.variable} ${hyWenHei.variable}`}
     >
+      <head>
+        {process.env.NEXT_PUBLIC_SUPABASE_URL && (
+          <link
+            rel="preconnect"
+            href={new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin}
+            crossOrigin="anonymous"
+          />
+        )}
+      </head>
       <body suppressHydrationWarning className="min-h-full flex flex-col">
-        <PresenceHeartbeat />
-        {children}
+        <BoostersLoadPriority>
+          <PresenceHeartbeat />
+          {children}
+        </BoostersLoadPriority>
       </body>
     </html>
   );

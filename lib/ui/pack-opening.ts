@@ -35,3 +35,28 @@ export async function runPackOpeningSequence<T>({
   await wait(animation.packOpening.seal);
   return result;
 }
+
+export function packCopySnapshot<T extends { id: string }>(
+  collection: T[],
+  complete: boolean
+): Record<string, number> | null {
+  return complete
+    ? collection.reduce<Record<string, number>>((counts, card) => {
+        counts[card.id] = (counts[card.id] || 0) + 1;
+        return counts;
+      }, {})
+    : null;
+}
+export function packCopyLabels<T extends { id: string }>(
+  cards: T[],
+  snapshot: Record<string, number> | null
+): (T & { isNew?: boolean; copies?: number })[] {
+  const counts = { ...snapshot };
+  return cards.map(card => {
+    if (snapshot === null)
+      return { ...card, isNew: undefined, copies: undefined };
+    const previous = counts[card.id] || 0;
+    counts[card.id] = previous + 1;
+    return { ...card, isNew: previous === 0, copies: previous + 1 };
+  });
+}

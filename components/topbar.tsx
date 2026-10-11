@@ -12,6 +12,7 @@ import {
 } from "@/lib/data/notifications";
 import { useSfx } from "@/hooks/use-sfx";
 import { useNotificationFeed } from "@/hooks/use-notification-feed";
+import { useBoostersLoadPriority } from "@/components/boosters-load-priority";
 import { useIsAdmin } from "@/hooks/use-is-admin";
 import { getProfile } from "@/lib/data/profile";
 import { subscribePlayerSnapshotInvalidation } from "@/lib/data/player-state";
@@ -169,6 +170,8 @@ export function Topbar({
   account,
   name: providedName,
   karas,
+  infoError,
+  onRetryInfo,
   notifications,
   notificationError: externalNotificationError,
   onRetryNotifications,
@@ -193,6 +196,8 @@ export function Topbar({
   name?: string;
   collection?: CollectedCard[];
   karas?: number;
+  infoError?: string;
+  onRetryInfo?: () => void;
   notifications?: NotificationItem[];
   notificationError?: string;
   onRetryNotifications?: () => void;
@@ -201,12 +206,13 @@ export function Topbar({
   onOpenNotification?: (id: string, href: string) => Promise<void>;
 }) {
   const sound = useSfx();
-  const isAdmin = useIsAdmin();
+  const secondaryReady = useBoostersLoadPriority() >= 2;
+  const isAdmin = useIsAdmin(secondaryReady);
   const [panel, setPanel] = useState<"notifications" | "account" | null>(null);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string>();
   const [profileName, setProfileName] = useState<string>();
-  const feed = useNotificationFeed(!notifications);
+  const feed = useNotificationFeed(!notifications && secondaryReady);
   const loaded = feed.notifications?.map(notificationItem);
   const shown = notifications ?? loaded;
   const visibleNotificationError = externalNotificationError ?? feed.error;
@@ -214,6 +220,7 @@ export function Topbar({
   const name = providedName || profileName;
   useEffect(() => {
     let active = true;
+    if (!secondaryReady) return;
     const refreshProfile = () =>
       void getProfile().then(
         profile => {
@@ -232,7 +239,7 @@ export function Topbar({
       active = false;
       unsubscribe();
     };
-  }, []);
+  }, [secondaryReady]);
   useEffect(() => {
     if (!panel) return;
     const panelId = `${panel}-panel`;
@@ -574,7 +581,16 @@ export function Topbar({
             className="yk-balance"
             title={karas == null ? "Chargement du solde" : "Mon solde"}
           >
-            {karas == null ? (
+            {infoError ? (
+              <button
+                type="button"
+                className="text-xs text-danger-ink"
+                title={infoError}
+                onClick={onRetryInfo}
+              >
+                Solde et pseudo indisponibles · Réessayer
+              </button>
+            ) : karas == null ? (
               <span
                 role="status"
                 aria-label="Chargement du solde Karas"
