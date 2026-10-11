@@ -20,7 +20,7 @@ styles/card-tokens.css est consommé comme données brutes par ImageResponse. Se
 
 ## Inventaire des 64 échecs initiaux
 
-Tous passent dans la suite complète finale. Comptage AST des appels assert.* avant et après : 64 comparaisons, zéro différence. Classement par type principal ; certains tests cumulent plusieurs types.
+Tous passent dans la suite complète finale. Comptage AST des appels assert.\* avant et après : 64 comparaisons, zéro différence. Classement par type principal ; certains tests cumulent plusieurs types.
 
 ### Parenthèses équivalentes (10)
 

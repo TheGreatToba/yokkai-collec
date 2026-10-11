@@ -1890,6 +1890,48 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
       /@media \(max-width: 40rem\) \{[\s\S]*\.yk-reveal-progress \{ grid-column: 1; grid-row: 2; justify-self: start; \}[\s\S]*\.yk-reveal-selection-mode \{ grid-column: 2; grid-row: 2; \}/
     )
   );
+  assert.match(
+    normalizeWhitespace(boosterStyles),
+    normalizeWhitespace(
+      /\.yk-invocation\[open\] \{ display: grid; place-items: center; overflow: hidden; \}/
+    )
+  );
+  assert.match(
+    normalizeWhitespace(boosterStyles),
+    normalizeWhitespace(
+      /\.yk-invocation > div:first-child \{ position: absolute;/
+    )
+  );
+  assert.match(
+    normalizeWhitespace(boosterStyles),
+    normalizeWhitespace(
+      /\.yk-invocation > div:last-child \{ grid-area: 1 \/ 1;/
+    )
+  );
+  assert.match(
+    normalizeWhitespace(boosterStyles),
+    normalizeWhitespace(
+      /\.yk-reveal-ssr \{ position: fixed; inset: 0; z-index: 40;[^}]*justify-content: center;/
+    )
+  );
+  assert.match(
+    normalizeWhitespace(boosterStyles),
+    normalizeWhitespace(
+      /\.yk-reveal-lr \{ position: fixed; inset: 0; z-index: 40;[^}]*justify-content: center;/
+    )
+  );
+  assert.match(
+    normalizeWhitespace(boosterStyles),
+    normalizeWhitespace(
+      /\.yk-reveal-ssr \.yk-face-up \{ transform: scale\(1\.14\); \}/
+    )
+  );
+  assert.match(
+    normalizeWhitespace(boosterStyles),
+    normalizeWhitespace(
+      /\.yk-reveal-lr \.yk-face-up \{ transform: scale\(1\.18\); \}/
+    )
+  );
 });
 
 test("les boosters annoncent les gains autoritaires avant confirmation", () => {

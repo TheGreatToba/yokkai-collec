@@ -287,8 +287,13 @@
 }
 /* SSR Cinematic Reveal Sequence */
 .yk-reveal-ssr {
-  position: relative;
-  z-index: 15;
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  min-height: 100dvh;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0;
 }
 .yk-reveal-ssr .yk-deck {
   animation: yk-ssr-deck-charge 3.2s cubic-bezier(0.2, 0.8, 0.2, 1) both;
@@ -297,7 +302,7 @@
   transition-duration: 0.9s;
 }
 .yk-reveal-ssr .yk-face-up {
-  transform: translateY(-20px) scale(1.14);
+  transform: scale(1.14);
 }
 .yk-reveal-ssr .yk-face-up .yk-flip {
   transition-delay: 1s;
@@ -582,8 +587,13 @@
 
 /* LR Cinematic Reveal Sequence */
 .yk-reveal-lr {
-  position: relative;
-  z-index: 20;
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  min-height: 100dvh;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0;
 }
 .yk-reveal-lr .yk-deck {
   animation: yk-lr-deck-charge 4.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
@@ -592,7 +602,7 @@
   transition-duration: 1s;
 }
 .yk-reveal-lr .yk-face-up {
-  transform: translateY(-24px) scale(1.18);
+  transform: scale(1.18);
 }
 .yk-reveal-lr .yk-face-up .yk-flip {
   transition-delay: 2.7s;
@@ -1359,6 +1369,15 @@
   font-size: 22px;
   text-shadow: 0 0 24px var(--color-rarity-ssr);
 }
+.yk-reveal-ssr > p:last-child,
+.yk-reveal-lr > p:last-child {
+  position: absolute;
+  right: var(--layout-gutter);
+  bottom: max(var(--layout-gutter), env(safe-area-inset-bottom));
+  left: var(--layout-gutter);
+  z-index: 7;
+  margin: 0;
+}
 .yk-burst {
   position: absolute;
   z-index: 1;
@@ -1445,6 +1464,7 @@
   pointer-events: none;
 }
 .yk-invocation {
+  position: relative;
   width: 100vw;
   max-width: none;
   height: 100dvh;
@@ -1457,6 +1477,11 @@
     var(--color-void)
   );
   text-align: center;
+}
+.yk-invocation[open] {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
 }
 .yk-invocation::before {
   content: "";
@@ -1481,8 +1506,17 @@
   pointer-events: none;
 }
 .yk-invocation > div:first-child {
-  position: relative;
-  z-index: 1;
+  position: absolute;
+  z-index: 2;
+  top: 20px;
+  right: 20px;
+  left: 20px;
+  margin-bottom: 0;
+}
+.yk-invocation > div:last-child {
+  grid-area: 1 / 1;
+  max-height: calc(100dvh - 96px);
+  overflow-y: auto;
 }
 .yk-invocation-shiny {
   background: radial-gradient(
