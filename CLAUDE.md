@@ -4,6 +4,8 @@ Deux devs travaillent en parallèle sur ce repo. Détails complets : [docs/COLLA
 
 Règles non négociables :
 
+- Lancer npm run format avant tout commit ; ne jamais utiliser --no-verify.
+
 - Toujours lancer `git status` et `git fetch origin` avant de commencer une tâche.
 - Ne jamais pousser directement sur `master` : partir d'une branche `<initiales>/<description>` créée depuis `origin/master`.
 - Ouvrir une Pull Request pour toute tâche, même petite.

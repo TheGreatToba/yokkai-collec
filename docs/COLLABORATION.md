@@ -9,7 +9,7 @@ Deux développeurs travaillent en parallèle sur ce repo, chacun avec ses propre
 npm run setup
 ```
 
-Ça active le hook `.githooks/pre-push`, qui refuse tout push direct sur `master`. Le premier
+Ça active les hooks `.githooks/pre-commit` (formatage des fichiers indexés) et `.githooks/pre-push` (refus des pushes directs sur `master`). Le premier
 `npm install` le fait aussi automatiquement (script `prepare`) ; `npm run setup` reste utile si
 les dépendances étaient déjà installées. Vérifier :
 `git config core.hooksPath` doit afficher `.githooks`.
@@ -19,8 +19,9 @@ les dépendances étaient déjà installées. Vérifier :
 >
 > - le hook pre-push local, que **chaque dev doit installer** (`npm run setup`) ;
 > - le respect du workflow PR décrit ci-dessous.
->
-> Le hook se contourne avec `git push --no-verify` : ne jamais le faire vers `master`.
+
+Ne jamais utiliser `--no-verify`, pour les humains comme pour les agents. Lancer `npm run format` avant tout commit. Le hook utilise Prettier déjà installé, respecte `.prettierignore`, réindexe uniquement le contenu staged et préserve les modifications non indexées et les fichiers non suivis.
+
 > Si le repo passe en GitHub Pro, la protection de branche (« Require a pull request before
 > merging ») pourra être activée dans Settings > Branches — ce document sera alors mis à jour.
 
