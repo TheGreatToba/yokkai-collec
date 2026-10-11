@@ -56,4 +56,14 @@ Migrations : aucune ; rien à appliquer sur le VPS.
 
 ## Validation locale
 
-Suite complète : 391 tests réussis, aucun échec, un test PostgreSQL optionnel ignoré. Lint sans erreur (7 avertissements préexistants), types et build vérifiés. Preconnect dans le HTML servi de `/connexion` : `https://build-supabase.example.invalid`, même avec une origine différente au démarrage du serveur ; il provient donc bien du build.
+Suite complète : 403 tests réussis, aucun échec, un test PostgreSQL optionnel ignoré. Lint sans erreur (7 avertissements préexistants), types et build vérifiés. Preconnect dans le HTML servi de `/connexion` : `https://build-supabase.example.invalid`, même avec une origine différente au démarrage du serveur ; il provient donc bien du build.
+
+## Mise à jour après fusion de #167
+
+Rebase sur `origin/master` (`d4886497`), intégrant #166 et #167. Un seul conflit : `components/game.tsx`. Les lecteurs Panini paginés de #167 et la suppression du chargement global catalogue/totaux sont conservés ; les lectures indépendantes, priorités, erreurs et reprises de #168 restent en place. Les types/fonctions Panini de `cards.ts`, le composant Collection et les tests Panini sont conservés intégralement.
+
+Validation après résolution : 403 tests réussis, aucun échec, un test PostgreSQL optionnel ignoré ; tests Panini compris. Lint sans erreur, TypeScript et build réussis. La preuve navigateur a été rejouée : les sept garanties et la contre-preuve passent, zéro doublon simultané, aucune exception navigateur, zéro requête Supabase. Une première exécution pendant une recompilation de la preview a échoué sur l’attente des erreurs ; l’exécution stabilisée a réussi sans changement de la logique.
+
+Invalidations inchangées : ouverture Régulier invalide la collection même si la réponse est perdue ; conservation Décisif et destruction invalident collection et solde. Le double clic reste verrouillé dans Game (`runPackOpeningOnce`) et dans Boosters (`openingLock`), avec libération dans `finally`. Les mutations n’ont ni timeout ni retry automatique. Preconnect revérifié dans le HTML servi avec une origine de démarrage différente de celle du build.
+
+Aucune migration propre à #168 ; la migration Panini appartient à #167 déjà fusionnée. Aucune migration appliquée sur le VPS pendant cette mise à jour.

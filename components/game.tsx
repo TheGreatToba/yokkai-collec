@@ -530,7 +530,7 @@ export function Game({
       <footer
         className={`mx-auto mt-6 flex w-full ${view === "collection" ? "max-w-[var(--layout-collection-max)]" : "max-w-6xl"} flex-wrap justify-between gap-3 border-t border-veil px-6 py-6 text-xs text-ink-3`}
       >
-        <span>Yokkai Collec’ Ã‚· v0.2</span>
+        <span>Yokkai Collec’ · v0.2</span>
         <span>Collection sauvegardée sur votre compte</span>
       </footer>
     </div>
