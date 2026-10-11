@@ -161,7 +161,9 @@ function CardRow({ card }: { card: Card }) {
           <strong className="text-ink">{card.nom}</strong> du catalogue.
         </p>
         <p className="mt-3 text-sm text-danger-ink">
-          Cette action est irréversible.
+          Cette action est irréversible. Toutes les copies possédées seront
+          retirées. Les enchères seront annulées avec remboursement de la mise
+          en tête, et les échanges en attente concernés seront déclinés.
         </p>
         <Feedback state={deleteState} />
         <form action={deleteAction} className="mt-6 flex justify-end gap-3">
