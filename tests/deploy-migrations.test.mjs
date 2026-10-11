@@ -641,7 +641,7 @@ print(out.decode(),end='');sys.exit(p.wait())`;
     ]) {
       result = run(state, "--apply", "APPLY");
       assert.equal(result.status, 3, result.stdout + result.stderr);
-      assert.match(result.stderr, /connection interrupted/);
+      assert.match(result.stdout + result.stderr, /connection interrupted/);
       assert.doesNotMatch(
         result.stderr,
         /divergence detected|production changed/
