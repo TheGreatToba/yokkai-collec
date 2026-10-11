@@ -207,7 +207,8 @@ petit pour mesurer ce taux : il reste vérifié par lecture du code (`random() <
 
 Observation produit (BIZ-09, Info) : avec Shiny = 0,1 % × LR 0,1 %, un Shiny direct sort en moyenne **1 fois par million
 de cartes** du Booster Régulier. Au rythme maximal (1 pack / 10 min, soit 720 cartes/jour), il faut environ 3,8 ans par joueur.
-Le commit `fbf3d04` annonçait « LR Shiny 1 % », abaissé à 0,1 % par `20261002000003`. À confirmer comme intention produit.
+Le commit `fbf3d04` annonçait « LR Shiny 1 % », abaissé à 0,1 % par `20261002000003`.
+**Statut BIZ-09 : Accepté (choix produit) — 11/10/2026.** Taux confirmé par le propriétaire du produit ; aucune modification du code ni des probabilités.
 
 Effet de bord mesuré : le temps de simulation croît de façon quadratique (voir PERF-09).
 
