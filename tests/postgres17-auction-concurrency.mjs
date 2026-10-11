@@ -6,48 +6,109 @@ import { setTimeout as delay } from "node:timers/promises";
 import { bootstrapSQL } from "../scripts/replay-migrations.mjs";
 
 const container = process.env.TEST_POSTGRES_CONTAINER;
-assert.ok(container, "TEST_POSTGRES_CONTAINER must identify the disposable PostgreSQL 17 service");
-const image = execFileSync("docker", ["inspect", "--format", "{{.Config.Image}}", container], { encoding: "utf8" }).trim();
+assert.ok(
+  container,
+  "TEST_POSTGRES_CONTAINER must identify the disposable PostgreSQL 17 service"
+);
+const image = execFileSync(
+  "docker",
+  ["inspect", "--format", "{{.Config.Image}}", container],
+  { encoding: "utf8" }
+).trim();
 assert.equal(image, "supabase/postgres:17.6.1.136");
 const database = "auction_lock_ci";
 function session(sql, { user = "supabase_admin", db = database } = {}) {
-  const child = spawn("docker", ["exec", "-i", container, "psql", "-X", "-w", "-qAt", "-U", user, "-d", db, "-v", "ON_ERROR_STOP=1", "-v", "VERBOSITY=verbose"], { stdio: "pipe" });
-  let out = "", err = "";
-  child.stdout.on("data", b => { out += b; });
-  child.stderr.on("data", b => { err += b; });
+  const child = spawn(
+    "docker",
+    [
+      "exec",
+      "-i",
+      container,
+      "psql",
+      "-X",
+      "-w",
+      "-qAt",
+      "-U",
+      user,
+      "-d",
+      db,
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "VERBOSITY=verbose"
+    ],
+    { stdio: "pipe" }
+  );
+  let out = "",
+    err = "";
+  child.stdout.on("data", b => {
+    out += b;
+  });
+  child.stderr.on("data", b => {
+    err += b;
+  });
   const done = new Promise((resolve, reject) => {
     child.on("error", reject);
-    child.on("close", code => code === 0 ? resolve(out.trim()) : reject(new Error(err.trim())));
+    child.on("close", code =>
+      code === 0 ? resolve(out.trim()) : reject(new Error(err.trim()))
+    );
   });
   child.stdin.write(sql + "\n");
   return { child, done, output: () => out };
 }
 async function query(sql, options) {
-  const s = session(sql, options); s.child.stdin.end(); return s.done;
+  const s = session(sql, options);
+  s.child.stdin.end();
+  return s.done;
 }
 async function until(check, description) {
   const deadline = Date.now() + 15000;
-  while (Date.now() < deadline) { if (await check()) return; await delay(20); }
+  while (Date.now() < deadline) {
+    if (await check()) return;
+    await delay(20);
+  }
   throw new Error(`Timed out: ${description}`);
 }
 
 // Init scripts are disabled on this service. Keep the production migration role NOSUPERUSER.
-await query("create role postgres login nosuperuser bypassrls createrole; create role anon; create role authenticated; create role service_role bypassrls; create database auction_lock_ci owner postgres;", { db: "postgres" });
+await query(
+  "create role postgres login nosuperuser bypassrls createrole; create role anon; create role authenticated; create role service_role bypassrls; create database auction_lock_ci owner postgres;",
+  { db: "postgres" }
+);
 const version = await query("select version();");
 assert.match(version, /PostgreSQL 17\.6\b/);
 console.log(version);
-assert.deepEqual(JSON.parse(await query("select json_build_object('superuser',rolsuper,'bypassrls',rolbypassrls) from pg_roles where rolname='postgres';")), { superuser: false, bypassrls: true });
+assert.deepEqual(
+  JSON.parse(
+    await query(
+      "select json_build_object('superuser',rolsuper,'bypassrls',rolbypassrls) from pg_roles where rolname='postgres';"
+    )
+  ),
+  { superuser: false, bypassrls: true }
+);
 await query(`set role postgres; ${bootstrapSQL}`);
 const directory = new URL("../supabase/migrations/", import.meta.url);
-const migrations = readdirSync(directory).filter(n => n.endsWith(".sql")).sort();
+const migrations = readdirSync(directory)
+  .filter(n => n.endsWith(".sql"))
+  .sort();
 for (const name of migrations) {
-  try { await query(`set role postgres; ${readFileSync(new URL(name, directory), "utf8")}`); }
-  catch (error) { throw new Error(`Migration ${name}: ${error.message}`, { cause: error }); }
+  try {
+    await query(
+      `set role postgres; ${readFileSync(new URL(name, directory), "utf8")}`
+    );
+  } catch (error) {
+    throw new Error(`Migration ${name}: ${error.message}`, { cause: error });
+  }
 }
-console.log(`${migrations.length}/${migrations.length} migrations replayed as postgres NOSUPERUSER on ${image}`);
+console.log(
+  `${migrations.length}/${migrations.length} migrations replayed as postgres NOSUPERUSER on ${image}`
+);
 
-const a = "10000000-0000-4000-8000-000000000001", b = "10000000-0000-4000-8000-000000000002", seller = "10000000-0000-4000-8000-000000000003";
-const x = "20000000-0000-4000-8000-000000000001", y = "20000000-0000-4000-8000-000000000002";
+const a = "10000000-0000-4000-8000-000000000001",
+  b = "10000000-0000-4000-8000-000000000002",
+  seller = "10000000-0000-4000-8000-000000000003";
+const x = "20000000-0000-4000-8000-000000000001",
+  y = "20000000-0000-4000-8000-000000000002";
 await query(`
   insert into auth.users(id,raw_user_meta_data) values ('${a}','{"pseudo":"BidA"}'),('${b}','{"pseudo":"BidB"}'),('${seller}','{"pseudo":"BidSeller"}');
   insert into public.cards(source_id,nom,categorie,franchise,rarete_base,image_url,source)
@@ -67,74 +128,169 @@ await query(`
 `);
 
 for (let iteration = 1; iteration <= 50; iteration++) {
-  await query(`update public.user_profiles set karas_balance=900 where user_id in ('${a}','${b}'); update public.auctions set buyer_id=case id when '${x}'::uuid then '${b}'::uuid else '${a}'::uuid end,current_price=100,ends_at=clock_timestamp()+interval '1 hour' where id in ('${x}','${y}'); delete from public.bids; delete from public.notifications where type='outbid';`);
+  await query(
+    `update public.user_profiles set karas_balance=900 where user_id in ('${a}','${b}'); update public.auctions set buyer_id=case id when '${x}'::uuid then '${b}'::uuid else '${a}'::uuid end,current_price=100,ends_at=clock_timestamp()+interval '1 hour' where id in ('${x}','${y}'); delete from public.bids; delete from public.notifications where type='outbid';`
+  );
   const gate = session("select pg_advisory_lock(721934); select 'READY';");
   await until(() => gate.output().includes("READY"), "coordinator lock");
   const bid = (player, auction, label) => {
-    const s = session(`set application_name='${label}'; set statement_timeout='12s'; begin; set local role authenticated; select set_config('request.jwt.claim.sub','${player}',true); select current_user; select public.place_bid('${auction}',120); commit;`);
-    s.child.stdin.end(); return s;
+    const s = session(
+      `set application_name='${label}'; set statement_timeout='12s'; begin; set local role authenticated; select set_config('request.jwt.claim.sub','${player}',true); select current_user; select public.place_bid('${auction}',120); commit;`
+    );
+    s.child.stdin.end();
+    return s;
   };
-  const [first, second] = iteration % 2
-    ? [bid(a, x, "ci-bid-a"), bid(b, y, "ci-bid-b")]
-    : [bid(b, y, "ci-bid-b"), bid(a, x, "ci-bid-a")];
+  const [first, second] =
+    iteration % 2
+      ? [bid(a, x, "ci-bid-a"), bid(b, y, "ci-bid-b")]
+      : [bid(b, y, "ci-bid-b"), bid(a, x, "ci-bid-a")];
   // Attach handlers immediately: the expected RED deadlock must not become unhandled.
   const bids = Promise.allSettled([first.done, second.done]);
   try {
     // Before: both debits reach the gate holding opposite profile rows.
     // After: one reaches the gate; the other waits for the ordered profile lock.
-    await until(async () => Number(await query("select count(*) from pg_stat_activity where application_name in ('ci-bid-a','ci-bid-b') and wait_event_type='Lock';")) === 2, "two real sessions overlapping on locks");
+    await until(
+      async () =>
+        Number(
+          await query(
+            "select count(*) from pg_stat_activity where application_name in ('ci-bid-a','ci-bid-b') and wait_event_type='Lock';"
+          )
+        ) === 2,
+      "two real sessions overlapping on locks"
+    );
   } finally {
     gate.child.stdin.end("select pg_advisory_unlock(721934);\n");
     await gate.done;
   }
   const results = await bids;
-  const errors = results.filter(r => r.status === "rejected").map(r => r.reason.message);
-  assert.deepEqual(errors, [], `Crossed bids iteration ${iteration}: ${errors.join("\n")}`);
-  assert.ok(results.every(r => r.value.includes("\nauthenticated\n")), "Both callers use the real player role");
-  const state = JSON.parse(await query(`select json_build_object(
+  const errors = results
+    .filter(r => r.status === "rejected")
+    .map(r => r.reason.message);
+  assert.deepEqual(
+    errors,
+    [],
+    `Crossed bids iteration ${iteration}: ${errors.join("\n")}`
+  );
+  assert.ok(
+    results.every(r => r.value.includes("\nauthenticated\n")),
+    "Both callers use the real player role"
+  );
+  const state = JSON.parse(
+    await query(`select json_build_object(
     'balances',(select json_agg(karas_balance order by user_id) from public.user_profiles where user_id in ('${a}','${b}')),
     'buyers',(select json_agg(buyer_id order by id) from public.auctions where id in ('${x}','${y}')),
     'prices',(select json_agg(current_price order by id) from public.auctions where id in ('${x}','${y}')),
     'bids',(select count(*) from public.bids),
-    'notifications',(select count(*) from public.notifications where type='outbid'));`));
-  assert.deepEqual(state, { balances: [880, 880], buyers: [a, b], prices: [120, 120], bids: 2, notifications: 2 });
-  console.log(`Crossed bids ${iteration}/50: two authenticated sessions committed; balances, escrow, bids and notifications preserved`);
+    'notifications',(select count(*) from public.notifications where type='outbid'));`)
+  );
+  assert.deepEqual(state, {
+    balances: [880, 880],
+    buyers: [a, b],
+    prices: [120, 120],
+    bids: 2,
+    notifications: 2
+  });
+  console.log(
+    `Crossed bids ${iteration}/50: two authenticated sessions committed; balances, escrow, bids and notifications preserved`
+  );
 }
 
-const asPlayer = (player, sql) => query(`begin; set local role authenticated; select set_config('request.jwt.claim.sub','${player}',true); ${sql}; commit;`);
+const asPlayer = (player, sql) =>
+  query(
+    `begin; set local role authenticated; select set_config('request.jwt.claim.sub','${player}',true); ${sql}; commit;`
+  );
 await asPlayer(a, `select public.place_bid('${x}',150)`);
-assert.equal(await query(`select karas_balance from public.user_profiles where user_id='${a}';`), "850", "Self-raise charges only the difference");
-await assert.rejects(asPlayer(seller, `select public.place_bid('${x}',160)`), /SELLER_CANNOT_BID/);
-await assert.rejects(asPlayer(b, `select public.place_bid('${x}',159)`), /BID_TOO_LOW/);
-await assert.rejects(asPlayer(b, `select public.place_bid('${x}',1000000)`), /INSUFFICIENT_KARAS/);
-await query(`update public.auctions set ends_at=clock_timestamp()+interval '4 minutes' where id='${x}';`);
-const before = await query(`select ends_at::text from public.auctions where id='${x}';`);
+assert.equal(
+  await query(
+    `select karas_balance from public.user_profiles where user_id='${a}';`
+  ),
+  "850",
+  "Self-raise charges only the difference"
+);
+await assert.rejects(
+  asPlayer(seller, `select public.place_bid('${x}',160)`),
+  /SELLER_CANNOT_BID/
+);
+await assert.rejects(
+  asPlayer(b, `select public.place_bid('${x}',159)`),
+  /BID_TOO_LOW/
+);
+await assert.rejects(
+  asPlayer(b, `select public.place_bid('${x}',1000000)`),
+  /INSUFFICIENT_KARAS/
+);
+await query(
+  `update public.auctions set ends_at=clock_timestamp()+interval '4 minutes' where id='${x}';`
+);
+const before = await query(
+  `select ends_at::text from public.auctions where id='${x}';`
+);
 await asPlayer(a, `select public.place_bid('${x}',160)`);
-assert.equal(Number(await query(`select extract(epoch from (ends_at-'${before}'::timestamptz)) from public.auctions where id='${x}';`)), 60);
-assert.equal(await query("select has_function_privilege('anon','public.place_bid(uuid,integer)','EXECUTE');"), "f");
-console.log("Auction rules preserved: self-raise delta, seller refusal, minimum bid, insufficient funds, 60s extension and anon denied");
+assert.equal(
+  Number(
+    await query(
+      `select extract(epoch from (ends_at-'${before}'::timestamptz)) from public.auctions where id='${x}';`
+    )
+  ),
+  60
+);
+assert.equal(
+  await query(
+    "select has_function_privilege('anon','public.place_bid(uuid,integer)','EXECUTE');"
+  ),
+  "f"
+);
+console.log(
+  "Auction rules preserved: self-raise delta, seller refusal, minimum bid, insufficient funds, 60s extension and anon denied"
+);
 
 // Settlement skips the locked row; the bid must recheck the deadline after waiting.
-await query(`update public.auctions set ends_at=clock_timestamp()-interval '1 second' where id='${x}';`);
-const expiryState = () => query(`select json_build_object(
+await query(
+  `update public.auctions set ends_at=clock_timestamp()-interval '1 second' where id='${x}';`
+);
+const expiryState = () =>
+  query(`select json_build_object(
   'auction',(select row_to_json(sale) from public.auctions sale where id='${x}'),
   'balances',(select json_agg(karas_balance order by user_id) from public.user_profiles),
   'bids',(select count(*) from public.bids),
   'notifications',(select count(*) from public.notifications));`);
 const expiredBefore = await expiryState();
-const expiryGate = session(`begin; select id from public.auctions where id='${x}' for update; select 'READY';`);
-await until(() => expiryGate.output().includes("READY"), "expired auction row locked");
-const lateBid = session(`set application_name='ci-expired-bid'; set statement_timeout='12s'; begin; set local role authenticated; select set_config('request.jwt.claim.sub','${b}',true); select public.place_bid('${x}',170); commit;`);
+const expiryGate = session(
+  `begin; select id from public.auctions where id='${x}' for update; select 'READY';`
+);
+await until(
+  () => expiryGate.output().includes("READY"),
+  "expired auction row locked"
+);
+const lateBid = session(
+  `set application_name='ci-expired-bid'; set statement_timeout='12s'; begin; set local role authenticated; select set_config('request.jwt.claim.sub','${b}',true); select public.place_bid('${x}',170); commit;`
+);
 lateBid.child.stdin.end();
 const lateResult = Promise.allSettled([lateBid.done]);
 try {
-  await until(async () => await query("select count(*) from pg_stat_activity where application_name='ci-expired-bid' and wait_event_type='Lock';") === "1", "late bidder waits after SKIP LOCKED settlement");
+  await until(
+    async () =>
+      (await query(
+        "select count(*) from pg_stat_activity where application_name='ci-expired-bid' and wait_event_type='Lock';"
+      )) === "1",
+    "late bidder waits after SKIP LOCKED settlement"
+  );
 } finally {
   expiryGate.child.stdin.end("commit;\n");
   await expiryGate.done;
 }
 const [lateOutcome] = await lateResult;
-assert.equal(lateOutcome.status, "rejected", "An expired auction skipped by settlement must refuse the waiting bid");
+assert.equal(
+  lateOutcome.status,
+  "rejected",
+  "An expired auction skipped by settlement must refuse the waiting bid"
+);
 assert.match(lateOutcome.reason.message, /AUCTION_CLOSED/);
-assert.equal(await expiryState(), expiredBefore, "Refused late bid preserves auction, balances, bids and notifications");
-console.log("Expired auction: real authenticated bidder refused after SKIP LOCKED and row-lock wait; all state preserved");
+assert.equal(
+  await expiryState(),
+  expiredBefore,
+  "Refused late bid preserves auction, balances, bids and notifications"
+);
+console.log(
+  "Expired auction: real authenticated bidder refused after SKIP LOCKED and row-lock wait; all state preserved"
+);

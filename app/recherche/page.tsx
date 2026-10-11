@@ -1,2 +1,4 @@
 import { CommunityPage } from "@/components/community-page";
-export default function Page() { return <CommunityPage screen="search"/>; }
+export default function Page() {
+  return <CommunityPage screen="search" />;
+}

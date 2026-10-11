@@ -60,8 +60,7 @@
   conservent leur propre copie de l'aperçu après suppression : supprimer le partage n'efface pas
   ces copies et l'application ne contrôle pas leur durée de conservation.
 - Limite connue de Next.js 16 : pour un partage inconnu, la page « introuvable » et sa balise
-  `noindex` sont bien rendues, mais le shell diffusé avant la vérification conserve le statut HTTP
-  200. Les routes d'image vérifient l'existence avant tout rendu et répondent, elles, avec un vrai
+  `noindex` sont bien rendues, mais le shell diffusé avant la vérification conserve le statut HTTP 200. Les routes d'image vérifient l'existence avant tout rendu et répondent, elles, avec un vrai
   statut HTTP 404. Le proxy ne fait volontairement aucune requête supplémentaire à la base.
 
 ## Blocage et critères d’acceptation

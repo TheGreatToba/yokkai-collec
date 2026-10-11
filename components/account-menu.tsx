@@ -4,9 +4,17 @@ import { SignOutButton } from "@/components/sign-out-button";
 
 export async function AccountMenu() {
   const user = await getCurrentUser();
-  if (!user) return <div className="flex items-center gap-4 text-sm">
-    <Link href="/connexion">Connexion</Link>
-    <Link href="/inscription" className="rounded-lg border border-lime-300/40 px-3 py-2 text-lime-300">S’inscrire</Link>
-  </div>;
+  if (!user)
+    return (
+      <div className="flex items-center gap-4 text-sm">
+        <Link href="/connexion">Connexion</Link>
+        <Link
+          href="/inscription"
+          className="rounded-lg border border-lime-300/40 px-3 py-2 text-lime-300"
+        >
+          S’inscrire
+        </Link>
+      </div>
+    );
   return <SignOutButton />;
 }

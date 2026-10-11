@@ -39,19 +39,29 @@ export const bootstrapSQL = `
 
 // Disposable database only: mimic Supabase defaults before creating application objects.
 export async function replayMigrations({ migrations: selected } = {}) {
-  const db = new PGlite({extensions:{pg_trgm}});
+  const db = new PGlite({ extensions: { pg_trgm } });
   try {
     await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
 ${bootstrapSQL}`);
     const directory = new URL("../supabase/migrations/", import.meta.url);
-    const available = readdirSync(directory).filter((name) => name.endsWith(".sql")).sort();
+    const available = readdirSync(directory)
+      .filter(name => name.endsWith(".sql"))
+      .sort();
     const migrations = selected ?? available;
-    if (!Array.isArray(migrations) || migrations.some(name => !available.includes(name))) {
+    if (
+      !Array.isArray(migrations) ||
+      migrations.some(name => !available.includes(name))
+    ) {
       throw new Error("Invalid migration selection");
     }
     for (const name of migrations) {
-      try { await db.exec(readFileSync(new URL(name, directory), "utf8")); }
-      catch (error) { throw new Error(`Migration ${name}: ${error.message}`, { cause: error }); }
+      try {
+        await db.exec(readFileSync(new URL(name, directory), "utf8"));
+      } catch (error) {
+        throw new Error(`Migration ${name}: ${error.message}`, {
+          cause: error
+        });
+      }
     }
     return { db, migrations };
   } catch (error) {
@@ -61,12 +71,14 @@ ${bootstrapSQL}`);
 }
 
 export async function securityDefinerAccess(db) {
-  return (await db.query(`
+  return (
+    await db.query(`
     select n.nspname || '.' || p.proname || '(' || oidvectortypes(p.proargtypes) || ')' as signature,
       r.role, has_function_privilege(r.role, p.oid, 'EXECUTE') as executable
     from pg_proc p join pg_namespace n on n.oid=p.pronamespace
     cross join (values ('anon'), ('authenticated')) r(role)
     where p.prosecdef and n.nspname not in ('pg_catalog', 'information_schema')
     order by signature, r.role
-  `)).rows;
+  `)
+  ).rows;
 }

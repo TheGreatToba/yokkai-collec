@@ -3,6 +3,7 @@
 Deux devs travaillent en parallèle sur ce repo. Détails complets : [docs/COLLABORATION.md](docs/COLLABORATION.md).
 
 Règles non négociables :
+
 - Toujours lancer `git status` et `git fetch origin` avant de commencer une tâche.
 - Ne jamais pousser directement sur `master` : partir d'une branche `<initiales>/<description>` créée depuis `origin/master`.
 - Ouvrir une Pull Request pour toute tâche, même petite.
@@ -25,6 +26,7 @@ Graphify is optional: graphify-out/ is a locally generated graph, not shipped wi
 When the user types `/graphify`, use the installed graphify skill or instructions before doing anything else.
 
 Rules:
+
 - For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
 - Dirty graphify-out/ files are expected after hooks or incremental updates; dirty graph files are not a reason to skip graphify. Only skip graphify if the task is about stale or incorrect graph output, or the user explicitly says not to use it.
 - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.

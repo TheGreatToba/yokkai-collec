@@ -1,7 +1,12 @@
 export type AuthState = {
   error?: string;
   success?: boolean;
-  fields?: Partial<Record<"email" | "currentPassword" | "password" | "confirmPassword" | "pseudo", string>>;
+  fields?: Partial<
+    Record<
+      "email" | "currentPassword" | "password" | "confirmPassword" | "pseudo",
+      string
+    >
+  >;
   values?: { email: string; pseudo: string };
 };
 
@@ -30,11 +35,19 @@ export function validateCredentials(form: FormData, signup: boolean) {
     fields.email = "Indiquez une adresse email valide.";
   }
   if (!password || (signup && (password.length < 8 || password.length > 128))) {
-    fields.password = signup ? "Choisissez un mot de passe de 8 à 128 caractères." : "Indiquez votre mot de passe.";
+    fields.password = signup
+      ? "Choisissez un mot de passe de 8 à 128 caractères."
+      : "Indiquez votre mot de passe.";
   }
   const pseudoError = signup ? pseudoValidationError(pseudo) : undefined;
   if (pseudoError) fields.pseudo = pseudoError;
-  return { email, password, pseudo, fields, valid: Object.keys(fields).length === 0 };
+  return {
+    email,
+    password,
+    pseudo,
+    fields,
+    valid: Object.keys(fields).length === 0
+  };
 }
 
 export function validateEmail(form: FormData) {
@@ -42,9 +55,10 @@ export function validateEmail(form: FormData) {
   const email = typeof value === "string" ? value.trim() : "";
   return {
     email,
-    error: email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-      ? undefined
-      : "Indiquez une adresse email valide.",
+    error:
+      email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+        ? undefined
+        : "Indiquez une adresse email valide."
   };
 }
 
@@ -52,7 +66,8 @@ export function validateNewPassword(form: FormData) {
   const passwordValue = form.get("password");
   const confirmationValue = form.get("confirmPassword");
   const password = typeof passwordValue === "string" ? passwordValue : "";
-  const confirmation = typeof confirmationValue === "string" ? confirmationValue : "";
+  const confirmation =
+    typeof confirmationValue === "string" ? confirmationValue : "";
   const fields: NonNullable<AuthState["fields"]> = {};
   if (password.length < 8 || password.length > 128) {
     fields.password = "Choisissez un mot de passe de 8 à 128 caractères.";
@@ -68,35 +83,47 @@ export function validatePasswordChange(form: FormData) {
   const currentPassword = typeof currentValue === "string" ? currentValue : "";
   const next = validateNewPassword(form);
   const fields = { ...next.fields };
-  if (!currentPassword) fields.currentPassword = "Indiquez votre mot de passe actuel.";
+  if (!currentPassword)
+    fields.currentPassword = "Indiquez votre mot de passe actuel.";
   if (currentPassword && currentPassword === next.password) {
-    fields.password = "Le nouveau mot de passe doit être différent de l’actuel.";
+    fields.password =
+      "Le nouveau mot de passe doit être différent de l’actuel.";
   }
   return {
     currentPassword,
     password: next.password,
     fields,
-    valid: Object.keys(fields).length === 0,
+    valid: Object.keys(fields).length === 0
   };
 }
 
 export function authError(code?: string, status?: number) {
   switch (code) {
-    case "user_banned": return "Votre compte est banni.";
-    case "invalid_credentials": return "Email ou mot de passe incorrect.";
-    case "email_not_confirmed": return "Confirmez votre adresse email avant de vous connecter.";
-    case "weak_password": return "Ce mot de passe est trop faible. Choisissez-en un plus long et plus varié.";
+    case "user_banned":
+      return "Votre compte est banni.";
+    case "invalid_credentials":
+      return "Email ou mot de passe incorrect.";
+    case "email_not_confirmed":
+      return "Confirmez votre adresse email avant de vous connecter.";
+    case "weak_password":
+      return "Ce mot de passe est trop faible. Choisissez-en un plus long et plus varié.";
     case "over_request_rate_limit":
     case "over_email_send_rate_limit":
-    case "over_sms_send_rate_limit": return "Trop de tentatives. Patientez quelques minutes avant de réessayer.";
+    case "over_sms_send_rate_limit":
+      return "Trop de tentatives. Patientez quelques minutes avant de réessayer.";
     case "user_already_exists":
-    case "email_exists": return "Cette adresse email est déjà utilisée. Essayez de vous connecter.";
-    case "email_address_invalid": return "Cette adresse email n’est pas valide.";
-    case "email_address_not_authorized": return "Cette adresse email n’est pas autorisée à s’inscrire.";
+    case "email_exists":
+      return "Cette adresse email est déjà utilisée. Essayez de vous connecter.";
+    case "email_address_invalid":
+      return "Cette adresse email n’est pas valide.";
+    case "email_address_not_authorized":
+      return "Cette adresse email n’est pas autorisée à s’inscrire.";
     case "signup_disabled":
-    case "email_provider_disabled": return "Les inscriptions sont temporairement désactivées.";
+    case "email_provider_disabled":
+      return "Les inscriptions sont temporairement désactivées.";
     case "request_timeout":
-    case "unexpected_failure": return "Le service de connexion est momentanément indisponible. Réessayez dans un instant.";
+    case "unexpected_failure":
+      return "Le service de connexion est momentanément indisponible. Réessayez dans un instant.";
     default:
       return !code || (status !== undefined && status >= 500)
         ? "Le service de connexion est momentanément indisponible. Réessayez dans un instant."

@@ -40,14 +40,14 @@ Les aperçus `/design-system` sont réservés au développement (404 en producti
 
 Variables :
 
-| Variable | Usage |
-| --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | URL de l’API Supabase |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Clé publique, avec RLS et droits RPC |
-| `NEXT_PUBLIC_SITE_URL` | Origine du front pour les confirmations email |
-| `NEXT_PUBLIC_GIPHY_API_KEY` | Clé publique GIPHY pour le sélecteur du chat, si utilisé |
-| `MAINTENANCE_MODE` | Page statique 503 quand `true` |
-| `SUPABASE_SECRET_KEY` ou `SUPABASE_SERVICE_ROLE_KEY` | Scripts administratifs uniquement |
+| Variable                                             | Usage                                                    |
+| ---------------------------------------------------- | -------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`                           | URL de l’API Supabase                                    |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`               | Clé publique, avec RLS et droits RPC                     |
+| `NEXT_PUBLIC_SITE_URL`                               | Origine du front pour les confirmations email            |
+| `NEXT_PUBLIC_GIPHY_API_KEY`                          | Clé publique GIPHY pour le sélecteur du chat, si utilisé |
+| `MAINTENANCE_MODE`                                   | Page statique 503 quand `true`                           |
+| `SUPABASE_SECRET_KEY` ou `SUPABASE_SERVICE_ROLE_KEY` | Scripts administratifs uniquement                        |
 
 Une clé serveur ne doit jamais porter le préfixe `NEXT_PUBLIC_`, être envoyée au
 navigateur, publiée dans Git ou copiée dans une conversation. `.env.local` reste

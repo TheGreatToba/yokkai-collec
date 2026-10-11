@@ -4,13 +4,15 @@ export class ByteLruCache {
 
   constructor(readonly maxBytes: number) {}
 
-  get bytes() { return this.#bytes; }
+  get bytes() {
+    return this.#bytes;
+  }
 
   get(key: string) {
     const value = this.#entries.get(key);
     if (!value) return undefined;
     this.#entries.delete(key);
-    this.#entries.set(key,value);
+    this.#entries.set(key, value);
     return value;
   }
 
@@ -21,7 +23,7 @@ export class ByteLruCache {
       this.#entries.delete(key);
     }
     if (value.byteLength > this.maxBytes) return;
-    this.#entries.set(key,value);
+    this.#entries.set(key, value);
     this.#bytes += value.byteLength;
     while (this.#bytes > this.maxBytes) {
       const oldest = this.#entries.keys().next().value;
@@ -35,17 +37,23 @@ export class ByteLruCache {
 
 export class RenderCache {
   readonly cache: ByteLruCache;
-  readonly #inflight = new Map<string,Promise<Uint8Array>>();
-  readonly #waiting: (()=>void)[] = [];
+  readonly #inflight = new Map<string, Promise<Uint8Array>>();
+  readonly #waiting: (() => void)[] = [];
   #active = 0;
 
-  constructor(maxBytes: number, readonly maxConcurrent = 2) {
+  constructor(
+    maxBytes: number,
+    readonly maxConcurrent = 2
+  ) {
     this.cache = new ByteLruCache(maxBytes);
   }
 
   async #slot() {
-    if (this.#active < this.maxConcurrent) { this.#active += 1; return; }
-    await new Promise<void>(resolve=>this.#waiting.push(resolve));
+    if (this.#active < this.maxConcurrent) {
+      this.#active += 1;
+      return;
+    }
+    await new Promise<void>(resolve => this.#waiting.push(resolve));
     this.#active += 1;
   }
 
@@ -54,23 +62,26 @@ export class RenderCache {
     this.#waiting.shift()?.();
   }
 
-  getOrRender(key: string, render: ()=>Promise<Uint8Array>) {
+  getOrRender(key: string, render: () => Promise<Uint8Array>) {
     const cached = this.cache.get(key);
     if (cached) return Promise.resolve(cached);
     const pending = this.#inflight.get(key);
     if (pending) return pending;
-    const promise = (async()=>{
+    const promise = (async () => {
       await this.#slot();
       try {
         const value = await render();
-        this.cache.set(key,value);
+        this.cache.set(key, value);
         return value;
       } finally {
         this.#release();
       }
     })();
-    this.#inflight.set(key,promise);
-    void promise.then(()=>this.#inflight.delete(key),()=>this.#inflight.delete(key));
+    this.#inflight.set(key, promise);
+    void promise.then(
+      () => this.#inflight.delete(key),
+      () => this.#inflight.delete(key)
+    );
     return promise;
   }
 }

@@ -1,5 +1,3 @@
-
-
 # Spécification Technique & Fiches d'Interaction : Étape 4 (Marché aux Enchères)
 
 ---
@@ -41,28 +39,23 @@ MARCHÉ AUX ENCHÈRES  ·  1 284 cartes actuellement en vente
 
 ### 1.2 Composants & Interactions de la Liste
 
-* **Barre de Filtres** :
-* Filtres compacts : Rareté (`Toutes`, `LR`, `SSR`, `SR`, `R`, `C`), Tri (`Fin imminente`, `Prix croissant`, `Prix décroissant`, `Les plus populaires`).
-* Bouton d'Action à droite : `+ VENDRE UNE CARTE` (Bouton Primaire `#1D1844` avec border `#5244B5`).
+- **Barre de Filtres** :
+- Filtres compacts : Rareté (`Toutes`, `LR`, `SSR`, `SR`, `R`, `C`), Tri (`Fin imminente`, `Prix croissant`, `Prix décroissant`, `Les plus populaires`).
+- Bouton d'Action à droite : `+ VENDRE UNE CARTE` (Bouton Primaire `#1D1844` avec border `#5244B5`).
 
+- **Cartes de la Grille (Format 6 colonnes)** :
+- **Badge Temps Restant** :
+- `< 5 min` : Fond `#4C0A1B`, Texte `#FF3355` clignotant + icône sablier.
+- `< 1 heure` : Fond `#523B00`, Texte `#FFCC33`.
+- `> 1 heure` : Fond `#04000B`, Texte `#A29DBE`.
 
-* **Cartes de la Grille (Format 6 colonnes)** :
-* **Badge Temps Restant** :
-* `< 5 min` : Fond `#4C0A1B`, Texte `#FF3355` clignotant + icône sablier.
-* `< 1 heure` : Fond `#523B00`, Texte `#FFCC33`.
-* `> 1 heure` : Fond `#04000B`, Texte `#A29DBE`.
+- **Prix Actuel** : Typographie Heading Bold en `#FFCC33` avec symbole Karas (`K`).
+- **Nom de la Franchise** : Légende sous le nom du personnage en `#A29DBE` (11px).
+- **Bouton Suivre / Suivi** :
+- Non suivi : Icon Cœur vide, Texte `#A29DBE`, fond `#0F0C1D`.
+- Suivi : Icon Cœur plein `#FF60B5`, fond `rgba(255, 96, 181, 0.15)`, border `1px solid #FF60B5`.
 
-
-* **Prix Actuel** : Typographie Heading Bold en `#FFCC33` avec symbole Karas (`K`).
-* **Nom de la Franchise** : Légende sous le nom du personnage en `#A29DBE` (11px).
-* **Bouton Suivre / Suivi** :
-* Non suivi : Icon Cœur vide, Texte `#A29DBE`, fond `#0F0C1D`.
-* Suivi : Icon Cœur plein `#FF60B5`, fond `rgba(255, 96, 181, 0.15)`, border `1px solid #FF60B5`.
-
-
-
-
-* **Clic sur la carte** : Transition instantanée vers la page de **Détail de l'Enchère**.
+- **Clic sur la carte** : Transition instantanée vers la page de **Détail de l'Enchère**.
 
 ---
 
@@ -108,42 +101,33 @@ YOKKAI COLLEC' - ENCHÈRE : KURO KITSUNE (LR SHINY)
 
 #### A. Règle Anti-Sniping ("Anti-Dernière Seconde")
 
-* **Déclencheur** : Toute offre placée au cours des **5 dernières minutes** ajoute automatiquement **+1 minute supplémentaire** au compte à rebours.
-* **Notification Visuelle** :
-* Apparition d'un Toast / Banner animé sous le chrono : *"⏱️ Une minute a été ajoutée à l'enchère !"* avec flash doré `#FFCC33` (durée `300ms`).
-
-
+- **Déclencheur** : Toute offre placée au cours des **5 dernières minutes** ajoute automatiquement **+1 minute supplémentaire** au compte à rebours.
+- **Notification Visuelle** :
+- Apparition d'un Toast / Banner animé sous le chrono : _"⏱️ Une minute a été ajoutée à l'enchère !"_ avec flash doré `#FFCC33` (durée `300ms`).
 
 #### B. Zone d'Offre & Boutons d'Action
 
-* **Bouton Rapide `+10 Karas**` :
-* Calcule automatiquement `Prix Actuel + 10`.
-* Style : Bouton Primaire Doré avec `--glow-gold-sm`. Un clic valide immédiatement l'offre si le solde est suffisant.
+- **Bouton Rapide `+10 Karas**` :
+- Calcule automatiquement `Prix Actuel + 10`.
+- Style : Bouton Primaire Doré avec `--glow-gold-sm`. Un clic valide immédiatement l'offre si le solde est suffisant.
 
-
-* **Champ d'Offre Libre** :
-* Input numérique (`#04000B`, border `#1D1844`). Validation automatique du montant minimum (`>= Prix Actuel + 10`).
-* En cas d'erreur de frappe : Message sous le champ *"L'offre doit être d'au moins {Min} Karas"*.
-
-
+- **Champ d'Offre Libre** :
+- Input numérique (`#04000B`, border `#1D1844`). Validation automatique du montant minimum (`>= Prix Actuel + 10`).
+- En cas d'erreur de frappe : Message sous le champ _"L'offre doit être d'au moins {Min} Karas"_.
 
 #### C. Gestion des Erreurs de Solde
 
-* Si `Solde Karas Utilisateur < Offre Minimale` :
-* Le bouton `PLACER L'ENCHÈRE` passe en état désactivé / d'alerte.
-* Affichage du message d'erreur rouge `#FF3355` : *"Solde de Karas insuffisant (Votre solde: {Solde} K)"*.
-* Lien d'action rapide à côté : `[ Obtenir des Karas ]`.
-
-
+- Si `Solde Karas Utilisateur < Offre Minimale` :
+- Le bouton `PLACER L'ENCHÈRE` passe en état désactivé / d'alerte.
+- Affichage du message d'erreur rouge `#FF3355` : _"Solde de Karas insuffisant (Votre solde: {Solde} K)"_.
+- Lien d'action rapide à côté : `[ Obtenir des Karas ]`.
 
 #### D. État "Enchère Remportée" (Résolution)
 
-* Lorsque le chrono atteint `00:00:00` et que l'utilisateur courant est le meilleur enchérisseur :
-* La zone d'enchère est remplacée par le conteneur de victoire vert `#00E699` (`rgba(0, 230, 153, 0.15)`).
-* Apparition du badge `ENCHÈRE REMPORTÉE !`.
-* La carte est transférée directement dans l'inventaire avec l'animation **Célébration** (+ Confettis 2D).
-
-
+- Lorsque le chrono atteint `00:00:00` et que l'utilisateur courant est le meilleur enchérisseur :
+- La zone d'enchère est remplacée par le conteneur de victoire vert `#00E699` (`rgba(0, 230, 153, 0.15)`).
+- Apparition du badge `ENCHÈRE REMPORTÉE !`.
+- La carte est transférée directement dans l'inventaire avec l'animation **Célébration** (+ Confettis 2D).
 
 ---
 
@@ -180,14 +164,14 @@ Cette modale s'ouvre depuis la vue détaillée d'une carte possédée ou depuis 
 
 ### 3.2 Spécifications des Champs & Avertissements
 
-* **Prix de départ** : Par défaut fixé à `10 Karas`.
-* **Sélecteur de Durée (Pills Radio)** : Options cliquables : `15 min` | `30 min` | `1h` | `4h` | `12h` | `24h`.
-* **Notes d'Avertissement (Panneau `#04000B` bordé `#1D1844`)** :
-1. *Pendant l'enchère, la carte sera verrouillée et indisponible pour les échanges, la destruction ou le jeu.*
-2. *Toute image personnalisée via Imgur sera réinitialisée vers l'illustration officielle de la carte pour des raisons de conformité du marché.*
+- **Prix de départ** : Par défaut fixé à `10 Karas`.
+- **Sélecteur de Durée (Pills Radio)** : Options cliquables : `15 min` | `30 min` | `1h` | `4h` | `12h` | `24h`.
+- **Notes d'Avertissement (Panneau `#04000B` bordé `#1D1844`)** :
 
+1. _Pendant l'enchère, la carte sera verrouillée et indisponible pour les échanges, la destruction ou le jeu._
+2. _Toute image personnalisée via Imgur sera réinitialisée vers l'illustration officielle de la carte pour des raisons de conformité du marché._
 
-* **Validation** : Clic sur `PUBLIER L'ENCHÈRE` -> Fermeture modale + notification Toast vert `#00E699` : *"Votre carte est désormais aux enchères !"*.
+- **Validation** : Clic sur `PUBLIER L'ENCHÈRE` -> Fermeture modale + notification Toast vert `#00E699` : _"Votre carte est désormais aux enchères !"_.
 
 ---
 
@@ -197,9 +181,9 @@ Cette modale s'ouvre depuis la vue détaillée d'une carte possédée ou depuis 
 
 La page rassemble l'historique de vente et d'achat de l'utilisateur sous 3 onglets principaux :
 
-* `En cours ({n})` : Ventes actives + Enchères posées en tant qu'acheteur.
-* `Gagnées ({n})` : Enchères remportées (prêtes à être réclamées si besoin).
-* `Vendues ({n})` : Historique des ventes conclues avec gains en Karas encaissés.
+- `En cours ({n})` : Ventes actives + Enchères posées en tant qu'acheteur.
+- `Gagnées ({n})` : Enchères remportées (prêtes à être réclamées si besoin).
+- `Vendues ({n})` : Historique des ventes conclues avec gains en Karas encaissés.
 
 ```
 ====================================================================================================
@@ -230,11 +214,11 @@ MES ENCHÈRES
 
 ### 4.2 Spécification des États Vides (Empty States)
 
-| Onglet | Message d'État Vide | Illustration / Icône | Bouton d'Action Recommandé |
-| --- | --- | --- | --- |
-| **En cours** | *"Aucune enchère en cours pour le moment"* | Coffre-fort ouvert sombre `#1D1844` | `Parcourir le marché` |
-| **Gagnées** | *"Vous n'avez pas encore remporté d'enchère"* | Trophée / Couronne grisée `#625C83` | `Voir les fin imminentes` |
-| **Vendues** | *"Aucun historique de vente enregistrée"* | Sac de Karas vide `#0F0C1D` | `Mettre une carte en vente` |
+| Onglet       | Message d'État Vide                           | Illustration / Icône                | Bouton d'Action Recommandé  |
+| ------------ | --------------------------------------------- | ----------------------------------- | --------------------------- |
+| **En cours** | _"Aucune enchère en cours pour le moment"_    | Coffre-fort ouvert sombre `#1D1844` | `Parcourir le marché`       |
+| **Gagnées**  | _"Vous n'avez pas encore remporté d'enchère"_ | Trophée / Couronne grisée `#625C83` | `Voir les fin imminentes`   |
+| **Vendues**  | _"Aucun historique de vente enregistrée"_     | Sac de Karas vide `#0F0C1D`         | `Mettre une carte en vente` |
 
 ---
 
