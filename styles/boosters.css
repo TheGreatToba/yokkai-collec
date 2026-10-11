@@ -44,10 +44,10 @@
 .yk-sr-flash::before,.yk-sr-flash::after { content: ''; position: absolute; left: 5%; right: 5%; top: 49%; height: 2px; background: linear-gradient(90deg,transparent,color-mix(in srgb,var(--color-accent-gold) 75%,white),transparent); filter: blur(1px); }
 .yk-sr-flash::after { transform: translateY(28px); opacity: .35; }
 /* SSR Cinematic Reveal Sequence */
-.yk-reveal-ssr { position: relative; z-index: 15; }
+.yk-reveal-ssr { position: fixed; inset: 0; z-index: 40; min-height: 100dvh; justify-content: center; overflow: hidden; padding: 0; }
 .yk-reveal-ssr .yk-deck { animation: yk-ssr-deck-charge 3.2s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 .yk-reveal-ssr .yk-deck-button { transition-duration: 0.9s; }
-.yk-reveal-ssr .yk-face-up { transform: translateY(-20px) scale(1.14); }
+.yk-reveal-ssr .yk-face-up { transform: scale(1.14); }
 .yk-reveal-ssr .yk-face-up .yk-flip { transition-delay: 1.0s; transition-duration: 0.95s; transition-timing-function: cubic-bezier(0.2, 0.85, 0.25, 1); }
 .yk-reveal-ssr .yk-face-up .yk-card { box-shadow: 0 0 0 2px #ff77bb, 0 0 24px rgba(255, 95, 168, 0.9), 0 0 50px rgba(244, 63, 94, 0.5) !important; animation: yk-ssr-card-glow-pulse 2.2s 1.95s ease-in-out infinite alternate !important; }
 
@@ -90,10 +90,10 @@
 .yk-ssr-ambient-petal { position: absolute; left: 0; top: 0; width: 4px; height: 7px; border-radius: 50% 50% 50% 10%; background: linear-gradient(135deg, #fff 0%, #ff99d6 60%, #f43f5e 100%); box-shadow: 0 0 8px #ff5fa8; opacity: 0; transform: rotate(var(--petal-angle)) translate(var(--petal-dist)) rotate(calc(-1 * var(--petal-angle))); animation: yk-ssr-petal-drift 2.8s calc(2.2s + var(--petal-delay)) ease-in-out infinite alternate both; }
 
 /* LR Cinematic Reveal Sequence */
-.yk-reveal-lr { position: relative; z-index: 20; }
+.yk-reveal-lr { position: fixed; inset: 0; z-index: 40; min-height: 100dvh; justify-content: center; overflow: hidden; padding: 0; }
 .yk-reveal-lr .yk-deck { animation: yk-lr-deck-charge 4.4s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 .yk-reveal-lr .yk-deck-button { transition-duration: 1.0s; }
-.yk-reveal-lr .yk-face-up { transform: translateY(-24px) scale(1.18); }
+.yk-reveal-lr .yk-face-up { transform: scale(1.18); }
 .yk-reveal-lr .yk-face-up .yk-flip { transition-delay: 2.7s; transition-duration: 1.05s; transition-timing-function: cubic-bezier(0.2, 0.85, 0.25, 1); }
 .yk-reveal-lr .yk-face-up .yk-card { box-shadow: 0 0 0 2px #ffe57f, 0 0 24px rgba(255, 215, 0, 0.9), 0 0 55px rgba(255, 160, 0, 0.55) !important; animation: yk-lr-card-glow-pulse 2.4s 3.7s ease-in-out infinite alternate !important; }
 
@@ -228,6 +228,7 @@
   .yk-reveal-card:not(:disabled):hover,.yk-reveal-card:not(:disabled):active { transform: none; }
 }
 .yk-callout { position: absolute; top: 15px; color: var(--color-rarity-ssr); font-family: var(--font-display); font-size: 22px; text-shadow: 0 0 24px var(--color-rarity-ssr); }
+.yk-reveal-ssr > p:last-child,.yk-reveal-lr > p:last-child { position: absolute; right: var(--layout-gutter); bottom: max(var(--layout-gutter),env(safe-area-inset-bottom)); left: var(--layout-gutter); z-index: 7; margin: 0; }
 .yk-burst { position: absolute; z-index: 1; left: 50%; top: 44%; width: min(620px,105vw); height: 300px; translate: -50% -50%; pointer-events: none; opacity: 0; background: linear-gradient(115deg,transparent 26%,color-mix(in srgb,var(--color-accent-gold) 32%,transparent) 27% 29%,transparent 30%),linear-gradient(70deg,transparent 62%,color-mix(in srgb,var(--color-accent-gold) 24%,transparent) 63% 65%,transparent 66%); filter: blur(2px); animation: yk-burst .95s ease-out both; }
 .yk-burst::before,.yk-burst::after { content: ''; position: absolute; left: 8%; right: 8%; top: 48%; height: 1px; background: linear-gradient(90deg,transparent,var(--color-accent-gold),transparent); transform: rotate(-14deg) scaleX(.2); animation: yk-light-cut .9s ease-out both; }.yk-burst::after { top: 58%; transform: rotate(17deg) scaleX(.2); animation-delay: .1s; }
 .yk-shiny-callout { position: absolute; top: 45px; z-index: 2; color: var(--holo-spark); font-family: var(--font-display); font-size: 17px; letter-spacing: .16em; text-shadow: 0 0 24px var(--holo-glow); animation: yk-rise .7s var(--ease-yokkai); }
