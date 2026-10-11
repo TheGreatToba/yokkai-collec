@@ -12,14 +12,24 @@ PROD_BACKUP_DIR="${PROD_BACKUP_DIR:-/var/backups/yokkai-migrations}"
 [[ "$PROD_BACKUP_DIR" =~ ^/[a-zA-Z0-9_/-]+$ && "$PROD_BACKUP_DIR" != / ]] || { echo 'Invalid absolute backup directory' >&2; exit 2; }
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
-registry="$(ssh -T -p 1022 -o BatchMode=yes "$PROD_SSH_ALIAS" \
+if registry="$(ssh -T -p 1022 -o BatchMode=yes "$PROD_SSH_ALIAS" \
   "sudo -n docker exec -i -e PGOPTIONS='-c default_transaction_read_only=on' $PROD_DB_CONTAINER psql -X -w -U postgres -d postgres -At -v ON_ERROR_STOP=1" <<'SQL'
 select case when current_user='postgres' and has_table_privilege(current_user,'supabase_migrations.schema_migrations','INSERT')
   then coalesce(json_agg(json_build_object('version',version,'name',name) order by version),'[]'::json)
   else json_build_object('error','postgres must have INSERT on the migration registry') end
 from supabase_migrations.schema_migrations;
 SQL
-)"
+)"; then
+  :
+else
+  status=$?
+  if [[ "$status" == 255 ]]; then
+    echo 'Deployment check impossible: SSH connection interrupted or unavailable while reading registry.' >&2
+    exit 3
+  fi
+  echo 'Deployment check impossible: migration registry extraction failed.' >&2
+  exit 2
+fi
 # Missing registry, duplicate versions, gaps and nontransactional SQL fail closed.
 plan="$(printf '%s' "$registry" | node scripts/plan-deploy-migrations.mjs)"
 applied="$(printf '%s' "$plan" | node -e 'console.log(JSON.stringify(JSON.parse(require("fs").readFileSync(0,"utf8")).applied))')"
@@ -27,7 +37,7 @@ pending="$(printf '%s' "$plan" | node -e 'console.log(JSON.parse(require("fs").r
 echo 'Pending migrations:'
 printf '%s\n' "${pending:-(none)}"
 echo 'Checking production against migrations already applied...'
-DRIFT_MIGRATIONS_JSON="$applied" bash scripts/check-prod-drift.sh || { echo 'Deployment refused: production drift or failed preflight.' >&2; exit 1; }
+DRIFT_MIGRATIONS_JSON="$applied" bash scripts/check-prod-drift.sh || { status=$?; echo 'Deployment refused: see drift check reason above; nothing applied.' >&2; exit "$status"; }
 [[ -n "$pending" ]] || { echo 'Nothing to apply.'; exit 0; }
 echo "Would back up on VPS in $PROD_BACKUP_DIR, validate the archive, keep the last 10 backups,"
 echo 'then apply the listed migrations + registry entries in ONE transaction as postgres and check drift again.'
@@ -61,10 +71,10 @@ mapfile -t archives <<< "$archive_list"
 for ((i=10; i<${#archives[@]}; i++)); do rm -f -- "$directory/${archives[i]}"; done
 BACKUP
 # Recheck immediately after backup; changes during backup must not be deployed over.
-DRIFT_MIGRATIONS_JSON="$applied" bash scripts/check-prod-drift.sh || { echo 'Deployment refused: production changed during backup.' >&2; exit 1; }
+DRIFT_MIGRATIONS_JSON="$applied" bash scripts/check-prod-drift.sh || { status=$?; echo 'Deployment refused after backup: see drift check reason above; nothing applied.' >&2; exit "$status"; }
 printf '%s' "$plan" | node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(0,"utf8")).sql)' | \
   ssh -T -p 1022 -o BatchMode=yes "$PROD_SSH_ALIAS" \
     "sudo -n docker exec -i $PROD_DB_CONTAINER psql -X -w -U postgres -d postgres -v ON_ERROR_STOP=1"
 unset DRIFT_MIGRATIONS_JSON # A caller's old prefix must never weaken the final check.
-bash scripts/check-prod-drift.sh || { echo 'Post-deployment drift detected. Transaction committed; investigate, do not automatically roll back.' >&2; exit 1; }
+bash scripts/check-prod-drift.sh || { status=$?; echo 'Post-deployment check unsuccessful: see reason above. Transaction committed; investigate, do not automatically roll back.' >&2; exit "$status"; }
 echo 'Deployment complete; no drift.'

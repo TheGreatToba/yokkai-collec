@@ -2,11 +2,14 @@ import { readFileSync } from "node:fs";
 import { replayMigrations } from "./replay-migrations.mjs";
 
 // Before deployment compare against the applied prefix, not the pending schema.
-const selected = process.env.DRIFT_MIGRATIONS_JSON;
-const { db, migrations } = await replayMigrations(
-  selected === undefined ? {} : { migrations: JSON.parse(selected) }
-);
+let db;
 try {
+  const selected = process.env.DRIFT_MIGRATIONS_JSON;
+  const replay = await replayMigrations(
+    selected === undefined ? {} : { migrations: JSON.parse(selected) }
+  );
+  db = replay.db;
+  const { migrations } = replay;
   const expected = (
     await db.query(
       readFileSync(new URL("./schema-catalog.sql", import.meta.url), "utf8")
@@ -65,6 +68,9 @@ try {
     `${migrations.length} migrations replayed; ${differences} divergences.`
   );
   process.exitCode = differences ? 1 : 0;
+} catch (error) {
+  console.error(`Catalogue comparison impossible: ${error.message}`);
+  process.exitCode = 2;
 } finally {
-  await db.close();
+  await db?.close();
 }

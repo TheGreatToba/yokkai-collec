@@ -516,6 +516,7 @@ test(
 const fs=require('fs'); const state=JSON.parse(fs.readFileSync(process.env.MOCK_STATE,'utf8')); const input=fs.readFileSync(0,'utf8');
 const command=process.argv.slice(2).join(' '); let kind=input.includes('json_agg')?'registry':input.includes('pg_get_functiondef')?'drift':input.includes('set -euo pipefail')?'backup':'apply';
 fs.appendFileSync(process.env.MOCK_LOG,JSON.stringify({kind,command,input})+'\\n');
+if((kind==='registry'&&state.registryInterrupted)||(kind==='drift'&&(state.interrupted||(state.interruptedAfterBackup&&fs.readFileSync(process.env.MOCK_LOG,'utf8').includes('"kind":"backup"'))))) {console.error('Connection reset by peer');process.exit(255)}
 if(kind==='registry') console.log('[]');
 if(kind==='drift') { const applied=fs.existsSync(process.env.MOCK_APPLIED); const changed=state.driftAfterBackup&&fs.readFileSync(process.env.MOCK_LOG,'utf8').includes('"kind":"backup"'); console.log(state.malformed?'[]':state.drift||changed?JSON.stringify({kind:'relation',name:'public.unexpected',value:{rls:false}}):applied?state.after:state.before); }
 if(kind==='backup') { if(state.badBackup) {console.error('Backup empty or suspicious');process.exit(1)} console.log('Validated backup on VPS'); }
@@ -596,13 +597,15 @@ print(out.decode(),end='');sys.exit(p.wait())`;
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stdout, /Dry-run: no production writes/);
     result = run({ drift: true }, "--apply", "APPLY");
-    assert.notEqual(result.status, 0);
+    assert.equal(result.status, 1);
+    assert.match(result.stdout, /1 divergences/);
     assert.deepEqual(
       calls().map(c => c.kind),
       ["registry", "drift"]
     );
     result = run({ malformed: true }, "--apply", "APPLY");
-    assert.notEqual(result.status, 0);
+    assert.equal(result.status, 2);
+    assert.doesNotMatch(result.stdout + result.stderr, /divergence detected/);
     assert.deepEqual(
       calls().map(c => c.kind),
       ["registry", "drift"]
@@ -623,11 +626,31 @@ print(out.decode(),end='');sys.exit(p.wait())`;
       ["registry", "drift", "backup"]
     );
     result = run({ driftAfterBackup: true }, "--apply", "APPLY");
-    assert.notEqual(result.status, 0);
+    assert.equal(result.status, 1);
     assert.deepEqual(
       calls().map(c => c.kind),
       ["registry", "drift", "backup", "drift"]
     );
+    for (const [state, expectedCalls] of [
+      [{ registryInterrupted: true }, ["registry"]],
+      [{ interrupted: true }, ["registry", "drift"]],
+      [
+        { interruptedAfterBackup: true },
+        ["registry", "drift", "backup", "drift"]
+      ]
+    ]) {
+      result = run(state, "--apply", "APPLY");
+      assert.equal(result.status, 3, result.stdout + result.stderr);
+      assert.match(result.stdout + result.stderr, /connection interrupted/);
+      assert.doesNotMatch(
+        result.stdout + result.stderr,
+        /divergence detected|production changed/
+      );
+      assert.deepEqual(
+        calls().map(c => c.kind),
+        expectedCalls
+      );
+    }
     result = run({ failApply: true }, "--apply", "APPLY");
     assert.notEqual(result.status, 0);
     assert.deepEqual(
