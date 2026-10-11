@@ -39,21 +39,34 @@ import { createAuction } from "@/lib/data/market";
 import { subscribePlayerSnapshotInvalidation } from "@/lib/data/player-state";
 import { useSfx } from "@/hooks/use-sfx";
 import { runPackOpeningOnce } from "@/lib/ui/pack-opening";
+import { releaseBoostersBackground } from "@/components/boosters-load-priority";
 import { startVisiblePolling } from "@/lib/ui/visible-polling";
 
+// Share initial/polling reads, while post-mutation reconciliation still requests
+// a fresh server status even when a previous initial read is pending.
+export const gameReads = {
+  getGameInfo,
+  getPackStatus: () => getPackStatus(true),
+  getDecisionPackStatus: () => getDecisionPackStatus(false),
+  getUserCollection,
+  getFolders: () => getFolders(true),
+  getActiveAuctionCards: () => getActiveAuctionCards(true)
+};
 type Info = Awaited<ReturnType<typeof getGameInfo>>;
 export function Game({
   view,
-  account
+  account,
+  previewData
 }: {
   view: "packs" | "collection";
   account?: ReactNode;
+  previewData?: typeof gameReads;
 }) {
   const [info, setInfo] = useState<Info | null>(null);
   const [status, setStatus] = useState<PackStatus | null>(null);
   const [decisionStatus, setDecisionStatus] =
     useState<DecisionPackStatus | null>(null);
-  const [collection, setCollection] = useState<CollectedCard[]>([]);
+  const [collection, storeCollection] = useState<CollectedCard[]>([]);
   const [activeAuctionCards, setActiveAuctionCards] = useState<
     ActiveAuctionCard[]
   >([]);
@@ -64,58 +77,100 @@ export function Game({
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [now, setNow] = useState(0);
+  const [loadErrors, setLoadErrors] = useState<Record<string, string>>({});
+  const [collectionReady, setCollectionReady] = useState(false);
+  const setCollection = useCallback((cards: CollectedCard[]) => {
+    storeCollection(cards);
+    setCollectionReady(true);
+  }, []);
+  const retries = useRef<Record<string, () => void>>({});
+  const reads = previewData ?? gameReads;
   const opening = useRef(false);
   const sound = useSfx();
   useEffect(() => {
     let active = true;
-    let loading = false;
-    let fullRefresh = false;
-    async function refresh(resumed: boolean) {
-      fullRefresh ||= resumed;
-      if (document.hidden || loading) return;
-      loading = true;
-      const full = fullRefresh;
-      fullRefresh = false;
-      try {
-        const [game, packs, decision, cards, cardFolders, auctions] =
-          await Promise.all([
-            getGameInfo(),
-            full || view === "packs" ? getPackStatus() : null,
-            full || view === "packs" ? getDecisionPackStatus() : null,
-            full ? getUserCollection() : null,
-            full ? getFolders() : null,
-            full || view === "collection" ? getActiveAuctionCards() : null
-          ]);
-        if (active) {
-          setInfo(game);
-          if (packs) setStatus(packs);
-          if (decision) setDecisionStatus(decision);
-          if (cards) setCollection(cards);
-          if (cardFolders) setFolders(cardFolders);
-          if (auctions) setActiveAuctionCards(auctions);
-          setError("");
-        }
-      } catch (e) {
-        if (active)
-          setError(
-            e instanceof Error ? e.message : "Impossible de charger la partie."
-          );
-      } finally {
-        loading = false;
-        if (active && fullRefresh && !document.hidden) void refresh(false);
-      }
+    let backgroundStarted = false;
+    const pending = new Map<string, Promise<unknown>>();
+    function load<T>(
+      key: string,
+      read: () => Promise<T>,
+      apply: (value: T) => void
+    ) {
+      if (pending.has(key)) return pending.get(key)!;
+      if (key === "collection") setCollectionReady(false);
+      setLoadErrors(current => ({ ...current, [key]: "" }));
+      const request = read()
+        .then(
+          value => {
+            if (!active) return;
+            apply(value);
+            if (key === "collection") setCollectionReady(true);
+          },
+          failure => {
+            if (active)
+              setLoadErrors(current => ({
+                ...current,
+                [key]:
+                  failure instanceof Error
+                    ? failure.message
+                    : "Impossible de charger ces données."
+              }));
+          }
+        )
+        .finally(() => pending.delete(key));
+      pending.set(key, request);
+      retries.current[key] = () => {
+        void load(key, read, apply);
+      };
+      return request;
     }
-    const stop = startVisiblePolling(resumed => void refresh(resumed), 30_000);
+    function background() {
+      if (!active || document.hidden) return;
+      backgroundStarted = true;
+      void load("collection", reads.getUserCollection, setCollection);
+      void load("folders", reads.getFolders, setFolders);
+      void load("auctions", reads.getActiveAuctionCards, setActiveAuctionCards);
+      releaseBoostersBackground();
+    }
+    function refresh(full: boolean) {
+      void load("info", reads.getGameInfo, setInfo);
+      const packs =
+        full || view === "packs"
+          ? load("regular", reads.getPackStatus, setStatus)
+          : Promise.resolve();
+      const decision =
+        full || view === "packs"
+          ? load("decision", reads.getDecisionPackStatus, setDecisionStatus)
+          : Promise.resolve();
+      if (!backgroundStarted)
+        void Promise.all([packs, decision]).then(() => {
+          if (!backgroundStarted) background();
+        });
+      else if (full) background();
+      else if (view === "collection")
+        void load(
+          "auctions",
+          reads.getActiveAuctionCards,
+          setActiveAuctionCards
+        );
+    }
+    const timer = window.setTimeout(() => {
+      if (!backgroundStarted) background();
+    }, 1000);
+    const stop = startVisiblePolling(refresh, 30_000);
     return () => {
       active = false;
+      clearTimeout(timer);
       stop();
+      retries.current = {};
     };
-  }, [view]);
+  }, [view, reads, setCollection]);
   useEffect(() => {
     return startVisiblePolling(() => setNow(Date.now()), 1000);
   }, []);
   useEffect(() => {
     let active = true;
+    if (previewData) return;
     const unsubscribe = subscribePlayerSnapshotInvalidation(scopes => {
       if (document.hidden) return;
       if (scopes.includes("balance"))
@@ -125,22 +180,25 @@ export function Game({
           },
           () => undefined
         );
-      if (scopes.includes("collection"))
+      if (scopes.includes("collection")) {
+        setCollectionReady(false);
         void Promise.all([getUserCollection(), getActiveAuctionCards()]).then(
           ([cards, auctions]) => {
             if (active) {
               setCollection(cards);
               setActiveAuctionCards(auctions);
+              setCollectionReady(true);
             }
           },
           () => undefined
         );
+      }
     });
     return () => {
       active = false;
       unsubscribe();
     };
-  }, []);
+  }, [previewData, setCollection]);
   async function open(kind: "regular" | "decision") {
     if (draw.length > 0 && revealed < draw.length) return [];
     return await runPackOpeningOnce(opening, async () => {
@@ -177,6 +235,7 @@ export function Game({
     });
   }
   async function evolve(instanceIds: string[]) {
+    if (previewData) throw new Error("Action indisponible dans la simulation.");
     const evolved = await evolveSsrCard(instanceIds);
     setCollection(await getUserCollection());
     return evolved;
@@ -254,6 +313,7 @@ export function Game({
     setCollection(cards);
   }
   async function moveCard(instanceId: string, folderId: string | null) {
+    if (previewData) throw new Error("Action indisponible dans la simulation.");
     await moveCardToFolder(instanceId, folderId);
     setCollection(await getUserCollection());
   }
@@ -262,6 +322,7 @@ export function Game({
     setCollection(await getUserCollection());
   }
   async function lockCard(instanceId: string, locked: boolean) {
+    if (previewData) throw new Error("Action indisponible dans la simulation.");
     await setCollectionCardLocked(instanceId, locked);
     setCollection(await getUserCollection());
   }
@@ -270,6 +331,7 @@ export function Game({
     price: number,
     duration: number
   ) {
+    if (previewData) throw new Error("Action indisponible dans la simulation.");
     await createAuction(instanceId, price, duration);
     const [cards, auctions] = await Promise.all([
       getUserCollection(),
@@ -279,6 +341,7 @@ export function Game({
     setActiveAuctionCards(auctions);
   }
   async function customizeCard(instanceId: string, imageUrl: string | null) {
+    if (previewData) throw new Error("Action indisponible dans la simulation.");
     await setCardCustomImage(instanceId, imageUrl);
     setCollection(await getUserCollection());
   }
@@ -303,13 +366,17 @@ export function Game({
     .padStart(2, "0")}:${(decisionSeconds % 60).toString().padStart(2, "0")}`;
   return (
     <div className="w-full">
-      <Topbar
-        view={view}
-        account={account}
-        name={info?.user.name}
-        karas={info?.karasBalance}
-        collection={collection}
-      />
+      {!previewData && (
+        <Topbar
+          view={view}
+          account={account}
+          name={info?.user.name}
+          karas={info?.karasBalance}
+          collection={collection}
+          infoError={loadErrors.info}
+          onRetryInfo={() => retries.current.info?.()}
+        />
+      )}
       <main
         id="main-content"
         className={`yk-game-main mx-auto px-6 ${view === "collection" ? "max-w-[var(--layout-collection-max)] py-6" : "max-w-6xl py-10"}`}
@@ -335,7 +402,39 @@ export function Game({
             {error}
           </p>
         )}
-        {!status && !error && (
+        {Object.entries(loadErrors)
+          .filter(
+            ([key, message]) =>
+              message && !["regular", "decision", "info"].includes(key)
+          )
+          .map(([key, message]) => (
+            <p key={key} role="alert" className="my-4 text-sm text-danger-ink">
+              {key === "collection"
+                ? "Collection"
+                : key === "folders"
+                  ? "Dossiers"
+                  : "Enchères"}{" "}
+              : {message}{" "}
+              <button
+                className="yk-button yk-button-secondary"
+                onClick={() => retries.current[key]?.()}
+              >
+                Réessayer
+              </button>
+            </p>
+          ))}
+        {previewData && info && (
+          <p data-proof="info">
+            {info.user.name} · {info.karasBalance} Karas
+          </p>
+        )}
+        {previewData && loadErrors.info && (
+          <p data-proof="info-error" role="alert">
+            {loadErrors.info}{" "}
+            <button onClick={() => retries.current.info?.()}>Réessayer</button>
+          </p>
+        )}
+        {!status && !error && !loadErrors.regular && (
           <p role="status" className="mt-10">
             Chargement…
           </p>
@@ -343,6 +442,11 @@ export function Game({
         {view === "packs" && (
           <Boosters
             status={status}
+            statusError={loadErrors.regular}
+            decisionError={loadErrors.decision}
+            onRetryRegular={() => retries.current.regular?.()}
+            onRetryDecision={() => retries.current.decision?.()}
+            collectionReady={collectionReady}
             countdown={countdown}
             decisionStatus={decisionStatus}
             decisionCountdown={decisionCountdown}
@@ -355,9 +459,35 @@ export function Game({
             collection={collection}
             folders={folders}
             revealed={revealed}
-            onOpen={open}
-            onKeepDecision={keepDecision}
-            onDiscard={discard}
+            onOpen={
+              previewData
+                ? async kind => {
+                    const cards: CollectedCard[] = [
+                      {
+                        id: "proof-card",
+                        instanceId: "proof-instance",
+                        name: "Carte de preuve",
+                        rarity: "C",
+                        category: "Anime",
+                        image: "/assets/booster-pack.png",
+                        catalogueImage: "/assets/booster-pack.png",
+                        customImageUrl: null,
+                        obtainedAt: new Date().toISOString(),
+                        shiny: false,
+                        isEvolved: false,
+                        isFirstOwner: true,
+                        folderId: null
+                      }
+                    ];
+                    setDraw(cards);
+                    setDrawKind(kind);
+                    setRevealed(0);
+                    return cards;
+                  }
+                : open
+            }
+            onKeepDecision={previewData ? async () => 0 : keepDecision}
+            onDiscard={previewData ? async () => {} : discard}
             onAuction={auctionCard}
             onMoveCard={moveCard}
             onSetLocked={lockCard}

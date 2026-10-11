@@ -25,6 +25,8 @@ function fixture(view = "packs") {
     return key;
   };
   window.clearInterval = key => timers.delete(key);
+  window.setTimeout = setTimeout;
+  window.clearTimeout = clearTimeout;
   const react = {
     useState: initial => {
       const key = stateIndex++;
@@ -44,6 +46,7 @@ function fixture(view = "packs") {
   let notifications = [],
     release;
   let blocked = false;
+  let blockedNotifications = false;
   const client = {
     auth: {
       getSession: async () => ({
@@ -53,6 +56,8 @@ function fixture(view = "packs") {
     },
     async rpc(name) {
       calls.push({ name, time: now });
+      if (name === "list_notifications" && blockedNotifications)
+        await new Promise(() => {});
       if (name === "get_regular_pack_status" && blocked)
         await new Promise(resolve => {
           release = resolve;
@@ -88,12 +93,27 @@ function fixture(view = "packs") {
           return Promise.resolve({ data: [], error: null }).then(resolve);
         }
       };
-      for (const method of ["select", "eq", "order", "limit", "gt", "in"])
+      for (const method of [
+        "select",
+        "eq",
+        "order",
+        "limit",
+        "gt",
+        "in",
+        "abortSignal"
+      ])
         query[method] = () => query;
       return query;
     }
   };
+  const originalRpc = client.rpc.bind(client);
+  client.rpc = (...args) => {
+    const promise = originalRpc(...args);
+    promise.abortSignal = () => promise;
+    return promise;
+  };
   const stubs = {
+    "@/components/boosters-load-priority": { releaseBoostersBackground() {} },
     react,
     "react/jsx-runtime": {
       jsx: (type, props) => ({ type, props }),
@@ -140,6 +160,8 @@ function fixture(view = "packs") {
       process: { env: { NODE_ENV: "production" } },
       clearInterval: window.clearInterval,
       setTimeout,
+      clearTimeout,
+      AbortController,
       BroadcastChannel: undefined
     });
     return exports;
@@ -148,7 +170,7 @@ function fixture(view = "packs") {
   load("@/components/game").Game({ view });
   const feed = load("@/hooks/use-notification-feed").useNotificationFeed();
   const flush = async () => {
-    for (let i = 0; i < 40; i++) await Promise.resolve();
+    for (let i = 0; i < 120; i++) await Promise.resolve();
   };
   return {
     calls,
@@ -196,6 +218,9 @@ function fixture(view = "packs") {
     async refreshNotifications() {
       await feed.refresh();
       await flush();
+    },
+    blockNotifications(value = true) {
+      blockedNotifications = value;
     },
     blockPacks() {
       blocked = true;
@@ -294,5 +319,24 @@ test("slow Game requests never stack interval refreshes", async () => {
     1
   );
   await f.unblockPacks();
+  f.unmount();
+});
+
+test("notifications timeout releases inFlight and retry makes a fresh request", async () => {
+  const f = fixture();
+  f.blockNotifications();
+  await f.mount();
+  await new Promise(resolve => setTimeout(resolve, 15050));
+  assert.ok(
+    f.updates.some(
+      update => update.value === "Impossible de charger tes notifications."
+    )
+  );
+  f.blockNotifications(false);
+  await f.refreshNotifications();
+  assert.equal(
+    f.calls.filter(call => call.name === "list_notifications").length,
+    2
+  );
   f.unmount();
 });

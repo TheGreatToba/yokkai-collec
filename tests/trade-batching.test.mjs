@@ -39,6 +39,7 @@ function setup(offers, { failCards = false } = {}) {
     if (name === "@/lib/data/rpc-pages.mjs") return { readRpcPages };
     if (name === "@/utils/supabase/client")
       return { createClient: () => client };
+    if (name === "@/lib/data/read-request") return {};
     if (name === "@/lib/data/cards") return cards;
     if (name === "@/lib/ui/card-search") return {};
     if (name === "@/lib/data/player-state")

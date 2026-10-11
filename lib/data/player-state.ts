@@ -6,7 +6,7 @@ export const PLAYER_SNAPSHOT_TTL = {
   profile: 0,
 } as const;
 
-type CacheEntry = { expires: number; promise: Promise<unknown> };
+type CacheEntry = { expires: number; promise: Promise<unknown>; pending?: boolean; invalidated?: boolean };
 
 export function createPlayerSnapshotCache(now: () => number = Date.now) {
   const entries = new Map<string, CacheEntry>();
@@ -14,8 +14,13 @@ export function createPlayerSnapshotCache(now: () => number = Date.now) {
     memo<T>(key: string, ttl: number, load: () => Promise<T>): Promise<T> {
       const existing = entries.get(key);
       if (existing && existing.expires > now()) return existing.promise as Promise<T>;
-      const entry: CacheEntry = { expires: Infinity, promise: Promise.resolve() };
-      entry.promise = load().then(value => {
+      const entry: CacheEntry = { expires: Infinity, promise: Promise.resolve(), pending: true };
+      entry.promise = (async () => {
+        let value: T;
+        do { entry.invalidated = false; value = await load(); } while (entry.invalidated);
+        return value;
+      })().then(value => {
+        entry.pending = false;
         entry.expires = now() + ttl;
         return value;
       }, error => {
@@ -25,11 +30,11 @@ export function createPlayerSnapshotCache(now: () => number = Date.now) {
       entries.set(key, entry);
       return entry.promise as Promise<T>;
     },
-    delete(key: string) { entries.delete(key); },
+    delete(key: string) { const entry = entries.get(key); if (entry?.pending) entry.invalidated = true; else entries.delete(key); },
     clear() { entries.clear(); },
     deleteScope(scope: PlayerSnapshotScope) {
       const prefix = scope === "balance" ? "info:" : scope === "collection" ? "collection:" : "profile:";
-      for (const key of entries.keys()) if (key.startsWith(prefix)) entries.delete(key);
+      for (const key of entries.keys()) if (key.startsWith(prefix)) { const entry = entries.get(key)!; if (entry.pending) entry.invalidated = true; else entries.delete(key); }
     },
   };
 }

@@ -55,6 +55,7 @@ function setup({
       let selectedIds;
       let limit;
       const query = {
+        abortSignal: () => query,
         select: () => query,
         order: column => {
           assert.equal(column, "id");
@@ -159,6 +160,16 @@ function setup({
           error: null
         };
       }
+      if (name === "get_decision_pack_status")
+        return {
+          data: {
+            available: true,
+            nextPackAt: now + 86400000,
+            serverNow: now,
+            pending: [{ id: "pending", instanceId: "pending-choice" }]
+          },
+          error: null
+        };
       if (name === "get_pack_destruction_values")
         return {
           data: Object.fromEntries(
@@ -189,6 +200,28 @@ function setup({
       assert.fail(name);
     }
   };
+  const originalRpc = client.rpc.bind(client);
+  client.rpc = (...args) => {
+    const promise = originalRpc(...args);
+    promise.abortSignal = () => promise;
+    return promise;
+  };
+  const readContext = {
+    exports: {},
+    setTimeout,
+    clearTimeout,
+    AbortController
+  };
+  vm.runInNewContext(
+    ts.transpileModule(
+      readFileSync(
+        new URL("../lib/data/read-request.ts", import.meta.url),
+        "utf8"
+      ),
+      { compilerOptions: { module: ts.ModuleKind.CommonJS } }
+    ).outputText,
+    readContext
+  );
   const TestDate = class extends Date {
     static now() {
       return now;
@@ -236,13 +269,20 @@ function setup({
               .split(/\s+/)
               .filter(Boolean)
         };
+      if (name === "@/lib/data/read-request") return readContext.exports;
       if (name === "@/lib/data/player-state") return playerStateContext.exports;
       assert.equal(name, "@/utils/supabase/client");
       return { createClient: () => client };
     }
   };
   const source = ts.transpileModule(
-    readFileSync(new URL("../lib/data/cards.ts", import.meta.url), "utf8"),
+    readFileSync(
+      new URL("../lib/data/cards.ts", import.meta.url),
+      "utf8"
+    ).replace(
+      "const PAGE_SIZE = 500;",
+      `const PAGE_SIZE = ${Math.min(500, apiLimit)};`
+    ),
     {
       compilerOptions: {
         module: ts.ModuleKind.CommonJS,
@@ -331,10 +371,10 @@ test("cache court, expiration et aucune réutilisation entre comptes", async () 
     api.getUserCollection()
   ]);
   assert.equal(first[0].instanceId, second[0].instanceId);
-  assert.equal(calls.length, 2);
+  assert.equal(calls.length, 1);
   advance(10001);
   await api.getUserCollection();
-  assert.equal(calls.length, 4);
+  assert.equal(calls.length, 2);
   setUser("bob");
   assert.equal((await api.getUserCollection())[0].instanceId, "000002");
   setUser(null);
@@ -457,4 +497,13 @@ test("game info forwards isolated Decision rates and accepts the old database re
   first.decisionDropRates[0].percent = 0;
   assert.equal((await api.getGameInfo()).decisionDropRates[0].percent, 90);
   assert.equal((await setup().api.getGameInfo()).decisionDropRates, undefined);
+});
+
+test("initial decision status does not wait for card details; regular opening keeps its enrichment", async () => {
+  const { api, calls } = setup();
+  await api.getDecisionPackStatus(false);
+  assert.deepEqual(
+    calls.map(call => call.rpc),
+    ["get_decision_pack_status"]
+  );
 });

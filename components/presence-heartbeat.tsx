@@ -1,5 +1,7 @@
 "use client";
 
+import { useBoostersLoadPriority } from "@/components/boosters-load-priority";
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { touchPresence } from "@/lib/data/friends";
 
@@ -13,7 +15,10 @@ const ACTIVITY_EVENTS = [
 ] as const;
 
 export function PresenceHeartbeat() {
+  const ready = useBoostersLoadPriority() >= 2;
+  const pathname = usePathname();
   useEffect(() => {
+    if (!ready || pathname.startsWith("/design-system/")) return;
     let active = true;
     let lastPulseAt = 0;
     const pulse = (force = false) => {
@@ -37,6 +42,6 @@ export function PresenceHeartbeat() {
         window.removeEventListener(event, onActivity);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, []);
+  }, [ready, pathname]);
   return null;
 }
