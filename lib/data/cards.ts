@@ -6,6 +6,7 @@ export type Rarity = "C" | "R" | "SR" | "SSR" | "LR";
 export type Category = string;
 export type Card = { id: string; name: string; category: Category; anime?: string; rarity: Rarity; image: string; wishlisted?: boolean };
 export type CataloguePage = { cards: Card[]; total: number };
+export type LicenseCatalogueTotal = { license: string; total: number };
 export type CollectedCard = Card & { instanceId: string; obtainedAt: string; shiny: boolean; isEvolved: boolean; isFirstOwner: boolean; locked?: boolean; folderId: string | null; catalogueImage: string; customImageUrl: string | null; destructionValue?: number };
 export type Folder = { id: string; name: string };
 export type ActiveAuctionCard = { instanceId: string; auctionId: string; endsAt: string };
@@ -132,6 +133,27 @@ export async function getAllCards(): Promise<Card[]> {
     cursor = rows[rows.length - 1].id;
   }
   return cards;
+}
+
+export async function getLicenseCatalogueTotals(): Promise<LicenseCatalogueTotal[]> {
+  return cache.memo<LicenseCatalogueTotal[]>("catalogue:license-totals", 30_000, async () => {
+    const totals = new Map<string, number>();
+    let cursor: string | undefined;
+    while (true) {
+      let query = db().from("cards").select("id,franchise").order("id").limit(PAGE_SIZE);
+      if (cursor) query = query.gt("id", cursor);
+      const { data, error } = await query;
+      if (error) throw failure(error);
+      if (!data?.length) break;
+      const rows = data as { id: string; franchise: string | null }[];
+      for (const row of rows) {
+        const license = row.franchise?.trim();
+        if (license) totals.set(license, (totals.get(license) ?? 0) + 1);
+      }
+      cursor = rows[rows.length - 1].id;
+    }
+    return [...totals].map(([license, total]) => ({ license, total }));
+  });
 }
 
 export async function searchCards(query: string, limit = 30): Promise<Card[]> {
