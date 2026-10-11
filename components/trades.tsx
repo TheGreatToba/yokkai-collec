@@ -162,7 +162,7 @@ function CardPicker({
                 data-group-key={group.key}
               >
                 <div className="yk-trade-picker-art">
-                  <YokaiCard {...card} animated={false} />
+                  <YokaiCard {...card} animated={false} imageSizes="100vw" />
                   {group.cards.length > 1 && (
                     <span className="yk-trade-picker-count">
                       ×{group.cards.length}
@@ -250,6 +250,7 @@ function ReviewCards({ cards }: { cards: CollectedCard[] }) {
                 image={card.customImageUrl ?? card.image}
                 fallbackImage={card.catalogueImage}
                 animated={false}
+                imageSizes="100vw"
               />
               {group.cards.length > 1 && <span>×{group.cards.length}</span>}
             </div>

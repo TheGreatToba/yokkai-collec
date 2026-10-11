@@ -57,7 +57,7 @@ function Featured({
     <div className="yk-card-grid yk-featured-stage">
       {cards.map(card => (
         <div key={card.instanceId}>
-          <YokaiCard {...card} />
+          <YokaiCard {...card} imageSizes="100vw" />
         </div>
       ))}
       {Array.from(
@@ -310,6 +310,7 @@ function Editor({
                   {...card}
                   image={featured ? card.image : card.catalogueImage}
                   animated={false}
+                  imageSizes="100vw"
                 />
                 <span>{featured ? "Sélectionnée" : "Choisir"}</span>
               </button>
@@ -520,7 +521,7 @@ function FriendWishlist({
                 aria-label={`Voir ${card.name} dans le catalogue`}
               >
                 <CardShell>
-                  <YokaiCard {...card} animated={false} />
+                  <YokaiCard {...card} animated={false} imageSizes="100vw" />
                 </CardShell>
               </Link>
             ))}
@@ -786,7 +787,7 @@ export function ProfileExperience({
                   key={card.id}
                   className="rounded-panel border border-veil bg-surface p-3 hover:border-accent-gold"
                 >
-                  <YokaiCard {...card} animated={false} />
+                  <YokaiCard {...card} animated={false} imageSizes="100vw" />
                 </Link>
               ))}
             </div>

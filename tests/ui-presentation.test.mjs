@@ -983,7 +983,10 @@ test("la wishlist reprend le tri et les effets statiques du catalogue", () => {
   assert.match(wishlist, /CatalogueFilterSection title="Tri"/);
   assert.match(wishlist, /CatalogueFilterSection title="Rareté"/);
   assert.match(wishlist, /CatalogueFilterSection title="Catégorie"/);
-  assert.match(wishlist, /<YokaiCard \{\.\.\.card\} animated=\{false\}/);
+  assert.match(
+    normalizeWhitespace(wishlist),
+    normalizeWhitespace(/<YokaiCard \{\.\.\.card\} animated=\{false\}/)
+  );
 });
 
 test("le bouton de retrait de la wishlist utilise le style danger rouge", () => {

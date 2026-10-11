@@ -500,7 +500,7 @@ function AuctionTile({
         aria-label={`Voir l’enchère ${a.card.name}, ${formatKaras(a.amount)}, ${a.finished ? "terminée" : `fin dans ${a.remaining}`}`}
       >
         <CardShell>
-          <YokaiCard {...a.card} />
+          <YokaiCard {...a.card} imageSizes="100vw" />
         </CardShell>
         <div className="yk-market-tile-meta">
           <span className="yk-market-seller">
@@ -1939,7 +1939,7 @@ export function SearchView({
                   aria-haspopup="dialog"
                 >
                   <CardShell>
-                    <YokaiCard {...card} animated={false} />
+                    <YokaiCard {...card} animated={false} imageSizes="100vw" />
                   </CardShell>
                 </button>
               </li>
@@ -2303,7 +2303,11 @@ export function WishlistView({
                         aria-haspopup="dialog"
                       >
                         <CardShell>
-                          <YokaiCard {...card} animated={false} />
+                          <YokaiCard
+                            {...card}
+                            animated={false}
+                            imageSizes="100vw"
+                          />
                         </CardShell>
                       </button>
                       <Button

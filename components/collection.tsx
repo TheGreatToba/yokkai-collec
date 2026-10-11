@@ -4,7 +4,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import type { CollectedCard, Folder, Rarity } from "@/lib/data/cards";
+import type { Card, CollectedCard, Folder, Rarity } from "@/lib/data/cards";
+import type { LicenseCatalogueTotal } from "@/lib/data/cards";
 import {
   Button,
   Chip,
@@ -34,6 +35,11 @@ import {
   consumptionPlan,
   groupCollection
 } from "@/lib/ui/collection-groups";
+import {
+  buildLicenseCatalogueTotals,
+  buildLicenseProgress,
+  paniniAlbumForCard
+} from "@/lib/ui/license-progress";
 
 // Optional display metadata, separate from the existing business types.
 export type CollectionPresentation = {
@@ -158,6 +164,8 @@ function AuctionIcon({ size = 14 }: { size?: number }) {
 export function CollectionView({
   cards,
   categories,
+  licenseTotals = [],
+  catalogueCards = [],
   presentation = {},
   readOnly = false,
   adminRemoval = false,
@@ -180,6 +188,8 @@ export function CollectionView({
 }: {
   cards: CollectedCard[];
   categories: string[];
+  licenseTotals?: LicenseCatalogueTotal[];
+  catalogueCards?: Card[];
   presentation?: Record<string, CollectionPresentation>;
   totals?: Partial<Record<Rarity, number>>;
   readOnly?: boolean;
@@ -275,7 +285,14 @@ export function CollectionView({
   const [bulkFolderBusy, setBulkFolderBusy] = useState(false);
   const [bulkFolderError, setBulkFolderError] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "list" | "panini">("grid");
+  const [selectedLicense, setSelectedLicense] = useState<string | null>(null);
+  const [paniniAlbumPage, setPaniniAlbumPage] = useState(1);
+  const [paniniPage, setPaniniPage] = useState(1);
+  const [paniniPageSize, setPaniniPageSize] = useState<number>(
+    CARD_PAGE_SIZES[0]
+  );
+  const [hideMissingCards, setHideMissingCards] = useState(false);
   const selected = cards.find(c => c.instanceId === selectedId);
   const selectedMeta = selected ? presentation[selected.instanceId] : undefined;
   const filtered = sortCollection(
@@ -298,6 +315,56 @@ export function CollectionView({
   const groups = groupCollection(filtered);
   const allGroupsByKey = new Map(
     groupCollection(cards).map(group => [group.key, group])
+  );
+  const paniniCatalogueTotals = catalogueCards.length
+    ? buildLicenseCatalogueTotals(catalogueCards)
+    : licenseTotals;
+  const licenseProgress = buildLicenseProgress(cards, paniniCatalogueTotals);
+  const catalogueLicensesForCategory = new Set(
+    catalogueCards
+      .filter(card => !category || card.category === category)
+      .map(paniniAlbumForCard)
+  );
+  const filteredLicenseProgress = licenseProgress.filter(
+    item =>
+      catalogueLicensesForCategory.has(item.license) &&
+      matchesCardSearch(query, [item.license])
+  );
+  const paniniAlbumPageCount = Math.max(
+    1,
+    Math.ceil(filteredLicenseProgress.length / 72)
+  );
+  const activePaniniAlbumPage = Math.min(paniniAlbumPage, paniniAlbumPageCount);
+  const visibleLicenseProgress = filteredLicenseProgress.slice(
+    (activePaniniAlbumPage - 1) * 72,
+    activePaniniAlbumPage * 72
+  );
+  const selectedLicenseCards = selectedLicense
+    ? catalogueCards
+        .filter(
+          card =>
+            paniniAlbumForCard(card) === selectedLicense &&
+            (!category || card.category === category)
+        )
+        .sort((a, b) => a.name.localeCompare(b.name, "fr"))
+    : [];
+  const ownedByCardId = new Map<string, CollectedCard>();
+  for (const card of cards) {
+    if (!ownedByCardId.has(card.id)) ownedByCardId.set(card.id, card);
+  }
+  const filteredLicenseCards = selectedLicenseCards.filter(
+    card =>
+      matchesCardSearch(query, [card.name]) &&
+      (!hideMissingCards || ownedByCardId.has(card.id))
+  );
+  const paniniPageCount = Math.max(
+    1,
+    Math.ceil(filteredLicenseCards.length / paniniPageSize)
+  );
+  const activePaniniPage = Math.min(paniniPage, paniniPageCount);
+  const visibleLicenseCards = filteredLicenseCards.slice(
+    (activePaniniPage - 1) * paniniPageSize,
+    activePaniniPage * paniniPageSize
   );
   const pageCount = Math.max(1, Math.ceil(groups.length / pageSize));
   const activePage = Math.min(page, pageCount);
@@ -674,6 +741,8 @@ export function CollectionView({
           onClick={() => {
             setCategory("");
             setPage(1);
+            setPaniniAlbumPage(1);
+            setPaniniPage(1);
           }}
         >
           <span className="yk-filter-check" />
@@ -689,6 +758,8 @@ export function CollectionView({
             onClick={() => {
               setCategory(item);
               setPage(1);
+              setPaniniAlbumPage(1);
+              setPaniniPage(1);
             }}
           >
             <span className="yk-filter-check" />
@@ -986,6 +1057,31 @@ export function CollectionView({
                       }}
                     />
                   )}
+                  <Button
+                    variant="secondary"
+                    className="yk-panini-mode"
+                    aria-pressed={viewMode === "panini"}
+                    onClick={() => {
+                      setViewMode("panini");
+                      setSelectedLicense(null);
+                      setSelecting(false);
+                      setSelection(new Set());
+                    }}
+                  >
+                    <svg
+                      aria-hidden="true"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                    >
+                      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v17H6.5A2.5 2.5 0 0 0 4 22V5.5Z" />
+                      <path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v17h4.5A2.5 2.5 0 0 1 20 22V5.5Z" />
+                    </svg>
+                    <span>Album Panini</span>
+                  </Button>
                 </div>
                 <button
                   type="button"
@@ -1045,7 +1141,239 @@ export function CollectionView({
                   </button>
                 </div>
               </div>
-              {filtered.length === 0 && (
+              {viewMode === "panini" ? (
+                <section className="yk-panini" aria-label="Albums par licence">
+                  {selectedLicense ? (
+                    <>
+                      <div className="yk-panini-album-head">
+                        <button
+                          type="button"
+                          className="yk-panini-back"
+                          onClick={() => {
+                            setSelectedLicense(null);
+                            setQuery("");
+                            setPaniniPage(1);
+                          }}
+                        >
+                          ← Tous les albums
+                        </button>
+                        <div>
+                          <p className="yk-section-title">Album Panini</p>
+                          <h2>{selectedLicense}</h2>
+                        </div>
+                        <p>
+                          {
+                            selectedLicenseCards.filter(card =>
+                              ownedByCardId.has(card.id)
+                            ).length
+                          }{" "}
+                          / {selectedLicenseCards.length} cartes
+                        </p>
+                      </div>
+                      <div className="yk-panini-controls">
+                        <label className="yk-panini-search">
+                          <span className="sr-only">
+                            Rechercher une carte dans cette licence
+                          </span>
+                          <svg
+                            aria-hidden="true"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                          >
+                            <circle cx="11" cy="11" r="7" />
+                            <path d="m20 20-4-4" />
+                          </svg>
+                          <input
+                            type="search"
+                            value={query}
+                            onChange={event => {
+                              setQuery(event.target.value);
+                              setPaniniPage(1);
+                            }}
+                            placeholder="Rechercher une carte…"
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          className="yk-panini-owned-toggle"
+                          aria-pressed={hideMissingCards}
+                          onClick={() => {
+                            setHideMissingCards(current => !current);
+                            setPaniniPage(1);
+                          }}
+                        >
+                          <span aria-hidden="true">
+                            {hideMissingCards ? "✓" : "○"}
+                          </span>
+                          {hideMissingCards
+                            ? "Afficher les cartes manquantes"
+                            : "Cacher les cartes non possédées"}
+                        </button>
+                      </div>
+                      {filteredLicenseCards.length === 0 && (
+                        <div className="yk-panini-empty">
+                          <strong>Aucune carte trouvée</strong>
+                          <p>Essaie un autre nom de personnage.</p>
+                        </div>
+                      )}
+                      <ul
+                        className="yk-panini-slots"
+                        aria-label={`Cartes de la licence ${selectedLicense}`}
+                      >
+                        {visibleLicenseCards.map(card => {
+                          const owned = ownedByCardId.get(card.id);
+                          return (
+                            <li key={card.id}>
+                              {owned ? (
+                                <button
+                                  type="button"
+                                  className="yk-panini-owned"
+                                  onClick={() =>
+                                    setSelectedId(owned.instanceId)
+                                  }
+                                  aria-label={`Voir ${owned.name}`}
+                                >
+                                  <CardShell>
+                                    <YokaiCard
+                                      {...owned}
+                                      image={owned.image}
+                                      {...presentation[owned.instanceId]}
+                                      imageSizes="100vw"
+                                    />
+                                  </CardShell>
+                                </button>
+                              ) : (
+                                <div
+                                  className="yk-panini-missing"
+                                  aria-label="Carte non obtenue"
+                                >
+                                  <span>?</span>
+                                  <small>À découvrir</small>
+                                </div>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                      {filteredLicenseCards.length > 0 && (
+                        <div className="yk-collection-pagination yk-panini-pagination">
+                          <Pagination
+                            page={activePaniniPage}
+                            pageCount={paniniPageCount}
+                            onPageChange={setPaniniPage}
+                            label={`Pagination de l’album ${selectedLicense}`}
+                          />
+                          <label>
+                            Cartes par page
+                            <select
+                              value={paniniPageSize}
+                              onChange={event => {
+                                setPaniniPageSize(Number(event.target.value));
+                                setPaniniPage(1);
+                              }}
+                            >
+                              {CARD_PAGE_SIZES.map(size => (
+                                <option key={size} value={size}>
+                                  {size}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <div className="yk-panini-heading">
+                        <div>
+                          <p className="yk-section-title">Mode Panini</p>
+                          <h2>Mes albums par licence</h2>
+                        </div>
+                        <p>
+                          {filteredLicenseProgress.length} licence
+                          {filteredLicenseProgress.length > 1 ? "s" : ""}{" "}
+                          affichée
+                          {filteredLicenseProgress.length > 1 ? "s" : ""}
+                        </p>
+                      </div>
+                      <label className="yk-panini-search">
+                        <span className="sr-only">Rechercher une licence</span>
+                        <svg
+                          aria-hidden="true"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                        >
+                          <circle cx="11" cy="11" r="7" />
+                          <path d="m20 20-4-4" />
+                        </svg>
+                        <input
+                          type="search"
+                          value={query}
+                          onChange={event => {
+                            setQuery(event.target.value);
+                            setPaniniAlbumPage(1);
+                          }}
+                          placeholder="Rechercher une licence…"
+                        />
+                      </label>
+                      {filteredLicenseProgress.length === 0 ? (
+                        <div className="yk-panini-empty">
+                          <strong>Aucune licence trouvée</strong>
+                          <p>Essaie un autre nom dans la barre de recherche.</p>
+                        </div>
+                      ) : (
+                        <ul className="yk-panini-grid">
+                          {visibleLicenseProgress.map(item => (
+                            <li key={item.license}>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedLicense(item.license);
+                                  setQuery("");
+                                  setPaniniPage(1);
+                                }}
+                                aria-label={`Voir ${item.license}, ${item.owned} cartes sur ${item.total}`}
+                              >
+                                <span className="yk-panini-details">
+                                  <strong>{item.license}</strong>
+                                  <span className="yk-panini-count">
+                                    <b>{item.owned}</b> / {item.total} cartes
+                                  </span>
+                                  <span className="yk-panini-progress">
+                                    <i style={{ width: `${item.percent}%` }} />
+                                  </span>
+                                  <small>{item.percent}% complété</small>
+                                </span>
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      {filteredLicenseProgress.length > 0 && (
+                        <div className="yk-collection-pagination yk-panini-pagination">
+                          <Pagination
+                            page={activePaniniAlbumPage}
+                            pageCount={paniniAlbumPageCount}
+                            onPageChange={setPaniniAlbumPage}
+                            label="Pagination des albums Panini"
+                          />
+                          <span className="yk-panini-page-limit">
+                            72 collections par page
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </section>
+              ) : filtered.length === 0 ? (
                 <div className="rounded-panel border border-dashed border-veil-strong px-6 py-16 text-center">
                   <p className="font-display text-xl">
                     {cards.length === 0
@@ -1065,126 +1393,135 @@ export function CollectionView({
                     </p>
                   )}
                 </div>
-              )}
-              <ul
-                className={`yk-card-grid yk-collection-grid ${viewMode === "list" ? "yk-collection-grid-list" : ""}`}
-                aria-label="Groupes de cartes obtenues"
-              >
-                {visibleGroups.map(group => {
-                  const card = group.representative;
-                  const historyGroup = allGroupsByKey.get(group.key) ?? group;
-                  const meta = presentation[card.instanceId];
-                  const eligible = group.cards.filter(
-                    copy =>
-                      !copy.locked && !presentation[copy.instanceId]?.frozen
-                  );
-                  const checked =
-                    eligible.length > 0 &&
-                    eligible.every(copy => selection.has(copy.instanceId));
-                  const partial =
-                    !checked &&
-                    eligible.some(copy => selection.has(copy.instanceId));
-                  const frozenCount = group.cards.filter(
-                    copy => presentation[copy.instanceId]?.frozen
-                  ).length;
-                  const lockedCount = group.cards.filter(
-                    copy => copy.locked
-                  ).length;
-                  return (
-                    <li key={group.key} className="min-w-0">
-                      <button
-                        type="button"
-                        disabled={selecting && eligible.length === 0}
-                        className={`yk-collection-card ${selecting && (checked || partial) ? "yk-selected-card" : ""}`}
-                        aria-label={`${selecting ? "Sélectionner" : "Voir"} ${card.name}, ${card.rarity}, ${group.cards.length} exemplaires`}
-                        aria-pressed={selecting ? checked : undefined}
-                        aria-haspopup={selecting ? undefined : "dialog"}
-                        onClick={() =>
-                          selecting
-                            ? toggleGroup(group.cards)
-                            : setSelectedId(card.instanceId)
-                        }
-                      >
-                        <CardShell>
-                          <YokaiCard {...card} image={card.image} {...meta} />
-                        </CardShell>
-                        {selecting && eligible.length > 0 && (
-                          <span
-                            className={`yk-selection-check ${checked || partial ? "yk-checked" : ""}`}
-                          >
-                            {checked ? "✓" : partial ? "−" : ""}
-                          </span>
-                        )}
-                        {group.cards.some(
-                          copy => presentation[copy.instanceId]?.isNew
-                        ) && (
-                          <span className="absolute top-3 left-3 rounded-badge bg-accent-gold px-2 py-1 text-[10px] font-bold text-void">
-                            NEW
-                          </span>
-                        )}
-                        {group.cards.length > 1 && (
-                          <span className="absolute right-2 bottom-2 rounded-full border border-veil bg-void/90 px-2 py-1 text-xs text-ink-2">
-                            ×{group.cards.length}
-                          </span>
-                        )}
-                        {lockedCount > 0 && (
-                          <span
-                            className="yk-group-locked"
-                            aria-label="Carte protégée"
-                            title="Carte protégée"
-                          >
-                            <ProtectedIcon size={16} />
-                          </span>
-                        )}
-                        {lockedCount === 0 && frozenCount > 0 && (
-                          <span className="yk-group-frozen">
-                            {frozenCount} en enchère
-                          </span>
-                        )}
-                      </button>
-                      <div className="yk-collection-card-meta">
-                        {historyGroup.isFirstOwner ? (
-                          <p className="text-[11px] font-semibold text-rarity-lr">
-                            Premier propriétaire, obtenu le{" "}
-                            {formatDate(historyGroup.firstObtainedAt)}
-                          </p>
-                        ) : (
-                          <p className="text-[11px] tracking-wider text-ink-3 uppercase">
-                            Obtenu le{" "}
-                            <time dateTime={historyGroup.firstObtainedAt}>
+              ) : null}
+              {viewMode !== "panini" && (
+                <ul
+                  className={`yk-card-grid yk-collection-grid ${viewMode === "list" ? "yk-collection-grid-list" : ""}`}
+                  aria-label="Groupes de cartes obtenues"
+                >
+                  {visibleGroups.map(group => {
+                    const card = group.representative;
+                    const historyGroup = allGroupsByKey.get(group.key) ?? group;
+                    const meta = presentation[card.instanceId];
+                    const eligible = group.cards.filter(
+                      copy =>
+                        !copy.locked && !presentation[copy.instanceId]?.frozen
+                    );
+                    const checked =
+                      eligible.length > 0 &&
+                      eligible.every(copy => selection.has(copy.instanceId));
+                    const partial =
+                      !checked &&
+                      eligible.some(copy => selection.has(copy.instanceId));
+                    const frozenCount = group.cards.filter(
+                      copy => presentation[copy.instanceId]?.frozen
+                    ).length;
+                    const lockedCount = group.cards.filter(
+                      copy => copy.locked
+                    ).length;
+                    return (
+                      <li key={group.key} className="min-w-0">
+                        <button
+                          type="button"
+                          disabled={selecting && eligible.length === 0}
+                          className={`yk-collection-card ${selecting && (checked || partial) ? "yk-selected-card" : ""}`}
+                          aria-label={`${selecting ? "Sélectionner" : "Voir"} ${card.name}, ${card.rarity}, ${group.cards.length} exemplaires`}
+                          aria-pressed={selecting ? checked : undefined}
+                          aria-haspopup={selecting ? undefined : "dialog"}
+                          onClick={() =>
+                            selecting
+                              ? toggleGroup(group.cards)
+                              : setSelectedId(card.instanceId)
+                          }
+                        >
+                          <CardShell>
+                            <YokaiCard
+                              {...card}
+                              image={card.image}
+                              {...meta}
+                              imageSizes="100vw"
+                            />
+                          </CardShell>
+                          {selecting && eligible.length > 0 && (
+                            <span
+                              className={`yk-selection-check ${checked || partial ? "yk-checked" : ""}`}
+                            >
+                              {checked ? "✓" : partial ? "−" : ""}
+                            </span>
+                          )}
+                          {group.cards.some(
+                            copy => presentation[copy.instanceId]?.isNew
+                          ) && (
+                            <span className="absolute top-3 left-3 rounded-badge bg-accent-gold px-2 py-1 text-[10px] font-bold text-void">
+                              NEW
+                            </span>
+                          )}
+                          {group.cards.length > 1 && (
+                            <span className="absolute right-2 bottom-2 rounded-full border border-veil bg-void/90 px-2 py-1 text-xs text-ink-2">
+                              ×{group.cards.length}
+                            </span>
+                          )}
+                          {lockedCount > 0 && (
+                            <span
+                              className="yk-group-locked"
+                              aria-label="Carte protégée"
+                              title="Carte protégée"
+                            >
+                              <ProtectedIcon size={16} />
+                            </span>
+                          )}
+                          {lockedCount === 0 && frozenCount > 0 && (
+                            <span className="yk-group-frozen">
+                              {frozenCount} en enchère
+                            </span>
+                          )}
+                        </button>
+                        <div className="yk-collection-card-meta">
+                          {historyGroup.isFirstOwner ? (
+                            <p className="text-[11px] font-semibold text-rarity-lr">
+                              Premier propriétaire, obtenu le{" "}
                               {formatDate(historyGroup.firstObtainedAt)}
-                            </time>
-                          </p>
-                        )}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-              <div className="yk-collection-pagination">
-                <Pagination
-                  page={activePage}
-                  pageCount={pageCount}
-                  onPageChange={setPage}
-                  label="Pagination de la collection"
-                />
-                <label>
-                  Cartes par page
-                  <select
-                    value={pageSize}
-                    onChange={event => {
-                      setPageSize(Number(event.target.value));
-                      setPage(1);
-                    }}
-                  >
-                    {CARD_PAGE_SIZES.map(size => (
-                      <option key={size} value={size}>
-                        {size}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
+                            </p>
+                          ) : (
+                            <p className="text-[11px] tracking-wider text-ink-3 uppercase">
+                              Obtenu le{" "}
+                              <time dateTime={historyGroup.firstObtainedAt}>
+                                {formatDate(historyGroup.firstObtainedAt)}
+                              </time>
+                            </p>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+              {viewMode !== "panini" && filtered.length > 0 && (
+                <div className="yk-collection-pagination">
+                  <Pagination
+                    page={activePage}
+                    pageCount={pageCount}
+                    onPageChange={setPage}
+                    label="Pagination de la collection"
+                  />
+                  <label>
+                    Cartes par page
+                    <select
+                      value={pageSize}
+                      onChange={event => {
+                        setPageSize(Number(event.target.value));
+                        setPage(1);
+                      }}
+                    >
+                      {CARD_PAGE_SIZES.map(size => (
+                        <option key={size} value={size}>
+                          {size}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+              )}
               {selecting && (
                 <SelectionBar
                   itemLabel="exemplaire"

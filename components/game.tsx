@@ -15,9 +15,11 @@ import {
   discardPackCard,
   evolveSsrCard,
   getActiveAuctionCards,
+  getAllCards,
   getDecisionPackStatus,
   getFolders,
   getGameInfo,
+  getLicenseCatalogueTotals,
   getPackStatus,
   getUserCollection,
   keepDecisionPackCard,
@@ -28,9 +30,11 @@ import {
   setCardCustomImage,
   setCollectionCardLocked,
   type ActiveAuctionCard,
+  type Card,
   type CollectedCard,
   type DecisionPackStatus,
   type Folder,
+  type LicenseCatalogueTotal,
   type PackStatus
 } from "@/lib/data/cards";
 import { createAuction } from "@/lib/data/market";
@@ -62,6 +66,10 @@ export function Game({
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [now, setNow] = useState(0);
+  const [licenseTotals, setLicenseTotals] = useState<LicenseCatalogueTotal[]>(
+    []
+  );
+  const [catalogueCards, setCatalogueCards] = useState<Card[]>([]);
   const opening = useRef(false);
   const sound = useSfx();
   useEffect(() => {
@@ -75,15 +83,25 @@ export function Game({
       const full = fullRefresh;
       fullRefresh = false;
       try {
-        const [game, packs, decision, cards, cardFolders, auctions] =
-          await Promise.all([
-            getGameInfo(),
-            full || view === "packs" ? getPackStatus() : null,
-            full || view === "packs" ? getDecisionPackStatus() : null,
-            full ? getUserCollection() : null,
-            full ? getFolders() : null,
-            full || view === "collection" ? getActiveAuctionCards() : null
-          ]);
+        const [
+          game,
+          packs,
+          decision,
+          cards,
+          cardFolders,
+          auctions,
+          catalogueTotals,
+          catalogue
+        ] = await Promise.all([
+          getGameInfo(),
+          full || view === "packs" ? getPackStatus() : null,
+          full || view === "packs" ? getDecisionPackStatus() : null,
+          full ? getUserCollection() : null,
+          full ? getFolders() : null,
+          full || view === "collection" ? getActiveAuctionCards() : null,
+          full && view === "collection" ? getLicenseCatalogueTotals() : null,
+          full && view === "collection" ? getAllCards() : null
+        ]);
         if (active) {
           setInfo(game);
           if (packs) setStatus(packs);
@@ -91,6 +109,8 @@ export function Game({
           if (cards) setCollection(cards);
           if (cardFolders) setFolders(cardFolders);
           if (auctions) setActiveAuctionCards(auctions);
+          if (catalogueTotals) setLicenseTotals(catalogueTotals);
+          if (catalogue) setCatalogueCards(catalogue);
           setError("");
         }
       } catch (e) {
@@ -370,6 +390,8 @@ export function Game({
           <CollectionView
             cards={collection}
             categories={info?.categories || []}
+            licenseTotals={licenseTotals}
+            catalogueCards={catalogueCards}
             presentation={Object.fromEntries(
               activeAuctionCards.map(auction => [
                 auction.instanceId,
