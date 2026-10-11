@@ -42,7 +42,7 @@
 - **Visuel Central** : Illustration vectorielle de pack scellé violet sombre (`#1D1844` / `#5244B5`) avec orbe d'énergie pulsing.
 - **Informations** :
 - Titre : `BOOSTER RÉGULIER` (`24px` Bold `#F2F0FF`)
-- Description : * Contient 5 cartes · Tirage fréquent (C à LR) *
+- Description : _ Contient 5 cartes · Tirage fréquent (C à LR) _
 - Timer / Dispo : Si dispo -> Text vert `#00E699` _"Disponible maintenant"_. Si réserve vide -> Text `#FF9900` _"Prochain dans 12:45"_.
 
 - **Action** :
@@ -55,7 +55,7 @@
 - **Visuel Central** : Illustration vectorielle de pack scellé doré lumineux avec particules or en suspension.
 - **Informations** :
 - Titre : `BOOSTER DÉCISIF` (`24px` Bold `#FFB700`)
-- Description : * Révèle 5 cartes. Choisissez-en 1 seule à conserver, les 4 autres sont converties en Karas. *
+- Description : _ Révèle 5 cartes. Choisissez-en 1 seule à conserver, les 4 autres sont converties en Karas. _
 - Status : Text `#FFCC33` _"1 carte à garder parmi 5"_ · _"Revient demain à 00:00"_.
 
 - **Action** :
