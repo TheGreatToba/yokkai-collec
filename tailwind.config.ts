@@ -15,7 +15,7 @@ const config = {
         focus: "#5244B5",
         ink: "#F2F0FF",
         "ink-2": "#A29DBE",
-        "ink-3": "#625C83",
+        "ink-3": "#8A84AB",
         disabled: "#3E385D",
         "accent-gold": "#E8C26A",
         "accent-neon": "#A77BFF",
