@@ -67,6 +67,8 @@ const DESTRUCTION_KARAS: Record<Rarity, number> = {
   LR: 5
 };
 const LOCKED_FOLDER = "__locked__";
+const COLLECTION_CARD_IMAGE_SIZES =
+  "(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 190px";
 const formatDate = (value: string, long = false) =>
   new Date(value).toLocaleDateString("fr-FR", {
     dateStyle: long ? "long" : "medium"
@@ -1359,7 +1361,7 @@ export function CollectionView({
                                       {...owned}
                                       image={owned.image}
                                       {...presentation[owned.instanceId]}
-                                      imageSizes="100vw"
+                                      imageSizes={COLLECTION_CARD_IMAGE_SIZES}
                                     />
                                   </CardShell>
                                 </button>
@@ -1568,7 +1570,8 @@ export function CollectionView({
                               {...card}
                               image={card.image}
                               {...meta}
-                              imageSizes="100vw"
+                              animated={!readOnly}
+                              imageSizes={COLLECTION_CARD_IMAGE_SIZES}
                             />
                           </CardShell>
                           {selecting && eligible.length > 0 && (

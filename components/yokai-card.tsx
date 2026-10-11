@@ -109,7 +109,7 @@ export function YokaiCard({
               {/* Only public catalogue storage is proxied; custom and external sources stay native. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               {optimized ? (
-                <Image {...artProps} alt="" sizes={imageSizes} quality={85} />
+                <Image {...artProps} alt="" sizes={imageSizes} quality={75} />
               ) : (
                 <img {...artProps} alt="" />
               )}
