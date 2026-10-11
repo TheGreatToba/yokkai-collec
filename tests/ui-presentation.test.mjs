@@ -261,6 +261,8 @@ test("un solde absent reste inconnu, un solde connu utilise fr-FR", () => {
   assert.match(render(Karas, {}), /Solde karas indisponible/);
   assert.match(render(Karas, {}), /—/);
   assert.match(render(Karas, { amount: 1240 }), /1[\s\u202f\u00a0]240/);
+  const ui = readFileSync(path.join(root, "styles/ui.css"), "utf8");
+  assert.match(ui, /kara-badge-neon\.png/);
 });
 
 test("les modales imbriquées libèrent le scroll et la confirmation remplace le détail", () => {
@@ -546,10 +548,9 @@ test("barre d'outils Collection compacte sur mobile et tiroir fermé même en mo
   // Mobile: "Sélection multiple" becomes an icon; the label stays available to screen readers.
   assert.match(css, /\.yk-collection-toolbar \.yk-selection-mode-label \{ position: absolute;/);
   assert.match(collection, /<SelectionModeButton active=\{selecting\}/);
-  // The global reduced-motion reset drops transforms: the closed drawer and the Karas gem must keep theirs.
+  // The global reduced-motion reset drops transforms: the closed drawer must keep its static transform.
   assert.match(ui, /transform: none !important/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\) and \(max-width: 760px\) \{ \.yk-collection-sidebar:not\(\.yk-sidebar-open\) \{ transform: translateX\(-100%\) !important; \} \}/);
-  assert.match(ui, /\.yk-karas-gem \{ transform: rotate\(45deg\) !important; \}/);
 });
 
 test("Collection, Catalogue et Marché partagent une seule échelle de colonnes", () => {

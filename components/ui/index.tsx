@@ -33,7 +33,7 @@ export function StatusPill({ children, tone = "gold" }: { children: ReactNode; t
   return <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${tones[tone]}`}>{children}</span>;
 }
 export function Karas({ amount, className = "" }: { amount?: number | null; className?: string }) {
-  return <span className={`yk-karas inline-flex items-center gap-2 text-karas tabular-nums ${className}`} aria-label={amount == null ? "Solde karas indisponible" : `${amount.toLocaleString("fr-FR")} karas`}><span aria-hidden="true" className="yk-karas-gem" />{amount == null ? "—" : amount.toLocaleString("fr-FR")}</span>;
+  return <span className={`yk-karas inline-flex items-center tabular-nums ${className}`} aria-label={amount == null ? "Solde karas indisponible" : `${amount.toLocaleString("fr-FR")} karas`}><span className="yk-karas-value">{amount == null ? "—" : amount.toLocaleString("fr-FR")}</span></span>;
 }
 export function SelectionModeButton({ active, onClick, className = "", inactiveLabel = "Mode sélection", activeLabel = "Quitter la sélection" }: { active: boolean; onClick: () => void; className?: string; inactiveLabel?: string; activeLabel?: string }) {
   return <Button variant="secondary" className={`yk-selection-mode ${className}`} aria-pressed={active} onClick={onClick}><svg aria-hidden="true" className="yk-selection-mode-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="8.5"/>{active&&<path d="m8.5 12.2 2.3 2.3 4.7-4.9"/>}</svg><span className="yk-selection-mode-label">{active?activeLabel:inactiveLabel}</span></Button>;
