@@ -25,9 +25,8 @@ a[aria-current="page"] { color: var(--color-ink); }
 .yk-button-danger:hover:not(:disabled), .yk-button-danger[data-demo-state="hover"] { background: var(--color-danger); color: var(--color-ink); box-shadow: 0 0 16px color-mix(in srgb,var(--color-danger) 50%,transparent); }
 .yk-button:disabled, .primary:disabled { background: var(--color-night); color: var(--color-ink-3); border-color: var(--color-veil); box-shadow: none; opacity: 1; }
 .yk-button[aria-busy="true"]::before { content: ""; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: yk-ui-spin var(--duration-slow) linear infinite; }
-.yk-karas { position: relative; isolation: isolate; justify-content: center; padding: 7px 12px 7px 28px; color: var(--color-ink); font-family: var(--font-display); font-weight: 700; line-height: 1; text-shadow: 0 1px 3px var(--color-void); }
-.yk-karas::before { position: absolute; inset: -2px -3px; z-index: -1; content: ""; background: url("/assets/kara-badge-neon.png") center / 100% 165% no-repeat; pointer-events: none; }
-.yk-karas-value { position: relative; z-index: 1; }
+.yk-karas { border: 1px solid color-mix(in srgb,var(--color-karas) 72%,transparent); border-radius: 999px; background: var(--color-void); padding: 7px 12px; box-shadow: inset 0 0 8px color-mix(in srgb,var(--color-karas) 15%,transparent); font-family: var(--font-display); font-weight: 700; }
+.yk-karas-gem { width: 10px; height: 10px; flex: 0 0 auto; transform: rotate(45deg); border-radius: 2px; background: var(--background-karas); box-shadow: 0 0 10px color-mix(in srgb,var(--color-accent-gold) 32%,transparent); }
 .yk-modal { margin: auto; width: min(820px,calc(100% - 32px)); max-height: 90dvh; padding: 28px; overflow: auto; border: 1px solid var(--color-veil); border-radius: 14px; background: var(--color-surface); color: var(--color-ink); box-shadow: var(--shadow-modal); animation: yk-ui-modal-in var(--modal-duration) var(--ease-standard) both; }
 .yk-modal::backdrop { background: color-mix(in srgb,var(--color-void) 80%,transparent); backdrop-filter: blur(8px); animation: yk-ui-fade-in var(--modal-duration) var(--ease-standard) both; }
 .yk-modal.yk-card-report-modal { width: min(34rem,calc(100% - 32px)); }
@@ -65,7 +64,8 @@ a[aria-current="page"] { color: var(--color-ink); }
 @media (max-width: 620px) { .yk-route-loading { padding-inline: var(--layout-gutter-compact); } }
 @media (prefers-reduced-motion: reduce) {
   :where(body *,body *::before,body *::after):not(:where(.yk-card,.yk-card *,.yk-card-back,.yk-card-back *,.yk-reveal-stage,.yk-reveal-stage *)) { animation-duration: var(--duration-reduced) !important; animation-iteration-count: 1 !important; transition-duration: var(--duration-reduced) !important; transition-property: opacity,color,background-color,border-color,box-shadow !important; transform: none !important; scroll-behavior: auto !important; }
-  /* The reset above targets motion; page-specific static transforms live next to their component. */
+  /* The reset above targets motion; static shape transforms must survive it (page-specific ones live next to their component). */
+  .yk-karas-gem { transform: rotate(45deg) !important; }
 }
 /* Shared card grid (Collection, Catalogue, Marché, future card pages): one column scale, no per-page overrides. */
 .yk-card-grid { display: grid; grid-template-columns: repeat(var(--card-grid-columns,var(--card-grid-columns-xl)),minmax(0,1fr)); gap: var(--collection-row-gap) var(--collection-grid-gap); }
