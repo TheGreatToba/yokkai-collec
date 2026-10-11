@@ -765,7 +765,10 @@ export function TradesPanel({
     void chooseFriend(id, parentId);
   }
   async function composeCounter(offer: TradeOffer) {
-    if (!tradeOfferIsActionable(offer.id, offersRef.current)) {
+    if (
+      !offer.fromUser ||
+      !tradeOfferIsActionable(offer.id, offersRef.current)
+    ) {
       setError("Cette offre n’est plus en attente.");
       return;
     }
@@ -777,7 +780,10 @@ export function TradesPanel({
     try {
       const nextContext = await adapter.context(offer.fromUser);
       if (contextRequest.current !== request) return;
-      if (!tradeOfferIsActionable(offer.id, offersRef.current)) {
+      if (
+        !offer.fromUser ||
+        !tradeOfferIsActionable(offer.id, offersRef.current)
+      ) {
         friendIdRef.current = previousFriend;
         setError("Cette offre n’est plus en attente.");
         return;

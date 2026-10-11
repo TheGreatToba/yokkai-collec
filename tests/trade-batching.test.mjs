@@ -82,6 +82,10 @@ test("trade history batches live franchises once without changing offers or copi
     const offers = Array.from({ length: count }, (_, i) => ({
       id: `offer-${i}`,
       status: "pending",
+      fromUser: "sender",
+      toUser: "recipient",
+      fromPseudo: "Sender",
+      toPseudo: "Recipient",
       offeredCards: [copy("same", `give-${i}`)],
       requestedCards: [copy("same", `take-${i}`)]
     }));
@@ -113,6 +117,28 @@ test("trade history batches live franchises once without changing offers or copi
     [2, 2, 2],
     "shared catalogue id must be fetched once across all offers"
   );
+});
+
+test("deleted trade participants keep their history with anonymous labels", async () => {
+  const offers = [
+    {
+      id: "deleted",
+      status: "accepted",
+      fromUser: null,
+      toUser: "recipient",
+      fromPseudo: null,
+      toPseudo: "Recipient",
+      offeredCards: [copy("same", "give")],
+      requestedCards: []
+    }
+  ];
+  const { api, requests } = setup(offers);
+  const [offer] = await api.listTradeOffers();
+  assert.equal(offer.fromUser, null);
+  assert.equal(offer.fromPseudo, "Joueur supprimé");
+  assert.equal(offer.toPseudo, "Recipient");
+  assert.equal(offer.offeredCards[0].instanceId, "give");
+  assert.equal(requests.length, 2);
 });
 
 test("trade batching keeps gateway batches bounded and handles empty lots and read failures", async () => {

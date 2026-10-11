@@ -364,6 +364,7 @@ export type AuctionPresentation = {
   remaining: string;
   remainingSeconds: number;
   seller: string;
+  sellerId?: string | null;
   sellerAvatarUrl?: string | null;
   bids: number;
   popularity?: number;
@@ -1407,12 +1408,16 @@ export function AuctionView({
                 image={auction.sellerAvatarUrl ?? undefined}
                 size={26}
               />
-              <Link
-                href={`/profil/${encodeURIComponent(auction.seller)}`}
-                className="font-semibold hover:text-accent-gold"
-              >
-                {auction.seller}
-              </Link>
+              {auction.sellerId === null ? (
+                <span className="font-semibold">Joueur supprimé</span>
+              ) : (
+                <Link
+                  href={`/profil/${encodeURIComponent(auction.seller)}`}
+                  className="font-semibold hover:text-accent-gold"
+                >
+                  {auction.seller}
+                </Link>
+              )}
             </p>
           </div>
           {onToggleWatch && (
@@ -1620,6 +1625,8 @@ export function AuctionView({
                 <p className="min-w-0 flex-1 text-sm">
                   {h.mine ? (
                     <strong>Vous</strong>
+                  ) : !h.name || h.name === "Joueur supprimé" ? (
+                    <strong>Joueur supprimé</strong>
                   ) : (
                     <Link
                       href={`/profil/${encodeURIComponent(h.name)}`}
@@ -2393,7 +2400,8 @@ export function presentAuction(
     amount: raw.amount,
     remaining: left.text,
     remainingSeconds: left.seconds,
-    seller: raw.seller,
+    seller: raw.seller || "Joueur supprimé",
+    sellerId: raw.sellerId,
     sellerAvatarUrl: raw.sellerAvatarUrl,
     bids: raw.bids ?? detail.history?.length ?? 0,
     popularity: raw.popularity,

@@ -136,12 +136,14 @@ export function CardReportList({
                 <strong className="text-white">{report.reporterPseudo}</strong>{" "}
                 · {report.reporterEmail}
               </p>
-              <Link
-                className="mt-2 inline-block text-sm font-semibold text-cyan-300"
-                href={`${playerHrefBase}${report.reporterId}`}
-              >
-                Ouvrir la fiche du joueur →
-              </Link>
+              {report.reporterId && (
+                <Link
+                  className="mt-2 inline-block text-sm font-semibold text-cyan-300"
+                  href={`${playerHrefBase}${report.reporterId}`}
+                >
+                  Ouvrir la fiche du joueur →
+                </Link>
+              )}
               <div className="mt-4">
                 <Actions report={report} />
               </div>

@@ -294,3 +294,85 @@ assert.equal(
 console.log(
   "Expired auction: real authenticated bidder refused after SKIP LOCKED and row-lock wait; all state preserved"
 );
+
+// A committed tombstone must fence both old JWTs and counterpart writes.
+const deleting = "30000000-0000-4000-8000-000000000001";
+await query(
+  `insert into auth.users(id,raw_user_meta_data) values ('${deleting}','{"pseudo":"DeletingPlayer"}');`
+);
+const deletingCard = await query(
+  `insert into public.user_cards(user_id,card_id,rarity) select '${deleting}',id,'SR' from public.cards limit 1 returning id; insert into public.admin_users(user_id) values ('${seller}');`
+);
+const playerWrite = session(
+  `begin; set local role authenticated; select set_config('request.jwt.claim.sub','${deleting}',true); select public.update_profile('DeletingPlayer',null,null); select 'READY';`
+);
+await until(
+  () => playerWrite.output().includes("READY"),
+  "in-flight player write holds shared fence"
+);
+const fence = session(
+  `set application_name='ci-deletion-fence'; begin; set local role service_role; select public.begin_account_deletion('${deleting}'); select 'READY';`
+);
+await until(
+  async () =>
+    (await query(
+      "select count(*) from pg_stat_activity where application_name='ci-deletion-fence' and wait_event_type='Lock';"
+    )) === "1",
+  "deletion waits for player transaction"
+);
+playerWrite.child.stdin.end("commit;\n");
+await playerWrite.done;
+await until(
+  () => fence.output().includes("READY"),
+  "deletion marker inserted after player commit"
+);
+const staleWrite = session(
+  `set application_name='ci-deleted-jwt'; set role authenticated; select set_config('request.jwt.claim.sub','${deleting}',false); select public.send_friend_request('${seller}');`
+);
+staleWrite.child.stdin.end();
+const outcome = Promise.allSettled([staleWrite.done]);
+await until(
+  async () =>
+    (await query(
+      "select count(*) from pg_stat_activity where application_name='ci-deleted-jwt' and wait_event_type='Lock';"
+    )) === "1",
+  "old JWT waits for marker commit"
+);
+fence.child.stdin.end("commit;\n");
+await fence.done;
+const [blocked] = await outcome;
+assert.equal(blocked.status, "rejected");
+assert.match(blocked.reason.message, /ACCOUNT_DELETED/);
+await assert.rejects(
+  query(
+    `set role authenticated; select set_config('request.jwt.claim.sub','${seller}',false); select public.send_friend_request('${deleting}');`
+  ),
+  /ACCOUNT_DELETED/
+);
+assert.equal(
+  await query(
+    `select count(*) from public.friendships where user_id='${deleting}' or friend_id='${deleting}';`
+  ),
+  "0"
+);
+const cleanupLock = session(
+  `begin; select pg_advisory_xact_lock(hashtextextended('account-deletion:${deleting}',0)); select 'READY';`
+);
+await until(
+  () => cleanupLock.output().includes("READY"),
+  "cleanup holds exclusive fence"
+);
+try {
+  await assert.rejects(
+    query(
+      `set statement_timeout='2s'; set role authenticated; select set_config('request.jwt.claim.sub','${seller}',false); select public.admin_remove_player_card('${deletingCard}');`
+    ),
+    /ACCOUNT_DELETED/
+  );
+} finally {
+  cleanupLock.child.stdin.end("rollback;\n");
+  await cleanupLock.done;
+}
+console.log(
+  "Account deletion: in-flight write completes before fence; old JWT and counterpart writes blocked; no row-lock/advisory-lock cycle during cleanup"
+);

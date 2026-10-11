@@ -137,6 +137,43 @@ function load(relative) {
 const render = (component, props) =>
   renderToStaticMarkup(React.createElement(component, props));
 
+test("deleted avatars and auction participants render safely without profile links", () => {
+  const { Avatar } = load("components/ui/index.tsx");
+  assert.match(render(Avatar, { name: null }), /aria-label="Joueur supprimé"/);
+  const { AuctionView, presentAuction } = load(
+    "components/community-views.tsx"
+  );
+  const auction = presentAuction(
+    {
+      id: "deleted",
+      card,
+      amount: 10,
+      endsAt: "2026-10-10T00:00:00Z",
+      status: "sold",
+      seller: null,
+      sellerId: null,
+      buyerId: null,
+      bids: 1,
+      watched: false,
+      balance: 100,
+      winner: "Joueur supprimé",
+      history: [
+        {
+          id: "bid",
+          name: "Joueur supprimé",
+          amount: 10,
+          createdAt: "2026-10-09T00:00:00Z",
+          mine: false
+        }
+      ]
+    },
+    "viewer"
+  );
+  const html = render(AuctionView, { auction });
+  assert.match(html, /Joueur supprimé/);
+  assert.doesNotMatch(html, /\/profil\/(?:Joueur|undefined|null)/);
+});
+
 test("offscreen avatars defer loading and decode asynchronously without losing their alt text", () => {
   const { Avatar } = load("components/ui/index.tsx");
   const html = render(Avatar, {

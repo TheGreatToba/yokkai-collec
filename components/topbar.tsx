@@ -65,7 +65,7 @@ export function notificationItem(
     return {
       ...common,
       title: "Nouvelle demande d’ami",
-      text: `${notification.actorPseudo ?? "Un collectionneur"} veut t’ajouter en ami.`,
+      text: `${notification.actorPseudo ?? "Joueur supprimé"} veut t’ajouter en ami.`,
       href: "/amis",
       kind: "friend"
     };
@@ -81,7 +81,7 @@ export function notificationItem(
     return {
       ...common,
       title: "Nouvelle offre d’échange",
-      text: `${notification.actorPseudo ?? "Un collectionneur"} t’a envoyé une offre d’échange.`,
+      text: `${notification.actorPseudo ?? "Joueur supprimé"} t’a envoyé une offre d’échange.`,
       href: `/echanges?offre=${notification.referenceId}`,
       kind: "trade"
     };
@@ -89,7 +89,7 @@ export function notificationItem(
     return {
       ...common,
       title: "Nouvelle contre-proposition",
-      text: `${notification.actorPseudo ?? "Un collectionneur"} t’a fait une contre-proposition.`,
+      text: `${notification.actorPseudo ?? "Joueur supprimé"} t’a fait une contre-proposition.`,
       href: `/echanges?offre=${notification.referenceId}`,
       kind: "trade-counter"
     };
@@ -97,7 +97,7 @@ export function notificationItem(
     return {
       ...common,
       title: "Offre acceptée",
-      text: `${notification.actorPseudo ?? "Un collectionneur"} a accepté ton offre d’échange.`,
+      text: `${notification.actorPseudo ?? "Joueur supprimé"} a accepté ton offre d’échange.`,
       href: `/echanges?offre=${notification.referenceId}`,
       kind: "trade-accepted"
     };
@@ -105,7 +105,7 @@ export function notificationItem(
     return {
       ...common,
       title: "Offre refusée",
-      text: `${notification.actorPseudo ?? "Un collectionneur"} a refusé ton offre d’échange.`,
+      text: `${notification.actorPseudo ?? "Joueur supprimé"} a refusé ton offre d’échange.`,
       href: `/echanges?offre=${notification.referenceId}`,
       kind: "trade-declined"
     };
@@ -113,7 +113,7 @@ export function notificationItem(
     return {
       ...common,
       title: "Offre annulée",
-      text: `${notification.actorPseudo ?? "Un collectionneur"} a annulé son offre d’échange.`,
+      text: `${notification.actorPseudo ?? "Joueur supprimé"} a annulé son offre d’échange.`,
       href: `/echanges?offre=${notification.referenceId}`,
       kind: "trade-cancelled"
     };
@@ -137,7 +137,7 @@ export function notificationItem(
     return {
       ...common,
       title: "Mention dans une enchère",
-      text: `${notification.actorPseudo ?? "Un enchérisseur"} t’a mentionné dans la discussion de ${notification.cardName ?? "l’enchère"}.`,
+      text: `${notification.actorPseudo ?? "Joueur supprimé"} t’a mentionné dans la discussion de ${notification.cardName ?? "l’enchère"}.`,
       href: `/marche/${notification.referenceId}#chat-enchere`,
       kind: "mention"
     };

@@ -24,10 +24,10 @@ function reportFromRpc(value: Record<string, unknown>): AdminReport {
   return {
     id: String(value.id ?? ""),
     reporterId: String(value.reporterId ?? ""),
-    reporterPseudo: String(value.reporterPseudo ?? "Joueur"),
+    reporterPseudo: String(value.reporterPseudo ?? "Joueur supprimé"),
     reporterEmail: String(value.reporterEmail ?? ""),
     reportedId: String(value.reportedId ?? ""),
-    reportedPseudo: String(value.reportedPseudo ?? "Joueur"),
+    reportedPseudo: String(value.reportedPseudo ?? "Joueur supprimé"),
     reportedEmail: String(value.reportedEmail ?? ""),
     reportedIsBanned: value.reportedIsBanned === true,
     reason: String(value.reason) as AdminReport["reason"],
@@ -48,7 +48,7 @@ function cardReportFromRpc(value: Record<string, unknown>): AdminCardReport {
   return {
     id: String(value.id ?? ""),
     reporterId: String(value.reporterId ?? ""),
-    reporterPseudo: String(value.reporterPseudo ?? "Joueur"),
+    reporterPseudo: String(value.reporterPseudo ?? "Joueur supprimé"),
     reporterEmail: String(value.reporterEmail ?? ""),
     cardId: String(value.cardId ?? ""),
     cardName: String(value.cardName ?? "Carte"),

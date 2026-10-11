@@ -3,7 +3,7 @@ import {readRpcPages} from "@/lib/data/rpc-pages.mjs";
 import {invalidatePlayerSnapshots,withLiveCardFranchises,type CollectedCard} from "@/lib/data/cards";
 
 export type TradeContext={friend:{id:string;pseudo:string;avatarUrl?:string|null};balance:number;ownCards:CollectedCard[];friendCards:CollectedCard[]};
-export type TradeOffer={id:string;fromUser:string;toUser:string;fromPseudo:string;fromAvatarUrl?:string|null;toPseudo:string;toAvatarUrl?:string|null;incoming:boolean;offeredCards:CollectedCard[];offeredKaras:number;requestedCards:CollectedCard[];requestedKaras:number;status:"pending"|"accepted"|"declined"|"countered"|"cancelled";parentOfferId:string|null;createdAt:string};
+export type TradeOffer={id:string;fromUser:string|null;toUser:string|null;fromPseudo:string;fromAvatarUrl?:string|null;toPseudo:string;toAvatarUrl?:string|null;incoming:boolean;offeredCards:CollectedCard[];offeredKaras:number;requestedCards:CollectedCard[];requestedKaras:number;status:"pending"|"accepted"|"declined"|"countered"|"cancelled";parentOfferId:string|null;createdAt:string};
 export type TradeOfferTab="received"|"sent"|"history";
 export function filterTradeOffers(offers:readonly TradeOffer[],tab:TradeOfferTab){return offers.filter(offer=>tab==="history"?offer.status!=="pending":offer.status==="pending"&&offer.incoming===(tab==="received"));}
 export async function loadTradeContextIfCurrent<T>(load:(friendId:string)=>Promise<T>,friendId:string,requestId:number,current:()=>{friendId:string;requestId:number}){const context=await load(friendId);const latest=current();return latest.friendId===friendId&&latest.requestId===requestId?context:undefined;}
@@ -26,7 +26,7 @@ export const listTradeOffers=async()=>{
   return offers.map(offer=>{
     const offeredCards=cards.slice(offset,offset+=offer.offeredCards.length);
     const requestedCards=cards.slice(offset,offset+=offer.requestedCards.length);
-    return {...offer,offeredCards,requestedCards};
+    return {...offer,fromPseudo:offer.fromPseudo||"Joueur supprimé",toPseudo:offer.toPseudo||"Joueur supprimé",offeredCards,requestedCards};
   });
 };
 export const createTradeOffer=(input:{toUser:string;offeredCardIds:string[];offeredKaras:number;requestedCardIds:string[];requestedKaras:number;parentOfferId?:string|null})=>call<string>("create_trade_offer",{p_to_user:input.toUser,p_offered_card_ids:input.offeredCardIds,p_offered_karas:input.offeredKaras,p_requested_card_ids:input.requestedCardIds,p_requested_karas:input.requestedKaras,p_parent_offer_id:input.parentOfferId??null});
