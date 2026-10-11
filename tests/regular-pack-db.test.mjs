@@ -54,6 +54,7 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
   await db.exec(readFileSync(new URL("../supabase/migrations/20261006000002_auction_bidder_chat.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261007000003_private_friends.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../supabase/migrations/20261008000002_decision_pack_drop_rates.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../supabase/migrations/20261011000000_move_cards_to_folder.sql", import.meta.url), "utf8"));
   await db.query("insert into auth.users values ($1, '{\"pseudo\":\"Alice\"}'), ($2, '{\"pseudo\":\"Bob\"}'), ($3, '{\"pseudo\":\"Charlie\"}')", [alice, bob, charlie]);
   for (const rarity of ["C", "R", "SR", "SSR", "LR"]) {
     await db.query(`insert into public.cards (source_id, nom, categorie, franchise, rarete_base, image_url, source)
@@ -240,6 +241,21 @@ test("migrations et Regular Pack exécutés sur PostgreSQL (PGlite)", async (t) 
     await asUser(alice, () => db.query("select public.delete_folder($1)", [folder.id]));
     assert.equal((await db.query("select folder_id from public.user_cards where id=$1", [copyId])).rows[0].folder_id, null);
     await db.query("delete from public.user_cards where id=$1", [copyId]);
+  });
+
+  await t.test("dossiers : rangement groupé atomique et limité aux cartes possédées", async () => {
+    const cardId = (await db.query("select id from public.cards where source_id='C'")).rows[0].id;
+    const copies = (await db.query("insert into public.user_cards (user_id,card_id,rarity) values ($1,$3,'C'),($1,$3,'C'),($2,$3,'C') returning id,user_id", [alice, bob, cardId])).rows;
+    const aliceCopies = copies.filter(row => row.user_id === alice).map(row => row.id);
+    const bobCopy = copies.find(row => row.user_id === bob).id;
+    const folder = (await asUser(alice, () => db.query("select public.create_folder('À classer') as value"))).rows[0].value;
+    const moved = (await asUser(alice, () => db.query("select public.move_cards_to_folder($1,$2) as value", [aliceCopies, folder.id]))).rows[0].value;
+    assert.equal(moved, 2);
+    assert.equal(Number((await db.query("select count(*) as count from public.user_cards where id=any($1) and folder_id=$2", [aliceCopies, folder.id])).rows[0].count), 2);
+    await assert.rejects(asUser(alice, () => db.query("select public.move_cards_to_folder($1,$2)", [[aliceCopies[0], bobCopy], folder.id])), /CARD_NOT_OWNED/);
+    assert.equal((await db.query("select folder_id from public.user_cards where id=$1", [bobCopy])).rows[0].folder_id, null);
+    await db.query("delete from public.user_cards where id=any($1)", [[...aliceCopies, bobCopy]]);
+    await asUser(alice, () => db.query("select public.delete_folder($1)", [folder.id]));
   });
 
   await t.test("wishlist : toute acquisition retire automatiquement la carte", async () => {

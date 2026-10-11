@@ -46,6 +46,7 @@ export function CollectionPreviewClient({ cards: initialCards }: { cards: Collec
     folders={folders}
     onCreateFolder={async name => { record(`folder:${name}`); setFolders(current => [...current, { id: `folder-${current.length}`, name }]); }}
     onMoveCard={async (instanceId, folderId) => { record(`move:${instanceId}:${folderId}`); update(instanceId, { folderId }); }}
+    onMoveCards={async (instanceIds, folderId) => { record(`moveMany:${instanceIds.length}:${folderId}`); setCards(current => current.map(card => instanceIds.includes(card.instanceId) ? { ...card, folderId } : card)); }}
     onCreateAuction={async (instanceId, price, duration) => { record(`auction:${instanceId}:${price}:${duration}`); }}
     onEvolve={async instanceIds => {
       record(`evolve:${instanceIds.join(",")}`);

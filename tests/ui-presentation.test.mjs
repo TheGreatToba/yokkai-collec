@@ -759,6 +759,18 @@ test("la Collection groupe les tuiles et sélectionne tous les exemplaires dispo
   assert.match(source, /Choisis précisément cinq exemplaires/);
 });
 
+test("la sélection multiple peut être rangée dans un dossier", () => {
+  const collection = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
+  const game = readFileSync(path.join(root, "components/game.tsx"), "utf8");
+  const styles = readFileSync(path.join(root, "styles/collection.css"), "utf8");
+  assert.match(collection, /onMoveCards\?: \(instanceIds: string\[\], folderId: string \| null\)/);
+  assert.match(collection, /selectedCards\.map\(card => card\.instanceId\)/);
+  assert.match(collection, />Choisir un dossier…<\/option>/);
+  assert.match(collection, /bulkFolderBusy\?"Rangement…":"Ranger"/);
+  assert.match(game, /onMoveCards=\{moveCards\}/);
+  assert.match(styles, /\.yk-selection-folder \{/);
+});
+
 test("la mise en vente suggère la valeur de marché sans remplacer le prix par défaut", () => {
   const source = readFileSync(path.join(root, "components/collection.tsx"), "utf8");
   assert.match(source, /loadCardDiscovery = getCardDiscovery/);

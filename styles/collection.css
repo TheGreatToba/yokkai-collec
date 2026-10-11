@@ -61,6 +61,9 @@
 .yk-collection-pagination>label { position: absolute; right: 0; display: flex; align-items: center; gap: calc(var(--spacing) * 2); color: var(--color-ink-3); font-size: var(--text-xs); }
 .yk-collection-pagination select { border: 1px solid var(--color-veil); border-radius: var(--radius-input); background: var(--color-night); padding: calc(var(--spacing) * 2); color: var(--color-ink-2); opacity: 1; }
 .yk-selection-bar { position: sticky; z-index: 20; bottom: var(--layout-gutter-compact); display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--layout-gutter-compact); width: 100%; margin-top: var(--layout-gutter-compact); padding: calc(var(--spacing) * 3) calc(var(--spacing) * 5); border: 1px solid var(--color-veil-strong); border-radius: var(--radius-pill); background: var(--color-surface); box-shadow: var(--shadow-modal); }
+.yk-selection-folder { display: flex; align-items: center; gap: calc(var(--spacing) * 2); }
+.yk-selection-folder select { min-height: calc(var(--spacing) * 9); max-width: 13rem; border: 1px solid var(--color-veil-strong); border-radius: var(--radius-input); background: var(--color-night); padding-inline: calc(var(--spacing) * 3); color: var(--color-ink-2); font-size: var(--text-xs); }
+.yk-selection-folder .yk-button { min-height: calc(var(--spacing) * 9); padding-inline: calc(var(--spacing) * 4); }
 .yk-frozen-overlay { position: absolute; inset: 0; z-index: 9; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--spacing) * 3); border: 1px solid color-mix(in srgb,var(--color-accent-gold) 40%,transparent); border-radius: var(--radius-card); background: color-mix(in srgb,var(--color-void) 66%,transparent); color: var(--color-karas); font-size: var(--text-xs); }
 .yk-frozen-overlay strong { font-size: var(--text-xs); letter-spacing: var(--tracking-wide); }
 .yk-card-detail-modal { width: min(var(--collection-detail-width),calc(100% - var(--layout-gutter) * 2)); }
@@ -147,6 +150,8 @@
   .yk-detail-evolve { grid-template-columns: 1fr; }
   .yk-detail-evolve .yk-button { grid-column: 1; grid-row: auto; width: 100%; }
   .yk-selection-bar { border-radius: var(--radius-panel); gap: calc(var(--spacing) * 3); }
+  .yk-selection-folder { width: 100%; }
+  .yk-selection-folder select { flex: 1; min-width: 0; max-width: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
