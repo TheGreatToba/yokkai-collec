@@ -13,6 +13,21 @@ test("la collection d'un ami charge des images adaptées à la grille", () => {
   assert.doesNotMatch(collection, /imageSizes="100vw"/);
   assert.doesNotMatch(profile, /imageSizes="100vw"/);
   assert.match(collection, /animated=\{!readOnly\}/);
+  assert.match(collection, /<CardShell interactive=\{!readOnly\}>/);
+});
+
+test("la collection en lecture seule neutralise le tilt et la reflexion des cartes", () => {
+  const shell = read("../components/card-shell.tsx");
+  const css = read("../styles/card-shell.css");
+
+  assert.match(shell, /interactive\?: boolean/);
+  assert.match(shell, /demoState \|\| !interactive/);
+  assert.match(shell, /yk-card-shell-static/);
+  assert.match(
+    css,
+    /\.yk-card-shell-static \.yk-card-shell-reflection\s*\{[^}]*display:\s*none/s
+  );
+  assert.match(css, /\.yk-card-shell:not\(\.yk-card-shell-static\)/);
 });
 
 test("la collection d'un ami ne relit pas les licences déjà renvoyées par le RPC", () => {

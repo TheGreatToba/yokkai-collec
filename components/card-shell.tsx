@@ -8,18 +8,20 @@ export type CardShellProps = {
   children: ReactNode;
   className?: string;
   demoState?: "hover" | "tilt" | "reflection";
+  interactive?: boolean;
 };
 
 export function CardShell({
   children,
   className = "",
-  demoState
+  demoState,
+  interactive = true
 }: CardShellProps) {
   const shellRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const shell = shellRef.current;
-    if (!shell || demoState) return;
+    if (!shell || demoState || !interactive) return;
     const precisePointer = window.matchMedia(
       "(hover: hover) and (pointer: fine)"
     );
@@ -81,12 +83,12 @@ export function CardShell({
       reducedMotion.removeEventListener("change", reset);
       precisePointer.removeEventListener("change", reset);
     };
-  }, [demoState]);
+  }, [demoState, interactive]);
 
   return (
     <div
       ref={shellRef}
-      className={`yk-card-shell ${demoState ? `yk-card-shell-demo-${demoState}` : ""} ${className}`}
+      className={`yk-card-shell ${interactive ? "" : "yk-card-shell-static"} ${demoState ? `yk-card-shell-demo-${demoState}` : ""} ${className}`}
       data-card-shell="true"
     >
       <div className="yk-card-shell-plane">

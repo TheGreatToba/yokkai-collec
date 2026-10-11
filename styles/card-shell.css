@@ -49,6 +49,23 @@
   will-change: transform, opacity;
 }
 
+/* Read-only catalogues can show dozens of cards at once. Keeping their
+   pointer-driven 3D layers active makes moving across the grid expensive. */
+.yk-card-shell-static {
+  perspective: none;
+}
+
+.yk-card-shell-static .yk-card-shell-plane {
+  transform: none;
+  transform-style: flat;
+  transition: none;
+  will-change: auto;
+}
+
+.yk-card-shell-static .yk-card-shell-reflection {
+  display: none;
+}
+
 .yk-card-shell-demo-hover,
 .yk-card-shell-demo-tilt,
 .yk-card-shell-demo-reflection {
@@ -66,7 +83,7 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .yk-card-shell:not(.yk-card-shell-demo-tilt):not(
+  .yk-card-shell:not(.yk-card-shell-static):not(.yk-card-shell-demo-tilt):not(
       .yk-card-shell-demo-reflection
     ):hover
     .yk-card-shell-plane,
@@ -75,7 +92,7 @@
       rotateX(var(--shell-tilt-x)) rotateY(var(--shell-tilt-y));
   }
 
-  .yk-card-shell:not(.yk-card-shell-demo-tilt):not(
+  .yk-card-shell:not(.yk-card-shell-static):not(.yk-card-shell-demo-tilt):not(
       .yk-card-shell-demo-reflection
     ):hover {
     --shell-reflect-opacity: var(--card-shell-reflection-opacity);

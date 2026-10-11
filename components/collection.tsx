@@ -1356,7 +1356,7 @@ export function CollectionView({
                                   }
                                   aria-label={`Voir ${owned.name}`}
                                 >
-                                  <CardShell>
+                                  <CardShell interactive={!readOnly}>
                                     <YokaiCard
                                       {...owned}
                                       image={owned.image}
@@ -1565,7 +1565,7 @@ export function CollectionView({
                               : setSelectedId(card.instanceId)
                           }
                         >
-                          <CardShell>
+                          <CardShell interactive={!readOnly}>
                             <YokaiCard
                               {...card}
                               image={card.image}
