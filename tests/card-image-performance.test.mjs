@@ -9,23 +9,21 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 const catalogue =
   "https://images.example.test/storage/v1/object/public/card-images/card-a";
-function load() {
+const source = readFileSync(
+  new URL("../components/yokai-card.tsx", import.meta.url),
+  "utf8"
+);
+function load(input = source) {
   const exports = {};
   vm.runInNewContext(
-    ts.transpileModule(
-      readFileSync(
-        new URL("../components/yokai-card.tsx", import.meta.url),
-        "utf8"
-      ),
-      {
-        compilerOptions: {
-          module: ts.ModuleKind.CommonJS,
-          target: ts.ScriptTarget.ES2020,
-          jsx: ts.JsxEmit.ReactJSX,
-          esModuleInterop: true
-        }
+    ts.transpileModule(input, {
+      compilerOptions: {
+        module: ts.ModuleKind.CommonJS,
+        target: ts.ScriptTarget.ES2020,
+        jsx: ts.JsxEmit.ReactJSX,
+        esModuleInterop: true
       }
-    ).outputText,
+    }).outputText,
     {
       exports,
       URL,
@@ -37,10 +35,9 @@ function load() {
         if (name === "react") return React;
         if (name === "react/jsx-runtime") return jsxRuntime;
         if (name === "next/image")
-          return function OptimizedImage(props) {
-            return;
-            React.createElement("img", { ...props, "data-optimized": "true" });
-          };
+          assert.fail(
+            "Card illustrations must load their original, not next/image"
+          );
         assert.fail(name);
       }
     }
@@ -149,4 +146,120 @@ test("optimizer remains restricted for other callers: exact public Storage origi
   assert.equal(images.remotePatterns[0].search, "");
   assert.equal(images.maximumRedirects, 0);
   assert.notEqual(images.dangerouslyAllowLocalIP, true);
+});
+
+test("real transformations fail the rendered contract for grids and details, for every source", () => {
+  for (const image of [
+    catalogue,
+    "https://s4.anilist.co/art.png",
+    "https://i.imgur.com/art.png",
+    "https://media.giphy.com/art.gif",
+    "https://other.test/art.jpg"
+  ]) {
+    for (const imageSizes of [undefined, "100vw", "190px"]) {
+      const props = {
+        name: "Card",
+        category: "Test",
+        rarity: "C",
+        image,
+        imageSizes
+      };
+      for (const replacement of [
+        'src: "/_next/image?url=" + encodeURIComponent(image ?? "") + "&w=128&q=75"',
+        'src: (image ?? "") + "?width=128&quality=75"',
+        'src: image ?? "", srcSet: (image ?? "") + "?width=128 128w", sizes: "100px"'
+      ]) {
+        const mutated = load(source.replace('src: image ?? ""', replacement));
+        const html = renderToStaticMarkup(React.createElement(mutated, props));
+        assert.throws(
+          () => {
+            assert.match(html, /<img\b/);
+            assert.doesNotMatch(
+              html,
+              /_next\/image|srcSet=|sizes=|quality=|width=128/
+            );
+            assert.ok(html.includes('src="' + image + '"'));
+          },
+          undefined,
+          image + " " + replacement
+        );
+      }
+    }
+  }
+});
+
+test("production grid and detail callers only select original image fields", () => {
+  const names = [
+    "collection",
+    "profile",
+    "community-views",
+    "trades",
+    "boosters"
+  ];
+  function originalObject(node) {
+    return (
+      ts.isIdentifier(node) ||
+      (ts.isPropertyAccessExpression(node) && originalObject(node.expression))
+    );
+  }
+  function originalExpression(node) {
+    if (ts.isPropertyAccessExpression(node))
+      return (
+        originalObject(node.expression) &&
+        ["image", "catalogueImage", "customImageUrl"].includes(node.name.text)
+      );
+    if (ts.isConditionalExpression(node))
+      return (
+        originalExpression(node.whenTrue) && originalExpression(node.whenFalse)
+      );
+    if (
+      ts.isBinaryExpression(node) &&
+      [ts.SyntaxKind.QuestionQuestionToken, ts.SyntaxKind.BarBarToken].includes(
+        node.operatorToken.kind
+      )
+    )
+      return originalExpression(node.left) && originalExpression(node.right);
+    return false;
+  }
+  for (const name of names) {
+    const text = readFileSync(
+      new URL("../components/" + name + ".tsx", import.meta.url),
+      "utf8"
+    );
+    const ast = ts.createSourceFile(
+      name + ".tsx",
+      text,
+      ts.ScriptTarget.Latest,
+      true,
+      ts.ScriptKind.TSX
+    );
+    let count = 0;
+    function walk(node) {
+      if (
+        (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) &&
+        node.tagName.getText(ast) === "YokaiCard"
+      ) {
+        count++;
+        for (const a of node.attributes.properties) {
+          if (
+            ts.isJsxAttribute(a) &&
+            ["image", "fallbackImage", "catalogueImage"].includes(
+              a.name.getText(ast)
+            )
+          ) {
+            assert.ok(
+              a.initializer &&
+                ts.isJsxExpression(a.initializer) &&
+                a.initializer.expression &&
+                originalExpression(a.initializer.expression),
+              name + ": transformed image at caller"
+            );
+          }
+        }
+      }
+      ts.forEachChild(node, walk);
+    }
+    walk(ast);
+    assert.ok(count > 0, name + ": grid/detail coverage missing");
+  }
 });
