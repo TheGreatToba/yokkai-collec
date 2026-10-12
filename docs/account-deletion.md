@@ -1,9 +1,11 @@
 # Suppression de compte côté serveur
 
-La fondation et le service ne proposent encore aucun bouton ni route publique.
-`lib/server/account-deletion.ts` est réservé au serveur ; la future action de
-confirmation devra vérifier l'authentification récente côté serveur et dériver
-l'UUID de la session, sans accepter un UUID fourni par le navigateur.
+Les paramètres proposent la confirmation en retapant son pseudo. L’action serveur
+vérifie la signature du JWT avec Supabase, l’identité encore active et une
+authentification de moins de cinq minutes (`auth_time`, ou AMR signé password,
+magiclink/otp ou OAuth si auth_time manque). `iat` seul ne suffit jamais ; une
+preuve absente, invalide ou ancienne exige une reconnexion. L’UUID provient
+uniquement de la session vérifiée, sans accepter un UUID du navigateur.
 
 La clé `SUPABASE_SECRET_KEY` (ou `SUPABASE_SERVICE_ROLE_KEY`) reste exclusivement
 dans l'environnement serveur. Ne jamais la préfixer `NEXT_PUBLIC_`, la journaliser
@@ -36,6 +38,10 @@ Un objet appartenant au joueur dans un bucket autre que `avatars` exige une
 revue administrative avant l'effacement : les ressources globales ne sont
 jamais supprimées automatiquement.
 
-Déploiement : appliquer la nouvelle migration via `scripts/deploy-migrations.sh`
-après validation du dry-run. Le front reste compatible avec la base antérieure ;
-l'activation du parcours de confirmation fera l'objet d'une PR distincte.
+Déploiement : les migrations de fondation et de suppression serveur doivent être
+appliquées via `scripts/deploy-migrations.sh` avant d’activer cette interface.
+Configurer la clé privée dans l’environnement serveur de l’application (jamais
+dans une variable `NEXT_PUBLIC_`). Le bouton ne peut pas supprimer de compte sans
+cette configuration ; aucun secret ne doit être envoyé dans une conversation.
+Après succès, l’action déconnecte, efface les cookies Auth et redirige vers la
+page publique `/compte-supprime`.
