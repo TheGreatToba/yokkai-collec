@@ -3,6 +3,8 @@ import test from "node:test";
 import { replayMigrations } from "../scripts/replay-migrations.mjs";
 
 const player = "70000000-0000-4000-8000-000000000001";
+const friend = "70000000-0000-4000-8000-000000000002";
+const outsider = "70000000-0000-4000-8000-000000000003";
 
 test("les albums Panini sont paginés et leurs cartes chargées à la demande", async t => {
   const { db } = await replayMigrations();
@@ -95,4 +97,71 @@ test("les albums Panini sont paginés et leurs cartes chargées à la demande", 
       false
     );
   }
+});
+
+test("un ami voit les albums Panini du propriétaire sans confondre les possessions", async t => {
+  const { db } = await replayMigrations();
+  t.after(() => db.close());
+
+  for (const [id, pseudo] of [
+    [player, "PaniniViewer"],
+    [friend, "PaniniFriend"],
+    [outsider, "PaniniOutsider"]
+  ]) {
+    await db.query(
+      "insert into auth.users(id,raw_user_meta_data) values ($1,$2::jsonb)",
+      [id, JSON.stringify({ pseudo })]
+    );
+  }
+  await db.exec(`
+    update public.user_profiles set is_public=false where user_id='${friend}';
+    insert into public.friendships(user_id,friend_id,status)
+    values ('${player}','${friend}','accepted');
+    insert into public.cards(source_id,nom,categorie,franchise,rarete_base,image_url,source)
+    values
+      ('friend-panini-a','Ami A','ANIME/MANGA','Album Ami','C','https://example.test/a.png','panini-friend-test'),
+      ('friend-panini-b','Ami B','ANIME/MANGA','Album Ami','R','https://example.test/b.png','panini-friend-test');
+    insert into public.user_cards(user_id,card_id,rarity)
+    select '${friend}',id,rarete_base from public.cards where source_id='friend-panini-a';
+  `);
+
+  await db.exec("set role authenticated");
+  await db.query("select set_config('request.jwt.claim.sub',$1,false)", [
+    player
+  ]);
+  const albums = (
+    await db.query(
+      "select public.get_friend_panini_albums_page($1,'Album Ami','',0,72) as value",
+      [friend]
+    )
+  ).rows[0].value;
+  assert.deepEqual(albums.items, [
+    { license: "Album Ami", total: 2, owned: 1, percent: 50 }
+  ]);
+
+  const cards = (
+    await db.query(
+      "select public.get_friend_panini_album_cards_page($1,'Album Ami','','',false,0,24) as value",
+      [friend]
+    )
+  ).rows[0].value;
+  assert.equal(cards.total, 2);
+  assert.deepEqual(
+    cards.items.map(card => [card.name, card.owned]),
+    [
+      ["AMI A", true],
+      ["AMI B", false]
+    ]
+  );
+
+  await db.query("select set_config('request.jwt.claim.sub',$1,false)", [
+    outsider
+  ]);
+  await assert.rejects(
+    db.query("select public.get_friend_panini_albums_page($1,'','',0,72)", [
+      friend
+    ]),
+    /PROFILE_PRIVATE/
+  );
+  await db.exec("reset role");
 });
