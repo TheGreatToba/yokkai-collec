@@ -16,8 +16,8 @@ Règles non négociables :
 ## CI locale
 
 - GitHub Actions n'est plus déclenché automatiquement (quota limité). Ne jamais réactiver les triggers `push`/`pull_request` sans l'accord de Walid.
-- Avant tout commit/push, lancer `npm run ci` et ne pas pousser si ça échoue.
-- Si une migration, une fonction SQL ou la logique d'enchères est modifiée, lancer aussi `npm run ci:db` (nécessite Docker).
+- Avant chaque push, le hook pre-push lance `npm run verify:quick` (lint, tsc, format:check et tests unitaires). Ne jamais contourner les hooks.
+- Avant chaque merge, mettre la branche à jour avec `origin/master`, lancer `npm run verify` sur le commit final et exiger un résultat vert juste avant le merge. Coller la sortie résumée (commit, base master, résultats et éventuel avertissement Docker) dans la description de la PR.
 - Regrouper les commits et éviter les push à répétition. Ces consignes remplacent les anciennes recommandations de CI automatique et de pushes fréquents.
 
 <!-- BEGIN:nextjs-agent-rules -->
