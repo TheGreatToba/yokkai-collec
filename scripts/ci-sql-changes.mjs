@@ -44,17 +44,20 @@ if (
       .split("\0")
       .filter(Boolean);
     sql = needsPostgres17(paths, path => {
-      try {
-        return execFileSync("git", ["show", `${HEAD_SHA}:${path}`], {
-          encoding: "utf8",
-          stdio: ["ignore", "pipe", "pipe"]
-        });
-      } catch {
-        return execFileSync("git", ["show", `${BASE_SHA}:${path}`], {
-          encoding: "utf8",
-          stdio: ["ignore", "pipe", "pipe"]
-        });
-      }
+      const versions = [HEAD_SHA, BASE_SHA].flatMap(sha => {
+        try {
+          return [
+            execFileSync("git", ["show", `${sha}:${path}`], {
+              encoding: "utf8",
+              stdio: ["ignore", "pipe", "pipe"]
+            })
+          ];
+        } catch {
+          return [];
+        } // Added/deleted paths exist in only one snapshot.
+      });
+      if (!versions.length) throw new Error("Cannot inspect changed SQL test");
+      return versions.join("\n");
     });
   }
   if (!process.env.GITHUB_OUTPUT) throw new Error("Missing GITHUB_OUTPUT");
