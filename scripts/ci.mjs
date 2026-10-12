@@ -32,7 +32,7 @@ const steps = [
     quick
       ? `Tests unitaires (${tests.length} fichiers)`
       : `Tests complets (${tests.length} fichiers)`,
-    ["--test", ...tests]
+    ["--test", "--test-concurrency=4", ...tests]
   ],
   ...(!quick
     ? [
