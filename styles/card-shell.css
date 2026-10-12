@@ -18,7 +18,7 @@
     rotateY(var(--shell-tilt-y));
   transform-style: preserve-3d;
   transition: transform var(--duration-fast) var(--ease-standard);
-  will-change: transform;
+  will-change: auto;
 }
 
 .yk-card-shell-plane > .yk-card,
@@ -46,7 +46,7 @@
   transition:
     transform var(--duration-fast) var(--ease-standard),
     opacity var(--duration-fast) var(--ease-standard);
-  will-change: transform, opacity;
+  will-change: auto;
 }
 
 /* Read-only catalogues can show dozens of cards at once. Keeping their
@@ -83,6 +83,14 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
+  .yk-card-shell:hover .yk-card-shell-plane {
+    will-change: transform;
+  }
+
+  .yk-card-shell:hover .yk-card-shell-reflection {
+    will-change: transform, opacity;
+  }
+
   .yk-card-shell-static:hover .yk-card-shell-plane {
     transform: translateY(var(--card-shell-hover-lift));
   }
