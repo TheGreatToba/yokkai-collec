@@ -71,3 +71,17 @@ test("current SQL cards skip franchise hydration while old front/base and histor
   assert.equal(mixed[1].anime, "LIVE old");
   assert.equal(mixed[2].instanceId, "legacy");
 });
+
+test("fresh SQL franchises retain trimming and the missing-franchise representation", async () => {
+  const h = setup();
+  const cards = [
+    { id: "spaced", anime: "  LIVE  ", liveFranchise: true },
+    { id: "null", anime: null, liveFranchise: true },
+    { id: "empty", anime: "", liveFranchise: true }
+  ];
+  const result = await h.api.withLiveCardFranchises(cards);
+  assert.equal(h.requests.length, 0);
+  assert.equal(result[0].anime, "LIVE");
+  assert.equal(result[1].anime, undefined);
+  assert.equal(result[2].anime, undefined);
+});
