@@ -42,8 +42,8 @@ Test rouge sur master : 1 échoue, 1 passe. Après correction : égalité du ren
 
 ## URL originales relevées (identiques dans les deux colonnes, DPR indépendant)
 
-- SAM : https://supabaseenvoy-gawq4yyxiise96wens0dt1ex.152.228.141.160.sslip.io/storage/v1/object/public/card-images/5a85f6d10ebfb4a4895ecfae4d729bc0e57b12dfc96daae91d92f93571e9b559
-- BTS : https://supabaseenvoy-gawq4yyxiise96wens0dt1ex.152.228.141.160.sslip.io/storage/v1/object/public/card-images/a2af29d706f2afb1db9ab31b100ef8d3c0450ccca1d8c775d54514f393c02048-678d3b22128b7404
+- SAM : https://api.yokkai-collec.com/storage/v1/object/public/card-images/5a85f6d10ebfb4a4895ecfae4d729bc0e57b12dfc96daae91d92f93571e9b559
+- BTS : https://api.yokkai-collec.com/storage/v1/object/public/card-images/a2af29d706f2afb1db9ab31b100ef8d3c0450ccca1d8c775d54514f393c02048-678d3b22128b7404
 - Rin Shima : https://s4.anilist.co/file/anilistcdn/character/large/b124586-9lGoHg1zZkFr.png
 - Ladybug : https://i.imgur.com/tpX2zQu.png
 - GIF personnel fixture : https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif
