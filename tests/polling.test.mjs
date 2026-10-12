@@ -45,6 +45,7 @@ function fixture(view = "packs") {
   };
   let notifications = [],
     release;
+  const failedOnce = new Set();
   let blocked = false;
   let blockedNotifications = false;
   const client = {
@@ -56,6 +57,8 @@ function fixture(view = "packs") {
     },
     async rpc(name) {
       calls.push({ name, time: now });
+      if (failedOnce.delete(name))
+        return { data: null, error: { message: "initial request failed" } };
       if (name === "list_notifications" && blockedNotifications)
         await new Promise(() => {});
       if (name === "get_regular_pack_status" && blocked)
@@ -90,7 +93,11 @@ function fixture(view = "packs") {
       const query = {
         then(resolve) {
           calls.push({ name, time: now });
-          return Promise.resolve({ data: [], error: null }).then(resolve);
+          return Promise.resolve(
+            failedOnce.delete(name)
+              ? { data: null, error: { message: "initial request failed" } }
+              : { data: [], error: null }
+          ).then(resolve);
         }
       };
       for (const method of [
@@ -222,6 +229,9 @@ function fixture(view = "packs") {
     blockNotifications(value = true) {
       blockedNotifications = value;
     },
+    failFirstRequests(names) {
+      for (const name of names) failedOnce.add(name);
+    },
     blockPacks() {
       blocked = true;
     },
@@ -338,5 +348,47 @@ test("notifications timeout releases inFlight and retry makes a fresh request", 
     f.calls.filter(call => call.name === "list_notifications").length,
     2
   );
+  f.unmount();
+});
+
+test("failed initial reads retry at the next polling interval", async () => {
+  const f = fixture("collection");
+  const failed = [
+    "get_regular_pack_status",
+    "get_decision_pack_status",
+    "user_cards",
+    "folders"
+  ];
+  f.failFirstRequests(failed);
+  await f.mount();
+  const errors = () =>
+    f.updates.filter(update => update.key === 12).at(-1).value;
+  for (const key of ["regular", "decision", "collection", "folders"])
+    assert.ok(errors()[key], `${key} must report its initial failure`);
+  assert.ok(!f.updates.some(update => update.key === 1 && update.value));
+  f.calls.length = 0;
+  await f.advance(29_999);
+  assert.equal(f.calls.length, 0);
+  await f.advance(1);
+  for (const name of failed)
+    assert.equal(
+      f.calls.filter(call => call.name === name).length,
+      1,
+      `${name} must retry once`
+    );
+  for (const key of ["regular", "decision", "collection", "folders"])
+    assert.equal(errors()[key], "");
+  assert.ok(f.updates.some(update => update.key === 1 && update.value));
+  assert.equal(
+    f.updates.filter(update => update.key === 13).at(-1).value,
+    true
+  );
+  f.calls.length = 0;
+  await f.advance(30_000);
+  for (const name of failed)
+    assert.ok(
+      !f.calls.some(call => call.name === name),
+      `${name} must stop retrying after success`
+    );
   f.unmount();
 });
