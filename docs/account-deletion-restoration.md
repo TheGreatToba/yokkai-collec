@@ -45,6 +45,7 @@ ventes, retrait des mises et prolongation éventuelle, annulation des échanges,
 effacement SQL, suppression des avatars via Storage, puis suppression **définitive**
 de l’identité par Auth Admin. Une identité déjà absente est acceptée ; les autres
 échecs arrêtent la liste au premier UUID, sans nouvelle tentative automatique.
+La date originale du journal exporté est conservée (la date la plus ancienne gagne).
 Le verrou de suppression reste actif en cas d’échec partiel ; contrôler cet UUID
 avant une reprise explicite. Les réexécutions n’effectuent pas deux remboursements.
 

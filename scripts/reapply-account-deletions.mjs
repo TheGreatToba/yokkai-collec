@@ -83,9 +83,15 @@ export async function exportJournal(admin, url) {
 }
 
 export async function reapplyJournal(admin, entries) {
-  for (const { user_id } of entries) {
+  for (const { user_id, deleted_at } of entries) {
     try {
       await deleteAccount(user_id, admin);
+      const { error } = await admin
+        .from("account_deletion_log")
+        .update({ deleted_at })
+        .eq("user_id", user_id)
+        .gt("deleted_at", deleted_at);
+      if (error) throw Error("JOURNAL_DATE_RESTORE_FAILED");
     } catch {
       throw Error(`REAPPLICATION_STOPPED: ${user_id} (no automatic retry)`);
     }
@@ -175,6 +181,21 @@ if (
   resolve(process.argv[1]) === fileURLToPath(import.meta.url)
 ) {
   main().catch(error => {
+    const reasons = new Set([
+      "INVALID_JOURNAL_OR_TARGET",
+      "INVALID_JOURNAL_ENTRY",
+      "SUPABASE_URL_AND_PRIVATE_SERVICE_KEY_REQUIRED",
+      "HTTPS_PROJECT_ORIGIN_REQUIRED",
+      "JOURNAL_MUST_STAY_OUTSIDE_REPOSITORY",
+      "INTERACTIVE_CONFIRMATION_REQUIRED",
+      "CONFIRMATION_REFUSED",
+      "JOURNAL_EXPORT_FAILED"
+    ]);
+    console.error(
+      reasons.has(error.message)
+        ? error.message
+        : "RESTORATION_CHECK_OR_REAPPLICATION_FAILED"
+    );
     console.error(
       "Account deletion restoration failed or refused; no automatic retry. Inspect the journal and completed steps before resuming. No provider details or secrets are printed."
     );
