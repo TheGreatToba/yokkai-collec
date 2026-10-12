@@ -578,34 +578,33 @@ export async function importCards({
   }
   async function flush() {
     const ready = [];
-    // Deduplicate before uploads to avoid simultaneous writes to the same object.
+    const validEntries = [];
+    for (const { row, index } of batch) {
+      try {
+        validEntries.push({ row, index, card: validateCard(row) });
+      } catch (error) {
+        await skip(row, index, "validation", error);
+      }
+    }
+    // Validate before deduplicating so an invalid duplicate (for example a row
+    // without an image) cannot replace an otherwise importable card.
     const work = [
       ...new Map(
-        batch.map(entry => {
-          let identity = entry.row.source_id?.trim();
-          if (!identity && entry.row.source?.trim() === "manual") {
-            identity = `${entry.row.categorie?.trim().toLocaleLowerCase("fr")}\0${entry.row.nom?.trim().toLocaleLowerCase("fr")}`;
-          }
-          return [JSON.stringify([entry.row.source?.trim(), identity]), entry];
-        })
+        validEntries.map(entry => [
+          JSON.stringify([entry.card.source, entry.card.source_id]),
+          entry
+        ])
       ).values()
     ];
-    stats.duplicates += batch.length - work.length;
+    stats.duplicates += validEntries.length - work.length;
+    stats.valid += work.length;
     let cursor = 0;
     let fatal;
     await Promise.all(
       Array.from({ length: Math.min(concurrency, work.length) }, async () => {
         try {
           while (!fatal && cursor < work.length) {
-            const { row, index } = work[cursor++];
-            let card;
-            try {
-              card = validateCard(row);
-            } catch (error) {
-              await skip(row, index, "validation", error);
-              continue;
-            }
-            stats.valid++;
+            const { row, index, card } = work[cursor++];
             if (dryRun) continue;
             let image;
             try {
