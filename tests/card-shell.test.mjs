@@ -52,11 +52,15 @@ test("le tilt ne rerend pas React et anime seulement transform et opacite", () =
   );
   assert.match(
     normalizeWhitespace(css),
-    normalizeWhitespace(/will-change:\s*transform;/)
+    normalizeWhitespace(
+      /\.yk-card-shell:hover \.yk-card-shell-plane[^}]*will-change:\s*transform;/s
+    )
   );
   assert.match(
     normalizeWhitespace(css),
-    normalizeWhitespace(/will-change:\s*transform,opacity;/)
+    normalizeWhitespace(
+      /\.yk-card-shell:hover \.yk-card-shell-reflection[^}]*will-change:\s*transform,opacity;/s
+    )
   );
   assert.doesNotMatch(
     normalizeWhitespace(css),

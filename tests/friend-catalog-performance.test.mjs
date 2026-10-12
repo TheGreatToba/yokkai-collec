@@ -13,7 +13,7 @@ test("la collection d'un ami charge des images adaptées à la grille", () => {
   assert.doesNotMatch(collection, /imageSizes="100vw"/);
   assert.doesNotMatch(profile, /imageSizes="100vw"/);
   assert.match(collection, /animated=\{!readOnly\}/);
-  assert.match(collection, /<CardShell interactive=\{!readOnly\}>/);
+  assert.doesNotMatch(collection, /<CardShell interactive=\{!readOnly\}>/);
 });
 
 test("la collection en lecture seule neutralise le tilt et la reflexion des cartes", () => {
@@ -32,6 +32,22 @@ test("la collection en lecture seule neutralise le tilt et la reflexion des cart
     /\.yk-card-shell-static:hover \.yk-card-shell-plane\s*\{[^}]*translateY\(var\(--card-shell-hover-lift\)\)/s
   );
   assert.match(css, /\.yk-card-shell:not\(\.yk-card-shell-static\)/);
+});
+
+test("le catalogue d'un ami conserve le hover fluide sans promouvoir toutes les cartes sur le GPU", () => {
+  const collection = read("../components/collection.tsx");
+  const css = read("../styles/card-shell.css");
+
+  assert.match(collection, /animated=\{!readOnly\}/);
+  assert.match(css, /\.yk-card-shell-plane[^}]*will-change:\s*auto/s);
+  assert.match(
+    css,
+    /\.yk-card-shell:hover \.yk-card-shell-plane\s*\{[^}]*will-change:\s*transform/s
+  );
+  assert.match(
+    css,
+    /\.yk-card-shell:hover \.yk-card-shell-reflection\s*\{[^}]*will-change:\s*transform,\s*opacity/s
+  );
 });
 
 test("la collection d'un ami ne relit pas les licences déjà renvoyées par le RPC", () => {
