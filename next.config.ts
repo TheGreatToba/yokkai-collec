@@ -32,18 +32,19 @@ const nextConfig: NextConfig = {
     const connections = [
       origin,
       origin.replace(/^http/, "ws"),
-      "https://api.giphy.com"
+      "https://api.giphy.com",
+      "https://cloudflareinsights.com"
     ].filter(Boolean);
     // Static Next.js pages need inline hydration scripts and inline component styles.
     // Report-Only first: inspect browser violations before a separate enforcing PR.
     const csp = [
       "default-src 'self'",
-      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
-      "style-src 'self' 'unsafe-inline'",
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://static.cloudflareinsights.com`,
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       `connect-src 'self' ${connections.join(" ")}${isDev ? " ws:" : ""}`,
       // Catalogue sources vary; custom images and share downloads also use HTTPS/blob/data.
       "img-src 'self' https: data: blob:",
-      "font-src 'self'",
+      "font-src 'self' https://fonts.gstatic.com",
       "media-src 'self' blob:",
       "object-src 'none'",
       "base-uri 'self'",
