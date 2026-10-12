@@ -6,6 +6,8 @@ Règles non négociables :
 
 - Lancer npm run format avant tout commit ; ne jamais utiliser --no-verify.
 
+- Ne jamais affaiblir un test existant (assertion supprimée ou assouplie, seuil abaissé, test ignoré) dans la même PR que le code qu'il vérifie. Si un test protège une décision produit (qualité des images, droits SQL, taux de drop…), toute modification doit être signalée explicitement dans la description de la PR et validée par Walid.
+
 - Toujours lancer `git status` et `git fetch origin` avant de commencer une tâche.
 - Ne jamais pousser directement sur `master` : partir d'une branche `<initiales>/<description>` créée depuis `origin/master`.
 - Ouvrir une Pull Request pour toute tâche, même petite.
