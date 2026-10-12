@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { deleteAccount } from "../lib/server/account-deletion-core.mjs";
 import { readFile, open, unlink } from "node:fs/promises";
 import { createHash } from "node:crypto";
-import { resolve, relative, isAbsolute } from "node:path";
+import { resolve, relative, isAbsolute, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createInterface } from "node:readline/promises";
 
@@ -128,7 +128,11 @@ async function main() {
     const destination = resolve(options.export);
     const repo = fileURLToPath(new URL("../", import.meta.url));
     const within = relative(repo, destination);
-    if (!within.startsWith("..") && !isAbsolute(within))
+    if (
+      within !== ".." &&
+      !within.startsWith(`..${sep}`) &&
+      !isAbsolute(within)
+    )
       throw Error("JOURNAL_MUST_STAY_OUTSIDE_REPOSITORY");
     const journal = await exportJournal(admin, url);
     const file = await open(destination, "wx", 0o600);
