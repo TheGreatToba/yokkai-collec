@@ -145,11 +145,11 @@ sont des documents historiques/de conception, pas le descriptif de la production
 
 ## Runtime du front
 
-Le dépôt fixe Node.js 22.x dans `package.json` et `nixpacks.toml`. Le plan Nixpacks
-installe le lockfile avec `npm ci --include=dev`, construit avec `npm run build`,
-puis démarre avec `npm run start` (port fourni par l'hébergement).
-Les variables Supabase restent dans la configuration privée de l'hébergeur.
-Vérifier que Coolify utilise bien Nixpacks et ne surcharge pas ces commandes ou
-`NIXPACKS_NODE_VERSION` avant d'adopter cette configuration ; aucun réglage Coolify
-n'est modifié par cette PR. Le build du front n'applique jamais les migrations.
-Source : [fournisseur Node Nixpacks](https://nixpacks.com/docs/providers/node).
+Le dépôt fixe Node.js 22.x dans `package.json` et Node 22 dans `railpack.json`.
+Coolify utilise Railpack (vérifié en lecture seule). Le plan installe le lockfile
+avec `npm ci --include=dev`, construit avec `npm run build`, puis démarre avec
+`npm run start` (port fourni par l’hébergement). Les couches et caches générés
+par le fournisseur Node sont conservés. Les variables Supabase restent dans la
+configuration privée de l’hébergeur. Vérifier les éventuelles surcharges Coolify
+avant adoption ; le build du front n’applique jamais les migrations.
+Source : [configuration officielle Railpack](https://railpack.com/config/file/).

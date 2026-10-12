@@ -10,18 +10,11 @@ test("deployment pins the same Node major as verification and explicit npm phase
   );
   assert.equal(pkg.engines?.node, "22.x");
   assert.deepEqual(lock.packages[""].engines, pkg.engines);
-  const config = readFileSync(
-    new URL("../nixpacks.toml", import.meta.url),
-    "utf8"
+  const config = JSON.parse(
+    readFileSync(new URL("../railpack.json", import.meta.url), "utf8")
   );
-  assert.match(config, /NIXPACKS_NODE_VERSION\s*=\s*"22"/);
-  assert.match(
-    config,
-    /\[phases\.install\][\s\S]*?cmds\s*=\s*\["npm ci --include=dev"\]/
-  );
-  assert.match(
-    config,
-    /\[phases\.build\][\s\S]*?cmds\s*=\s*\["npm run build"\]/
-  );
-  assert.match(config, /\[start\][\s\S]*?cmd\s*=\s*"npm run start"/);
+  assert.equal(config.packages.node, "22");
+  assert.deepEqual(config.steps.install.commands, ["npm ci --include=dev"]);
+  assert.deepEqual(config.steps.build.commands, ["npm run build"]);
+  assert.equal(config.deploy.startCommand, "npm run start");
 });
