@@ -4,8 +4,7 @@ import test from "node:test";
 import { replayMigrations } from "../scripts/replay-migrations.mjs";
 
 const player = "10000000-0000-4000-8000-000000000001";
-const origin =
-  "https://supabaseenvoy-gawq4yyxiise96wens0dt1ex.152.228.141.160.sslip.io";
+const origin = "https://api.yokkai-collec.com";
 const avatar = `${origin}/storage/v1/object/public/avatars/${player}/avatar.png?v=123`;
 const migration = "20261009000007_validate_profile_avatar.sql";
 
