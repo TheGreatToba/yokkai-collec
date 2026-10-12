@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Avatar, Button, Modal, Toast } from "@/components/ui";
 import { YokaiCard } from "@/components/yokai-card";
 import { CardShell } from "@/components/card-shell";
@@ -20,6 +20,8 @@ import {
 } from "@/lib/data/cards";
 import {
   getFriendCollection,
+  getFriendPaniniAlbumCardsPage,
+  getFriendPaniniAlbumsPage,
   getProfile,
   saveProfile,
   uploadAvatar,
@@ -576,6 +578,20 @@ export function ProfileExperience({
   const [wishlistOpen, setWishlistOpen] = useState(false);
   const [friendCards, setFriendCards] = useState<CollectedCard[]>();
   const [collectionError, setCollectionError] = useState("");
+  const loadFriendPaniniAlbums = useCallback(
+    (options: Parameters<typeof getFriendPaniniAlbumsPage>[1]) => {
+      if (!profile) return Promise.reject(new Error("Profil indisponible."));
+      return getFriendPaniniAlbumsPage(profile.id, options);
+    },
+    [profile]
+  );
+  const loadFriendPaniniAlbumCards = useCallback(
+    (options: Parameters<typeof getFriendPaniniAlbumCardsPage>[1]) => {
+      if (!profile) return Promise.reject(new Error("Profil indisponible."));
+      return getFriendPaniniAlbumCardsPage(profile.id, options);
+    },
+    [profile]
+  );
   useEffect(() => {
     let active = true;
     void Promise.all([
@@ -872,6 +888,8 @@ export function ProfileExperience({
           <CollectionView
             cards={friendCards}
             categories={categories}
+            loadPaniniAlbums={loadFriendPaniniAlbums}
+            loadPaniniAlbumCards={loadFriendPaniniAlbumCards}
             readOnly
           />
         ) : (

@@ -37,6 +37,11 @@ const allowlist = {
   "public.get_card_discovery(uuid, integer, integer)": ["authenticated"], // Discovery exposes permitted collector information.
   "public.get_decision_pack_status()": ["authenticated"], // Reads the current player's pack state.
   "public.get_friend_collection(uuid)": ["authenticated"], // Collection read enforces friendship and privacy.
+  "public.get_friend_panini_album_cards_page(uuid, text, text, text, boolean, integer, integer)":
+    ["authenticated"], // Panini card progress enforces the same collection privacy before reading another player.
+  "public.get_friend_panini_albums_page(uuid, text, text, integer, integer)": [
+    "authenticated"
+  ], // Panini album progress enforces the same collection privacy before reading another player.
   "public.get_friendships()": ["authenticated"], // Reads the current player's social relationships.
   "public.get_friendships_page(jsonb, integer)": ["authenticated"], // Bounded pages only expose auth.uid() relationships, preserving the existing privacy and ordering.
   "public.get_game_info()": ["authenticated"], // Narrow access to the current player's balance and game state.
