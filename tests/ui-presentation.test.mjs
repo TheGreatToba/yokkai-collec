@@ -748,7 +748,7 @@ test("le compteur de cartes ouvre toute collection autorisée en lecture seule",
   assert.match(
     normalizeWhitespace(profile),
     normalizeWhitespace(
-      /<CollectionView cards=\{friendCards\} categories=\{categories\} readOnly\/>/
+      /<CollectionView cards=\{friendCards\} categories=\{categories\} loadPaniniAlbums=\{loadFriendPaniniAlbums\} loadPaniniAlbumCards=\{loadFriendPaniniAlbumCards\} readOnly\/>/
     )
   );
   assert.match(

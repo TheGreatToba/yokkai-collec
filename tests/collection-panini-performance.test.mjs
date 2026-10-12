@@ -10,6 +10,10 @@ const collection = readFileSync(
   new URL("../components/collection.tsx", import.meta.url),
   "utf8"
 );
+const profile = readFileSync(
+  new URL("../components/profile.tsx", import.meta.url),
+  "utf8"
+);
 
 test("la collection normale ne télécharge plus le catalogue complet", () => {
   assert.doesNotMatch(game, /getAllCards/);
@@ -33,5 +37,17 @@ test("le bouton Album Panini revient à la collection normale au second clic", (
   assert.match(
     collection,
     /setViewMode\(current =>\s*current === "panini" \? "grid" : "panini"\s*\)/
+  );
+});
+
+test("la collection d'un ami reçoit ses propres chargeurs Panini", () => {
+  assert.match(profile, /getFriendPaniniAlbumsPage\(profile\.id, options\)/);
+  assert.match(
+    profile,
+    /getFriendPaniniAlbumCardsPage\(profile\.id, options\)/
+  );
+  assert.match(
+    profile,
+    /loadPaniniAlbums=\{loadFriendPaniniAlbums\}[^]*loadPaniniAlbumCards=\{loadFriendPaniniAlbumCards\}[^]*readOnly/
   );
 });
