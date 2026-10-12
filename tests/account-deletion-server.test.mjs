@@ -1,3 +1,4 @@
+import * as deletionCore from "../lib/server/account-deletion-core.mjs";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
@@ -58,6 +59,7 @@ function harness({
       require: name =>
         ({
           "server-only": {},
+          "./account-deletion-core.mjs": deletionCore,
           "@supabase/supabase-js": { createClient: () => admin },
           "@/lib/auth/session": { getCurrentUser: async () => user },
           "@/utils/supabase/config": {
