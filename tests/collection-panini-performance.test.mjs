@@ -33,7 +33,13 @@ test("les données Panini ne sont chargées que lorsque ce mode est ouvert", () 
   );
 });
 
-test("le bouton Album Panini revient à la collection normale au second clic", () => {
+test("le bouton Classeur revient à la collection normale au second clic", () => {
+  assert.match(collection, /<span>Classeur<\/span>/);
+  assert.match(collection, /<h2>Mes classeurs par licence<\/h2>/);
+  assert.doesNotMatch(
+    collection,
+    /Album Panini|Mode Panini|Mes albums par licence|Tous les albums|Chargement des albums/
+  );
   assert.match(
     collection,
     /setViewMode\(current =>\s*current === "panini" \? "grid" : "panini"\s*\)/

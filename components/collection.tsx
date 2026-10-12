@@ -409,7 +409,7 @@ export function CollectionView({
               setPaniniError(
                 error instanceof Error
                   ? error.message
-                  : "Impossible de charger les albums."
+                  : "Impossible de charger les classeurs."
               );
           }
         )
@@ -454,7 +454,7 @@ export function CollectionView({
               setPaniniError(
                 error instanceof Error
                   ? error.message
-                  : "Impossible de charger les cartes de cet album."
+                  : "Impossible de charger les cartes de ce classeur."
               );
           }
         )
@@ -1192,7 +1192,7 @@ export function CollectionView({
                       <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v17H6.5A2.5 2.5 0 0 0 4 22V5.5Z" />
                       <path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v17h4.5A2.5 2.5 0 0 1 20 22V5.5Z" />
                     </svg>
-                    <span>Album Panini</span>
+                    <span>Classeur</span>
                   </Button>
                 </div>
                 <button
@@ -1254,7 +1254,10 @@ export function CollectionView({
                 </div>
               </div>
               {viewMode === "panini" ? (
-                <section className="yk-panini" aria-label="Albums par licence">
+                <section
+                  className="yk-panini"
+                  aria-label="Classeurs par licence"
+                >
                   {selectedLicense ? (
                     <>
                       <div className="yk-panini-album-head">
@@ -1267,10 +1270,10 @@ export function CollectionView({
                             setPaniniPage(1);
                           }}
                         >
-                          ← Tous les albums
+                          ← Tous les classeurs
                         </button>
                         <div>
-                          <p className="yk-section-title">Album Panini</p>
+                          <p className="yk-section-title">Classeur</p>
                           <h2>{selectedLicense}</h2>
                         </div>
                         <p>
@@ -1330,7 +1333,7 @@ export function CollectionView({
                       )}
                       {paniniBusy && (
                         <div className="yk-panini-empty" role="status">
-                          <strong>Chargement de l’album…</strong>
+                          <strong>Chargement du classeur…</strong>
                         </div>
                       )}
                       {!paniniBusy &&
@@ -1386,7 +1389,7 @@ export function CollectionView({
                             page={activePaniniPage}
                             pageCount={paniniPageCount}
                             onPageChange={setPaniniPage}
-                            label={`Pagination de l’album ${selectedLicense}`}
+                            label={`Pagination du classeur ${selectedLicense}`}
                           />
                           <label>
                             Cartes par page
@@ -1411,8 +1414,8 @@ export function CollectionView({
                     <>
                       <div className="yk-panini-heading">
                         <div>
-                          <p className="yk-section-title">Mode Panini</p>
-                          <h2>Mes albums par licence</h2>
+                          <p className="yk-section-title">Classeur</p>
+                          <h2>Mes classeurs par licence</h2>
                         </div>
                         <p>
                           {paniniAlbums.total} licence
@@ -1452,7 +1455,7 @@ export function CollectionView({
                       )}
                       {paniniBusy && (
                         <div className="yk-panini-empty" role="status">
-                          <strong>Chargement des albums…</strong>
+                          <strong>Chargement des classeurs…</strong>
                         </div>
                       )}
                       {!paniniBusy &&
@@ -1496,7 +1499,7 @@ export function CollectionView({
                             page={activePaniniAlbumPage}
                             pageCount={paniniAlbumPageCount}
                             onPageChange={setPaniniAlbumPage}
-                            label="Pagination des albums Panini"
+                            label="Pagination des classeurs"
                           />
                           <span className="yk-panini-page-limit">
                             72 collections par page
