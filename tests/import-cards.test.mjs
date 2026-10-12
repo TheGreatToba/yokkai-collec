@@ -9,6 +9,7 @@ import {
   createImageRequestLimiter,
   downloadImage,
   imagePath,
+  imageUrlFromCsvRow,
   importCards,
   planNameCategoryImport,
   prepareStorage,
@@ -33,6 +34,12 @@ const validPng = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
   "base64"
 );
+
+test("la dernière colonne CSV sans en-tête est reconnue comme image", () => {
+  const url = "https://images.example.test/card.png";
+  assert.equal(imageUrlFromCsvRow({ "": url }), url);
+  assert.equal(imageUrlFromCsvRow({ "": url, image_url: "" }), url);
+});
 const image = () =>
   new Response(validPng, {
     headers: { "content-type": "image/png" }

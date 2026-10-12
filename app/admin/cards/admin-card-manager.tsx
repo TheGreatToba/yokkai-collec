@@ -271,10 +271,10 @@ export function AdminCardManager({
           <h2 className="text-xl font-bold">Importer un CSV</h2>
           <p className="text-sm text-slate-300">
             Jusqu’à 500 lignes. Colonnes : nom, categorie, franchise,
-            rarete_base et image_url. Le source_id manquant est créé
-            automatiquement ; les lignes invalides sont ignorées sans bloquer
-            les cartes valides. Les images sont téléchargées lentement (2
-            simultanées maximum).
+            rarete_base et image_url. Une dernière colonne d’image sans titre
+            est aussi reconnue. Le source_id manquant est créé automatiquement ;
+            les lignes invalides sont ignorées sans bloquer les cartes valides.
+            Les images sont téléchargées lentement (2 simultanées maximum).
           </p>
           <input
             accept=".csv,text/csv"
