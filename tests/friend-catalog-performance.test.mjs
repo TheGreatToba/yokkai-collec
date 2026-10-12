@@ -50,6 +50,24 @@ test("le catalogue d'un ami conserve le hover fluide sans promouvoir toutes les 
   );
 });
 
+test("la modale de collection d'un ami n'impose pas de flou plein ecran pendant le tilt", () => {
+  const profile = read("../components/profile.tsx");
+  const css = read("../styles/community.css");
+
+  assert.match(
+    profile,
+    /className="yk-friend-collection-modal yk-friend-card-grid-modal"/
+  );
+  assert.match(
+    css,
+    /\.yk-modal\.yk-friend-card-grid-modal::backdrop\s*\{[^}]*backdrop-filter:\s*none/s
+  );
+  assert.match(
+    css,
+    /\.yk-friend-card-grid-modal \.yk-collection-grid > li\s*\{[^}]*contain:\s*layout style/s
+  );
+});
+
 test("la collection d'un ami ne relit pas les licences déjà renvoyées par le RPC", () => {
   const profileData = read("../lib/data/profile.ts");
   const implementation = profileData.match(

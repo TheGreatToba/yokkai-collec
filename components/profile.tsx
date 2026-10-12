@@ -853,7 +853,7 @@ export function ProfileExperience({
         open={collectionOpen}
         onClose={() => setCollectionOpen(false)}
         title={`Collection de ${profile.pseudo}`}
-        className="yk-friend-collection-modal"
+        className="yk-friend-collection-modal yk-friend-card-grid-modal"
       >
         {collectionError ? (
           <div className="yk-empty-state">
