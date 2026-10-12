@@ -143,6 +143,12 @@ Voir [le workflow d’équipe](docs/COLLABORATION.md), [l’audit](AUDIT.md) et
 [les chantiers différés](docs/TODO.md). `v0.1-mvp.md` et `spec-complete-vision.md`
 sont des documents historiques/de conception, pas le descriptif de la production.
 
+## Effacements après restauration
+
+Avant de restaurer un ancien backup, exporter le journal privé des suppressions ;
+après restauration, réappliquer les effacements avant de rouvrir le jeu.
+Voir [la procédure et son script](docs/account-deletion-restoration.md).
+
 ## Runtime du front
 
 Le dépôt fixe Node.js 22.x dans `package.json` et Node 22 dans `railpack.json`.
