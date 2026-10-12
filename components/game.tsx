@@ -92,6 +92,7 @@ export function Game({
     let active = true;
     let backgroundStarted = false;
     const pending = new Map<string, Promise<unknown>>();
+    const failed = new Set<string>();
     function load<T>(
       key: string,
       read: () => Promise<T>,
@@ -104,10 +105,12 @@ export function Game({
         .then(
           value => {
             if (!active) return;
+            failed.delete(key);
             apply(value);
             if (key === "collection") setCollectionReady(true);
           },
           failure => {
+            failed.add(key);
             if (active)
               setLoadErrors(current => ({
                 ...current,
@@ -134,6 +137,7 @@ export function Game({
       releaseBoostersBackground();
     }
     function refresh(full: boolean) {
+      for (const key of failed) retries.current[key]?.();
       void load("info", reads.getGameInfo, setInfo);
       const packs =
         full || view === "packs"

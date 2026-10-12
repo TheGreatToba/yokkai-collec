@@ -30,7 +30,7 @@ export function PresenceHeartbeat() {
     };
     const onActivity = () => pulse();
     const onVisible = () => {
-      if (document.visibilityState === "visible") pulse(true);
+      if (document.visibilityState === "visible") pulse();
     };
     pulse(true);
     for (const event of ACTIVITY_EVENTS)
