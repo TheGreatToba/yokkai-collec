@@ -196,10 +196,17 @@ test("production grid and detail callers only select original image fields", () 
     "trades",
     "boosters"
   ];
+  function originalObject(node) {
+    return (
+      ts.isIdentifier(node) ||
+      (ts.isPropertyAccessExpression(node) && originalObject(node.expression))
+    );
+  }
   function originalExpression(node) {
     if (ts.isPropertyAccessExpression(node))
-      return ["image", "catalogueImage", "customImageUrl"].includes(
-        node.name.text
+      return (
+        originalObject(node.expression) &&
+        ["image", "catalogueImage", "customImageUrl"].includes(node.name.text)
       );
     if (ts.isConditionalExpression(node))
       return (
