@@ -5,7 +5,7 @@ import { createPlayerSnapshotCache, PLAYER_SNAPSHOT_TTL, publishPlayerSnapshotIn
 
 export type Rarity = "C" | "R" | "SR" | "SSR" | "LR";
 export type Category = string;
-export type Card = { id: string; name: string; category: Category; anime?: string; rarity: Rarity; image: string; wishlisted?: boolean };
+export type Card = { id: string; name: string; category: Category; anime?: string; liveFranchise?: boolean; rarity: Rarity; image: string; wishlisted?: boolean };
 export type CataloguePage = { cards: Card[]; total: number };
 export type LicenseCatalogueTotal = { license: string; total: number };
 export type PaniniAlbumProgress = LicenseCatalogueTotal & {
@@ -69,7 +69,8 @@ function cardFromRow(row: CardRow): Card {
 
 export async function withLiveCardFranchises<T extends Card>(cards: T[], bounded = false): Promise<T[]> {
   if (!cards.length) return cards;
-  const ids = [...new Set(cards.map(card => card.id))];
+  const ids = [...new Set(cards.filter(card => card.liveFranchise !== true).map(card => card.id))];
+  if (!ids.length) return cards.map(card => ({ ...card, anime: card.anime?.trim() || undefined }));
   // Batched: the gateway rejects GET URLs above ~25 KB (≈700 uuids) with a bare 400.
   const batches = Array.from({ length: Math.ceil(ids.length / FRANCHISE_BATCH) }, (_, i) => ids.slice(i * FRANCHISE_BATCH, (i + 1) * FRANCHISE_BATCH));
   const results = await Promise.all(batches.map(batch => { const query = db().from("cards").select("id,franchise").in("id", batch); return bounded ? readRequest(signal => query.abortSignal(signal)) : query; }));
@@ -77,7 +78,7 @@ export async function withLiveCardFranchises<T extends Card>(cards: T[], bounded
   if (failed?.error) throw failure(failed.error);
   const rows = results.flatMap(result => result.data as {id:string;franchise:string|null}[]);
   const franchises = new Map(rows.map(row => [row.id, row.franchise?.trim() || undefined]));
-  return cards.map(card => ({ ...card, anime: franchises.get(card.id) }));
+  return cards.map(card => ({ ...card, anime: card.liveFranchise === true ? card.anime?.trim() || undefined : franchises.get(card.id) }));
 }
 
 async function withPackDestructionValues<T extends Card & {instanceId:string}>(cards:T[], bounded = false):Promise<(T & {destructionValue:number})[]> {
