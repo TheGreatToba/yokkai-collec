@@ -17,4 +17,6 @@ MSG
     exit 1
   fi
 done
-exit 0
+root=$(git rev-parse --show-toplevel) || exit 1
+cd "$root" || exit 1
+exec npm run verify:quick
