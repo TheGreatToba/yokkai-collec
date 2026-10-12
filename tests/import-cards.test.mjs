@@ -313,6 +313,32 @@ test("lots, échec image ignoré, erreurs journalisées et reprise sans doublons
   );
 });
 
+test("une ligne dupliquée sans image n'empêche pas l'import de la ligne valide", async () => {
+  const client = fakeClient();
+  const failures = [];
+  const stats = await importCards({
+    rows: [
+      row("same-card"),
+      { ...row("same-card"), image_url: "" },
+      row("other-card")
+    ],
+    client,
+    fetchImage: async () => image(),
+    log: silent,
+    onFailure: async failure => failures.push(failure)
+  });
+
+  assert.equal(stats.imported, 2);
+  assert.equal(stats.skipped, 1);
+  assert.equal(stats.duplicates, 0);
+  assert.equal(failures[0].record, 2);
+  assert.match(failures[0].message, /Champ vide : image_url/);
+  assert.deepEqual(
+    [...client.cards.values()].map(card => card.source_id).sort(),
+    ["other-card", "same-card"]
+  );
+});
+
 test("429/5xx sont retentés, contrairement aux erreurs permanentes", async () => {
   let attempts = 0;
   let waits = 0;
