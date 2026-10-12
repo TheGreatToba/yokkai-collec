@@ -219,6 +219,15 @@
 .yk-modal.yk-friend-collection-modal {
   width: min(1400px, calc(100% - 32px));
 }
+.yk-modal.yk-friend-card-grid-modal::backdrop {
+  /* A full-screen backdrop blur is recomposited while cards tilt. Keeping the
+     same dark veil without the blur makes friend cards as responsive as the
+     cards on the standalone Collection page. */
+  backdrop-filter: none;
+}
+.yk-friend-card-grid-modal .yk-collection-grid > li {
+  contain: layout style;
+}
 .yk-friend-wishlist-layout {
   display: grid;
   grid-template-columns: var(--collection-sidebar-width) minmax(0, 1fr);
