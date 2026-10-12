@@ -19,4 +19,6 @@ MSG
 done
 root=$(git rev-parse --show-toplevel) || exit 1
 cd "$root" || exit 1
+# Tests create disposable repositories: do not inherit this repository context.
+unset $(git rev-parse --local-env-vars)
 exec npm run verify:quick

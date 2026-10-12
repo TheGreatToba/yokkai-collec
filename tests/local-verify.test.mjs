@@ -77,13 +77,19 @@ test("real pre-push rejects master before checks and propagates a failing fast c
     mkdirSync(bin);
     writeFileSync(
       join(bin, "npm"),
-      '#!/bin/sh\nprintf "%s\\n" "$*" > ran\nexit 17\n',
+      '#!/bin/sh\nprintf "%s\\n" "$*" > ran\ntest -z "${GIT_DIR-}${GIT_WORK_TREE-}${GIT_INDEX_FILE-}" || exit 19\nexit 17\n',
       { mode: 0o755 }
     );
     const hook = fileURLToPath(
       new URL("../.githooks/pre-push", import.meta.url)
     );
-    const env = { ...process.env, PATH: bin + delimiter + process.env.PATH };
+    const env = {
+      ...process.env,
+      PATH: bin + delimiter + process.env.PATH,
+      GIT_DIR: join(dir, ".git"),
+      GIT_WORK_TREE: dir,
+      GIT_INDEX_FILE: join(dir, ".git", "index")
+    };
     const master = spawnSync(bash, [hook], {
       cwd: dir,
       env,
