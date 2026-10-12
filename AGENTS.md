@@ -13,6 +13,13 @@ Règles non négociables :
 - Ouvrir une Pull Request pour toute tâche, même petite.
 - Indiquer dans la PR les migrations Supabase qu'elle contient et si elles sont déjà appliquées sur le VPS ou non.
 
+## CI locale
+
+- GitHub Actions n'est plus déclenché automatiquement (quota limité). Ne jamais réactiver les triggers `push`/`pull_request` sans l'accord de Walid.
+- Avant tout commit/push, lancer `npm run ci` et ne pas pousser si ça échoue.
+- Si une migration, une fonction SQL ou la logique d'enchères est modifiée, lancer aussi `npm run ci:db` (nécessite Docker).
+- Regrouper les commits et éviter les push à répétition. Ces consignes remplacent les anciennes recommandations de CI automatique et de pushes fréquents.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know
