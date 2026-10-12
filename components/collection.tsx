@@ -1172,7 +1172,9 @@ export function CollectionView({
                     className="yk-panini-mode"
                     aria-pressed={viewMode === "panini"}
                     onClick={() => {
-                      setViewMode("panini");
+                      setViewMode(current =>
+                        current === "panini" ? "grid" : "panini"
+                      );
                       setSelectedLicense(null);
                       setSelecting(false);
                       setSelection(new Set());
