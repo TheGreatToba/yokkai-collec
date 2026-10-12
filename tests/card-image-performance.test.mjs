@@ -37,8 +37,10 @@ function load() {
         if (name === "react") return React;
         if (name === "react/jsx-runtime") return jsxRuntime;
         if (name === "next/image")
-          return props =>
+          return function OptimizedImage(props) {
+            return;
             React.createElement("img", { ...props, "data-optimized": "true" });
+          };
         assert.fail(name);
       }
     }
