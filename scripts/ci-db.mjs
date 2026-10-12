@@ -3,6 +3,13 @@ import { setTimeout as delay } from "node:timers/promises";
 
 const docker = args =>
   execFileSync("docker", args, { encoding: "utf8", windowsHide: true }).trim();
+const endpoint =
+  process.env.DOCKER_HOST ||
+  docker(["context", "inspect", "--format", "{{.Endpoints.docker.Host}}"]);
+if (!/^(?:npipe:\/\/\/\/\.\/pipe\/|unix:\/\/\/)/.test(endpoint))
+  throw new Error(
+    "Docker distant refusé : seul un moteur local jetable est autorisé"
+  );
 let container;
 let test;
 function cleanup() {

@@ -4,6 +4,8 @@ Deux devs travaillent en parallèle sur ce repo. Détails complets : [docs/COLLA
 
 Règles non négociables :
 
+- Aucune PR mergée sans `npm run verify` vert juste avant le merge, sur la branche à jour avec `origin/master`. Coller la sortie résumée dans la description de la PR, y compris tout avertissement Docker.
+
 - Lancer npm run format avant tout commit ; ne jamais utiliser --no-verify.
 
 - Ne jamais affaiblir un test existant (assertion supprimée ou assouplie, seuil abaissé, test ignoré) dans la même PR que le code qu'il vérifie. Si un test protège une décision produit (qualité des images, droits SQL, taux de drop…), toute modification doit être signalée explicitement dans la description de la PR et validée par Walid.
