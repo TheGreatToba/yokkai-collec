@@ -413,6 +413,23 @@ export async function discardPackCard(instanceId: string, kind: "regular" | "dec
   }
 }
 
+export async function discardCollectionCards(instanceIds: string[]): Promise<number> {
+  const id = await playerId();
+  try {
+    const { data, error } = await db().rpc("discard_collection_cards", {
+      p_card_instance_ids: instanceIds
+    });
+    if (error) throw failure(error);
+    await assertPlayer(id);
+    return data as number;
+  } finally {
+    // The transaction can have committed even if the response was interrupted.
+    cache.delete(`collection:${id}`);
+    collectionPages.delete(id);
+    cache.delete(`info:${id}`);
+  }
+}
+
 export async function getFolders(sharePending = false): Promise<Folder[]> {
   const id = await playerId(true);
   const { data, error } = await (sharePending ? cache.memo(`read:folders:${id}`, 0, () => readRequest(signal => db().from("folders").select("id,nom").eq("user_id", id).order("nom").abortSignal(signal))) : readRequest(signal => db().from("folders").select("id,nom").eq("user_id", id).order("nom").abortSignal(signal)));
