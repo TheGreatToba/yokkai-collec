@@ -142,3 +142,14 @@ Les taux et délais sont définis côté SQL et exposés par les RPC, pas par ce
 Voir [le workflow d’équipe](docs/COLLABORATION.md), [l’audit](AUDIT.md) et
 [les chantiers différés](docs/TODO.md). `v0.1-mvp.md` et `spec-complete-vision.md`
 sont des documents historiques/de conception, pas le descriptif de la production.
+
+## Runtime du front
+
+Le dépôt fixe Node.js 22.x dans `package.json` et Node 22 dans `railpack.json`.
+Coolify utilise Railpack (vérifié en lecture seule). Le plan installe le lockfile
+avec `npm ci --include=dev`, construit avec `npm run build`, puis démarre avec
+`npm run start` (port fourni par l’hébergement). Les couches et caches générés
+par le fournisseur Node sont conservés. Les variables Supabase restent dans la
+configuration privée de l’hébergeur. Vérifier les éventuelles surcharges Coolify
+avant adoption ; le build du front n’applique jamais les migrations.
+Source : [configuration officielle Railpack](https://railpack.com/config/file/).
