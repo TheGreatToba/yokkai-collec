@@ -1,7 +1,6 @@
 "use client";
 
 import type { CSSProperties, SyntheticEvent } from "react";
-import Image from "next/image";
 import type { Rarity } from "@/lib/data/cards";
 import "@/styles/cards.css";
 
@@ -30,25 +29,6 @@ const spots = [
   [58, 70]
 ];
 
-function optimizableCatalogueImage(image?: string) {
-  if (!image || !process.env.NEXT_PUBLIC_SUPABASE_URL) return false;
-  try {
-    const source = new URL(image),
-      supabase = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL);
-    return (
-      source.protocol === "https:" &&
-      source.origin === supabase.origin &&
-      !source.username &&
-      !source.password &&
-      source.pathname.startsWith("/storage/v1/object/public/card-images/") &&
-      !source.search &&
-      !source.hash
-    );
-  } catch {
-    return false;
-  }
-}
-
 export function YokaiCard({
   rarity,
   shiny = false,
@@ -59,8 +39,7 @@ export function YokaiCard({
   animated = true,
   className = "",
   fallbackImage,
-  catalogueImage,
-  imageSizes
+  catalogueImage
 }: YokaiCardProps) {
   const holo = shiny && (rarity === "SSR" || rarity === "LR");
   const franchise = anime?.trim();
@@ -73,8 +52,6 @@ export function YokaiCard({
         : rarity === "SSR"
           ? 3
           : 0;
-  // Only grid callers opt in. Details/reveals/zoom keep the original bytes.
-  const optimized = !!imageSizes && optimizableCatalogueImage(image);
   const artProps = {
     src: image ?? "",
     width: 300,
@@ -82,8 +59,7 @@ export function YokaiCard({
     loading: "lazy" as const,
     decoding: "async" as const,
     onError: (event: SyntheticEvent<HTMLImageElement>) => {
-      const fallback =
-        fallbackImage ?? catalogueImage ?? (optimized ? image : undefined);
+      const fallback = fallbackImage ?? catalogueImage;
       if (fallback && event.currentTarget.src !== fallback) {
         event.currentTarget.removeAttribute("srcset");
         event.currentTarget.src = fallback;
@@ -106,13 +82,9 @@ export function YokaiCard({
           {rarity === "LR" && <div className="yk-card-line" />}
           {image && (
             <div className="yk-card-art">
-              {/* Only public catalogue storage is proxied; custom and external sources stay native. */}
+              {/* Grids and details use the same original bytes for every source. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              {optimized ? (
-                <Image {...artProps} alt="" sizes={imageSizes} quality={75} />
-              ) : (
-                <img {...artProps} alt="" />
-              )}
+              <img {...artProps} alt="" />
             </div>
           )}
           <div className="yk-card-foil" />
