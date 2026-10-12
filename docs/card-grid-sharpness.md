@@ -39,3 +39,15 @@ Captures : cinq paires côte à côte à largeur identique 240 px ; seconde capt
 ## Vérifications
 
 Test rouge sur master : 1 échoue, 1 passe. Après correction : égalité du rendu grille/détail pour 7 sources × 5 raretés × 2 anciens sizes, lazy/async, aucun srcset ni proxy ; fallback natif sans boucle ; restrictions de l’optimiseur pour les autres usages inchangées. La page de preuve reste sous /design-system, interdite en production par le proxy existant.
+
+## URL originales relevées (identiques dans les deux colonnes, DPR indépendant)
+
+- SAM : https://supabaseenvoy-gawq4yyxiise96wens0dt1ex.152.228.141.160.sslip.io/storage/v1/object/public/card-images/5a85f6d10ebfb4a4895ecfae4d729bc0e57b12dfc96daae91d92f93571e9b559
+- BTS : https://supabaseenvoy-gawq4yyxiise96wens0dt1ex.152.228.141.160.sslip.io/storage/v1/object/public/card-images/a2af29d706f2afb1db9ab31b100ef8d3c0450ccca1d8c775d54514f393c02048-678d3b22128b7404
+- Rin Shima : https://s4.anilist.co/file/anilistcdn/character/large/b124586-9lGoHg1zZkFr.png
+- Ladybug : https://i.imgur.com/tpX2zQu.png
+- GIF personnel fixture : https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif
+
+## État de livraison
+
+CI GitHub refusée avant lancement : problème de paiement ou plafond GitHub Actions, annotation « The job was not started because recent account payments have failed or your spending limit needs to be increased ». PR non mergée ; les contrôles locaux passent. Aucune tentative de contournement de CI.
