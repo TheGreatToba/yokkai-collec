@@ -28,3 +28,10 @@ test("les données Panini ne sont chargées que lorsque ce mode est ouvert", () 
     /if \(viewMode !== "panini" \|\| !selectedLicense \|\| !loadPaniniAlbumCards\)/
   );
 });
+
+test("le bouton Album Panini revient à la collection normale au second clic", () => {
+  assert.match(
+    collection,
+    /setViewMode\(current =>\s*current === "panini" \? "grid" : "panini"\s*\)/
+  );
+});
