@@ -47,7 +47,8 @@ test("CSP is Report-Only and covers Supabase, catalogue images and card sharing"
     "'self'",
     "https://database.example.test:8443",
     "wss://database.example.test:8443",
-    "https://api.giphy.com"
+    "https://api.giphy.com",
+    "https://cloudflareinsights.com"
   ]);
   assert.deepEqual(directives.get("img-src"), [
     "'self'",
@@ -55,9 +56,20 @@ test("CSP is Report-Only and covers Supabase, catalogue images and card sharing"
     "data:",
     "blob:"
   ]);
-  assert.deepEqual(directives.get("script-src"), ["'self'", "'unsafe-inline'"]);
-  assert.deepEqual(directives.get("style-src"), ["'self'", "'unsafe-inline'"]);
-  assert.deepEqual(directives.get("font-src"), ["'self'"]);
+  assert.deepEqual(directives.get("script-src"), [
+    "'self'",
+    "'unsafe-inline'",
+    "https://static.cloudflareinsights.com"
+  ]);
+  assert.deepEqual(directives.get("style-src"), [
+    "'self'",
+    "'unsafe-inline'",
+    "https://fonts.googleapis.com"
+  ]);
+  assert.deepEqual(directives.get("font-src"), [
+    "'self'",
+    "https://fonts.gstatic.com"
+  ]);
   assert.deepEqual(directives.get("media-src"), ["'self'", "blob:"]);
   assert.deepEqual(directives.get("object-src"), ["'none'"]);
   assert.deepEqual(directives.get("base-uri"), ["'self'"]);
@@ -77,7 +89,7 @@ test("CSP permits development HMR only in development and handles a missing opti
   assert.match(dev, /script-src 'self' 'unsafe-inline' 'unsafe-eval'/);
   assert.match(
     dev,
-    /connect-src 'self' http:\/\/127\.0\.0\.1:54321 ws:\/\/127\.0\.0\.1:54321 https:\/\/api\.giphy\.com ws:/
+    /connect-src 'self' http:\/\/127\.0\.0\.1:54321 ws:\/\/127\.0\.0\.1:54321 https:\/\/api\.giphy\.com https:\/\/cloudflareinsights\.com ws:/
   );
   const empty = (await headers("production", "")).find(
     header => header.key === "Content-Security-Policy-Report-Only"
