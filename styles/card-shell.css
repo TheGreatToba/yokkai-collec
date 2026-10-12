@@ -58,7 +58,7 @@
 .yk-card-shell-static .yk-card-shell-plane {
   transform: none;
   transform-style: flat;
-  transition: none;
+  transition: transform var(--duration-fast) var(--ease-standard);
   will-change: auto;
 }
 
@@ -83,6 +83,10 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
+  .yk-card-shell-static:hover .yk-card-shell-plane {
+    transform: translateY(var(--card-shell-hover-lift));
+  }
+
   .yk-card-shell:not(.yk-card-shell-static):not(.yk-card-shell-demo-tilt):not(
       .yk-card-shell-demo-reflection
     ):hover

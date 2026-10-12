@@ -27,6 +27,10 @@ test("la collection en lecture seule neutralise le tilt et la reflexion des cart
     css,
     /\.yk-card-shell-static \.yk-card-shell-reflection\s*\{[^}]*display:\s*none/s
   );
+  assert.match(
+    css,
+    /\.yk-card-shell-static:hover \.yk-card-shell-plane\s*\{[^}]*translateY\(var\(--card-shell-hover-lift\)\)/s
+  );
   assert.match(css, /\.yk-card-shell:not\(\.yk-card-shell-static\)/);
 });
 
