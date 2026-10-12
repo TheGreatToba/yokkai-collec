@@ -12,6 +12,7 @@ import {
 import {
   createFolder,
   deleteFolder,
+  discardCollectionCards as discardCollectionCardsRequest,
   discardPackCard,
   evolveSsrCard,
   getActiveAuctionCards,
@@ -284,11 +285,9 @@ export function Game({
   }
   async function discardCollectionCards(instanceIds: string[]) {
     try {
-      for (const instanceId of instanceIds)
-        await discardPackCard(instanceId, "regular");
+      await discardCollectionCardsRequest(instanceIds);
     } finally {
-      // Also reconcile after a partial network failure: completed destructions
-      // must disappear and their credited balance must remain visible.
+      // Reconcile if the response is lost after the atomic transaction commits.
       const [cards, game] = await Promise.all([
         getUserCollection(),
         getGameInfo()

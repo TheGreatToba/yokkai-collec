@@ -28,6 +28,7 @@ const allowlist = {
   "public.delete_card_share(text)": ["authenticated"], // Owner revokes their card share.
   "public.delete_folder(uuid)": ["authenticated"], // Owner removes their folder.
   "public.discard_collection_card(uuid)": ["authenticated"], // Player discards their own eligible card.
+  "public.discard_collection_cards(uuid[])": ["authenticated"], // Player atomically discards one validated batch of their own cards.
   "public.discard_decision_pack_card(uuid)": ["authenticated"], // Player discards their own decision pack choice.
   "public.discard_regular_pack_card(uuid)": ["authenticated"], // Player discards their own regular pack card.
   "public.evolve_ssr_card(uuid[])": ["authenticated"], // Player evolves validated owned copies.
