@@ -71,6 +71,14 @@ export function deriveSourceId(row) {
   return `${prefix}-${createHash("sha256").update(identity).digest("hex").slice(0, 24)}`;
 }
 
+export function imageUrlFromCsvRow(row) {
+  return (
+    [row.image_url, row.image, row.image_source, row[""]].find(value =>
+      value?.trim()
+    ) ?? ""
+  ).trim();
+}
+
 export function validateCard(row) {
   const card = Object.fromEntries(
     COLUMNS.map(column => [column, row[column]?.trim() ?? ""])

@@ -5,6 +5,7 @@ export type ImportedCard = Record<string, string | number | null> & {
 };
 
 export function deriveSourceId(row: Record<string, string>): string;
+export function imageUrlFromCsvRow(row: Record<string, string>): string;
 export function validateCard(row: Record<string, string>): ImportedCard;
 export function validateImageBytes(bytes: Buffer, contentType: string): void;
 export function imagePath(card: ImportedCard): string;

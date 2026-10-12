@@ -81,10 +81,7 @@ test("un CSV admin sans source_id bascule en source manuelle pour obtenir un ide
     normalizeWhitespace(actions),
     normalizeWhitespace(/row\.franchise \?\? row\.licence/)
   );
-  assert.match(
-    normalizeWhitespace(actions),
-    normalizeWhitespace(/row\.image_url \?\? row\.image \?\? row\.image_source/)
-  );
+  assert.match(actions, /imageUrlFromCsvRow\(row\)/);
   assert.match(
     normalizeWhitespace(actions),
     normalizeWhitespace(/\.replace\(\/\^http:/)
