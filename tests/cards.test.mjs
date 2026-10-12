@@ -102,6 +102,7 @@ function setup({
         ![
           "evolve_ssr_card",
           "discard_collection_card",
+          "discard_collection_cards",
           "discard_decision_pack_card",
           "get_pack_destruction_values",
           "set_card_custom_image"
@@ -195,6 +196,22 @@ function setup({
         karasBalance += { C: 1, R: 2, SR: 3, SSR: 4, LR: 5 }[
           discarded.cards.rarete_base
         ];
+        return { data: karasBalance, error: null };
+      }
+      if (name === "discard_collection_cards") {
+        const selected = args.p_card_instance_ids.map(instanceId => {
+          const copy = collection.find(
+            item => item.id === instanceId && item.user_id === user
+          );
+          if (!copy) throw new Error("CARD_NOT_OWNED");
+          return copy;
+        });
+        for (const copy of selected) {
+          collection.splice(collection.indexOf(copy), 1);
+          karasBalance += { C: 1, R: 2, SR: 3, SSR: 4, LR: 5 }[
+            copy.cards.rarete_base
+          ];
+        }
         return { data: karasBalance, error: null };
       }
       assert.fail(name);
@@ -441,6 +458,32 @@ test("destruction : invalide immédiatement la collection et le solde de Karas",
   assert.equal((await api.getUserCollection()).length, 0);
   assert.equal((await api.getGameInfo()).karasBalance, 4);
   assert.equal(calls.filter(call => call.rpc === "get_game_info").length, 2);
+});
+
+test("destruction groupée : un seul RPC supprime tout le lot et invalide les caches", async () => {
+  const { api, calls } = setup({
+    collection: [
+      owned(1, "alice", "C"),
+      owned(2, "alice", "SR"),
+      owned(3, "alice", "LR")
+    ]
+  });
+  await api.getUserCollection();
+  await api.getGameInfo();
+  assert.equal(
+    await api.discardCollectionCards(["000001", "000002", "000003"]),
+    9
+  );
+  assert.equal((await api.getUserCollection()).length, 0);
+  assert.equal((await api.getGameInfo()).karasBalance, 9);
+  assert.equal(
+    calls.filter(call => call.rpc === "discard_collection_cards").length,
+    1
+  );
+  assert.equal(
+    calls.filter(call => call.rpc === "discard_collection_card").length,
+    0
+  );
 });
 
 test("erreurs DB explicites, requêtes réessayables et aucune relance automatique d'ouverture", async () => {
