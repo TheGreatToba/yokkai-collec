@@ -1013,6 +1013,15 @@ const liveAuctionChat: AuctionChatAdapter = {
   get: getAuctionChat,
   send: sendAuctionChatMessage
 };
+// Mirrors the server-wide minimum spacing between two chat messages.
+const AUCTION_CHAT_SUCCESS_COOLDOWN_SECONDS = 3;
+function auctionChatCooldownUntil(
+  currentUntil: number,
+  delaySeconds: number,
+  currentTime = Date.now()
+) {
+  return Math.max(currentUntil, currentTime + delaySeconds * 1000);
+}
 export function AuctionChatPanel({
   auctionId,
   refreshKey,
@@ -1033,6 +1042,8 @@ export function AuctionChatPanel({
   const [sendError, setSendError] = useState("");
   const [retryUntil, setRetryUntil] = useState(0);
   const [retrySeconds, setRetrySeconds] = useState(0);
+  const retryUntilRef = useRef(0);
+  const sendLockRef = useRef(false);
   const listRef = useRef<HTMLOListElement>(null);
   const mentionIndexRef = useRef(0);
   const mentionMatch = draft.match(/(?:^|\s)@([^\s@]*)$/);
@@ -1138,20 +1149,33 @@ export function AuctionChatPanel({
     const timer = window.setInterval(() => {
       const secondsLeft = Math.max(
         0,
-        Math.ceil((retryUntil - Date.now()) / 1000)
+        Math.ceil((retryUntilRef.current - Date.now()) / 1000)
       );
       setRetrySeconds(secondsLeft);
-      if (!secondsLeft) setRetryUntil(0);
+      if (!secondsLeft) {
+        retryUntilRef.current = 0;
+        setRetryUntil(0);
+      }
     }, 250);
     return () => window.clearInterval(timer);
   }, [retryUntil]);
   function waitToSend(seconds: number) {
-    setRetrySeconds(seconds);
-    setRetryUntil(Date.now() + seconds * 1000);
+    const nextUntil = auctionChatCooldownUntil(retryUntilRef.current, seconds);
+    if (nextUntil === retryUntilRef.current) return;
+    retryUntilRef.current = nextUntil;
+    setRetryUntil(nextUntil);
+    setRetrySeconds(Math.ceil((nextUntil - Date.now()) / 1000));
   }
   async function send(gif?: GifChoice) {
     const message = draft.trim();
-    if ((!message && !gif) || busy || retrySeconds > 0) return;
+    if (
+      (!message && !gif) ||
+      busy ||
+      sendLockRef.current ||
+      retryUntilRef.current > Date.now()
+    )
+      return;
+    sendLockRef.current = true;
     setBusy(true);
     setSendError("");
     try {
@@ -1162,7 +1186,7 @@ export function AuctionChatPanel({
           : current
       );
       if (!gif) setDraft("");
-      waitToSend(3);
+      waitToSend(AUCTION_CHAT_SUCCESS_COOLDOWN_SECONDS);
     } catch (e) {
       if (
         e instanceof Error &&
@@ -1176,6 +1200,7 @@ export function AuctionChatPanel({
         );
       }
     } finally {
+      sendLockRef.current = false;
       setBusy(false);
     }
   }
@@ -1268,11 +1293,6 @@ export function AuctionChatPanel({
           {sendError}
         </p>
       )}
-      {retrySeconds > 0 && (
-        <p role="status" className="yk-auction-alert">
-          Doucement : réessaie dans quelques secondes ({retrySeconds} s).
-        </p>
-      )}
       {chat?.canPost && !finished ? (
         <form
           className="yk-auction-chat-form"
@@ -1343,12 +1363,18 @@ export function AuctionChatPanel({
             </span>
             <Button
               type="submit"
+              className="yk-auction-chat-send"
               disabled={busy || retrySeconds > 0 || !draft.trim()}
+              aria-label={
+                retrySeconds > 0
+                  ? "Envoyer, disponible dans quelques secondes"
+                  : undefined
+              }
             >
               {busy
                 ? "Envoi…"
                 : retrySeconds > 0
-                  ? `Réessaie dans ${retrySeconds} s`
+                  ? `${retrySeconds} s`
                   : "Envoyer"}
             </Button>
           </div>

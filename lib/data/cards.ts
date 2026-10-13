@@ -7,6 +7,7 @@ export type Rarity = "C" | "R" | "SR" | "SSR" | "LR";
 export type Category = string;
 export type Card = { id: string; name: string; category: Category; anime?: string; liveFranchise?: boolean; rarity: Rarity; image: string; wishlisted?: boolean };
 export type CataloguePage = { cards: Card[]; total: number };
+type CatalogueSearchPage = { items: Card[]; total: number };
 export type LicenseCatalogueTotal = { license: string; total: number };
 export type PaniniAlbumProgress = LicenseCatalogueTotal & {
   owned: number;
@@ -250,9 +251,17 @@ export async function getCataloguePage({ query = "", category = "", rarity = "",
   const safePageSize = Math.min(60, Math.max(1, Math.trunc(pageSize)));
   const from = (safePage - 1) * safePageSize;
   const terms=cardSearchTerms(query);
+  if(terms.length){
+    const {data,error}=await db().rpc("get_catalogue_cards_page",{
+      p_query:terms.join(" "),p_category:category,p_rarity:rarity,
+      p_offset:from,p_limit:safePageSize
+    });
+    if(error)throw failure(error);
+    const result=data as CatalogueSearchPage|null;
+    return {cards:(result?.items??[]).map(card=>({...card})),total:result?.total??0};
+  }
   async function readPage(count?:"exact") {
     let request=db().from("cards").select(cardFields,count?{count}:undefined);
-    for(const term of terms)request=request.or(`nom.ilike.%${term}%,franchise.ilike.%${term}%`);
     if(category)request=request.eq("categorie",category);
     if(rarity)request=request.eq("rarete_base",rarity);
     const result=await request.order("nom").order("id").range(from,from+safePageSize-1);

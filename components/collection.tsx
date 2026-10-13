@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import type {
+  Card,
   CollectedCard,
   Folder,
   PaniniAlbumCardPage,
@@ -25,6 +26,7 @@ import { YokaiCard } from "@/components/yokai-card";
 import { CardShell } from "@/components/card-shell";
 import { CardShareButton, MyCardShares } from "@/components/card-sharing";
 import { CardReportButton } from "@/components/card-report-button";
+import { CatalogueCardModal } from "@/components/catalogue-card-modal";
 import { CARD_PAGE_SIZES } from "@/lib/ui/pagination";
 import {
   COLLECTION_SORTS,
@@ -307,6 +309,9 @@ export function CollectionView({
     CARD_PAGE_SIZES[0]
   );
   const [hideMissingCards, setHideMissingCards] = useState(false);
+  const [selectedMissingCard, setSelectedMissingCard] = useState<Card | null>(
+    null
+  );
   const [paniniAlbums, setPaniniAlbums] = useState<PaniniAlbumPage>({
     items: [],
     total: 0
@@ -1371,13 +1376,22 @@ export function CollectionView({
                                   </CardShell>
                                 </button>
                               ) : (
-                                <div
+                                <button
+                                  type="button"
                                   className="yk-panini-missing"
-                                  aria-label="Carte non obtenue"
+                                  onClick={() => setSelectedMissingCard(card)}
+                                  aria-label={`${card.name}, carte non obtenue`}
+                                  aria-haspopup="dialog"
                                 >
-                                  <span>?</span>
-                                  <small>À découvrir</small>
-                                </div>
+                                  <CardShell interactive={false}>
+                                    <YokaiCard
+                                      {...card}
+                                      animated={false}
+                                      className="yk-panini-missing-card"
+                                      imageSizes={COLLECTION_CARD_IMAGE_SIZES}
+                                    />
+                                  </CardShell>
+                                </button>
                               )}
                             </li>
                           );
@@ -2446,6 +2460,10 @@ export function CollectionView({
             </form>
           ))}
       </Modal>
+      <CatalogueCardModal
+        selected={selectedMissingCard}
+        onClose={() => setSelectedMissingCard(null)}
+      />
     </section>
   );
 }

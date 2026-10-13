@@ -8,7 +8,8 @@ import { replayMigrations } from "../scripts/replay-migrations.mjs";
 function setup() {
   let now = 0,
     fail = false;
-  const calls = [];
+  const calls = [],
+    rpcCalls = [];
   const compile = path =>
     ts.transpileModule(readFileSync(new URL(path, import.meta.url), "utf8"), {
       compilerOptions: {
@@ -28,6 +29,25 @@ function setup() {
   vm.runInNewContext(compile("../lib/data/player-state.ts"), state);
   const client = {
     auth: { onAuthStateChange() {} },
+    rpc(name, args) {
+      rpcCalls.push({ name, args });
+      return Promise.resolve({
+        data: {
+          items: [
+            {
+              id: "hidden-license",
+              name: "Card",
+              category: "Anime",
+              anime: "Primary",
+              rarity: "C",
+              image: "https://example.test/card"
+            }
+          ],
+          total: 1
+        },
+        error: fail ? { code: "42501" } : null
+      });
+    },
     from() {
       let options, from, to;
       const filters = [],
@@ -93,6 +113,7 @@ function setup() {
   return {
     api: context.exports,
     calls,
+    rpcCalls,
     tick: n => {
       now += n;
     },
@@ -114,21 +135,31 @@ test("catalogue keeps exact totals and fresh page rows while reusing counts only
   assert.ok(s.calls.every(c => c.orders.join() === "nom,id"));
   await s.api.getCataloguePage({ pageSize: 48 });
   assert.equal(s.calls.at(-1).count, undefined);
-  for (const filter of [
-    { query: "card anime" },
-    { category: "Anime" },
-    { rarity: "SR" }
-  ])
+  for (const filter of [{ category: "Anime" }, { rarity: "SR" }])
     await s.api.getCataloguePage(filter);
+  const searched = await s.api.getCataloguePage({
+    query: "Card Anime",
+    category: "Anime",
+    rarity: "SR",
+    page: 2,
+    pageSize: 24
+  });
   assert.deepEqual(
-    JSON.parse(JSON.stringify(s.calls[4].filters)),
-    [
-      "nom.ilike.%card%,franchise.ilike.%card%",
-      "nom.ilike.%anime%,franchise.ilike.%anime%"
-    ],
-    "one OR per term, combined with AND by PostgREST"
+    JSON.parse(JSON.stringify(s.rpcCalls[0])),
+    {
+      name: "get_catalogue_cards_page",
+      args: {
+        p_query: "card anime",
+        p_category: "Anime",
+        p_rarity: "SR",
+        p_offset: 24,
+        p_limit: 24
+      }
+    },
+    "normalized terms and pagination are delegated to the indexed catalogue RPC"
   );
-  assert.equal(s.calls.filter(c => c.count === "exact").length, 4);
+  assert.equal(searched.cards[0].anime, "Primary");
+  assert.equal(s.calls.filter(c => c.count === "exact").length, 3);
   s.tick(30001);
   await s.api.getCataloguePage();
   assert.equal(s.calls.at(-1).count, "exact");
@@ -136,7 +167,7 @@ test("catalogue keeps exact totals and fresh page rows while reusing counts only
   await assert.rejects(s.api.getCataloguePage({ query: "retry" }));
   s.fail(false);
   await s.api.getCataloguePage({ query: "retry" });
-  assert.equal(s.calls.at(-1).count, "exact");
+  assert.equal(s.rpcCalls.at(-1).args.p_query, "retry");
 });
 
 test("catalogue substring searches use trigram indexes without changing results", async t => {
@@ -173,4 +204,48 @@ test("catalogue substring searches use trigram indexes without changing results"
   t.diagnostic(
     `20,000 cards: sequential ${baseline[0]["Execution Time"]} ms -> indexed ${plan[0]["Execution Time"]} ms; identical 20 results`
   );
+});
+
+test("catalogue search finds hidden secondary licenses without exposing them on cards", async t => {
+  const { db } = await replayMigrations();
+  t.after(() => db.close());
+
+  await db.exec(`
+    insert into public.cards(source_id,nom,categorie,franchise,rarete_base,image_url,source)
+    values
+      ('catalogue-hidden-1','Hidden Hero','ANIME/MANGA','Primary Saga','SR','https://example.test/hidden-1.png','test'),
+      ('catalogue-hidden-2','Hidden Rival','FILM','Other Primary','R','https://example.test/hidden-2.png','test');
+    insert into public.card_franchises(card_id,franchise,position)
+    select id,'Secret Crossover',1 from public.cards where source_id like 'catalogue-hidden-%';
+  `);
+
+  const result = (
+    await db.query(
+      "select public.get_catalogue_cards_page('hidden secret','ANIME/MANGA','SR',0,24) as value"
+    )
+  ).rows[0].value;
+  assert.equal(result.total, 1);
+  assert.equal(result.items.length, 1);
+  assert.deepEqual(
+    {
+      name: result.items[0].name,
+      anime: result.items[0].anime,
+      category: result.items[0].category,
+      rarity: result.items[0].rarity
+    },
+    {
+      name: "HIDDEN HERO",
+      anime: "Primary Saga",
+      category: "ANIME/MANGA",
+      rarity: "SR"
+    },
+    "the hidden license is searchable while only the primary license is returned"
+  );
+
+  const indexes = (
+    await db.query(
+      "select indexdef from pg_indexes where schemaname='public' and indexname='card_franchises_name_trgm_idx'"
+    )
+  ).rows;
+  assert.match(indexes[0].indexdef, /gin_trgm_ops/);
 });

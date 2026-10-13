@@ -41,7 +41,7 @@ button:disabled {
   cursor: not-allowed;
 }
 :is(button, a, input, select, textarea):focus-visible {
-  outline: 2px solid var(--color-accent-gold);
+  outline: 2px solid var(--color-focus-ring);
   outline-offset: 4px;
 }
 a[aria-current="page"] {
@@ -100,7 +100,7 @@ a[aria-current="page"] {
   background: var(--color-elevated);
 }
 .yk-button[data-demo-state="focus"] {
-  outline: 2px solid var(--color-karas);
+  outline: 2px solid var(--color-focus-ring);
   outline-offset: 4px;
 }
 .yk-button-secondary {
@@ -237,8 +237,9 @@ select,
 .auth-input:focus,
 .yk-field-control:focus,
 .yk-field-control[data-demo-state="focus"] {
-  border-color: var(--color-focus);
-  outline: none;
+  border-color: var(--color-focus-ring);
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
   box-shadow: var(--shadow-focus);
 }
 .auth-input[aria-invalid="true"],

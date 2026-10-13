@@ -291,6 +291,15 @@ test("la page d’accueil utilise le logo doré de la navigation", () => {
   );
 });
 
+test("les pages d’authentification utilisent le nouveau logo doré", () => {
+  const layout = readFileSync(path.join(root, "app/(auth)/layout.tsx"), "utf8");
+  const css = readFileSync(path.join(root, "styles/auth.css"), "utf8");
+  assert.match(layout, /src="\/assets\/header-logo-gold\.png"/);
+  assert.match(layout, /className="yk-auth-brand-image"/);
+  assert.doesNotMatch(layout, /className="yk-auth-logo"/);
+  assert.match(css, /\.yk-auth-brand-image\s*\{/);
+});
+
 test("la police HYWenHei remplace la police d'affichage sauf pour les noms sur les cartes", () => {
   const css = readFileSync(path.join(root, "app/globals.css"), "utf8");
   const ui = readFileSync(path.join(root, "styles/ui.css"), "utf8");
@@ -2687,7 +2696,7 @@ test("la recherche multi-termes partage une sémantique ET entre Collection, Cat
   assert.match(
     normalizeWhitespace(cards),
     normalizeWhitespace(
-      /for\s*\(const term of terms\)\s*request\s*=\s*request\.or/
+      /\.rpc\("get_catalogue_cards_page",\s*\{[\s\S]*p_query:\s*terms\.join\(" "\)/
     )
   );
   assert.ok(
