@@ -24,6 +24,13 @@ test("la collection normale ne télécharge plus le catalogue complet", () => {
   assert.doesNotMatch(game, /getLicenseCatalogueTotals/);
   assert.match(game, /loadPaniniAlbums=\{getPaniniAlbumsPage\}/);
   assert.match(game, /loadPaniniAlbumCards=\{getPaniniAlbumCardsPage\}/);
+  assert.match(game, /onSetPaniniAlbumFavorite=\{setPaniniAlbumFavorite\}/);
+});
+
+test("les classeurs personnels peuvent être placés en favoris", () => {
+  assert.match(collection, /className="yk-panini-favorite"/);
+  assert.match(collection, /aria-pressed=\{item\.favorite\}/);
+  assert.match(collection, /togglePaniniAlbumFavorite/);
 });
 
 test("les données Panini ne sont chargées que lorsque ce mode est ouvert", () => {
