@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { AuthForm } from "@/components/auth-form";
 
-export const metadata: Metadata = { title: "Connexion · Yokkai Collec’" };
+export const metadata: Metadata = {
+  title: "Connexion · Yokkai Collec’",
+  description:
+    "Connectez-vous à Yokkai Collec’ pour retrouver votre collection, ouvrir vos packs et échanger vos cartes."
+};
 
 export default async function SignInPage({
   searchParams

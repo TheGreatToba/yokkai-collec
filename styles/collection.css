@@ -34,7 +34,7 @@
   color: var(--color-ink-3);
 }
 .yk-filter-search:focus-within {
-  border-color: var(--color-focus);
+  border-color: var(--color-focus-ring);
   box-shadow: var(--shadow-focus);
 }
 .yk-filter-search input {

@@ -38,6 +38,14 @@ const hyWenHei = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "https://yokkai-collec.com"
+  ),
+  icons: {
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }
+    ]
+  },
   title: "Yokkai Collec'",
   description:
     "Collectionnez vos personnages et découvrez cinq cartes dans chaque Regular Pack."
