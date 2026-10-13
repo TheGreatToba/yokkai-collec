@@ -32,6 +32,39 @@ const initialFailure = (
 });
 const value = (form: FormData, key: string) =>
   String(form.get(key) ?? "").trim();
+const MAX_FRANCHISES = 10;
+const CATEGORY_ALBUMS = new Set([
+  "ARTIST",
+  "DISNEY CHANNEL",
+  "FILM",
+  "INTERNET PERSONALITY",
+  "KPOP",
+  "WWE"
+]);
+
+function franchiseInputs(form: FormData) {
+  const franchises: string[] = [];
+  const seen = new Set<string>();
+  for (const entry of form.getAll("franchise")) {
+    const franchise = String(entry).trim();
+    if (!franchise) continue;
+    if (franchise.length > 200)
+      throw new Error("Une licence ne peut pas dépasser 200 caractères.");
+    const key = franchise.toLocaleLowerCase("fr-FR");
+    if (seen.has(key)) continue;
+    seen.add(key);
+    franchises.push(franchise);
+  }
+  if (franchises.length > MAX_FRANCHISES)
+    throw new Error(`Maximum ${MAX_FRANCHISES} licences par carte.`);
+  return franchises;
+}
+
+function albumFranchises(franchises: string[], category: string) {
+  if (franchises.length) return franchises;
+  const normalizedCategory = category.trim().toUpperCase();
+  return CATEGORY_ALBUMS.has(normalizedCategory) ? [normalizedCategory] : [];
+}
 const MAX_IMAGE_BYTES = 6 * 1024 * 1024;
 const ALLOWED_MIME = new Set([
   "image/jpeg",
@@ -55,12 +88,12 @@ function normalizeCsvRow(row: Record<string, string>) {
   );
 }
 
-function cardInput(form: FormData) {
+function cardInput(form: FormData, franchises: string[]) {
   return validateCard({
     source_id: value(form, "source_id"),
     nom: value(form, "nom"),
     categorie: value(form, "categorie"),
-    franchise: value(form, "franchise"),
+    franchise: franchises[0] ?? "",
     franchise_romaji: "",
     image_url: value(form, "image_url") || "https://local.invalid/upload",
     favoris_count: "",
@@ -106,6 +139,27 @@ async function syncCategory(
   if (insertError) throw insertError;
 }
 
+async function syncFranchises(
+  client: AuthenticatedClient,
+  cardId: string,
+  franchises: string[]
+) {
+  const { error: deleteError } = await client
+    .from("card_franchises")
+    .delete()
+    .eq("card_id", cardId);
+  if (deleteError) throw deleteError;
+  if (!franchises.length) return;
+  const { error: insertError } = await client.from("card_franchises").insert(
+    franchises.map((franchise, position) => ({
+      card_id: cardId,
+      franchise,
+      position
+    }))
+  );
+  if (insertError) throw insertError;
+}
+
 export async function createCardAction(
   _previous: AdminActionState,
   form: FormData
@@ -113,7 +167,8 @@ export async function createCardAction(
   try {
     const admin = await requireAdminAction();
     const client = createClient(await cookies());
-    const card = cardInput(form);
+    const franchises = franchiseInputs(form);
+    const card = cardInput(form, franchises);
     const image = await imageForCard(form, card);
     const path = imagePath(card);
     const { error: uploadError } = await client.storage
@@ -139,11 +194,16 @@ export async function createCardAction(
       .single();
     if (error) throw error;
     await syncCategory(client, data.id, data.categorie);
+    await syncFranchises(
+      client,
+      data.id,
+      albumFranchises(franchises, data.categorie)
+    );
     const { error: auditError } = await client.from("admin_audit_logs").insert({
       admin_user_id: admin.id,
       action: "card.create",
       card_id: data.id,
-      card_snapshot: data
+      card_snapshot: { ...data, franchises }
     });
     if (auditError) throw auditError;
     revalidatePath("/admin/cards");
@@ -239,6 +299,7 @@ export async function updateCardAction(
     const id = value(form, "id");
     if (!/^[0-9a-f-]{36}$/i.test(id))
       throw new Error("Identifiant de carte invalide.");
+    const franchises = franchiseInputs(form);
     const patch: {
       nom: string;
       categorie: string;
@@ -248,7 +309,7 @@ export async function updateCardAction(
     } = {
       nom: value(form, "nom"),
       categorie: value(form, "categorie"),
-      franchise: value(form, "franchise"),
+      franchise: franchises[0] ?? "",
       rarete_base: value(form, "rarete_base")
     };
     if (!patch.nom || !patch.categorie)
@@ -297,11 +358,16 @@ export async function updateCardAction(
       .single();
     if (error) throw error;
     await syncCategory(client, id, patch.categorie);
+    await syncFranchises(
+      client,
+      id,
+      albumFranchises(franchises, patch.categorie)
+    );
     const { error: auditError } = await client.from("admin_audit_logs").insert({
       admin_user_id: admin.id,
       action: "card.update",
       card_id: id,
-      card_snapshot: data
+      card_snapshot: { ...data, franchises }
     });
     if (auditError) throw auditError;
     revalidatePath("/admin/cards");

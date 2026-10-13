@@ -37,7 +37,7 @@ test("chat : quotas globaux, mentions et notifications avec contre-preuves", asy
   await db.exec(
     "revoke all on function public.send_auction_chat_message(uuid,text,text) from public,anon; grant execute on function public.send_auction_chat_message(uuid,text,text) to authenticated;"
   );
-  await db.exec(migration("20261013000001_auction_chat_rate_limit"));
+  await db.exec(migration("20261013000004_auction_chat_rate_limit"));
   for (let i = 0; i < ids.length; i++)
     await db.query("insert into public.user_profiles values ($1,$2,null)", [
       ids[i],
