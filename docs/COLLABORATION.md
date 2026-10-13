@@ -62,6 +62,11 @@ recoupement : se coordonner sur Discord avant de commencer.
 - Jamais de merge local poussé directement sur `master`.
 - Ne jamais merger une PR dont la vérification CI est rouge, même si GitHub propose le bouton de
   merge en l'absence de protection de branche.
+- Une CI qui ne s'est pas exécutée n'est pas une CI verte : vérifier les contrôles du dernier
+  commit avant de fusionner. Les PR qui ne touchent que `*.md` et `docs/**` sont exclues du
+  déclenchement automatique ; lancer `workflow_dispatch` sur leur branche avant le merge.
+- La CI se déclenche sur les PR vers `master`, y compris en draft, et sur tous les pushes sur
+  `master`. Le déclenchement manuel reste disponible. Les caches npm et Next.js sont conservés.
 - Ouvrir la PR **dès que le travail est prêt à être relu**, pas en fin de chantier (une PR en
   draft est très bien).
 - Remplir le template de PR, en particulier la liste des fichiers/zones touchées et les

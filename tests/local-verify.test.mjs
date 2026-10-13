@@ -43,7 +43,11 @@ test("verify is unique, preserves all gates and builds only with dummy public co
   assert.match(read("scripts/verify.mjs"), /merge-base[\s\S]*--is-ancestor/);
   assert.match(read("scripts/verify.mjs"), /VERIFY ECHEC/);
   assert.match(read("scripts/ci-db.mjs"), /Docker distant refusé/);
-  assert.match(read(".github/workflows/ci.yml"), /on: workflow_dispatch/);
+  const workflow = read(".github/workflows/ci.yml");
+  assert.match(workflow, /pull_request:\s*\n\s*branches: \[master\]/);
+  assert.match(workflow, /push:\s*\n\s*branches: \[master\]/);
+  assert.match(workflow, /^  workflow_dispatch:/m);
+  assert.doesNotMatch(workflow, /github\.event\.pull_request\.draft/);
   for (const file of ["AGENTS.md", "CLAUDE.md"])
     assert.match(read(file), /npm run verify[\s\S]*juste avant le merge/);
 });
