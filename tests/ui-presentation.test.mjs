@@ -2687,7 +2687,7 @@ test("la recherche multi-termes partage une sémantique ET entre Collection, Cat
   assert.match(
     normalizeWhitespace(cards),
     normalizeWhitespace(
-      /for\s*\(const term of terms\)\s*request\s*=\s*request\.or/
+      /\.rpc\("get_catalogue_cards_page",\s*\{[\s\S]*p_query:\s*terms\.join\(" "\)/
     )
   );
   assert.ok(
