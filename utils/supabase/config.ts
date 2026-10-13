@@ -10,5 +10,9 @@ export function getSupabaseConfig() {
     );
   }
 
-  return { url, key };
+  return {
+    url,
+    key,
+    cookieName: `sb-${new URL(url).hostname.split(".")[0]}-auth-token`
+  };
 }
