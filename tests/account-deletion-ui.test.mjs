@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
 
-function load(file, imports = {}) {
+function load(file, imports = {}, env = {}) {
   const exports = {};
   vm.runInNewContext(
     ts.transpileModule(
@@ -16,7 +16,7 @@ function load(file, imports = {}) {
         }
       }
     ).outputText,
-    { exports, Date, URL, require: name => imports[name] }
+    { exports, Date, URL, process: { env }, require: name => imports[name] }
   );
   return exports;
 }
@@ -65,7 +65,8 @@ function actionHarness({
   pseudo = "EraseMe",
   rpcError,
   deletionError,
-  signOutError
+  signOutError,
+  contactEmail
 } = {}) {
   const calls = [];
   const id = "10000000-0000-4000-8000-000000000001";
@@ -129,7 +130,8 @@ function actionHarness({
           if (deletionError) throw new Error("PRIVATE_PROVIDER_DETAIL");
         }
       }
-    }
+    },
+    { NEXT_PUBLIC_CONTACT_EMAIL: contactEmail }
   );
   return { calls, deleteAccountAction, reconnectForDeletion, id };
 }
@@ -203,6 +205,22 @@ test("failure is safe and a logout failure after deletion never repeats deletion
     loggedOut.calls.filter(c => Array.isArray(c) && c[0] === "delete").length,
     1
   );
+});
+
+test("deletion failure only includes the configured contact email", async () => {
+  const form = new FormData();
+  form.set("pseudo", "EraseMe");
+  const original =
+    "La suppression n’a pas pu être terminée. Ne répète pas la demande ; contacte l’équipe pour vérifier son état.";
+  for (const contactEmail of [undefined, "", "   ", " contact@example.test "]) {
+    const h = actionHarness({ deletionError: true, contactEmail });
+    const state = await h.deleteAccountAction({}, form);
+    assert.equal(
+      state.error,
+      original +
+        (contactEmail?.trim() ? " Contact : contact@example.test." : "")
+    );
+  }
 });
 
 test("reconnection clears only this session before returning to login", async () => {

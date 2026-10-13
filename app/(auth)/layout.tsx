@@ -36,6 +36,15 @@ export default async function AuthLayout({
       </main>
       <footer className="yk-auth-footer">
         Yokkai Collec’ · À chaque carte, une découverte.
+        {process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() && (
+          <>
+            {" "}
+            ·{" "}
+            <a href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL.trim()}`}>
+              {process.env.NEXT_PUBLIC_CONTACT_EMAIL.trim()}
+            </a>
+          </>
+        )}
       </footer>
     </div>
   );
