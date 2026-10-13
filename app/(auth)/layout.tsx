@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/session";
 import "@/styles/auth.css";
@@ -17,12 +18,14 @@ export default async function AuthLayout({
           className="yk-auth-brand"
           aria-label="Yokkai Collec’, accueil"
         >
-          <span className="yk-auth-logo">Y</span>
-          <span>
-            Yokkai
-            <br />
-            Collec’
-          </span>
+          <Image
+            className="yk-auth-brand-image"
+            src="/assets/header-logo-gold.png"
+            alt=""
+            width={1774}
+            height={887}
+            priority
+          />
         </Link>
         <Link href="/" className="yk-auth-return">
           <span aria-hidden="true">←</span> Retour à l’accueil
