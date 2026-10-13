@@ -1,8 +1,29 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { YokaiCard } from "@/components/yokai-card";
 import { getCurrentUser } from "@/lib/auth/session";
 import "@/styles/landing.css";
+
+export const metadata: Metadata = {
+  openGraph: {
+    title: "Yokkai Collec'",
+    description:
+      "Ouvrez des packs, collectionnez vos personnages préférés et échangez avec les autres joueurs.",
+    type: "website",
+    locale: "fr_FR",
+    url: "/",
+    images: [
+      {
+        url: "/og-home.png",
+        width: 1200,
+        height: 630,
+        alt: "Yokkai Collec’ — Invoquez. Collectionnez. Complétez."
+      }
+    ]
+  },
+  twitter: { card: "summary_large_image", images: ["/og-home.png"] }
+};
 
 const featuredCards = [
   {
@@ -10,8 +31,7 @@ const featuredCards = [
     rarity: "SSR" as const,
     category: "Anime/Manga",
     anime: "Attack on Titan",
-    image:
-      "https://s4.anilist.co/file/anilistcdn/character/large/b45627-CR68RyZmddGG.png"
+    image: "/assets/landing/levi.webp"
   },
   {
     name: "Satoru Gojou",
@@ -19,16 +39,14 @@ const featuredCards = [
     shiny: true,
     category: "Anime/Manga",
     anime: "Jujutsu Kaisen",
-    image:
-      "https://s4.anilist.co/file/anilistcdn/character/large/b127691-9zqh1xpIubn7.png"
+    image: "/assets/landing/gojou.webp"
   },
   {
     name: "Luffy Monkey",
     rarity: "LR" as const,
     category: "Anime/Manga",
     anime: "One Piece",
-    image:
-      "https://s4.anilist.co/file/anilistcdn/character/large/b40-MNypXsxSRb1R.png"
+    image: "/assets/landing/luffy.webp"
   }
 ];
 

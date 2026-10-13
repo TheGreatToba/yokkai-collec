@@ -317,6 +317,16 @@ test("la recherche admin retourne toutes les cartes d'une licence", async () => 
   assert.match(manager, /ce nom ou cette licence/);
 });
 
+test("la liste admin limite les formulaires hydrates et se pagine localement", async () => {
+  const manager = await read("app/admin/cards/admin-card-manager.tsx");
+  assert.match(manager, /const ADMIN_CARDS_PER_PAGE = 20/);
+  assert.match(manager, /const visibleCards = cards\.slice\(/);
+  assert.match(manager, /visibleCards\.map\(card =>/);
+  assert.match(manager, /editingCardId === card\.id/);
+  assert.match(manager, /Page \{safePage\} sur \{pageCount\}/);
+  assert.doesNotMatch(manager, /\{cards\.map\(card =>\s*\(\s*<CardRow/);
+});
+
 test("la recherche admin combine le personnage et sa licence", async () => {
   const page = await read("app/admin/cards/page.tsx");
   assert.match(page, /searchQuery\.split\(\/\\s\+\/\)\.filter\(Boolean\)/);

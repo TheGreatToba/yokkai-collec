@@ -23,6 +23,8 @@ function loadProxy(getClaims) {
     Headers,
     require(name) {
       if (name === "next/server") return { NextResponse };
+      if (name === "@/utils/supabase/auth-fetch")
+        return { serverAuthFetch: () => fetch };
       if (name === "@/utils/supabase/config") {
         return {
           getSupabaseConfig: () => ({

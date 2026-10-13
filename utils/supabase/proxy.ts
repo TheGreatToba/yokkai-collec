@@ -1,13 +1,16 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseConfig } from "@/utils/supabase/config";
+import { serverAuthFetch } from "@/utils/supabase/auth-fetch";
 
 export async function updateSession(request: NextRequest) {
-  const { url, key } = getSupabaseConfig();
+  const { url, key, cookieName } = getSupabaseConfig();
   let response = NextResponse.next({ request });
   const responseHeaders = new Headers();
 
   const supabase = createServerClient(url, key, {
+    cookieOptions: { name: cookieName },
+    global: { fetch: serverAuthFetch(url, request.headers) },
     cookies: {
       getAll() {
         return request.cookies.getAll();

@@ -1,11 +1,14 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { getSupabaseConfig } from "@/utils/supabase/config";
+import { serverAuthFetch } from "@/utils/supabase/auth-fetch";
 
 export function createClient(cookieStore: Awaited<ReturnType<typeof cookies>>) {
-  const { url, key } = getSupabaseConfig();
+  const { url, key, cookieName } = getSupabaseConfig();
 
   return createServerClient(url, key, {
+    cookieOptions: { name: cookieName },
+    global: { fetch: serverAuthFetch(url) },
     cookies: {
       getAll() {
         return cookieStore.getAll();

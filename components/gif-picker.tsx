@@ -1,7 +1,9 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- GIPHY previews must remain animated. */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+
+import { Modal } from "@/components/ui";
 
 export type GifChoice = {
   id: string;
@@ -67,19 +69,11 @@ export function GifPicker({
   const [selected, setSelected] = useState<GifChoice | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const panelRef = useRef<HTMLDivElement>(null);
+  const close = () => {
+    setOpen(false);
+    setSelected(null);
+  };
 
-  useEffect(() => {
-    if (!open) return;
-    const close = (event: PointerEvent) => {
-      if (!panelRef.current?.contains(event.target as Node)) {
-        setOpen(false);
-        setSelected(null);
-      }
-    };
-    document.addEventListener("pointerdown", close);
-    return () => document.removeEventListener("pointerdown", close);
-  }, [open]);
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setDebouncedQuery(query.trim());
@@ -161,13 +155,13 @@ export function GifPicker({
   };
 
   return (
-    <div ref={panelRef} className="yk-gif-picker">
+    <div className="yk-gif-picker">
       <button
         type="button"
         className="yk-gif-trigger"
         disabled={disabled}
         aria-expanded={open}
-        aria-controls="auction-gif-panel"
+        aria-haspopup="dialog"
         onClick={() => {
           setOpen(value => !value);
           setSelected(null);
@@ -175,13 +169,13 @@ export function GifPicker({
       >
         GIF
       </button>
-      {open && (
-        <section
-          id="auction-gif-panel"
-          className="yk-gif-panel"
-          role="dialog"
-          aria-label="Choisir un GIF"
-        >
+      <Modal
+        open={open}
+        onClose={close}
+        title="Choisir un GIF"
+        className="yk-gif-modal"
+      >
+        <section className="yk-gif-panel">
           <div className="yk-gif-categories" aria-label="Catégories de GIF">
             {GIF_CATEGORIES.map(category => (
               <button
@@ -202,7 +196,6 @@ export function GifPicker({
             <input
               id="auction-gif-search"
               type="search"
-              autoFocus
               value={query}
               onChange={event => setQuery(event.target.value)}
               placeholder="Rechercher sur GIPHY…"
@@ -254,7 +247,7 @@ export function GifPicker({
           {selected && (
             <div
               className="yk-gif-preview"
-              role="dialog"
+              role="group"
               aria-label="Aperçu du GIF"
             >
               <img
@@ -276,7 +269,7 @@ export function GifPicker({
             Powered by GIPHY
           </a>
         </section>
-      )}
+      </Modal>
     </div>
   );
 }

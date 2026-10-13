@@ -32,3 +32,13 @@ for (const background of ["night", "surface"]) {
     assert.ok(ratio >= 4.5, `${ratio.toFixed(3)}:1 is below 4.5:1`);
   });
 }
+
+for (const background of ["night", "surface"]) {
+  test(`focus-ring meets 3:1 contrast on ${background}`, () => {
+    const a = luminance(color("focus-ring"));
+    const b = luminance(color(background));
+    const ratio = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+    console.log(`focus-ring on ${background}: ${ratio.toFixed(3)}:1`);
+    assert.ok(ratio >= 3, `${ratio.toFixed(3)}:1 is below 3:1`);
+  });
+}
