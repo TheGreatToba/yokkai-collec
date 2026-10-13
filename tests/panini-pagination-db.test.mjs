@@ -28,6 +28,10 @@ test("les albums Panini sont paginés et leurs cartes chargées à la demande", 
     await db.query("select id from public.cards where source_id='panini-1'")
   ).rows[0].id;
   await db.query(
+    "insert into public.card_franchises(card_id,franchise,position) values ($1,'Licence croisee',1)",
+    [ownedCard]
+  );
+  await db.query(
     "insert into public.user_cards(user_id,card_id,rarity) values ($1,$2,'C')",
     [player, ownedCard]
   );
@@ -43,7 +47,7 @@ test("les albums Panini sont paginés et leurs cartes chargées à la demande", 
     )
   ).rows[0].value;
   assert.equal(first.items.length, 72);
-  assert.equal(first.total, 76);
+  assert.equal(first.total, 77);
   assert.deepEqual(first.items[0], {
     license: "Licence 001",
     total: 1,
@@ -56,8 +60,17 @@ test("les albums Panini sont paginés et leurs cartes chargées à la demande", 
       "select public.get_panini_albums_page('', '', 72, 72) as value"
     )
   ).rows[0].value;
-  assert.equal(second.items.length, 4);
-  assert.equal(second.total, 76);
+  assert.equal(second.items.length, 5);
+  assert.equal(second.total, 77);
+
+  const crossed = (
+    await db.query(
+      "select public.get_panini_album_cards_page('Licence croisee','','',false,0,24) as value"
+    )
+  ).rows[0].value;
+  assert.equal(crossed.total, 1);
+  assert.equal(crossed.items[0].anime, "Licence 001");
+  assert.equal(crossed.items[0].owned, true);
 
   const film = (
     await db.query(
@@ -123,6 +136,8 @@ test("un ami voit les albums Panini du propriétaire sans confondre les possessi
       ('friend-panini-b','Ami B','ANIME/MANGA','Album Ami','R','https://example.test/b.png','panini-friend-test');
     insert into public.user_cards(user_id,card_id,rarity)
     select '${friend}',id,rarete_base from public.cards where source_id='friend-panini-a';
+    insert into public.card_franchises(card_id,franchise,position)
+    select id,'Album croise ami',1 from public.cards where source_id='friend-panini-a';
   `);
 
   await db.exec("set role authenticated");
@@ -137,6 +152,16 @@ test("un ami voit les albums Panini du propriétaire sans confondre les possessi
   ).rows[0].value;
   assert.deepEqual(albums.items, [
     { license: "Album Ami", total: 2, owned: 1, percent: 50 }
+  ]);
+
+  const crossedAlbum = (
+    await db.query(
+      "select public.get_friend_panini_albums_page($1,'Album croise ami','',0,72) as value",
+      [friend]
+    )
+  ).rows[0].value;
+  assert.deepEqual(crossedAlbum.items, [
+    { license: "Album croise ami", total: 1, owned: 1, percent: 100 }
   ]);
 
   const cards = (

@@ -15,11 +15,13 @@ type Card = {
   nom: string;
   categorie: string;
   franchise: string;
+  franchises: string[];
   rarete_base: string;
   image_url: string;
 };
 
 const initialState: AdminActionState = { ok: false, message: "" };
+const NEW_CATEGORY = "__new_category__";
 
 function Feedback({ state }: { state: AdminActionState }) {
   if (!state.message) return null;
@@ -50,7 +52,153 @@ function SubmitButton({ children }: { children: React.ReactNode }) {
   );
 }
 
-function CardRow({ card }: { card: Card }) {
+function CategoryField({
+  categories,
+  initial = "",
+  compact = false
+}: {
+  categories: string[];
+  initial?: string;
+  compact?: boolean;
+}) {
+  const initialChoice = initial
+    ? categories.includes(initial)
+      ? initial
+      : NEW_CATEGORY
+    : "";
+  const [choice, setChoice] = useState(initialChoice);
+  const [customCategory, setCustomCategory] = useState(
+    initialChoice === NEW_CATEGORY ? initial : ""
+  );
+  const inputClass = compact
+    ? "rounded-lg border border-white/15 bg-slate-950 p-2 text-white"
+    : "rounded-lg bg-slate-950 p-3";
+
+  return (
+    <div className="grid gap-2">
+      <label
+        className={`grid gap-1 ${compact ? "text-xs text-slate-300" : "text-sm"}`}
+      >
+        Catégorie
+        <select
+          className={inputClass}
+          name={choice === NEW_CATEGORY ? undefined : "categorie"}
+          onChange={event => setChoice(event.target.value)}
+          required
+          value={choice}
+        >
+          <option disabled value="">
+            Choisir une catégorie
+          </option>
+          {categories.map(category => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
+          <option value={NEW_CATEGORY}>+ Nouvelle catégorie…</option>
+        </select>
+      </label>
+      {choice === NEW_CATEGORY ? (
+        <label
+          className={`grid gap-1 ${compact ? "text-xs text-slate-300" : "text-sm"}`}
+        >
+          Nom de la nouvelle catégorie
+          <input
+            autoFocus
+            className={inputClass}
+            maxLength={100}
+            name="categorie"
+            onChange={event => setCustomCategory(event.target.value)}
+            placeholder="Exemple : LITTÉRATURE"
+            required
+            value={customCategory}
+          />
+        </label>
+      ) : null}
+    </div>
+  );
+}
+
+function LicenseFields({
+  initial = [""],
+  className = ""
+}: {
+  initial?: string[];
+  className?: string;
+}) {
+  const [licenses, setLicenses] = useState(
+    initial.length ? initial.slice(0, 10) : [""]
+  );
+  return (
+    <fieldset className={`min-w-0 space-y-2 ${className}`}>
+      <legend className="sr-only">Licences de la carte</legend>
+      {licenses.map((license, index) => (
+        <div
+          className={
+            index === 0
+              ? "flex items-end gap-2"
+              : "flex items-end gap-2 rounded-xl border border-cyan-300/10 bg-cyan-300/[0.03] p-2"
+          }
+          key={index}
+        >
+          <label className="grid min-w-0 flex-1 gap-1 text-xs text-slate-300">
+            <span className="flex flex-wrap items-center gap-2">
+              {index === 0
+                ? "Licence principale"
+                : `Licence secondaire ${index}`}
+              <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-normal text-slate-400">
+                {index === 0 ? "Visible sur la carte" : "Classeur uniquement"}
+              </span>
+            </span>
+            <input
+              className="min-w-0 rounded-lg border border-white/15 bg-slate-950 p-2 text-white"
+              value={license}
+              maxLength={200}
+              name="franchise"
+              onChange={event =>
+                setLicenses(current =>
+                  current.map((item, currentIndex) =>
+                    currentIndex === index ? event.target.value : item
+                  )
+                )
+              }
+            />
+          </label>
+          {index > 0 ? (
+            <button
+              aria-label={`Retirer la licence secondaire ${index}`}
+              className="rounded-lg border border-red-400/30 px-3 py-2 text-xs text-red-200 transition hover:bg-red-400/10"
+              onClick={() =>
+                setLicenses(current =>
+                  current.filter((_, currentIndex) => currentIndex !== index)
+                )
+              }
+              type="button"
+            >
+              Retirer
+            </button>
+          ) : null}
+        </div>
+      ))}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        {licenses.length < 10 ? (
+          <button
+            className="rounded-lg border border-cyan-300/30 px-3 py-1.5 text-xs font-semibold text-cyan-100 transition hover:bg-cyan-300/10"
+            onClick={() => setLicenses(current => [...current, ""])}
+            type="button"
+          >
+            + Licence secondaire
+          </button>
+        ) : null}
+        <p className="text-[11px] text-slate-500">
+          Chaque licence ajoute la carte au Classeur correspondant.
+        </p>
+      </div>
+    </fieldset>
+  );
+}
+
+function CardRow({ card, categories }: { card: Card; categories: string[] }) {
   const [updateState, updateAction, updating] = useActionState(
     updateCardAction,
     initialState
@@ -62,73 +210,74 @@ function CardRow({ card }: { card: Card }) {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   return (
     <article className="rounded-2xl border border-white/10 bg-slate-900/70 p-4">
-      <form
-        action={updateAction}
-        className="grid gap-3 md:grid-cols-2 xl:grid-cols-6 xl:items-end"
-      >
+      <form action={updateAction} className="space-y-4">
         <input name="id" type="hidden" value={card.id} />
-        <label className="grid gap-1 text-xs text-slate-300">
-          Nom
-          <input
-            className="rounded-lg border border-white/15 bg-slate-950 p-2 text-white"
-            defaultValue={card.nom}
-            name="nom"
-            required
+        <div className="grid items-start gap-4 xl:grid-cols-12">
+          <div className="grid gap-3 xl:col-span-5">
+            <div className="grid gap-3 sm:grid-cols-5">
+              <label className="grid gap-1 text-xs text-slate-300 sm:col-span-3">
+                Nom
+                <input
+                  className="rounded-lg border border-white/15 bg-slate-950 p-2 text-white"
+                  defaultValue={card.nom}
+                  name="nom"
+                  required
+                />
+              </label>
+              <div className="sm:col-span-2">
+                <CategoryField
+                  categories={categories}
+                  compact
+                  initial={card.categorie}
+                />
+              </div>
+            </div>
+            <label className="grid gap-1 text-xs text-slate-300">
+              Nouvelle URL d’image (facultatif)
+              <input
+                className="rounded-lg border border-white/15 bg-slate-950 p-2 text-white"
+                name="image_url"
+                placeholder="Conserver l’image actuelle"
+                type="url"
+              />
+            </label>
+            <label className="grid gap-1 text-xs text-slate-300">
+              ou choisir un nouveau fichier (facultatif)
+              <input
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="rounded-lg border border-white/15 bg-slate-950 p-2 text-white"
+                name="image_file"
+                type="file"
+              />
+            </label>
+          </div>
+          <LicenseFields
+            className="xl:col-span-5"
+            initial={
+              card.franchises.length ? card.franchises : [card.franchise]
+            }
           />
-        </label>
-        <label className="grid gap-1 text-xs text-slate-300">
-          Saga
-          <input
-            className="rounded-lg border border-white/15 bg-slate-950 p-2 text-white"
-            defaultValue={card.categorie}
-            name="categorie"
-            required
-          />
-        </label>
-        <label className="grid gap-1 text-xs text-slate-300">
-          Licence (facultatif)
-          <input
-            className="rounded-lg border border-white/15 bg-slate-950 p-2 text-white"
-            defaultValue={card.franchise}
-            name="franchise"
-          />
-        </label>
-        <label className="grid gap-1 text-xs text-slate-300">
-          Rareté
-          <select
-            className="rounded-lg border border-white/15 bg-slate-950 p-2 text-white"
-            defaultValue={card.rarete_base}
-            name="rarete_base"
-          >
-            {["C", "R", "SR", "SSR", "LR"].map(rarity => (
-              <option key={rarity}>{rarity}</option>
-            ))}
-          </select>
-        </label>
-        <label className="grid gap-1 text-xs text-slate-300 xl:col-span-2">
-          Nouvelle URL d’image (facultatif)
-          <input
-            className="rounded-lg border border-white/15 bg-slate-950 p-2 text-white"
-            name="image_url"
-            placeholder="Conserver l’image actuelle"
-            type="url"
-          />
-        </label>
-        <label className="grid gap-1 text-xs text-slate-300 xl:col-span-2">
-          ou nouveau fichier (facultatif)
-          <input
-            accept="image/jpeg,image/png,image/webp,image/gif"
-            className="rounded-lg border border-white/15 bg-slate-950 p-2 text-white"
-            name="image_file"
-            type="file"
-          />
-        </label>
-        <button
-          className="rounded-lg border border-cyan-300/40 px-3 py-2 text-sm text-cyan-100 disabled:opacity-50"
-          disabled={updating}
-        >
-          {updating ? "…" : "Modifier"}
-        </button>
+          <div className="grid gap-3 xl:col-span-2">
+            <label className="grid gap-1 text-xs text-slate-300">
+              Rareté
+              <select
+                className="rounded-lg border border-white/15 bg-slate-950 p-2 text-white"
+                defaultValue={card.rarete_base}
+                name="rarete_base"
+              >
+                {["C", "R", "SR", "SSR", "LR"].map(rarity => (
+                  <option key={rarity}>{rarity}</option>
+                ))}
+              </select>
+            </label>
+            <button
+              className="rounded-lg border border-cyan-300/40 px-3 py-2 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-300/10 disabled:opacity-50"
+              disabled={updating}
+            >
+              {updating ? "…" : "Enregistrer"}
+            </button>
+          </div>
+        </div>
       </form>
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
         <a
@@ -186,9 +335,11 @@ function CardRow({ card }: { card: Card }) {
 
 export function AdminCardManager({
   cards,
+  categories,
   searchQuery = ""
 }: {
   cards: Card[];
+  categories: string[];
   searchQuery?: string;
 }) {
   const [createState, createAction, creating] = useActionState(
@@ -216,19 +367,9 @@ export function AdminCardManager({
                 required
               />
             </label>
-            <label className="grid gap-1 text-sm">
-              Catégorie
-              <input
-                className="rounded-lg bg-slate-950 p-3"
-                name="categorie"
-                required
-              />
-            </label>
-            <label className="grid gap-1 text-sm">
-              Licence (facultatif)
-              <input className="rounded-lg bg-slate-950 p-3" name="franchise" />
-            </label>
-            <label className="grid gap-1 text-sm">
+            <CategoryField categories={categories} />
+            <LicenseFields />
+            <label className="grid self-start gap-1 text-sm">
               Rareté
               <select
                 className="rounded-lg bg-slate-950 p-3"
@@ -307,7 +448,7 @@ export function AdminCardManager({
           </p>
         ) : null}
         {cards.map(card => (
-          <CardRow card={card} key={card.id} />
+          <CardRow card={card} categories={categories} key={card.id} />
         ))}
       </section>
     </div>

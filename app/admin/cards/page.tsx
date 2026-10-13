@@ -41,7 +41,9 @@ export default async function AdminCardsPage({
   while (true) {
     let cardsQuery = client
       .from("cards")
-      .select("id,nom,categorie,franchise,rarete_base,image_url");
+      .select(
+        "id,nom,categorie,franchise,rarete_base,image_url,card_franchises(franchise,position)"
+      );
     for (const searchTerm of searchTerms) {
       const term = quotedLike(searchTerm);
       cardsQuery = cardsQuery.or(`nom.ilike.${term},franchise.ilike.${term}`);
@@ -59,6 +61,17 @@ export default async function AdminCardsPage({
     if (!searchQuery || !data || data.length < ADMIN_SEARCH_PAGE_SIZE) break;
     offset += ADMIN_SEARCH_PAGE_SIZE;
   }
+  const managerCards = cards.map(card => ({
+    id: card.id,
+    nom: card.nom,
+    categorie: card.categorie,
+    franchise: card.franchise,
+    rarete_base: card.rarete_base,
+    image_url: card.image_url,
+    franchises: [...(card.card_franchises ?? [])]
+      .sort((left, right) => left.position - right.position)
+      .map(item => item.franchise)
+  }));
   return (
     <div className="min-h-screen bg-slate-950 text-white">
       <Topbar
@@ -133,7 +146,8 @@ export default async function AdminCardsPage({
             </form>
           </section>
           <AdminCardManager
-            cards={cards ?? []}
+            cards={managerCards}
+            categories={categories}
             searchQuery={searchQuery || selectedCategory}
           />
         </div>

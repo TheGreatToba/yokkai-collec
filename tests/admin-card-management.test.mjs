@@ -152,7 +152,10 @@ test("une carte existante accepte une nouvelle image par URL ou fichier", async 
     normalizeWhitespace(/Nouvelle URL d’image/)
   );
   assert.match(normalizeWhitespace(ui), normalizeWhitespace(/nouveau fichier/));
-  assert.match(normalizeWhitespace(ui), normalizeWhitespace(/>Saga</));
+  assert.doesNotMatch(normalizeWhitespace(ui), normalizeWhitespace(/>Saga</));
+  assert.match(ui, /Choisir une catégorie/);
+  assert.match(ui, /\+ Nouvelle catégorie…/);
+  assert.match(ui, /Nom de la nouvelle catégorie/);
 });
 
 test("le remplacement d'une image admin utilise une nouvelle URL pour contourner les caches", async () => {
@@ -258,7 +261,7 @@ test("la licence est facultative lors de l’ajout et de la modification d’une
   const actions = await read("app/admin/cards/actions.ts");
   const ui = await read("app/admin/cards/admin-card-manager.tsx");
   assert.doesNotMatch(ui, /name="franchise" required/);
-  assert.equal(ui.match(/Licence \(facultatif\)/g)?.length, 2);
+  assert.match(ui, /Licence principale/);
   assert.match(actions, /if \(!patch\.nom \|\| !patch\.categorie\)/);
   assert.doesNotMatch(actions, /!patch\.franchise/);
 });
@@ -882,6 +885,30 @@ test("la migration supprime uniquement les quatre licences demandées et nettoie
     migration,
     /delete from public\.cards\s+where id = any\(target_card_ids\)/
   );
+});
+
+test("une carte admin accepte plusieurs licences et conserve la premiere comme licence visible", async () => {
+  const actions = await read("app/admin/cards/actions.ts");
+  const page = await read("app/admin/cards/page.tsx");
+  const ui = await read("app/admin/cards/admin-card-manager.tsx");
+  const migration = await read(
+    "supabase/migrations/20261013000003_multiple_card_franchises.sql"
+  );
+
+  assert.match(actions, /form\.getAll\("franchise"\)/);
+  assert.match(actions, /franchise: franchises\[0\] \?\? ""/);
+  assert.match(actions, /from\("card_franchises"\)/);
+  assert.match(actions, /franchises\.map\(\(franchise, position\)/);
+  assert.match(ui, /\+ Licence secondaire/);
+  assert.match(ui, /Licence secondaire \$\{index\}/);
+  assert.match(ui, /Chaque licence ajoute la carte au Classeur/);
+  assert.match(page, /card_franchises\(franchise,position\)/);
+  assert.match(
+    page,
+    /\.sort\(\(left, right\) => left\.position - right\.position\)/
+  );
+  assert.match(migration, /create table public\.card_franchises/i);
+  assert.match(migration, /references public\.cards\(id\) on delete cascade/i);
 });
 
 test("la migration supprime uniquement Devil May Cry de la categorie ANIME/MANGA", async () => {
