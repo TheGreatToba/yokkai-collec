@@ -14,6 +14,10 @@ const profile = readFileSync(
   new URL("../components/profile.tsx", import.meta.url),
   "utf8"
 );
+const catalogueModal = readFileSync(
+  new URL("../components/catalogue-card-modal.tsx", import.meta.url),
+  "utf8"
+);
 
 test("la collection normale ne télécharge plus le catalogue complet", () => {
   assert.doesNotMatch(game, /getAllCards/);
@@ -61,8 +65,15 @@ test("la collection d'un ami reçoit ses propres chargeurs Panini", () => {
 test("les cartes manquantes du Classeur restent visibles en niveaux de gris", () => {
   assert.match(
     collection,
-    /className="yk-panini-missing"[^]*<CardShell interactive=\{false\}>[^]*<YokaiCard[^]*\.\.\.card[^]*animated=\{false\}[^]*className="yk-panini-missing-card"/
+    /className="yk-panini-missing"[^]*onClick=\{\(\) => setSelectedMissingCard\(card\)\}[^]*aria-haspopup="dialog"[^]*<CardShell interactive=\{false\}>[^]*<YokaiCard[^]*\.\.\.card[^]*animated=\{false\}[^]*className="yk-panini-missing-card"/
   );
+  assert.match(
+    collection,
+    /<CatalogueCardModal[^]*selected=\{selectedMissingCard\}[^]*onClose=\{\(\) => setSelectedMissingCard\(null\)\}/
+  );
+  assert.match(catalogueModal, /Possesseurs actuels/);
+  assert.match(catalogueModal, /Ajouter à ma wishlist/);
+  assert.match(catalogueModal, /getCardDiscovery\(cardId\)/);
   assert.doesNotMatch(collection, /<span>\?<\/span>/);
   assert.doesNotMatch(collection, />Non possédée</);
 });
