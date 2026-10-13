@@ -39,7 +39,7 @@ const nextConfig: NextConfig = {
     // Report-Only first: inspect browser violations before a separate enforcing PR.
     const csp = [
       "default-src 'self'",
-      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://static.cloudflareinsights.com`,
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://static.cloudflareinsights.com https://challenges.cloudflare.com`,
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       `connect-src 'self' ${connections.join(" ")}${isDev ? " ws:" : ""}`,
       // Catalogue sources vary; custom images and share downloads also use HTTPS/blob/data.
@@ -49,7 +49,7 @@ const nextConfig: NextConfig = {
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
-      "frame-src 'none'"
+      "frame-src https://challenges.cloudflare.com"
     ].join("; ");
     return [
       {

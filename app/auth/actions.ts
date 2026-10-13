@@ -7,6 +7,7 @@ import { createClient } from "@/utils/supabase/server";
 import {
   authError,
   authEmailError,
+  captchaOptions,
   pseudoValidationError,
   validateCredentials,
   validateEmail,
@@ -124,15 +125,24 @@ export async function signIn(
   const input = validateCredentials(form, false);
   const values = { email: input.email, pseudo: "" };
   if (!input.valid) return { fields: input.fields, values };
+  const captcha = captchaOptions(
+    form,
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+  );
+  if (!captcha) return { error: authError("captcha_failed"), values };
   try {
     const supabase = createClient(await cookies());
-    const credentials = { email: input.email, password: input.password };
+    const credentials = {
+      email: input.email,
+      password: input.password,
+      options: captcha
+    };
     let result;
     try {
       result = await supabase.auth.signInWithPassword(credentials);
     } catch (error) {
       // A short-lived connection reset should not force the user to submit the form again.
-      if (!isTransientNetworkError(error)) throw error;
+      if (captcha.captchaToken || !isTransientNetworkError(error)) throw error;
       result = await supabase.auth.signInWithPassword(credentials);
     }
     const { error } = result;
@@ -152,6 +162,11 @@ export async function signUp(
   const input = validateCredentials(form, true);
   const values = { email: input.email, pseudo: input.pseudo };
   if (!input.valid) return { fields: input.fields, values };
+  const captcha = captchaOptions(
+    form,
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+  );
+  if (!captcha) return { error: authError("captcha_failed"), values };
   let hasSession = false;
   try {
     // Use a configured origin, never an untrusted Host/next query parameter.
@@ -175,6 +190,7 @@ export async function signUp(
       email: input.email,
       password: input.password,
       options: {
+        ...captcha,
         data: { pseudo: input.pseudo },
         emailRedirectTo: `${siteOrigin}/auth/confirm`
       }
@@ -212,17 +228,20 @@ export async function requestPasswordReset(
   const { email, error } = validateEmail(form);
   const values = { email, pseudo: "" };
   if (error) return { fields: { email: error }, values };
+  const captcha = captchaOptions(
+    form,
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+  );
+  if (!captcha) return { error: authError("captcha_failed"), values };
   const siteOrigin = configuredSiteOrigin();
   if (!siteOrigin) return { error: authError(), values };
   try {
     const supabase = createClient(await cookies());
     const result = await supabase.auth.resetPasswordForEmail(email, {
+      ...captcha,
       redirectTo: `${siteOrigin}/auth/confirm?next=/reinitialiser-mot-de-passe`
     });
-    if (
-      result.error &&
-      [429, 500, 502, 503, 504].includes(result.error.status ?? 0)
-    ) {
+    if (result.error && result.error.code !== "user_not_found") {
       return {
         error: authEmailError(result.error),
         values
@@ -242,6 +261,11 @@ export async function resendConfirmation(
   const { email, error } = validateEmail(form);
   const values = { email, pseudo: "" };
   if (error) return { fields: { email: error }, values };
+  const captcha = captchaOptions(
+    form,
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+  );
+  if (!captcha) return { error: authError("captcha_failed"), values };
   const siteOrigin = configuredSiteOrigin();
   if (!siteOrigin) return { error: authError(), values };
   try {
@@ -249,7 +273,7 @@ export async function resendConfirmation(
     const { error } = await supabase.auth.resend({
       type: "signup",
       email,
-      options: { emailRedirectTo: siteOrigin + "/auth/confirm" }
+      options: { ...captcha, emailRedirectTo: siteOrigin + "/auth/confirm" }
     });
     // Auth already returns success for missing/confirmed accounts; retain neutrality.
     if (error && error.code !== "user_not_found") {
@@ -294,6 +318,11 @@ export async function changePassword(
 ): Promise<AuthState> {
   const input = validatePasswordChange(form);
   if (!input.valid) return { fields: input.fields };
+  const captcha = captchaOptions(
+    form,
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+  );
+  if (!captcha) return { error: authError("captcha_failed") };
   try {
     const supabase = createClient(await cookies());
     const {
@@ -307,7 +336,8 @@ export async function changePassword(
 
     const verification = await supabase.auth.signInWithPassword({
       email: user.email,
-      password: input.currentPassword
+      password: input.currentPassword,
+      options: captcha
     });
     if (verification.error?.code === "invalid_credentials") {
       return {

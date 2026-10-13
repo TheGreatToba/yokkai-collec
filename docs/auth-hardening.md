@@ -1,6 +1,6 @@
 # Durcissement Auth — déploiement manuel
 
-Cette procédure est un livrable de configuration, pas une application des réglages. La PR A ajoute le parcours e-mail et les modèles ; les PR C (IP) et B (Turnstile) seront indépendantes et nécessitent chacune un accord. Aucun compte existant ne doit être modifié, supprimé ou rétroactivement « vérifié ».
+Cette procédure est un livrable de configuration, pas une application des réglages. La PR A ajoute le parcours e-mail et les modèles ; les PR C (IP) et B (Turnstile) sont indépendantes. Aucun compte existant ne doit être modifié, supprimé ou rétroactivement « vérifié ».
 
 ## Inventaire du 13 octobre 2026
 
@@ -88,18 +88,23 @@ Cible à confirmer par PR C : SUPABASE_INTERNAL_URL côté serveur seulement et 
 
 Déployer PR C puis établir la confiance, vérifier deux IP de joueurs distinctes sur appels directs et Server Actions, vérifier refus/écrasement d’une IP falsifiée et absence de compteur partagé, enfin activer le limiteur. Retour arrière : restaurer les variables et règles précédentes ; aucune transmission d’IP non fiable ne doit rester active. Pas de rafale pour saturer un compteur de production.
 
-## 6. PR B, puis Turnstile dans Auth — à finaliser dans PR B
+## 6. PR B, puis Turnstile dans Auth
 
 | Variable                                            | Valeur cible                                                             | Retour arrière                                       |
 | --------------------------------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------- |
 | NEXT_PUBLIC_TURNSTILE_SITE_KEY (site, build public) | Clé publique du widget pour les domaines autorisés, à fournir hors dépôt | Retirer la variable et reconstruire le site          |
+| NEXT_PUBLIC_AUTH_SUPPORT_URL (site, build public)   | URL HTTPS du canal réel d’assistance humaine, à choisir avant activation | Retirer la variable et reconstruire le site          |
 | GOTRUE_SECURITY_CAPTCHA_PROVIDER                    | turnstile                                                                | Ancienne valeur ; retirer si auparavant absente      |
 | GOTRUE_SECURITY_CAPTCHA_SECRET                      | Secret du widget conservé uniquement dans Coolify                        | Ancien secret conservé dans le gestionnaire sécurisé |
 | GOTRUE_SECURITY_CAPTCHA_ENABLED                     | true, en dernier                                                         | false                                                |
 
 Déployer PR B avant activation Auth. Le widget n’apparaît que si la clé publique est définie ; le jeton n’est transmis que dans ce cas. Tester inscription, connexion, récupération, renvoi et revérification du mot de passe actuel. Un jeton expiré, consommé ou potentiellement consommé après incident réseau doit être renouvelé, jamais réutilisé. Tester clavier/lecteur d’écran et assistance humaine sans route publique de contournement. Ajouter challenges.cloudflare.com à script-src et frame-src dans la CSP de signalement ; ne pas passer à une CSP bloquante.
 
-Désactiver CAPTCHA_ENABLED avant tout retrait du widget en retour arrière. Des requêtes sans jeton sur l’API directe doivent être refusées après activation. Confirmer ce comportement pour resend sur la version déployée ; ne pas présumer que tous les fournisseurs OAuth utilisent ces mêmes contrôles.
+Le widget utilise le script officiel sans nouvelle dépendance et se monte explicitement pour chaque formulaire. Il se charge uniquement quand la clé publique est définie. Le jeton natif cf-turnstile-response est capturé dans FormData puis le widget renouvelé immédiatement, même si la réponse réseau échoue ; un reset du formulaire renouvelle aussi le widget. La connexion ne retente plus automatiquement une requête contenant un jeton. Le serveur ignore un champ captcha lorsque la clé est absente et refuse un jeton absent, dupliqué ou trop long quand elle est présente. La validation finale reste chez GoTrue.
+
+Le widget et son bouton de nouvelle tentative sont accessibles au clavier, avec messages d’erreur annoncés. Avant activation, définir NEXT_PUBLIC_AUTH_SUPPORT_URL vers un canal réel d’assistance humaine accessible sans connexion ; un lien d’aide apparaît alors dans chaque widget. Ne pas activer le captcha tant que cette alternative n’a pas été testée. Choisir et communiquer ce canal pour un joueur dont le navigateur ne peut charger le widget ; ne jamais fournir une route publique sans captcha ni désactiver le contrôle à partir d’un champ client. L’aide humaine ne doit pas partager de jetons ou mots de passe. Tester l’absence de clé, la clé définie avec Auth encore sans captcha, puis l’activation Auth, sans basculer la CSP de signalement en enforcement.
+
+Désactiver CAPTCHA_ENABLED avant tout retrait du widget en retour arrière. Des requêtes sans jeton sur l’API directe doivent être refusées après activation. Le code GoTrue 2.196.0 impose verifyCaptcha sur /resend, /signup, /recover et les connexions par mot de passe. Le renouvellement de session et le code PKCE sont exemptés ; ne pas présumer que tous les fournisseurs OAuth utilisent ces mêmes contrôles.
 
 ## Vérifications bornées et conditions d’arrêt
 
@@ -117,3 +122,6 @@ Arrêter la bascule si livraison non démontrée, réseau de confiance incomplet
 - [GoTrue : renvoi neutre](https://github.com/supabase/auth/blob/v2.196.0/internal/api/resend.go)
 - [Envoy 1.39.1 : en-têtes et confiance XFF](https://www.envoyproxy.io/docs/envoy/v1.39.1/configuration/http/http_conn_man/headers)
 - [OVH : limites SMTP, à confronter à l’offre réelle](https://github.com/ovh/ovhcloud-docs/blob/develop/docs/en/guides/web-cloud/web-hosting/email-sending-best-practices.mdx)
+
+- [Cloudflare : rendu explicite et champ de formulaire](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/)
+- [GoTrue 2.196.0 : routes protégées par verifyCaptcha](https://github.com/supabase/auth/blob/v2.196.0/internal/api/api.go)

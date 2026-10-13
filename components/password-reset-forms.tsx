@@ -1,5 +1,7 @@
 "use client";
 
+import { AuthTurnstile } from "@/components/auth-turnstile";
+
 import Link from "next/link";
 import { useActionState } from "react";
 import {
@@ -86,6 +88,7 @@ export function PasswordResetRequestForm({
             </p>
           )}
         </div>
+        <AuthTurnstile />
         <button
           type="submit"
           disabled={pending}

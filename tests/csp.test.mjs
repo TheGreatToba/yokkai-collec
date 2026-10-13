@@ -59,7 +59,8 @@ test("CSP is Report-Only and covers Supabase, catalogue images and card sharing"
   assert.deepEqual(directives.get("script-src"), [
     "'self'",
     "'unsafe-inline'",
-    "https://static.cloudflareinsights.com"
+    "https://static.cloudflareinsights.com",
+    "https://challenges.cloudflare.com"
   ]);
   assert.deepEqual(directives.get("style-src"), [
     "'self'",
@@ -74,7 +75,9 @@ test("CSP is Report-Only and covers Supabase, catalogue images and card sharing"
   assert.deepEqual(directives.get("object-src"), ["'none'"]);
   assert.deepEqual(directives.get("base-uri"), ["'self'"]);
   assert.deepEqual(directives.get("form-action"), ["'self'"]);
-  assert.deepEqual(directives.get("frame-src"), ["'none'"]);
+  assert.deepEqual(directives.get("frame-src"), [
+    "https://challenges.cloudflare.com"
+  ]);
   assert.ok(!policy.includes("unsafe-eval") && !policy.includes("*"));
   assert.equal(
     values.find(header => header.key === "X-Frame-Options").value,

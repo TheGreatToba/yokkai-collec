@@ -11,7 +11,8 @@ function loadModule(path, imports = {}, globals = {}) {
     {
       compilerOptions: {
         module: ts.ModuleKind.CommonJS,
-        target: ts.ScriptTarget.ES2020
+        target: ts.ScriptTarget.ES2020,
+        jsx: ts.JsxEmit.ReactJSX
       }
     }
   ).outputText;
@@ -834,4 +835,196 @@ test("e-mails : les erreurs HTTP réelles du SDK conservent la distinction quota
     assert.equal(result.success, undefined);
     assert.equal(JSON.stringify(result).includes(message), false);
   }
+});
+
+test("captcha : transmis aux cinq parcours seulement si la clé publique est définie", async () => {
+  const enabled = {
+    NEXT_PUBLIC_SITE_URL: "https://yokkai.example",
+    NODE_ENV: "production",
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: "public-local-test"
+  };
+  for (const env of [
+    enabled,
+    { ...enabled, NEXT_PUBLIC_TURNSTILE_SITE_KEY: "" }
+  ]) {
+    const sent = [];
+    const api = actions(
+      {
+        signUp: async value => {
+          sent.push(value.options);
+          return { data: { session: null }, error: null };
+        },
+        signInWithPassword: async value => {
+          sent.push(value.options);
+          return {
+            data: { user: { id: "user" } },
+            error: { code: "invalid_credentials", status: 400 }
+          };
+        },
+        resetPasswordForEmail: async (_, options) => {
+          sent.push(options);
+          return { error: null };
+        },
+        resend: async value => {
+          sent.push(value.options);
+          return { error: null };
+        },
+        getUser: async () => ({
+          data: { user: { id: "user", email: "joueur@example.com" } },
+          error: null
+        })
+      },
+      env
+    );
+    const data = form({
+      "cf-turnstile-response": "single-use-local",
+      currentPassword: "old-password",
+      confirmPassword: "  secret123  "
+    });
+    for (const name of [
+      "signUp",
+      "signIn",
+      "requestPasswordReset",
+      "resendConfirmation",
+      "changePassword"
+    ])
+      await api[name]({}, data);
+    assert.equal(sent.length, 5);
+    for (const options of sent)
+      assert.equal(
+        options?.captchaToken,
+        env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? "single-use-local" : undefined
+      );
+  }
+});
+
+test("captcha : jeton absent, doublon ou trop long refusé avant tout appel Auth", async () => {
+  for (const token of [undefined, "", "x".repeat(2049), " valid "]) {
+    const data = form();
+    if (token !== undefined) data.set("cf-turnstile-response", token);
+    const api = actions(
+      { signUp: () => assert.fail("must not call Auth") },
+      {
+        NEXT_PUBLIC_SITE_URL: "https://yokkai.example",
+        NODE_ENV: "production",
+        NEXT_PUBLIC_TURNSTILE_SITE_KEY: "public-local-test"
+      }
+    );
+    assert.match(
+      (await api.signUp({}, data)).error,
+      /vérification anti-robot/i
+    );
+  }
+  const data = form({ "cf-turnstile-response": "one" });
+  data.append("cf-turnstile-response", "two");
+  assert.equal(forms.captchaOptions(data, "public-local-test"), undefined);
+});
+
+test("captcha : aucun second appel de connexion avec un jeton potentiellement consommé", async () => {
+  let attempts = 0;
+  const api = actions(
+    {
+      signInWithPassword: async () => {
+        attempts++;
+        throw new TypeError("fetch failed");
+      }
+    },
+    {
+      NEXT_PUBLIC_SITE_URL: "https://yokkai.example",
+      NODE_ENV: "production",
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: "public-local-test"
+    }
+  );
+  const result = await api.signIn(
+    {},
+    form({ "cf-turnstile-response": "single-use-local" })
+  );
+  assert.equal(attempts, 1);
+  assert.equal(result.success, undefined);
+});
+
+test("captcha : refus Auth à la récupération n’est jamais annoncé comme un envoi", async () => {
+  const result = await actions({
+    resetPasswordForEmail: async () => ({
+      error: { code: "captcha_failed", status: 400 }
+    })
+  }).requestPasswordReset({}, form());
+  assert.match(result.error, /vérification anti-robot/i);
+  assert.equal(result.success, undefined);
+});
+
+test("récupération : un refus sans code SDK ne devient pas un succès", async () => {
+  const result = await actions({
+    resetPasswordForEmail: async () => ({
+      error: { status: 400, message: "Captcha verification failed" }
+    })
+  }).requestPasswordReset({}, form());
+  assert.ok(result.error);
+  assert.equal(result.success, undefined);
+});
+
+test("widget : jeton capturé puis renouvelé, y compris après reset et démontage", () => {
+  const formTarget = new EventTarget();
+  let field = "",
+    generation = 0,
+    removed = 0;
+  const effects = [];
+  const refs = [];
+  const element = (type, props) => ({ type, props });
+  const container = { closest: () => formTarget };
+  const widget = loadModule(
+    "../components/auth-turnstile.tsx",
+    {
+      "next/script": { default: "Script" },
+      "react/jsx-runtime": { jsx: element, jsxs: element },
+      react: {
+        useId: () => "local-widget",
+        useState: value => [value, () => {}],
+        useRef: value => {
+          const ref = { current: value === null ? container : value };
+          refs.push(ref);
+          return ref;
+        },
+        useEffect: effect => effects.push(effect)
+      }
+    },
+    {
+      process: { env: { NEXT_PUBLIC_TURNSTILE_SITE_KEY: "public-local-test" } },
+      window: {
+        turnstile: {
+          render: () => {
+            field = "token-" + ++generation;
+            return "widget-local";
+          },
+          reset: () => {
+            field = "token-" + ++generation;
+          },
+          remove: () => removed++
+        }
+      }
+    }
+  ).AuthTurnstile;
+  const tree = widget();
+  const cleanup = effects[0]();
+  const script = tree.props.children.find(
+    node => node?.props?.id === "auth-turnstile-local-widget"
+  );
+  script.props.onLoad();
+  script.props.onReady();
+  assert.equal(generation, 1);
+  const first = field;
+  // The native formdata event is emitted after copying the input values.
+  const captured = new FormData();
+  captured.set("cf-turnstile-response", field);
+  formTarget.dispatchEvent(new Event("formdata"));
+  assert.equal(captured.get("cf-turnstile-response"), first);
+  assert.notEqual(field, first);
+  const second = field;
+  formTarget.dispatchEvent(new Event("reset"));
+  assert.notEqual(field, second);
+  cleanup();
+  assert.equal(removed, 1);
+  const after = field;
+  formTarget.dispatchEvent(new Event("formdata"));
+  assert.equal(field, after);
 });
