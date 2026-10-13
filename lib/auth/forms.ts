@@ -1,6 +1,7 @@
 export type AuthState = {
   error?: string;
   success?: boolean;
+  retryAfter?: number;
   fields?: Partial<
     Record<
       "email" | "currentPassword" | "password" | "confirmPassword" | "pseudo",
@@ -129,4 +130,32 @@ export function authError(code?: string, status?: number) {
         ? "Le service de connexion est momentanément indisponible. Réessayez dans un instant."
         : "La demande d’authentification a été refusée. Vérifiez vos informations et réessayez.";
   }
+}
+
+// GoTrue uses the same code for the shared budget and the per-address cooldown.
+// Match its fixed messages, but never expose SMTP/provider details to the player.
+export function authEmailError(error: unknown) {
+  if (typeof error !== "object" || error === null) return authError();
+  const code =
+    "code" in error && typeof error.code === "string" ? error.code : undefined;
+  const status =
+    "status" in error && typeof error.status === "number"
+      ? error.status
+      : undefined;
+  const message =
+    "message" in error && typeof error.message === "string"
+      ? error.message
+      : "";
+  if (code === "over_email_send_rate_limit") {
+    return /^For security purposes, you can only request this /.test(message)
+      ? authError("over_request_rate_limit")
+      : "La limite d’envoi d’e-mails du service est atteinte. Réessaie plus tard ; ton adresse n’est pas en cause.";
+  }
+  if (
+    (code === "unexpected_failure" || (status ?? 0) >= 500) &&
+    /^Error sending (confirmation|recovery) email$/.test(message)
+  ) {
+    return "Le service d’envoi d’e-mails est momentanément indisponible. Réessaie plus tard.";
+  }
+  return authError(code, status);
 }

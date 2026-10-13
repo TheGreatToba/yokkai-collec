@@ -1110,7 +1110,7 @@ test("le chat d’enchère est visible mais réservé au vendeur et aux utilisat
   assert.match(
     normalizeWhitespace(source),
     normalizeWhitespace(
-      /<GifPicker disabled=\{busy\} onSelect=\{gif=>void send\(gif\)\}/
+      /<GifPicker disabled=\{busy\|\|retrySeconds>0\} onSelect=\{gif=>void send\(gif\)\}/
     )
   );
   assert.match(

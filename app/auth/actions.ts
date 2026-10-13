@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
 import {
   authError,
+  authEmailError,
   pseudoValidationError,
   validateCredentials,
   validateEmail,
@@ -192,14 +193,14 @@ export async function signUp(
           };
         }
       }
-      return { error: authError(error.code, error.status), values };
+      return { error: authEmailError(error), values };
     }
     hasSession = Boolean(data.session);
   } catch (error) {
     logAuthErrorInDevelopment("sign-up", error);
-    return { error: authError(errorCode(error), errorStatus(error)), values };
+    return { error: authEmailError(error), values };
   }
-  if (!hasSession) return { success: true, values };
+  if (!hasSession) return { success: true, values, retryAfter: 60 };
   revalidatePath("/", "layout");
   redirect("/");
 }
@@ -223,15 +224,41 @@ export async function requestPasswordReset(
       [429, 500, 502, 503, 504].includes(result.error.status ?? 0)
     ) {
       return {
-        error: authError(result.error.code, result.error.status),
+        error: authEmailError(result.error),
         values
       };
     }
   } catch (error) {
-    if (isTransientNetworkError(error)) return { error: authError(), values };
+    return { error: authEmailError(error), values };
   }
   // Do not reveal whether the address belongs to an account.
   return { success: true, values };
+}
+
+export async function resendConfirmation(
+  _state: AuthState,
+  form: FormData
+): Promise<AuthState> {
+  const { email, error } = validateEmail(form);
+  const values = { email, pseudo: "" };
+  if (error) return { fields: { email: error }, values };
+  const siteOrigin = configuredSiteOrigin();
+  if (!siteOrigin) return { error: authError(), values };
+  try {
+    const supabase = createClient(await cookies());
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: { emailRedirectTo: siteOrigin + "/auth/confirm" }
+    });
+    // Auth already returns success for missing/confirmed accounts; retain neutrality.
+    if (error && error.code !== "user_not_found") {
+      return { error: authEmailError(error), values, retryAfter: 60 };
+    }
+  } catch (error) {
+    return { error: authEmailError(error), values, retryAfter: 60 };
+  }
+  return { success: true, values, retryAfter: 60 };
 }
 
 export async function updateRecoveredPassword(

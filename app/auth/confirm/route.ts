@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
   const recoveryRequested =
     params.get("next") === "/reinitialiser-mot-de-passe" || type === "recovery";
   let confirmed = false;
+  let failure = "erreur";
   try {
     if (
       !params.has("error") &&
@@ -44,9 +45,14 @@ export async function GET(request: NextRequest) {
             type: type as "email" | "signup" | "recovery"
           });
       confirmed = !error;
+      if (
+        error &&
+        ((error.status ?? 0) >= 500 || error.name === "AuthRetryableFetchError")
+      )
+        failure = "service";
     }
   } catch {
-    // Invalid/expired links get a useful page, never raw provider errors.
+    failure = "service";
   }
   const response = NextResponse.redirect(
     new URL(
@@ -55,8 +61,8 @@ export async function GET(request: NextRequest) {
           ? "/reinitialiser-mot-de-passe"
           : "/"
         : recoveryRequested
-          ? "/mot-de-passe-oublie?lien=erreur"
-          : "/connexion?confirmation=erreur",
+          ? `/mot-de-passe-oublie?lien=${failure}`
+          : `/connexion?confirmation=${failure}`,
       publicOrigin(request)
     )
   );
