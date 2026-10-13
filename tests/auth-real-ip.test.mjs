@@ -45,6 +45,7 @@ function load(env, incoming, calls) {
 const secret = "a".repeat(64); // Local test fixture only, never an operational credential.
 const publicUrl = "https://api.yokkai.example";
 const env = {
+  AUTH_REAL_IP_ENABLED: "true",
   SUPABASE_AUTH_INTERNAL_URL: "http://supabase-envoy:8000",
   AUTH_PROXY_SECRET: secret
 };
@@ -155,7 +156,10 @@ test("IP : la réécriture est limitée à Auth et ne transmet rien aux autres s
 
 test("IP : un chemin interne partiellement configuré est refusé sans exposer ses valeurs", async () => {
   for (const configured of [
-    { SUPABASE_AUTH_INTERNAL_URL: env.SUPABASE_AUTH_INTERNAL_URL },
+    {
+      AUTH_REAL_IP_ENABLED: "true",
+      SUPABASE_AUTH_INTERNAL_URL: env.SUPABASE_AUTH_INTERNAL_URL
+    },
     { ...env, AUTH_PROXY_SECRET: "short" },
     {
       ...env,
@@ -232,5 +236,43 @@ test("cookies : le nom historique dépend de l’URL publique, jamais de l’adr
     const config = exports.getSupabaseConfig();
     assert.equal(config.cookieName, "sb-api-auth-token");
     assert.equal(config.url, "https://api.yokkai-collec.com");
+  }
+});
+
+test("IP : URL seule et indicateur seul sont inertes, seule leur combinaison active le chemin", async () => {
+  for (const configured of [
+    { SUPABASE_AUTH_INTERNAL_URL: env.SUPABASE_AUTH_INTERNAL_URL },
+    { ...env, AUTH_REAL_IP_ENABLED: undefined },
+    { ...env, AUTH_REAL_IP_ENABLED: "false" },
+    { ...env, AUTH_REAL_IP_ENABLED: "TRUE" },
+    { ...env, AUTH_REAL_IP_ENABLED: "1" },
+    { ...env, SUPABASE_AUTH_INTERNAL_URL: undefined },
+    env
+  ]) {
+    const calls = [];
+    const incoming = new Headers({
+      "cf-connecting-ip": "198.51.100.12",
+      "x-auth-proxy-secret": secret
+    });
+    const api = load(configured, incoming, calls);
+    await api.serverAuthFetch(publicUrl)(publicUrl + "/auth/v1/user");
+    const enabled =
+      configured.AUTH_REAL_IP_ENABLED === "true" &&
+      Boolean(configured.SUPABASE_AUTH_INTERNAL_URL);
+    assert.equal(calls.length, 1);
+    assert.equal(
+      calls[0].url,
+      enabled
+        ? "http://supabase-envoy:8000/auth/v1/user"
+        : publicUrl + "/auth/v1/user"
+    );
+    assert.equal(
+      calls[0].headers.get("x-auth-client-ip"),
+      enabled ? "198.51.100.12" : null
+    );
+    assert.equal(
+      calls[0].headers.get("x-auth-proxy-secret"),
+      enabled ? secret : null
+    );
   }
 });

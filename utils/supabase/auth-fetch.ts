@@ -30,7 +30,8 @@ export function serverAuthFetch(
     ])
       outgoing.delete(name);
     const internalUrl = process.env.SUPABASE_AUTH_INTERNAL_URL;
-    if (!internalUrl) return fetch(new Request(request, { headers: outgoing }));
+    if (!internalUrl || process.env.AUTH_REAL_IP_ENABLED !== "true")
+      return fetch(new Request(request, { headers: outgoing }));
 
     const secret = process.env.AUTH_PROXY_SECRET ?? "";
     if (!/^[a-f0-9]{64}$/.test(secret))
