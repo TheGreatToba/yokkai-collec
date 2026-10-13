@@ -883,3 +883,29 @@ test("la migration supprime uniquement les quatre licences demandées et nettoie
     /delete from public\.cards\s+where id = any\(target_card_ids\)/
   );
 });
+
+test("la migration supprime uniquement Devil May Cry de la categorie ANIME/MANGA", async () => {
+  const migration = await read(
+    "supabase/migrations/20261013000002_remove_devil_may_cry_anime_cards.sql"
+  );
+  assert.match(
+    migration,
+    /lower\(btrim\(franchise\)\) = lower\('Devil May Cry'\)/
+  );
+  assert.match(migration, /upper\(btrim\(categorie\)\) = 'ANIME\/MANGA'/);
+  assert.match(migration, /set status = 'declined'/);
+  assert.match(
+    migration,
+    /perform public\.credit_karas\(sale\.buyer_id, sale\.current_price\)/
+  );
+  assert.match(migration, /delete from public\.card_shares/);
+  assert.match(migration, /delete from public\.decision_pack_choices/);
+  assert.match(
+    migration,
+    /delete from public\.user_cards\s+where card_id = any\(target_card_ids\)/
+  );
+  assert.match(
+    migration,
+    /delete from public\.cards\s+where id = any\(target_card_ids\)/
+  );
+});
