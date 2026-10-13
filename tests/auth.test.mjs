@@ -638,3 +638,200 @@ test("session : utilisateur vérifié par Auth et pseudo lu via RPC sans identif
   assert.equal(await session.getCurrentPseudo("someone-else"), "DB pseudo");
   assert.deepEqual(calls, [["get_game_info"], ["get_game_info"]]);
 });
+
+test("renvoi : adresse validée, retour canonique, réponse neutre et délai", async () => {
+  for (const error of [null, { code: "user_not_found", status: 400 }]) {
+    let sent;
+    const result = await actions({
+      resend: async input => {
+        sent = input;
+        return { error };
+      }
+    }).resendConfirmation({}, form());
+    assert.equal(sent.type, "signup");
+    assert.equal(sent.email, "joueur@example.com");
+    assert.equal(
+      sent.options.emailRedirectTo,
+      "https://yokkai.example/auth/confirm"
+    );
+    assert.equal(result.success, true);
+    assert.equal(result.retryAfter, 60);
+    assert.equal(JSON.stringify(result).includes("user_not_found"), false);
+    assert.equal(JSON.stringify(result).includes("secret123"), false);
+  }
+  const invalid = await actions({
+    resend: () => assert.fail("must not send")
+  }).resendConfirmation({}, form({ email: "invalid" }));
+  assert.ok(invalid.fields.email);
+  const missingOrigin = await actions(
+    { resend: () => assert.fail("must not send") },
+    { NODE_ENV: "production" }
+  ).resendConfirmation({}, form());
+  assert.match(missingOrigin.error, /indisponible/);
+});
+
+test("e-mails : quota global, délai par adresse et SMTP ont des messages distincts", async () => {
+  const cases = [
+    [
+      {
+        code: "over_email_send_rate_limit",
+        status: 429,
+        message: "Email rate limit exceeded"
+      },
+      /limite.*e-mails/i
+    ],
+    [
+      {
+        code: "over_email_send_rate_limit",
+        status: 429,
+        message:
+          "For security purposes, you can only request this after 60 seconds."
+      },
+      /Trop de tentatives/
+    ],
+    [
+      {
+        code: "unexpected_failure",
+        status: 500,
+        message: "Error sending confirmation email"
+      },
+      /service d’envoi.*indisponible/i
+    ]
+  ];
+  for (const [error, expected] of cases) {
+    const api = actions({
+      resend: async () => ({ error }),
+      signUp: async () => ({ data: { session: null }, error }),
+      resetPasswordForEmail: async () => ({ error })
+    });
+    for (const operation of [
+      "resendConfirmation",
+      "signUp",
+      "requestPasswordReset"
+    ]) {
+      const result = await api[operation]({}, form());
+      assert.match(result.error, expected);
+      assert.equal(result.success, undefined);
+      assert.equal(JSON.stringify(result).includes(error.message), false);
+    }
+  }
+  assert.match(
+    forms.authEmailError({
+      code: "unexpected_failure",
+      status: 500,
+      message: "Database error saving new user"
+    }),
+    /service de connexion/
+  );
+});
+
+test("renvoi : erreur levée ou refus opérationnel ne devient jamais un succès", async () => {
+  for (const resend of [
+    async () => {
+      throw new TypeError("fetch failed");
+    },
+    async () => ({
+      error: { code: "validation_failed", status: 400, message: "private" }
+    })
+  ]) {
+    const result = await actions({ resend }).resendConfirmation({}, form());
+    assert.ok(result.error);
+    assert.equal(result.success, undefined);
+    assert.equal(result.retryAfter, 60);
+    assert.equal(JSON.stringify(result).includes("private"), false);
+  }
+});
+
+test("confirmation : indisponibilité Auth distincte d’un lien expiré ou consommé", async () => {
+  for (const recovery of [false, true]) {
+    const path = recovery
+      ? "mot-de-passe-oublie?lien="
+      : "connexion?confirmation=";
+    const query = recovery
+      ? "token_hash=hash&type=recovery"
+      : "token_hash=hash&type=signup";
+    for (const verifyOtp of [
+      async () => ({ error: { code: "unexpected_failure", status: 503 } }),
+      async () => {
+        throw new TypeError("fetch failed");
+      }
+    ]) {
+      const response = await confirm({ verifyOtp })(
+        new NextRequest("https://yokkai.example/auth/confirm?" + query)
+      );
+      assert.equal(
+        response.headers.get("location"),
+        "https://yokkai.example/" + path + "service"
+      );
+      assert.match(response.headers.get("cache-control"), /no-store/);
+    }
+    const response = await confirm({
+      verifyOtp: async () => ({ error: { code: "otp_expired", status: 403 } })
+    })(new NextRequest("https://yokkai.example/auth/confirm?" + query));
+    assert.equal(
+      response.headers.get("location"),
+      "https://yokkai.example/" + path + "erreur"
+    );
+  }
+});
+
+test("e-mails : les erreurs HTTP réelles du SDK conservent la distinction quota/SMTP", async () => {
+  const { createClient } = await import("@supabase/supabase-js");
+  for (const [status, code, message, expected] of [
+    [
+      429,
+      "over_email_send_rate_limit",
+      "Email rate limit exceeded",
+      /limite.*e-mails/i
+    ],
+    [
+      429,
+      "over_email_send_rate_limit",
+      "For security purposes, you can only request this after 60 seconds.",
+      /Trop de tentatives/
+    ],
+    [
+      500,
+      "unexpected_failure",
+      "Error sending confirmation email",
+      /service d’envoi.*indisponible/i
+    ]
+  ]) {
+    let calls = 0;
+    const client = createClient(
+      "https://local-auth.example",
+      "sb_publishable_local_dummy",
+      {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+          detectSessionInUrl: false
+        },
+        global: {
+          fetch: async () => {
+            calls++;
+            return new Response(JSON.stringify({ code, msg: message }), {
+              status,
+              headers: {
+                "Content-Type": "application/json",
+                "X-Supabase-Api-Version": "2024-01-01"
+              }
+            });
+          }
+        }
+      }
+    );
+    const { error } = await client.auth.resend({
+      type: "signup",
+      email: "joueur@example.com"
+    });
+    assert.equal(calls, 1);
+    assert.ok(error);
+    const result = await actions({
+      resend: async () => ({ error })
+    }).resendConfirmation({}, form());
+    assert.match(result.error, expected);
+    assert.equal(result.success, undefined);
+    assert.equal(JSON.stringify(result).includes(message), false);
+  }
+});

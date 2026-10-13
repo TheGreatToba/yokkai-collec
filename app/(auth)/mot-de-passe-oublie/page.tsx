@@ -18,7 +18,10 @@ export default async function ForgotPasswordPage({
       <p className="yk-auth-intro">
         Indique ton adresse email pour recevoir un lien sécurisé.
       </p>
-      <PasswordResetRequestForm invalidLink={lien === "erreur"} />
+      <PasswordResetRequestForm
+        invalidLink={lien === "erreur"}
+        confirmationUnavailable={lien === "service"}
+      />
     </>
   );
 }

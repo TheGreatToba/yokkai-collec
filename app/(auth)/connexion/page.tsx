@@ -21,7 +21,11 @@ export default async function SignInPage({
           Ton mot de passe a été modifié. Tu peux maintenant te connecter.
         </p>
       )}
-      <AuthForm mode="signin" confirmationError={confirmation === "erreur"} />
+      <AuthForm
+        mode="signin"
+        confirmationError={confirmation === "erreur"}
+        confirmationUnavailable={confirmation === "service"}
+      />
     </>
   );
 }

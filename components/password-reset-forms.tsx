@@ -9,9 +9,11 @@ import {
 import type { AuthState } from "@/lib/auth/forms";
 
 export function PasswordResetRequestForm({
-  invalidLink = false
+  invalidLink = false,
+  confirmationUnavailable = false
 }: {
   invalidLink?: boolean;
+  confirmationUnavailable?: boolean;
 }) {
   const [state, action, pending] = useActionState<AuthState, FormData>(
     requestPasswordReset,
@@ -27,9 +29,8 @@ export function PasswordResetRequestForm({
           <div>
             <h2>Vérifie ta boîte mail</h2>
             <p>
-              Si un compte correspond à cette adresse, un lien de
-              réinitialisation vient d’être envoyé. Pense aussi aux courriers
-              indésirables.
+              Si un compte correspond à cette adresse, tu recevras un lien de
+              réinitialisation. Pense aussi aux courriers indésirables.
             </p>
           </div>
         </div>
@@ -43,8 +44,14 @@ export function PasswordResetRequestForm({
     <form action={action} className="yk-auth-form" aria-busy={pending}>
       {invalidLink && (
         <p role="alert" className="auth-error">
-          Ce lien de réinitialisation est invalide ou a expiré. Demande un
-          nouveau lien.
+          Ce lien de réinitialisation est invalide, a expiré ou a déjà été
+          utilisé. Demande un nouveau lien.
+        </p>
+      )}
+      {confirmationUnavailable && (
+        <p role="alert" className="auth-error">
+          La vérification du lien est momentanément indisponible. Réessaie ton
+          lien dans un instant.
         </p>
       )}
       {state.error && (
