@@ -626,6 +626,11 @@
   font-size: var(--text-xs);
   font-variant-numeric: tabular-nums;
 }
+.yk-auction-chat-send {
+  inline-size: 6.5rem;
+  flex: 0 0 6.5rem;
+  white-space: nowrap;
+}
 .yk-gif-picker {
   position: relative;
   margin-right: auto;

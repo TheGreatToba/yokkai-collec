@@ -36,10 +36,24 @@ const ast = ts.createSourceFile(
   true,
   ts.ScriptKind.TSX
 );
-const component = ast.statements
-  .find(s => ts.isFunctionDeclaration(s) && s.name?.text === "AuctionChatPanel")
-  .getText(ast);
-function panel(adapter) {
+const declaration = name =>
+  ast.statements.find(statement => {
+    if (ts.isFunctionDeclaration(statement))
+      return statement.name?.text === name;
+    if (!ts.isVariableStatement(statement)) return false;
+    return statement.declarationList.declarations.some(
+      item => ts.isIdentifier(item.name) && item.name.text === name
+    );
+  });
+const component = [
+  declaration("AUCTION_CHAT_SUCCESS_COOLDOWN_SECONDS"),
+  declaration("auctionChatCooldownUntil"),
+  declaration("AuctionChatPanel")
+]
+  .filter(Boolean)
+  .map(statement => statement.getText(ast))
+  .join("\n");
+function panel(adapter, componentSource = component) {
   let index = 0,
     now = 100000,
     tree;
@@ -74,7 +88,7 @@ function panel(adapter) {
     }
   };
   const target = { exports: {} };
-  vm.runInNewContext(compile(component), {
+  vm.runInNewContext(compile(componentSource), {
     module: target,
     exports: target.exports,
     Error,
@@ -175,7 +189,7 @@ function panel(adapter) {
 const chat = { canPost: true, participants: [], messages: [] };
 
 test("CHAT_RATE_LIMITED : détails RPC, brouillon, décompte et polling réel du composant", async () => {
-  const market = marketWith({ message: "CHAT_RATE_LIMITED", details: "5" });
+  const market = marketWith({ message: "CHAT_RATE_LIMITED", details: "42" });
   let calls = 0,
     reads = 0;
   const ui = panel({
@@ -197,18 +211,24 @@ test("CHAT_RATE_LIMITED : détails RPC, brouillon, décompte et polling réel du
   assert.equal(ui.textarea().props.value, "Mon brouillon à conserver");
   assert.equal(ui.textarea().props.disabled, false);
   assert.equal(ui.button().props.disabled, true);
-  assert.equal(ui.button().props.children, "Réessaie dans 5 s");
-  assert.ok(ui.status().props.children.join("").includes("Doucement"));
+  assert.equal(ui.button().props.children, "42 s");
+  assert.equal(
+    ui.button().props["aria-label"],
+    "Envoyer, disponible dans quelques secondes"
+  );
+  assert.equal(ui.status(), undefined);
+  assert.equal(ui.alert(), undefined);
   assert.equal(ui.gif().props.disabled, true);
   assert.ok(ui.intervals().includes(3000));
   ui.enter();
+  ui.submit();
   await ui.flush();
   assert.equal(calls, 1, "Enter also respects cooldown");
   await ui.advance(3000);
   assert.ok(reads >= 2);
-  assert.equal(ui.button().props.children, "Réessaie dans 2 s");
+  assert.equal(ui.button().props.children, "39 s");
   assert.equal(ui.textarea().props.value, "Mon brouillon à conserver");
-  await ui.advance(2000);
+  await ui.advance(39000);
   assert.equal(ui.button().props.disabled, false);
   assert.equal(ui.status(), undefined);
 });
@@ -246,18 +266,160 @@ test("succès : texte effacé après confirmation seulement, GIF conserve le bro
     createdAt: new Date().toISOString(),
     mine: true
   };
-  const ui = panel({ get: async () => chat, send: async () => sent });
+  let calls = 0;
+  const ui = panel({
+    get: async () => chat,
+    send: async () => {
+      calls++;
+      return sent;
+    }
+  });
   await ui.flush();
   ui.write("Bonjour");
   ui.submit();
   await ui.flush();
   await ui.flush();
   assert.equal(ui.textarea().props.value, "");
-  assert.equal(ui.button().props.children, "Réessaie dans 3 s");
+  assert.equal(ui.textarea().props.disabled, false);
+  assert.equal(ui.button().props.children, "3 s");
+  assert.equal(ui.button().props.className, "yk-auction-chat-send");
+  assert.equal(ui.status(), undefined);
+  assert.equal(ui.alert(), undefined);
+  ui.write("Message suivant");
+  assert.equal(ui.textarea().props.value, "Message suivant");
+  ui.enter();
+  ui.submit();
+  assert.equal(calls, 1, "le champ reste éditable sans permettre un envoi");
   await ui.advance(3000);
   ui.write("Texte pour plus tard");
   ui.gif().props.onSelect({ url: "https://media.giphy.com/test.gif" });
   await ui.flush();
   await ui.flush();
   assert.equal(ui.textarea().props.value, "Texte pour plus tard");
+});
+
+test("un double déclenchement synchrone ne lance qu’un envoi", async () => {
+  let calls = 0;
+  let release;
+  const sent = {
+    id: "id",
+    userId: "me",
+    pseudo: "Moi",
+    message: "envoyé",
+    createdAt: new Date().toISOString(),
+    mine: true
+  };
+  const pending = new Promise(resolve => {
+    release = () => resolve(sent);
+  });
+  const ui = panel({
+    get: async () => chat,
+    send: () => {
+      calls++;
+      return pending;
+    }
+  });
+  await ui.flush();
+  ui.write("Bonjour");
+  ui.enter();
+  ui.submit();
+  assert.equal(calls, 1);
+  release();
+  await ui.flush();
+  await ui.flush();
+  await ui.advance(3000);
+  ui.write("Après succès");
+  ui.submit();
+  assert.equal(calls, 2, "le verrou est libéré après le succès");
+});
+
+test("contre-preuve : sans verrou synchrone, le même tick lance deux envois", async () => {
+  let calls = 0;
+  let release;
+  const pending = new Promise(resolve => {
+    release = resolve;
+  });
+  const withoutLock = component
+    .replace(/sendLockRef\.current\s*\|\|/g, "")
+    .replace(/sendLockRef\.current\s*=\s*true;/g, "")
+    .replace(/sendLockRef\.current\s*=\s*false;/g, "");
+  const ui = panel(
+    {
+      get: async () => chat,
+      send: () => {
+        calls++;
+        return pending;
+      }
+    },
+    withoutLock
+  );
+  await ui.flush();
+  ui.write("Bonjour");
+  ui.enter();
+  ui.submit();
+  assert.equal(calls, 2);
+  release({
+    id: "id",
+    userId: "me",
+    pseudo: "Moi",
+    message: "envoyé",
+    createdAt: new Date().toISOString(),
+    mine: true
+  });
+  await ui.flush();
+});
+
+test("le verrou synchrone est libéré après une erreur", async () => {
+  let calls = 0;
+  const sent = {
+    id: "id",
+    userId: "me",
+    pseudo: "Moi",
+    message: "envoyé",
+    createdAt: new Date().toISOString(),
+    mine: true
+  };
+  const ui = panel({
+    get: async () => chat,
+    send: async () => {
+      calls++;
+      if (calls === 1) throw new Error("GIF refusé");
+      return sent;
+    }
+  });
+  await ui.flush();
+  ui.write("Bonjour");
+  ui.submit();
+  await ui.flush();
+  assert.equal(ui.alert().props.children, "GIF refusé");
+  ui.submit();
+  await ui.flush();
+  assert.equal(calls, 2);
+  assert.equal(ui.alert(), undefined);
+});
+
+test("un nouveau délai ne raccourcit jamais le décompte courant", () => {
+  const policy = declaration("auctionChatCooldownUntil");
+  assert.ok(policy, "la politique de décompte doit être nommée");
+  const target = { exports: {} };
+  vm.runInNewContext(
+    compile(
+      `${policy.getText(ast)}\nmodule.exports.policy = auctionChatCooldownUntil;`
+    ),
+    { module: target, exports: target.exports, Math, Date }
+  );
+  const first = target.exports.policy(0, 3, 100_000);
+  const extended = target.exports.policy(first, 42, 101_000);
+  assert.equal(extended, 143_000);
+  assert.equal(target.exports.policy(extended, 1, 102_000), 143_000);
+});
+
+test("le bouton minuteur conserve une largeur fixe sans animation de remplissage", () => {
+  const css = read("styles/market.css");
+  const rule = css.match(/\.yk-auction-chat-send\s*\{([^}]*)\}/)?.[1];
+  assert.ok(rule, "la règle ciblée du bouton doit exister");
+  assert.match(rule, /inline-size:\s*[^;]+;/);
+  assert.match(rule, /flex:\s*0 0 [^;]+;/);
+  assert.match(rule, /white-space:\s*nowrap;/);
+  assert.doesNotMatch(rule, /animation|transition/);
 });
