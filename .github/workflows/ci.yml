@@ -3,11 +3,10 @@ name: CI
 on:
   pull_request:
     branches: [master]
+    types: [opened, synchronize, reopened, ready_for_review]
     paths-ignore:
       - "*.md"
       - "docs/**"
-  push:
-    branches: [master]
   workflow_dispatch:
 
 concurrency:
@@ -18,66 +17,8 @@ permissions:
   contents: read
 
 jobs:
-  production-dependency-audit:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - name: Audit production dependencies (high or critical)
-        run: npm audit --omit=dev --audit-level=high
-
-  postgres17-auction-concurrency:
-    needs: checks
-    if: ${{ !cancelled() && (github.event_name == 'push' || needs.checks.outputs.sql == 'true') }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    services:
-      postgres:
-        image: supabase/postgres:17.6.1.136
-        env:
-          POSTGRES_USER: supabase_admin
-          POSTGRES_HOST_AUTH_METHOD: trust
-        # Fresh isolated cluster, no ports exposed, no bundled Supabase init scripts.
-        options: >-
-          --tmpfs /docker-entrypoint-initdb.d
-          --health-cmd "pg_isready -U supabase_admin -d postgres"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - name: Replay all migrations on production PostgreSQL image and run 50 crossed bids
-        env:
-          TEST_POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
-        run: node tests/postgres17-auction-concurrency.mjs
-
-  migration-security:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - name: Install dependencies
-        run: npm ci
-      - name: Replay all migrations and check SECURITY DEFINER grants
-        run: time node --test tests/migration-security.test.mjs
-
   checks:
-    outputs:
-      sql: ${{ steps.sql-changes.outputs.sql }}
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -113,20 +54,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint
-        run: npm run lint
+      - name: Audit, lint, types, format, tests, build and migration security
+        run: npm run ci
 
-      - name: Type check
-        run: npx tsc --noEmit
-
-      - name: Format check
-        run: npm run format:check
-
-      - name: Test
-        run: npm test
-
-      - name: Build
-        run: npm run build
-
-      - name: Check design-system is unavailable in production
-        run: node tests/design-system-production.mjs
+      - name: Replay migrations on PostgreSQL 17 and run 50 crossed bids
+        if: steps.sql-changes.outputs.sql == 'true'
+        timeout-minutes: 10
+        run: npm run ci:db

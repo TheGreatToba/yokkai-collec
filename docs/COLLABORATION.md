@@ -26,7 +26,8 @@ Ne jamais utiliser `--no-verify`, pour les humains comme pour les agents. Lancer
 > merging ») pourra être activée dans Settings > Branches — ce document sera alors mis à jour.
 
 Le hook pre-push et la CI sont deux garde-fous distincts : le hook local bloque un push direct sur
-`master`, tandis que la CI vérifie le code d'une PR et surveille aussi les pushes sur `master`.
+`master`, tandis que la CI vérifie le code d'une PR prête à être relue. Les pushes sur `master`
+ne déclenchent pas de CI supplémentaire afin de préserver le quota.
 
 ## 1. Jamais de commit direct sur `master`
 
@@ -65,8 +66,13 @@ recoupement : se coordonner sur Discord avant de commencer.
 - Une CI qui ne s'est pas exécutée n'est pas une CI verte : vérifier les contrôles du dernier
   commit avant de fusionner. Les PR qui ne touchent que `*.md` et `docs/**` sont exclues du
   déclenchement automatique ; lancer `workflow_dispatch` sur leur branche avant le merge.
-- La CI se déclenche sur les PR vers `master`, y compris en draft, et sur tous les pushes sur
-  `master`. Le déclenchement manuel reste disponible. Les caches npm et Next.js sont conservés.
+- La CI automatique ne démarre que pour les PR vers `master` sorties du brouillon : ouverture
+  prête à relire, sortie du brouillon, réouverture et mises à jour tant qu'elles restent prêtes.
+  Un agent ne sort une PR du brouillon qu'avec l'accord explicite de Walid. En brouillon,
+  exécuter `npm run verify` localement ; aucun job automatique ne démarre.
+- Le déclenchement manuel reste disponible et peut exécuter les contrôles sur une branche en
+  brouillon : il doit être demandé explicitement, jamais lancé pour contourner cette règle.
+  Les caches npm et Next.js sont conservés ; un seul job installe les dépendances une fois.
 - Ouvrir la PR **dès que le travail est prêt à être relu**, pas en fin de chantier (une PR en
   draft est très bien).
 - Remplir le template de PR, en particulier la liste des fichiers/zones touchées et les
@@ -77,19 +83,19 @@ vérification TypeScript, tests et build. Pour reproduire ces contrôles localem
 
 ```bash
 npm ci
-npm run lint
-npx tsc --noEmit
-npm test
-npm run build
+npm run verify
 ```
 
 Le build nécessite les variables publiques listées dans `.env.example`. Des valeurs factices
 suffisent pour vérifier le build ; ne jamais utiliser de secret ou de clé de production en CI.
 
-## 5. Pousser souvent
+## 5. Regrouper les pushes et préserver le quota CI
 
-Ne pas laisser une branche locale avec beaucoup de commits non poussés. Pousser régulièrement
-(`git push -u origin <branche>`) et ouvrir la PR tôt pour limiter la fenêtre de collision.
+Ouvrir une PR en brouillon tôt pour rendre le travail visible, puis regrouper les pushes
+(`git push -u origin <branche>`). Après une demande de corrections, repasser la PR en brouillon
+pendant les corrections et exécuter `npm run verify` localement. Regrouper les corrections avant
+de demander à Walid l'accord pour une nouvelle sortie du brouillon : chaque push sur une PR
+prête à relire consomme à nouveau des minutes CI.
 
 ## 6. Migrations Supabase
 

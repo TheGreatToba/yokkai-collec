@@ -110,27 +110,15 @@ test("workflow preserves cancellation, npm cache and all checks; SQL job is cond
     workflow,
     /concurrency:[\s\S]*?github\.event\.pull_request\.number \|\| github\.ref[\s\S]*?cancel-in-progress: true/
   );
-  assert.equal((workflow.match(/cache: npm/g) ?? []).length, 4);
-  const sql = workflow
-    .split("  postgres17-auction-concurrency:")[1]
-    .split("  migration-security:")[0];
-  assert.match(sql, /needs: checks/);
-  assert.match(
-    sql,
-    /!cancelled\(\).*github\.event_name == 'push'.*needs\.checks\.outputs\.sql == 'true'/
-  );
+  assert.equal((workflow.match(/cache: npm/g) ?? []).length, 1);
+  assert.equal((workflow.match(/run: npm ci\s*$/gm) ?? []).length, 1);
+  assert.match(workflow, /if: steps\.sql-changes\.outputs\.sql == 'true'/);
+  assert.match(workflow, /timeout-minutes: 10/);
   assert.match(workflow, /fetch-depth: 0/);
   assert.match(workflow, /node scripts\/ci-sql-changes\.mjs/);
   assert.match(workflow, /path: \.next\/cache/);
   assert.match(workflow, /restore-keys:/);
-  for (const check of [
-    "npm run lint",
-    "npx tsc --noEmit",
-    "npm run format:check",
-    "npm test",
-    "npm run build",
-    "node tests/design-system-production.mjs"
-  ])
+  for (const check of ["npm run ci", "npm run ci:db"])
     assert.ok(workflow.includes(check), check);
 });
 
