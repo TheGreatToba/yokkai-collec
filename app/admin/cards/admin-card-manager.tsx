@@ -333,6 +333,8 @@ function CardRow({ card, categories }: { card: Card; categories: string[] }) {
   );
 }
 
+const ADMIN_CARDS_PER_PAGE = 20;
+
 export function AdminCardManager({
   cards,
   categories,
@@ -350,6 +352,19 @@ export function AdminCardManager({
     importCardsAction,
     initialState
   );
+  const [cardsPage, setCardsPage] = useState(1);
+  const [editingCardId, setEditingCardId] = useState<string | null>(null);
+  const pageCount = Math.max(1, Math.ceil(cards.length / ADMIN_CARDS_PER_PAGE));
+  const safePage = Math.min(cardsPage, pageCount);
+  const visibleCards = cards.slice(
+    (safePage - 1) * ADMIN_CARDS_PER_PAGE,
+    safePage * ADMIN_CARDS_PER_PAGE
+  );
+
+  function goToPage(page: number) {
+    setEditingCardId(null);
+    setCardsPage(page);
+  }
   return (
     <div className="space-y-8">
       <section className="grid gap-5 lg:grid-cols-2">
@@ -447,9 +462,69 @@ export function AdminCardManager({
             Aucune carte trouvée avec ce nom ou cette licence.
           </p>
         ) : null}
-        {cards.map(card => (
-          <CardRow card={card} categories={categories} key={card.id} />
-        ))}
+        {visibleCards.map(card =>
+          editingCardId === card.id ? (
+            <div className="space-y-2" key={card.id}>
+              <button
+                className="text-sm text-slate-400 underline transition hover:text-white"
+                onClick={() => setEditingCardId(null)}
+                type="button"
+              >
+                Fermer l&apos;édition
+              </button>
+              <CardRow card={card} categories={categories} />
+            </div>
+          ) : (
+            <article
+              className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-white/10 bg-slate-900/70 px-4 py-3"
+              key={card.id}
+            >
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-semibold text-white">{card.nom}</p>
+                <p className="truncate text-xs text-slate-400">
+                  {card.categorie} ·{" "}
+                  {card.franchises.join(" · ") || "Sans licence"}
+                </p>
+              </div>
+              <span className="rounded-full border border-white/10 bg-slate-950 px-3 py-1 text-xs font-semibold text-slate-300">
+                {card.rarete_base}
+              </span>
+              <button
+                className="rounded-lg border border-cyan-300/40 px-3 py-2 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-300/10"
+                onClick={() => setEditingCardId(card.id)}
+                type="button"
+              >
+                Modifier
+              </button>
+            </article>
+          )
+        )}
+        {pageCount > 1 ? (
+          <nav
+            aria-label="Pagination des cartes administrables"
+            className="flex flex-wrap items-center justify-center gap-2 pt-3"
+          >
+            <button
+              className="rounded-lg border border-white/15 px-3 py-2 text-sm disabled:opacity-40"
+              disabled={safePage === 1}
+              onClick={() => goToPage(safePage - 1)}
+              type="button"
+            >
+              Précédent
+            </button>
+            <span className="px-2 text-sm text-slate-400">
+              Page {safePage} sur {pageCount}
+            </span>
+            <button
+              className="rounded-lg border border-white/15 px-3 py-2 text-sm disabled:opacity-40"
+              disabled={safePage === pageCount}
+              onClick={() => goToPage(safePage + 1)}
+              type="button"
+            >
+              Suivant
+            </button>
+          </nav>
+        ) : null}
       </section>
     </div>
   );
