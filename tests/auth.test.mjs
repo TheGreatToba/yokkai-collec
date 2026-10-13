@@ -1028,3 +1028,55 @@ test("widget : jeton capturé puis renouvelé, y compris après reset et démont
   formTarget.dispatchEvent(new Event("formdata"));
   assert.equal(field, after);
 });
+
+test("diagnostic Auth : jetons captcha et IP masqués dans erreurs objets et chaînes", async () => {
+  const privateMessage =
+    'Auth error joueur@example.com ip=198.51.100.12 IPv6=[2001:db8::12] mapped=::ffff:192.0.2.1 captcha_token="local-captcha-token"';
+  const messages = [
+    privateMessage,
+    "Auth error joueur@example.com ip=198.51.100.12 IPv6=[2001:db8::12] mapped=::ffff:192.0.2.1",
+    "Auth error opaque=" + "z".repeat(80)
+  ];
+  for (const error of messages.flatMap(message => [
+    new Error(message),
+    message
+  ])) {
+    const calls = [];
+    const api = loadModule(
+      "../app/auth/actions.ts",
+      {
+        "next/headers": { cookies: async () => ({}) },
+        "next/navigation": { redirect: () => assert.fail("must not redirect") },
+        "next/cache": { revalidatePath: () => {} },
+        "@/utils/supabase/server": {
+          createClient: () => ({
+            auth: {
+              signInWithPassword: async () => {
+                throw error;
+              }
+            }
+          })
+        },
+        "@/lib/auth/forms": forms
+      },
+      {
+        process: { env: { NODE_ENV: "development" } },
+        console: { error: (...args) => calls.push(args) }
+      }
+    );
+    const result = await api.signIn({}, form());
+    assert.ok(result.error);
+    assert.equal(calls.length, 1);
+    const logged = JSON.stringify(calls);
+    for (const value of [
+      "joueur@example.com",
+      "198.51.100.12",
+      "2001:db8::12",
+      "::ffff:192.0.2.1",
+      "local-captcha-token",
+      "z".repeat(80)
+    ])
+      assert.equal(logged.includes(value), false, value);
+    assert.match(logged, /redacted/);
+  }
+});

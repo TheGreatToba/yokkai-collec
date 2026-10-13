@@ -45,13 +45,26 @@ function errorStatus(error: unknown) {
   return typeof error.status === "number" ? error.status : undefined;
 }
 
+function redactAuthDiagnostic(message: string) {
+  // Captcha details may contain an opaque token without a predictable label.
+  if (/captcha|turnstile/i.test(message)) return "[captcha details redacted]";
+  return message
+    .replace(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g, "[email redacted]")
+    .replace(
+      /(?<![\w])(?:[a-f0-9]{0,4}:){2,}[a-f0-9:.]*(?:%[\w.-]+)?/gi,
+      "[IP redacted]"
+    )
+    .replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g, "[IP redacted]")
+    .replace(/[A-Za-z0-9_.~-]{40,}/g, "[token redacted]");
+}
+
 function authErrorDiagnostic(error: unknown) {
   if (typeof error !== "object" || error === null) {
     return {
       code: undefined,
       status: undefined,
       kind: typeof error,
-      message: String(error)
+      message: redactAuthDiagnostic(String(error))
     };
   }
   const status = "status" in error ? error.status : undefined;
@@ -61,11 +74,9 @@ function authErrorDiagnostic(error: unknown) {
     code: errorCode(error),
     status: typeof status === "number" ? status : undefined,
     kind: typeof name === "string" ? name : "object",
-    // Provider messages are useful diagnostically; redact any email-like value defensively.
+    // Keep useful provider diagnostics without email, IP or captcha details.
     message:
-      typeof message === "string"
-        ? message.replace(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g, "[email redacted]")
-        : undefined
+      typeof message === "string" ? redactAuthDiagnostic(message) : undefined
   };
 }
 
