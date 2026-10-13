@@ -1,6 +1,6 @@
 # Durcissement Auth — déploiement manuel
 
-Cette procédure est un livrable de configuration, pas une application des réglages. La PR A ajoute le parcours e-mail et les modèles ; les PR C (IP) et B (Turnstile) seront indépendantes et nécessitent chacune un accord. Aucun compte existant ne doit être modifié, supprimé ou rétroactivement « vérifié ».
+Cette procédure est un livrable de configuration, pas une application des réglages. La PR A ajoute le parcours e-mail et les modèles ; les PR C (IP) et B (Turnstile) sont indépendantes. Aucun compte existant ne doit être modifié, supprimé ou rétroactivement « vérifié ».
 
 ## Inventaire du 13 octobre 2026
 
@@ -78,15 +78,58 @@ L’interface distingue le quota global, le délai par adresse et l’indisponib
 
 Activer seulement après DKIM, DMARC, livraison réelle et PR A déployée. Avec un des deux comptes jetables autorisés, vérifier absence de session avant confirmation, refus de connexion, renvoi, confirmation et connexion. Ne pas demander de confirmation rétroactive aux 50 comptes de l’inventaire. Revenir à true ne confirme pas automatiquement tous les comptes créés entre-temps : conserver leur parcours de renvoi. Le retour arrière réouvre le risque de faux comptes et désactive le budget global non nul de cette version.
 
-## 5. PR C, confiance réseau et limiteur d’IP — à finaliser dans PR C
+## 5. PR C, confiance réseau puis limiteur d’IP
 
-Recommandation : un chemin interne Next → Envoy, avec connexion Docker restreinte/dédiée et nom de cookie sb-api-auth-token conservé. Le navigateur garde l’URL publique. L’URL interne doit être optionnelle pour permettre le déploiement du code avant la configuration. Aucun partage réseau n’est appliqué par PR A.
+Recommandation : Next → Envoy par un réseau Docker privé dédié aux seuls conteneurs Next et Envoy, sans publier de port. Le navigateur garde l’API publique. Repasser par Cloudflare pour chaque Server Action ajoute un trajet et fait voir l’IP de sortie du VPS, pas celle du joueur. Le code conserve l’URL publique pour les cookies et REST, et réécrit uniquement les requêtes Auth vers SUPABASE_AUTH_INTERNAL_URL quand cette variable est définie. Le nom historique sb-api-auth-token est fixé à partir de l’URL publique dans les trois clients (navigateur, serveur, proxy de renouvellement), conformément à @supabase/ssr 0.12.7.
 
-Le préalable est de fermer le contournement de Cloudflare sur les entrées web du site ET de l’API. Traefik doit accepter les en-têtes d’origine seulement de pairs Cloudflare authentifiés/autorisé(s), normaliser une IP unique et écraser les en-têtes internes apportés par un client. Envoy voit Traefik : recopier CF-Connecting-IP sans cette preuve n’est pas sûr. Séparer l’entrée interne serveur et l’entrée publique ; supprimer Sb-Forwarded-For fourni publiquement. N’ajouter des trusted hops que pour une chaîne mesurée et de longueur contrôlée.
+**Préalable obligatoire, manuel : fermer l’origine et établir la preuve.** Déployer PR C sans URL interne. Ajouter un réseau dédié Next/Envoy ; choisir le nom DNS réel d’Envoy (la valeur ci-dessous est une cible à vérifier, pas une découverte du réseau actuel). Sur chaque route Traefik HTTPS du site ET de l’API, appliquer dans cet ordre : IPAllowList sur les plages IPv4 et IPv6 Cloudflare officielles, sans ipStrategy.depth/excludedIPs (contrôle de RemoteAddr, pas de XFF client), puis middleware headers. Ce dernier écrase X-Auth-Proxy-Secret avec le secret partagé et supprime X-Auth-Client-IP et Sb-Forwarded-For du trafic public. Couvrir tous les alias, routes alternatives et ports ; réserver SSH à l’administration. Ne pas remplacer ce contrôle par une liste d’IP prise dans un en-tête. Si un intermédiaire supplémentaire masque le pair Cloudflare, arrêter et définir son authentification ; ne pas choisir arbitrairement un nombre de trusted hops.
 
-Cible à confirmer par PR C : SUPABASE_INTERNAL_URL côté serveur seulement et GOTRUE_RATE_LIMIT_HEADER=X-Auth-Client-IP. La valeur finale de l’URL, les règles d’injection Envoy et les débits seront documentés après vérification du chemin retenu. Ne pas activer GOTRUE_SECURITY_SB_FORWARDED_FOR_ENABLED en parallèle sans règle de confiance démontrée ; une clé publique n’authentifie pas l’en-tête. Le client Auth doit conserver une clé publique et ne pas recevoir un rôle administratif qui pourrait contourner le captcha.
+Générer AUTH_PROXY_SECRET aléatoirement (32 octets, 64 caractères hexadécimaux minuscules) dans le gestionnaire sécurisé, jamais dans le dépôt ou ce document. Injecter la même valeur côté Next, middleware Traefik et modèle Envoy ; ne jamais l’ajouter à une réponse HTTP, aux journaux ou à une variable NEXT_PUBLIC. La preuve ne sert pas de clé API Supabase. Elle garantit que CF-Connecting-IP provient du chemin autorisé : sans elle, Next refuse les appels internes. Aucun champ de formulaire ni XFF navigateur ne peut choisir l’IP. Un acteur disposant de cette preuve ou d’un conteneur de confiance appartient au périmètre privilégié ; limiter ses accès. En présence de Workers/relais Cloudflare, vérifier aussi la provenance des en-têtes et les restrictions de zone ; utiliser si nécessaire les certificats d’Authenticated Origin Pulls propres à la zone.
 
-Déployer PR C puis établir la confiance, vérifier deux IP de joueurs distinctes sur appels directs et Server Actions, vérifier refus/écrasement d’une IP falsifiée et absence de compteur partagé, enfin activer le limiteur. Retour arrière : restaurer les variables et règles précédentes ; aucune transmission d’IP non fiable ne doit rester active. Pas de rafale pour saturer un compteur de production.
+Dans volumes/api/envoy/lds.template.yaml, ajouter ce filtre Lua sur le listener Auth avant les filtres Lua de clés API et router. Faire substituer uniquement AUTH_PROXY_SECRET par le mécanisme de génération de lds.yaml existant, après avoir vérifié qu’il prend cette variable en charge ; contrôler le fichier rendu sans afficher le secret. Le marqueur du modèle ne doit jamais rester littéral. Conserver les autres routes, réécritures et validations de clé publique. L’extrait a passé --mode validate avec Envoy 1.39.1 dans un conteneur local sans réseau et une preuve factice ; valider aussi la configuration complète rendue avant tout redémarrage. Il ne s’agit pas d’une modification appliquée :
+
+```yaml
+- name: envoy.filters.http.lua
+  typed_config:
+    "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+    default_source_code:
+      inline_string: |
+        function envoy_on_request(handle)
+          local h = handle:headers()
+          local proof = h:get("x-auth-proxy-secret")
+          local ip = h:get("x-auth-client-ip") or h:get("cf-connecting-ip")
+          h:remove("x-auth-proxy-secret")
+          h:remove("sb-forwarded-for")
+          if string.sub(h:get(":path") or "", 1, 9) ~= "/auth/v1/" then return end
+          if proof ~= "${AUTH_PROXY_SECRET}" or not ip or #ip > 45
+             or string.find(ip, "[^0-9a-fA-F:.]") then
+            handle:respond({[":status"] = "403"}, "Forbidden")
+            return
+          end
+          h:replace("x-auth-client-ip", ip)
+          h:replace("x-forwarded-for", ip)
+          h:remove("cf-connecting-ip")
+          h:remove("x-real-ip")
+        end
+```
+
+L’IP publique vient de CF-Connecting-IP après filtrage du pair Cloudflare ; l’IP interne vient de Next, qui utilise isIP et vérifie la preuve. Traefik supprime l’en-tête interne sur le chemin public, donc un navigateur ne peut gagner la priorité. Ne pas rendre Envoy accessible par une autre entrée dépourvue de ces règles. X-Forwarded-For est écrasé avec cette IP unique : GoTrue 2.196.0 utilise autrement sa première IP valide pour les audits et la vérification Turnstile. use_remote_address=true et xff_num_trusted_hops=0 peuvent rester : le pair réseau d’Envoy est Traefik/Next, mais les fonctions Auth reçoivent la valeur canonique. En-têtes dupliqués/combinés sont refusés. L’expression Lua contrôle le format unique ; la validation de l’adresse est faite par Cloudflare et isIP côté Next, pas par un parseur Lua inventé.
+
+| Variable Coolify                                                       | Valeur cible                                                                         | Retour arrière                                                           |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
+| AUTH_PROXY_SECRET (Next et génération des règles de passerelle, privé) | Valeur aléatoire fournie hors dépôt ; même valeur aux trois endroits                 | Retirer après désactivation du chemin interne et restauration des règles |
+| SUPABASE_AUTH_INTERNAL_URL (Next seulement)                            | http://supabase-envoy:8000, à remplacer par le DNS/port vérifiés sur le réseau dédié | Retirer la variable et redémarrer Next : appels publics                  |
+| GOTRUE_RATE_LIMIT_HEADER (Auth)                                        | X-Auth-Client-IP                                                                     | Retirer la surcharge précédemment absente                                |
+| GOTRUE_SECURITY_SB_FORWARDED_FOR_ENABLED (Auth)                        | false                                                                                | Retirer la surcharge précédemment absente                                |
+| GOTRUE_RATE_LIMIT_OTP (Auth)                                           | 30                                                                                   | Retirer la surcharge précédemment absente                                |
+| GOTRUE_RATE_LIMIT_VERIFY (Auth)                                        | 30                                                                                   | Retirer la surcharge précédemment absente                                |
+| GOTRUE_RATE_LIMIT_TOKEN_REFRESH (Auth)                                 | 150                                                                                  | Retirer la surcharge précédemment absente                                |
+
+Ordre : preuve Next seule (URL interne absente, comportement actuel), règles Traefik/Envoy et réseau, vérifications publiques bornées, URL interne et redémarrage Next, deux IP distinctes vérifiées, enfin RATE_LIMIT_HEADER puis les autres variables Auth une à une. Ne jamais activer un limiteur sur un en-tête absent/non fiable : il serait inactif ou contournable. Les valeurs OTP/VERIFY/TOKEN_REFRESH sont des débits par cinq minutes dans cette version, avec burst 30 ; ce ne sont pas des plafonds horaires stricts. Les compteurs sont en mémoire et distincts par groupe de routes ; signup/recover/resend utilisent le groupe OTP, verify la vérification, et refresh le renouvellement. Un quota d’IP atteint doit produire un refus temporaire invitant à réessayer, pas un succès de récupération.
+
+Vérification avant activation : origine directe refusée même avec CF-Connecting-IP et en-têtes internes forgés ; API publique via Cloudflare disponible ; deux réseaux donnent deux IP différentes pour inscription/connexion/récupération via Server Actions ET API directe. Inspecter seulement les en-têtes canoniques/compteurs nécessaires par instrumentation temporaire contrôlée, sans cookies, mots de passe, clés ni preuve dans les logs ; supprimer cette instrumentation. Vérifier qu’une ancienne session reste utilisable, que les liens restent sur le domaine public et que REST utilise l’URL publique. Le test local auth-real-ip prouve IPv4/IPv6, refus de preuves/IP invalides, conservation du corps et du cookie ; il ne prouve pas le réseau déployé.
+
+Retour arrière : retirer d’abord GOTRUE_RATE_LIMIT_HEADER et redémarrer Auth, puis retirer SUPABASE_AUTH_INTERNAL_URL et redémarrer Next, restaurer les autres variables Auth une à une, enfin restaurer le filtre Envoy et les règles de preuve. Cet ordre évite que les appels publics de tous les joueurs partagent momentanément le compteur de l’IP du VPS. Conserver le blocage de l’origine Cloudflare si possible. Si le filtre reste actif, garder la preuve Traefik jusqu’à son retrait ; ne pas créer d’interruption par ordre inversé. Les règles Envoy, Traefik et le réseau ont leurs propres redéploiements ; le redémarrage Auth seul ne les applique pas. Ne jamais rétablir un limiteur qui accepte une IP fournie librement par un client.
 
 ## 6. PR B, puis Turnstile dans Auth — à finaliser dans PR B
 
@@ -115,5 +158,8 @@ Arrêter la bascule si livraison non démontrée, réseau de confiance incomplet
 - [GoTrue : envois, fréquence et budget conditionné par autoconfirm](https://github.com/supabase/auth/blob/v2.196.0/internal/api/mail.go)
 - [GoTrue : modèles récupérés par HTTP et cache](https://github.com/supabase/auth/blob/v2.196.0/internal/mailer/templatemailer/template.go)
 - [GoTrue : renvoi neutre](https://github.com/supabase/auth/blob/v2.196.0/internal/api/resend.go)
+- [GoTrue : sélection de l’IP](https://github.com/supabase/auth/blob/v2.196.0/internal/utilities/request.go)
+- [Traefik 3.6 : IPAllowList](https://doc.traefik.io/traefik/v3.6/reference/routing-configuration/http/middlewares/ipallowlist/)
+- [Cloudflare : plages IP](https://www.cloudflare.com/ips/)
 - [Envoy 1.39.1 : en-têtes et confiance XFF](https://www.envoyproxy.io/docs/envoy/v1.39.1/configuration/http/http_conn_man/headers)
 - [OVH : limites SMTP, à confronter à l’offre réelle](https://github.com/ovh/ovhcloud-docs/blob/develop/docs/en/guides/web-cloud/web-hosting/email-sending-best-practices.mdx)
