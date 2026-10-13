@@ -516,9 +516,16 @@
 }
 .yk-panini-missing {
   position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
   border-radius: var(--radius-card);
+  background: none;
   overflow: hidden;
-  cursor: default;
+  color: inherit;
+  text-align: inherit;
+  cursor: pointer;
 }
 .yk-panini-missing-card {
   filter: grayscale(1) brightness(0.56) contrast(0.92);
