@@ -1,5 +1,7 @@
 "use client";
 
+import { AuthTurnstile } from "@/components/auth-turnstile";
+
 import { useActionState, useEffect, useState } from "react";
 import { resendConfirmation } from "@/app/auth/actions";
 import { authError, type AuthState } from "@/lib/auth/forms";
@@ -76,6 +78,7 @@ export function ConfirmationResendForm({
             {state.fields.email}
           </p>
         )}
+        <AuthTurnstile />
         <button
           type="submit"
           className="primary yk-auth-submit"

@@ -7,6 +7,7 @@ import { createClient } from "@/utils/supabase/server";
 import {
   authError,
   authEmailError,
+  captchaOptions,
   pseudoValidationError,
   validateCredentials,
   validateEmail,
@@ -44,13 +45,26 @@ function errorStatus(error: unknown) {
   return typeof error.status === "number" ? error.status : undefined;
 }
 
+function redactAuthDiagnostic(message: string) {
+  // Captcha details may contain an opaque token without a predictable label.
+  if (/captcha|turnstile/i.test(message)) return "[captcha details redacted]";
+  return message
+    .replace(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g, "[email redacted]")
+    .replace(
+      /(?<![\w])(?:[a-f0-9]{0,4}:){2,}[a-f0-9:.]*(?:%[\w.-]+)?/gi,
+      "[IP redacted]"
+    )
+    .replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g, "[IP redacted]")
+    .replace(/[A-Za-z0-9_.~-]{40,}/g, "[token redacted]");
+}
+
 function authErrorDiagnostic(error: unknown) {
   if (typeof error !== "object" || error === null) {
     return {
       code: undefined,
       status: undefined,
       kind: typeof error,
-      message: String(error)
+      message: redactAuthDiagnostic(String(error))
     };
   }
   const status = "status" in error ? error.status : undefined;
@@ -60,11 +74,9 @@ function authErrorDiagnostic(error: unknown) {
     code: errorCode(error),
     status: typeof status === "number" ? status : undefined,
     kind: typeof name === "string" ? name : "object",
-    // Provider messages are useful diagnostically; redact any email-like value defensively.
+    // Keep useful provider diagnostics without email, IP or captcha details.
     message:
-      typeof message === "string"
-        ? message.replace(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g, "[email redacted]")
-        : undefined
+      typeof message === "string" ? redactAuthDiagnostic(message) : undefined
   };
 }
 
@@ -124,15 +136,24 @@ export async function signIn(
   const input = validateCredentials(form, false);
   const values = { email: input.email, pseudo: "" };
   if (!input.valid) return { fields: input.fields, values };
+  const captcha = captchaOptions(
+    form,
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+  );
+  if (!captcha) return { error: authError("captcha_failed"), values };
   try {
     const supabase = createClient(await cookies());
-    const credentials = { email: input.email, password: input.password };
+    const credentials = {
+      email: input.email,
+      password: input.password,
+      options: captcha
+    };
     let result;
     try {
       result = await supabase.auth.signInWithPassword(credentials);
     } catch (error) {
       // A short-lived connection reset should not force the user to submit the form again.
-      if (!isTransientNetworkError(error)) throw error;
+      if (captcha.captchaToken || !isTransientNetworkError(error)) throw error;
       result = await supabase.auth.signInWithPassword(credentials);
     }
     const { error } = result;
@@ -152,6 +173,11 @@ export async function signUp(
   const input = validateCredentials(form, true);
   const values = { email: input.email, pseudo: input.pseudo };
   if (!input.valid) return { fields: input.fields, values };
+  const captcha = captchaOptions(
+    form,
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+  );
+  if (!captcha) return { error: authError("captcha_failed"), values };
   let hasSession = false;
   try {
     // Use a configured origin, never an untrusted Host/next query parameter.
@@ -175,6 +201,7 @@ export async function signUp(
       email: input.email,
       password: input.password,
       options: {
+        ...captcha,
         data: { pseudo: input.pseudo },
         emailRedirectTo: `${siteOrigin}/auth/confirm`
       }
@@ -212,17 +239,20 @@ export async function requestPasswordReset(
   const { email, error } = validateEmail(form);
   const values = { email, pseudo: "" };
   if (error) return { fields: { email: error }, values };
+  const captcha = captchaOptions(
+    form,
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+  );
+  if (!captcha) return { error: authError("captcha_failed"), values };
   const siteOrigin = configuredSiteOrigin();
   if (!siteOrigin) return { error: authError(), values };
   try {
     const supabase = createClient(await cookies());
     const result = await supabase.auth.resetPasswordForEmail(email, {
+      ...captcha,
       redirectTo: `${siteOrigin}/auth/confirm?next=/reinitialiser-mot-de-passe`
     });
-    if (
-      result.error &&
-      [429, 500, 502, 503, 504].includes(result.error.status ?? 0)
-    ) {
+    if (result.error && result.error.code !== "user_not_found") {
       return {
         error: authEmailError(result.error),
         values
@@ -242,6 +272,11 @@ export async function resendConfirmation(
   const { email, error } = validateEmail(form);
   const values = { email, pseudo: "" };
   if (error) return { fields: { email: error }, values };
+  const captcha = captchaOptions(
+    form,
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+  );
+  if (!captcha) return { error: authError("captcha_failed"), values };
   const siteOrigin = configuredSiteOrigin();
   if (!siteOrigin) return { error: authError(), values };
   try {
@@ -249,7 +284,7 @@ export async function resendConfirmation(
     const { error } = await supabase.auth.resend({
       type: "signup",
       email,
-      options: { emailRedirectTo: siteOrigin + "/auth/confirm" }
+      options: { ...captcha, emailRedirectTo: siteOrigin + "/auth/confirm" }
     });
     // Auth already returns success for missing/confirmed accounts; retain neutrality.
     if (error && error.code !== "user_not_found") {
@@ -294,6 +329,11 @@ export async function changePassword(
 ): Promise<AuthState> {
   const input = validatePasswordChange(form);
   if (!input.valid) return { fields: input.fields };
+  const captcha = captchaOptions(
+    form,
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+  );
+  if (!captcha) return { error: authError("captcha_failed") };
   try {
     const supabase = createClient(await cookies());
     const {
@@ -307,7 +347,8 @@ export async function changePassword(
 
     const verification = await supabase.auth.signInWithPassword({
       email: user.email,
-      password: input.currentPassword
+      password: input.currentPassword,
+      options: captcha
     });
     if (verification.error?.code === "invalid_credentials") {
       return {

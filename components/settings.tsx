@@ -1,5 +1,7 @@
 "use client";
 
+import { AuthTurnstile } from "@/components/auth-turnstile";
+
 import { useActionState, useEffect, useRef, useState } from "react";
 import { Button, Toast } from "@/components/ui";
 import { getProfilePrivacy, setProfilePrivacy } from "@/lib/data/settings";
@@ -114,6 +116,7 @@ function PasswordChangeForm() {
             )}
           </label>
         </div>
+        <AuthTurnstile />
         <div className="flex justify-end">
           <Button type="submit" disabled={pending}>
             {pending ? "Modification…" : "Changer mon mot de passe"}

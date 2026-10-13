@@ -1,5 +1,7 @@
 "use client";
 
+import { AuthTurnstile } from "@/components/auth-turnstile";
+
 import Link from "next/link";
 import { ConfirmationResendForm } from "@/components/confirmation-resend-form";
 import { useActionState, useEffect, useRef, useState } from "react";
@@ -221,6 +223,7 @@ export function AuthForm({
               </p>
             )}
           </div>
+          <AuthTurnstile />
           <button
             type="submit"
             disabled={pending}

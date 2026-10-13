@@ -100,6 +100,8 @@ export function validatePasswordChange(form: FormData) {
 
 export function authError(code?: string, status?: number) {
   switch (code) {
+    case "captcha_failed":
+      return "La vérification anti-robot a échoué ou a expiré. Réessaie la vérification avant de renvoyer le formulaire.";
     case "user_banned":
       return "Votre compte est banni.";
     case "invalid_credentials":
@@ -158,4 +160,19 @@ export function authEmailError(error: unknown) {
     return "Le service d’envoi d’e-mails est momentanément indisponible. Réessaie plus tard.";
   }
   return authError(code, status);
+}
+
+export function captchaOptions(form: FormData, siteKey?: string) {
+  if (!siteKey) return {};
+  const tokens = form.getAll("cf-turnstile-response");
+  const token = tokens[0];
+  if (
+    tokens.length !== 1 ||
+    typeof token !== "string" ||
+    !token ||
+    token.length > 2048 ||
+    token !== token.trim()
+  )
+    return undefined;
+  return { captchaToken: token };
 }
