@@ -47,26 +47,15 @@
   border-bottom: 1px solid var(--color-veil);
 }
 .yk-auth-brand {
-  display: inline-flex;
+  display: flex;
+  width: 112px;
   align-items: center;
-  gap: calc(var(--spacing) * 3);
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1.05;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
-.yk-auth-logo {
-  display: grid;
-  width: 38px;
-  aspect-ratio: 1;
-  place-items: center;
-  border: 1px solid var(--color-accent-gold);
-  border-radius: var(--radius-pill);
-  color: var(--color-accent-gold);
-  font-size: 18px;
-  box-shadow: var(--shadow-gold);
+.yk-auth-brand-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
 }
 .yk-auth-return {
   display: inline-flex;
@@ -238,10 +227,7 @@
     min-height: 76px;
   }
   .yk-auth-brand {
-    font-size: 12px;
-  }
-  .yk-auth-logo {
-    width: 34px;
+    width: 96px;
   }
   .yk-auth-return {
     font-size: 12px;
