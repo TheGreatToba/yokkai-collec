@@ -57,3 +57,12 @@ test("la collection d'un ami reçoit ses propres chargeurs Panini", () => {
     /loadPaniniAlbums=\{loadFriendPaniniAlbums\}[^]*loadPaniniAlbumCards=\{loadFriendPaniniAlbumCards\}[^]*readOnly/
   );
 });
+
+test("les cartes manquantes du Classeur restent visibles en niveaux de gris", () => {
+  assert.match(
+    collection,
+    /className="yk-panini-missing"[^]*<CardShell interactive=\{false\}>[^]*<YokaiCard[^]*\.\.\.card[^]*animated=\{false\}[^]*className="yk-panini-missing-card"/
+  );
+  assert.doesNotMatch(collection, /<span>\?<\/span>/);
+  assert.doesNotMatch(collection, />Non possédée</);
+});

@@ -1373,10 +1373,16 @@ export function CollectionView({
                               ) : (
                                 <div
                                   className="yk-panini-missing"
-                                  aria-label="Carte non obtenue"
+                                  aria-label={`${card.name}, carte non obtenue`}
                                 >
-                                  <span>?</span>
-                                  <small>À découvrir</small>
+                                  <CardShell interactive={false}>
+                                    <YokaiCard
+                                      {...card}
+                                      animated={false}
+                                      className="yk-panini-missing-card"
+                                      imageSizes={COLLECTION_CARD_IMAGE_SIZES}
+                                    />
+                                  </CardShell>
                                 </div>
                               )}
                             </li>
