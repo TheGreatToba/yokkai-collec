@@ -376,3 +376,139 @@ try {
 console.log(
   "Account deletion: in-flight write completes before fence; old JWT and counterpart writes blocked; no row-lock/advisory-lock cycle during cleanup"
 );
+
+// Chat: real overlapping PostgreSQL sessions, with the second waiting for the author lock.
+const chatAuction = "40000000-0000-4000-8000-000000000001";
+await query(`insert into public.auctions(id,seller_id,starting_price,current_price,duration_minutes,ends_at)
+  values ('${chatAuction}','${seller}',10,10,60,clock_timestamp()+interval '1 hour');`);
+async function chatOverlap(waitMs) {
+  await query(
+    `delete from public.auction_chat_messages where user_id='${seller}';`
+  );
+  const first = session(`begin; set local role authenticated;
+    select set_config('request.jwt.claim.sub','${seller}',true);
+    select public.send_auction_chat_message('${chatAuction}','first'); select 'READY';`);
+  await until(
+    () => first.output().includes("READY"),
+    "first chat send holds its transaction lock"
+  );
+  const second =
+    session(`set application_name='ci-chat-waiter'; set statement_timeout='12s'; begin;
+    select 'STARTED:'||extract(epoch from transaction_timestamp());
+    set local role authenticated; select set_config('request.jwt.claim.sub','${seller}',true);
+    select public.send_auction_chat_message('${chatAuction}','second'); commit;`);
+  second.child.stdin.end();
+  const outcome = Promise.allSettled([second.done]);
+  let releaseAt;
+  try {
+    await until(
+      async () =>
+        (await query(
+          "select count(*) from pg_stat_activity where application_name='ci-chat-waiter' and wait_event_type='Lock' and wait_event='advisory';"
+        )) === "1",
+      "second real chat send waits on advisory lock"
+    );
+    await delay(waitMs);
+    releaseAt = await query("select extract(epoch from clock_timestamp());");
+  } finally {
+    first.child.stdin.end("commit;\n");
+    await first.done;
+  }
+  const [result] = await outcome;
+  const started = Number(second.output().match(/STARTED:([\d.]+)/)[1]);
+  return { result, started, releaseAt: Number(releaseAt) };
+}
+const immediate = await chatOverlap(0);
+assert.equal(immediate.result.status, "rejected");
+assert.match(immediate.result.reason.message, /CHAT_RATE_LIMITED/);
+assert.equal(
+  await query(
+    `select count(*) from public.auction_chat_messages where user_id='${seller}';`
+  ),
+  "1"
+);
+const waited = await chatOverlap(3200);
+assert.equal(waited.result.status, "fulfilled");
+const insertedAt = Number(
+  await query(
+    `select extract(epoch from created_at) from public.auction_chat_messages where user_id='${seller}' and message='second';`
+  )
+);
+assert.ok(
+  insertedAt >= waited.releaseAt,
+  "created_at uses clock_timestamp after lock release"
+);
+assert.ok(
+  insertedAt - waited.started >= 3,
+  "transaction start timestamp must not date the waiting message"
+);
+assert.equal(
+  await query(
+    `select count(*) from public.auction_chat_messages where user_id='${seller}';`
+  ),
+  "2"
+);
+// Counterproof: the same overlap with now() for inserted.created_at must expose stale dating.
+const chatDefinition = await query(
+  "select pg_get_functiondef('public.send_auction_chat_message(uuid,text,text)'::regprocedure);"
+);
+assert.ok(chatDefinition.includes("clean_gif,sent_at)"));
+await query(chatDefinition.replace("clean_gif,sent_at)", "clean_gif,now())"));
+try {
+  const stale = await chatOverlap(3200);
+  assert.equal(stale.result.status, "fulfilled");
+  const staleAt = Number(
+    await query(
+      `select extract(epoch from created_at) from public.auction_chat_messages where user_id='${seller}' and message='second';`
+    )
+  );
+  assert.ok(
+    staleAt < stale.releaseAt,
+    "counterproof catches transaction-start dating"
+  );
+} finally {
+  await query(chatDefinition);
+}
+console.log(
+  "Chat: overlapping sends serialize; immediate second refused; waiting second dated after lock release; now() counterproof fails the timing invariant"
+);
+
+// Different authors compete for the same read notification: only the first may re-notify.
+await query(`insert into public.bids(auction_id,bidder_id,amount) values ('${chatAuction}','${a}',20),('${chatAuction}','${b}',30);
+  insert into public.notifications(user_id,type,reference_id,actor_user_id,read_at,created_at)
+    values ('${seller}','auction_chat_mention','${chatAuction}','${b}',clock_timestamp(),clock_timestamp()-interval '601 seconds');`);
+const mentionFirst =
+  session(`begin; set local role authenticated; select set_config('request.jwt.claim.sub','${a}',true);
+  select public.send_auction_chat_message('${chatAuction}','@BidSeller'); reset role;
+  select 'NOTIFIED:'||extract(epoch from created_at) from public.notifications where user_id='${seller}' and reference_id='${chatAuction}' and type='auction_chat_mention'; select 'READY';`);
+await until(
+  () => mentionFirst.output().includes("READY"),
+  "first author re-notifies and holds notification row"
+);
+const mentionSecond =
+  session(`set application_name='ci-chat-mention-waiter'; set statement_timeout='12s'; begin; set local role authenticated;
+  select set_config('request.jwt.claim.sub','${b}',true); select public.send_auction_chat_message('${chatAuction}','@BidSeller'); commit;`);
+mentionSecond.child.stdin.end();
+const mentionOutcome = Promise.allSettled([mentionSecond.done]);
+try {
+  await until(
+    async () =>
+      (await query(
+        "select count(*) from pg_stat_activity where application_name='ci-chat-mention-waiter' and wait_event_type='Lock';"
+      )) === "1",
+    "second author waits on notification uniqueness"
+  );
+} finally {
+  mentionFirst.child.stdin.end("commit;\n");
+  await mentionFirst.done;
+}
+assert.equal((await mentionOutcome)[0].status, "fulfilled");
+assert.equal(
+  await query(`select count(*) from public.notifications n where n.user_id='${seller}' and n.reference_id='${chatAuction}'
+  and n.type='auction_chat_mention' and n.read_at is null and n.actor_user_id='${a}'
+  and extract(epoch from n.created_at)=${Number(mentionFirst.output().match(/NOTIFIED:([\d.]+)/)[1])};`),
+  "1"
+);
+console.log(
+  "Mentions: concurrent different authors leave exactly one unread notification with the first actor and timestamp untouched"
+);

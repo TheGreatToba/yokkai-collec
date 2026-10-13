@@ -1030,6 +1030,9 @@ export function AuctionChatPanel({
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [sendError, setSendError] = useState("");
+  const [retryUntil, setRetryUntil] = useState(0);
+  const [retrySeconds, setRetrySeconds] = useState(0);
   const listRef = useRef<HTMLOListElement>(null);
   const mentionIndexRef = useRef(0);
   const mentionMatch = draft.match(/(?:^|\s)@([^\s@]*)$/);
@@ -1130,11 +1133,27 @@ export function AuctionChatPanel({
     textarea.addEventListener("keydown", navigate);
     return () => textarea.removeEventListener("keydown", navigate);
   }, [mentionOptions]);
+  useEffect(() => {
+    if (!retryUntil) return;
+    const timer = window.setInterval(() => {
+      const secondsLeft = Math.max(
+        0,
+        Math.ceil((retryUntil - Date.now()) / 1000)
+      );
+      setRetrySeconds(secondsLeft);
+      if (!secondsLeft) setRetryUntil(0);
+    }, 250);
+    return () => window.clearInterval(timer);
+  }, [retryUntil]);
+  function waitToSend(seconds: number) {
+    setRetrySeconds(seconds);
+    setRetryUntil(Date.now() + seconds * 1000);
+  }
   async function send(gif?: GifChoice) {
     const message = draft.trim();
-    if ((!message && !gif) || busy) return;
+    if ((!message && !gif) || busy || retrySeconds > 0) return;
     setBusy(true);
-    setError("");
+    setSendError("");
     try {
       const sent = await adapter.send(auctionId, message, gif?.url);
       setChat(current =>
@@ -1142,12 +1161,20 @@ export function AuctionChatPanel({
           ? { ...current, messages: [...current.messages, sent] }
           : current
       );
-      setDraft("");
+      if (!gif) setDraft("");
+      waitToSend(3);
     } catch (e) {
-      setError(
-        e instanceof Error ? e.message : "Message impossible à envoyer."
-      );
-      await load();
+      if (
+        e instanceof Error &&
+        "retryAfterSeconds" in e &&
+        typeof e.retryAfterSeconds === "number"
+      ) {
+        waitToSend(e.retryAfterSeconds);
+      } else {
+        setSendError(
+          e instanceof Error ? e.message : "Message impossible à envoyer."
+        );
+      }
     } finally {
       setBusy(false);
     }
@@ -1236,6 +1263,16 @@ export function AuctionChatPanel({
           {error}
         </p>
       )}
+      {sendError && (
+        <p role="alert" className="yk-auction-alert">
+          {sendError}
+        </p>
+      )}
+      {retrySeconds > 0 && (
+        <p role="status" className="yk-auction-alert">
+          Doucement : réessaie dans quelques secondes ({retrySeconds} s).
+        </p>
+      )}
       {chat?.canPost && !finished ? (
         <form
           className="yk-auction-chat-form"
@@ -1297,12 +1334,22 @@ export function AuctionChatPanel({
             )}
           </div>
           <div>
-            <GifPicker disabled={busy} onSelect={gif => void send(gif)} />
+            <GifPicker
+              disabled={busy || retrySeconds > 0}
+              onSelect={gif => void send(gif)}
+            />
             <span>
               {draft.length}/500 · @ pour mentionner · Entrée pour envoyer
             </span>
-            <Button type="submit" disabled={busy || !draft.trim()}>
-              {busy ? "Envoi…" : "Envoyer"}
+            <Button
+              type="submit"
+              disabled={busy || retrySeconds > 0 || !draft.trim()}
+            >
+              {busy
+                ? "Envoi…"
+                : retrySeconds > 0
+                  ? `Réessaie dans ${retrySeconds} s`
+                  : "Envoyer"}
             </Button>
           </div>
         </form>
