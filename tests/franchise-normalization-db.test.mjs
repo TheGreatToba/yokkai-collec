@@ -108,7 +108,8 @@ test("les saisons, films, cours et parties numerotees partagent la meme licence"
     license: "Kingdom",
     total: 3,
     owned: 0,
-    percent: 0
+    percent: 0,
+    favorite: false
   });
 
   const cards = (

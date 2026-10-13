@@ -40,6 +40,10 @@ test("les albums Panini sont paginés et leurs cartes chargées à la demande", 
   await db.query("select set_config('request.jwt.claim.sub',$1,false)", [
     player
   ]);
+  await db.query(
+    "insert into public.panini_album_favorites(user_id,license) values ($1,'Licence 075')",
+    [player]
+  );
 
   const first = (
     await db.query(
@@ -49,10 +53,18 @@ test("les albums Panini sont paginés et leurs cartes chargées à la demande", 
   assert.equal(first.items.length, 72);
   assert.equal(first.total, 77);
   assert.deepEqual(first.items[0], {
+    license: "Licence 075",
+    total: 1,
+    owned: 0,
+    percent: 0,
+    favorite: true
+  });
+  assert.deepEqual(first.items[1], {
     license: "Licence 001",
     total: 1,
     owned: 1,
-    percent: 100
+    percent: 100,
+    favorite: false
   });
 
   const second = (
@@ -78,7 +90,7 @@ test("les albums Panini sont paginés et leurs cartes chargées à la demande", 
     )
   ).rows[0].value;
   assert.deepEqual(film.items, [
-    { license: "FILM", total: 2, owned: 0, percent: 0 }
+    { license: "FILM", total: 2, owned: 0, percent: 0, favorite: false }
   ]);
 
   const cards = (
@@ -88,6 +100,13 @@ test("les albums Panini sont paginés et leurs cartes chargées à la demande", 
   ).rows[0].value;
   assert.equal(cards.total, 2);
   assert.equal(cards.items.length, 2);
+  assert.deepEqual(
+    cards.items.map(card => [card.name, card.rarity]),
+    [
+      ["FILM B", "SR"],
+      ["FILM A", "R"]
+    ]
+  );
   assert.ok(cards.items.every(card => card.owned === false));
 
   const ownedOnly = (
@@ -104,6 +123,15 @@ test("les albums Panini sont paginés et leurs cartes chargées à la demande", 
       (
         await db.query(
           "select has_function_privilege($1,'public.get_panini_albums_page(text,text,integer,integer)','EXECUTE') as allowed",
+          [role]
+        )
+      ).rows[0].allowed,
+      false
+    );
+    assert.equal(
+      (
+        await db.query(
+          "select has_table_privilege($1,'public.panini_album_favorites','SELECT') as allowed",
           [role]
         )
       ).rows[0].allowed,
@@ -174,8 +202,8 @@ test("un ami voit les albums Panini du propriétaire sans confondre les possessi
   assert.deepEqual(
     cards.items.map(card => [card.name, card.owned]),
     [
-      ["AMI A", true],
-      ["AMI B", false]
+      ["AMI B", false],
+      ["AMI A", true]
     ]
   );
 

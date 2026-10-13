@@ -28,6 +28,7 @@ import {
   moveCardsToFolder,
   openBooster,
   openDecisionPack,
+  setPaniniAlbumFavorite,
   setCardCustomImage,
   setCollectionCardLocked,
   type ActiveAuctionCard,
@@ -507,6 +508,7 @@ export function Game({
             categories={info?.categories || []}
             loadPaniniAlbums={getPaniniAlbumsPage}
             loadPaniniAlbumCards={getPaniniAlbumCardsPage}
+            onSetPaniniAlbumFavorite={setPaniniAlbumFavorite}
             presentation={Object.fromEntries(
               activeAuctionCards.map(auction => [
                 auction.instanceId,

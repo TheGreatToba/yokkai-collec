@@ -188,6 +188,7 @@ export function CollectionView({
   onDiscardMany,
   loadPaniniAlbums,
   loadPaniniAlbumCards,
+  onSetPaniniAlbumFavorite,
   loadCardDiscovery = getCardDiscovery
 }: {
   cards: CollectedCard[];
@@ -235,6 +236,10 @@ export function CollectionView({
     page?: number;
     pageSize?: number;
   }) => Promise<PaniniAlbumCardPage>;
+  onSetPaniniAlbumFavorite?: (
+    license: string,
+    favorite: boolean
+  ) => Promise<void>;
   loadCardDiscovery?: (
     cardId: string
   ) => Promise<{ marketValue: number | null }>;
@@ -322,6 +327,10 @@ export function CollectionView({
   });
   const [paniniBusy, setPaniniBusy] = useState(false);
   const [paniniError, setPaniniError] = useState("");
+  const [paniniAlbumRefresh, setPaniniAlbumRefresh] = useState(0);
+  const [favoriteLicenseBusy, setFavoriteLicenseBusy] = useState<string | null>(
+    null
+  );
   const selected = cards.find(c => c.instanceId === selectedId);
   const selectedMeta = selected ? presentation[selected.instanceId] : undefined;
   const filtered = useMemo(
@@ -430,10 +439,45 @@ export function CollectionView({
     activePaniniAlbumPage,
     category,
     loadPaniniAlbums,
+    paniniAlbumRefresh,
     query,
     selectedLicense,
     viewMode
   ]);
+
+  const togglePaniniAlbumFavorite = async (
+    license: string,
+    favorite: boolean
+  ) => {
+    if (!onSetPaniniAlbumFavorite || favoriteLicenseBusy) return;
+    setFavoriteLicenseBusy(license);
+    setPaniniError("");
+    setPaniniAlbums(current => ({
+      ...current,
+      items: current.items.map(item =>
+        item.license === license ? { ...item, favorite } : item
+      )
+    }));
+    try {
+      await onSetPaniniAlbumFavorite(license, favorite);
+      setPaniniAlbumPage(1);
+      setPaniniAlbumRefresh(current => current + 1);
+    } catch (error) {
+      setPaniniAlbums(current => ({
+        ...current,
+        items: current.items.map(item =>
+          item.license === license ? { ...item, favorite: !favorite } : item
+        )
+      }));
+      setPaniniError(
+        error instanceof Error
+          ? error.message
+          : "Impossible de modifier ce favori."
+      );
+    } finally {
+      setFavoriteLicenseBusy(null);
+    }
+  };
 
   useEffect(() => {
     if (viewMode !== "panini" || !selectedLicense || !loadPaniniAlbumCards)
@@ -1482,9 +1526,17 @@ export function CollectionView({
                       ) : !paniniBusy && !paniniError ? (
                         <ul className="yk-panini-grid">
                           {paniniAlbums.items.map(item => (
-                            <li key={item.license}>
+                            <li
+                              key={item.license}
+                              className={
+                                item.favorite
+                                  ? "yk-panini-album-item is-favorite"
+                                  : "yk-panini-album-item"
+                              }
+                            >
                               <button
                                 type="button"
+                                className="yk-panini-album-open"
                                 onClick={() => {
                                   setSelectedLicense(item.license);
                                   setQuery("");
@@ -1503,6 +1555,35 @@ export function CollectionView({
                                   <small>{item.percent}% complété</small>
                                 </span>
                               </button>
+                              {onSetPaniniAlbumFavorite && (
+                                <button
+                                  type="button"
+                                  className="yk-panini-favorite"
+                                  aria-label={`${item.favorite ? "Retirer" : "Ajouter"} ${item.license} ${item.favorite ? "des" : "aux"} favoris`}
+                                  aria-pressed={item.favorite}
+                                  disabled={favoriteLicenseBusy !== null}
+                                  onClick={() =>
+                                    void togglePaniniAlbumFavorite(
+                                      item.license,
+                                      !item.favorite
+                                    )
+                                  }
+                                >
+                                  <svg
+                                    aria-hidden="true"
+                                    width="19"
+                                    height="19"
+                                    viewBox="0 0 24 24"
+                                    fill={
+                                      item.favorite ? "currentColor" : "none"
+                                    }
+                                    stroke="currentColor"
+                                    strokeWidth="1.8"
+                                  >
+                                    <path d="m12 2.8 2.75 5.57 6.15.9-4.45 4.33 1.05 6.12L12 16.83l-5.5 2.89 1.05-6.12L3.1 9.27l6.15-.9L12 2.8Z" />
+                                  </svg>
+                                </button>
+                              )}
                             </li>
                           ))}
                         </ul>

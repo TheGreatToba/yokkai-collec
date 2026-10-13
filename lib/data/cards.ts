@@ -12,6 +12,7 @@ export type LicenseCatalogueTotal = { license: string; total: number };
 export type PaniniAlbumProgress = LicenseCatalogueTotal & {
   owned: number;
   percent: number;
+  favorite: boolean;
 };
 export type PaniniAlbumPage = {
   items: PaniniAlbumProgress[];
@@ -234,6 +235,28 @@ export async function getPaniniAlbumCardsPage({
     items: result?.items ?? [],
     total: result?.total ?? 0
   };
+}
+
+export async function setPaniniAlbumFavorite(
+  license: string,
+  favorite: boolean
+): Promise<void> {
+  const id = await playerId();
+  const safeLicense = license.trim();
+  if (!safeLicense || safeLicense.length > 200)
+    throw new Error("Ce classeur ne peut pas être ajouté aux favoris.");
+  const request = favorite
+    ? db()
+        .from("panini_album_favorites")
+        .upsert({ user_id: id, license: safeLicense })
+    : db()
+        .from("panini_album_favorites")
+        .delete()
+        .eq("user_id", id)
+        .eq("license", safeLicense);
+  const { error } = await request;
+  if (error) throw failure(error);
+  await assertPlayer(id);
 }
 
 export async function searchCards(query: string, limit = 30): Promise<Card[]> {
