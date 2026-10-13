@@ -845,3 +845,41 @@ test("la migration Dragon Ball retire les doublons manuels et traduit les noms j
   assert.match(migration, /when '21344' then 'ROI NIKOCHAN'/);
   assert.match(migration, /when '332776' then 'MEMBRE DU GANG DES LAPINS'/);
 });
+
+test("la migration supprime uniquement les quatre licences demandées et nettoie leurs usages", async () => {
+  const migration = await read(
+    "supabase/migrations/20261013000000_remove_requested_pokemon_and_ffvii_licenses.sql"
+  );
+  for (const franchise of [
+    "Pok\\00E9mon 3: The Movie",
+    "Pok\\00E9mon Horizons: The Series",
+    "Pok\\00E9mon the Series: Ruby and Sapphire",
+    "Final Fantasy VII: Advent Children"
+  ]) {
+    assert.match(
+      migration,
+      new RegExp(franchise.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    );
+  }
+  assert.doesNotMatch(migration, /Pok\\00E9mon: The First Movie/);
+  assert.match(migration, /set status = 'declined'/);
+  assert.match(
+    migration,
+    /perform public\.credit_karas\(sale\.buyer_id, sale\.current_price\)/
+  );
+  assert.match(
+    migration,
+    /update public\.decision_packs[\s\S]+set kept_choice_id = null/
+  );
+  assert.match(migration, /delete from public\.card_shares/);
+  assert.match(migration, /delete from public\.decision_pack_choices/);
+  assert.match(migration, /update public\.user_cards\s+set is_locked = false/);
+  assert.match(
+    migration,
+    /delete from public\.user_cards\s+where card_id = any\(target_card_ids\)/
+  );
+  assert.match(
+    migration,
+    /delete from public\.cards\s+where id = any\(target_card_ids\)/
+  );
+});
