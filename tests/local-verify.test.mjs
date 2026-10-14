@@ -48,7 +48,10 @@ test("verify is unique, preserves all gates and builds only with dummy public co
   assert.match(workflow, /pull_request:/);
   assert.match(workflow, /workflow_dispatch:/);
   for (const file of ["AGENTS.md", "CLAUDE.md"])
-    assert.match(read(file), /npm run verify[\s\S]*juste avant le merge/);
+    assert.match(
+      read(file),
+      /Aucune PR mergée sans CI GitHub Actions verte sur la branche à jour avec origin\/master\./
+    );
 });
 
 test("Docker absent or unreachable is an explicit warning, never a silent SQL success", () => {
@@ -64,7 +67,7 @@ test("Docker absent or unreachable is an explicit warning, never a silent SQL su
     );
 });
 
-test("real pre-push rejects master before checks and propagates a failing fast check", () => {
+test("real pre-push rejects master and allows branches without running checks", () => {
   const bash =
     process.platform === "win32"
       ? "C:\\Program Files\\Git\\bin\\bash.exe"
@@ -107,8 +110,8 @@ test("real pre-push rejects master before checks and propagates a failing fast c
       input: "refs/heads/wz/test a refs/heads/wz/test b\n",
       encoding: "utf8"
     });
-    assert.equal(branch.status, 17, branch.stderr);
-    assert.equal(readFileSync(log, "utf8").trim(), "run verify:quick");
+    assert.equal(branch.status, 0, branch.stderr);
+    assert.equal(existsSync(log), false);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

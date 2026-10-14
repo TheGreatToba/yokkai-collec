@@ -66,7 +66,7 @@ recoupement : se coordonner sur Discord avant de commencer.
   migrations.
 
 La CI utilise Node 22 et exécute, dans l'ordre : installation reproductible des dépendances, lint,
-vérification TypeScript, tests et build. Pour reproduire ces contrôles localement :
+vérification TypeScript, tests et build. La CI complète locale n’est pas exigée avant un push ou un merge. Pour reproduire ces contrôles manuellement, de manière facultative :
 
 ```bash
 npm ci

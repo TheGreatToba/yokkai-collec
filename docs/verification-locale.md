@@ -1,6 +1,6 @@
-# Vérification locale avant merge
+# Vérification locale manuelle (facultative)
 
-`npm run verify` remplace le contrôle GitHub Actions pour les merges. Mettre la branche à jour avec `origin/master`, commiter, puis lancer la commande sur un commit propre. Coller le résumé et les SHA dans la description de la PR ; aucune modification ni nouveau master ne doit intervenir entre ce contrôle et le merge.
+`npm run verify` reste disponible pour un lancement manuel facultatif ; aucune CI complète locale n’est exigée avant un push ou un merge. Aucune PR mergée sans CI GitHub Actions verte sur la branche à jour avec origin/master. Lire `gh pr checks <PR>` pour vérifier les résultats sur le dernier commit.
 
 La commande exécute audit prod (high), lint, TypeScript, format, tous les tests suivis par Git, build production, contrôle des routes design-system, puis le test existant de rejeu complet des migrations sur base vierge avec droits Supabase par défaut, SECURITY DEFINER et unicité des numéros. Le test de migration-security est exécuté une fois dans sa phase dédiée, sans être doublé dans la suite complète. Les fichiers locaux non suivis ne sont ni exécutés ni modifiés.
 
@@ -8,6 +8,6 @@ Le build reçoit uniquement une configuration publique factice, sans session jou
 
 Si Docker local répond, le script existant crée un conteneur PostgreSQL17.6.1.136 jetable sans port exposé et y rejoue toutes les migrations sous postgres NOSUPERUSER, puis exécute les50 surenchères croisées et les tests de clôture des écritures lors d’une suppression. Il retire seulement ce conteneur à la fin. Docker distant est refusé. Si Docker est absent/inaccessible : avertissement explicite « PostgreSQL17 et concurrence NON EXECUTES » et résumé « OK AVEC AVERTISSEMENT DOCKER » ; le test n’est jamais annoncé réussi. Avec Docker disponible, toute erreur échoue le verify.
 
-Le hook pre-push conserve le refus de master et lance `npm run verify:quick` : lint, tsc, format et tests unitaires suivis. Les tests utilisant PGlite/rejeu/bootstrap SQL et les fichiers -db sont réservés au verify complet. Ce filtre conservateur peut réserver aussi quelques contrats textuels à la suite complète ; aucun test n’est supprimé ou ignoré dans verify.
+Le hook pre-push bloque uniquement les pushes directs sur master : il ne lance ni verify:quick ni aucune suite de tests. Le pre-commit conserve uniquement le formatage.
 
-Les alias `npm run ci` (checks complets) et `npm run ci:db` (PostgreSQL requis) restent disponibles ; `ci:all` appelle verify. Les workflows sont conservés sous `.github/`, avec workflow_dispatch uniquement. Leur structure complète est préservée pour que le contrat existant de #176 reste vert ; aucune assertion n’est abaissée, aucun trigger automatique réactivé.
+Les scripts `npm run ci`, `npm run ci:db`, `npm run verify` et `npm run verify:quick` restent disponibles pour un lancement manuel, sans obligation. GitHub Actions exécute automatiquement ci.yml pour les PR vers master et les pushes sur master ; workflow_dispatch reste disponible.
