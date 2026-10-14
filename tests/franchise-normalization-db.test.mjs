@@ -173,8 +173,8 @@ test("les suites en chiffres romains sont regroupées uniquement pour ANIME/MANG
         franchise: "Yakuza Fiancé: Raise wa Tanin ga Ii"
       },
       { source_id: "roman-anime-x", franchise: "BEYBLADE X" },
-      { source_id: "roman-video-game", franchise: "Devil May Cry III" },
-      { source_id: "roman-film", franchise: "Black Butler II" }
+      { source_id: "roman-film", franchise: "Black Butler II" },
+      { source_id: "roman-video-game", franchise: "Devil May Cry III" }
     ]
   );
 
