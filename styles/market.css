@@ -24,6 +24,23 @@
 .yk-market {
   margin-top: calc(var(--spacing) * 2);
 }
+.yk-market:has(> .yk-market-heading) {
+  margin-top: 0;
+}
+.yk-market-heading {
+  display: grid;
+  align-items: center;
+  gap: var(--layout-gutter);
+}
+.yk-market-heading .yk-market-toolbar-band {
+  min-width: 0;
+  margin-bottom: 0;
+}
+@media (min-width: 761px) {
+  .yk-market-heading {
+    grid-template-columns: var(--collection-sidebar-width) minmax(0, 1fr);
+  }
+}
 .yk-market-sections {
   display: inline-flex;
   gap: calc(var(--spacing) * 1);
@@ -31,6 +48,9 @@
   border: 1px solid var(--color-veil);
   border-radius: var(--radius-pill);
   background: var(--color-surface);
+}
+.yk-market-heading .yk-market-section {
+  min-height: 44px;
 }
 .yk-market-section {
   display: inline-flex;
@@ -923,7 +943,7 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  /* Band on mobile: [Enchères | Mes enchères] / [Filtres][+ Vendre une carte] / active sales. */
+  /* Band on mobile: [Enchères | Mes enchères] / [Filtres] / active sales. */
   .yk-market-toolbar-band .yk-market-sections {
     width: 100%;
   }

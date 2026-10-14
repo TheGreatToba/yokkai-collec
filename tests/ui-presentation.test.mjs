@@ -137,6 +137,56 @@ function load(relative) {
 const render = (component, props) =>
   renderToStaticMarkup(React.createElement(component, props));
 
+test("les routes consommatrices de MarketView ont exactement un h1 sans saut de niveau", async () => {
+  for (const route of [
+    "market-preview",
+    "market-search-preview",
+    "market-popularity-preview",
+    "auction-participation-preview",
+    "multi-term-search-preview"
+  ]) {
+    const page = load(`app/design-system/${route}/page.tsx`).default;
+    const element = await page({ searchParams: Promise.resolve({}) });
+    const html = renderToStaticMarkup(element);
+    const levels = [...html.matchAll(/<h([1-6])(?:\s|>)/g)].map(match =>
+      Number(match[1])
+    );
+    assert.equal(levels.filter(level => level === 1).length, 1, route);
+    let previous = 0;
+    for (const level of levels) {
+      assert.ok(level <= previous + 1, `${route}: h${previous} -> h${level}`);
+      previous = level;
+    }
+  }
+  const { MarketView } = load("components/community-views.tsx");
+  const exports = {};
+  const code = ts.transpileModule(
+    readFileSync(path.join(root, "app/marche/page.tsx"), "utf8"),
+    {
+      compilerOptions: {
+        module: ts.ModuleKind.CommonJS,
+        jsx: ts.JsxEmit.ReactJSX
+      }
+    }
+  ).outputText;
+  vm.runInNewContext(code, {
+    exports,
+    require: name =>
+      name === "@/components/community-page"
+        ? { CommunityPage: props => React.createElement(MarketView, props) }
+        : require(name)
+  });
+  const html = renderToStaticMarkup(exports.default());
+  assert.equal((html.match(/<h1(?:\s|>)/g) ?? []).length, 1);
+  assert.match(
+    readFileSync(
+      path.join(root, "components/multi-term-search-proof.tsx"),
+      "utf8"
+    ),
+    /<h2[^>]*>Marché<\/h2>/
+  );
+});
+
 test("deleted avatars and auction participants render safely without profile links", () => {
   const { Avatar } = load("components/ui/index.tsx");
   assert.match(render(Avatar, { name: null }), /aria-label="Joueur supprimé"/);
@@ -2471,6 +2521,11 @@ test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
     normalizeWhitespace(/aria-controls="market-filters"/)
   );
   const search = render(MarketView, {
+    pageHeading: React.createElement(
+      "div",
+      null,
+      React.createElement("h1", null, "Marché")
+    ),
     lists: {
       ...lists,
       active: [
@@ -2499,6 +2554,11 @@ test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
     normalizeWhitespace(search),
     normalizeWhitespace(/2 cartes aux enchères/)
   );
+  assert.match(search, /role="status" class="sr-only"/);
+  assert.match(search, /<header class="yk-market-heading">/);
+  assert.equal((search.match(/<h1(?:\s|>)/g) ?? []).length, 1);
+  assert.equal((html.match(/<h1(?:\s|>)/g) ?? []).length, 0);
+  assert.doesNotMatch(search, /Vendre une carte|Toutes les enchères en cours/);
   assert.match(
     normalizeWhitespace(search),
     normalizeWhitespace(/<span>Manga<\/span>/)

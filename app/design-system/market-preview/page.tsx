@@ -17,14 +17,16 @@ export default async function MarketPreviewPage({
     <>
       <Topbar view="market" name="Kitsune" karas={4920} notifications={[]} />
       <main className="mx-auto w-full max-w-[var(--layout-collection-max)] px-6 py-10">
-        <p className="eyebrow">La salle des ventes</p>
-        <h1 className="yk-title mt-3">Marché</h1>
-        <div className="mt-8">
-          <MarketPreview
-            empty={empty !== undefined}
-            long={long !== undefined}
-          />
-        </div>
+        <MarketPreview
+          empty={empty !== undefined}
+          long={long !== undefined}
+          pageHeading={
+            <div>
+              <p className="eyebrow">La salle des ventes</p>
+              <h1 className="yk-title mt-3">Marché</h1>
+            </div>
+          }
+        />
       </main>
     </>
   );

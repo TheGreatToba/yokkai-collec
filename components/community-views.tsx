@@ -569,10 +569,12 @@ export function compareMarketAuctions(
         : a.remainingSeconds - b.remainingSeconds;
 }
 export function MarketView({
+  pageHeading,
   lists,
   activeSales,
   onToggleWatch
 }: {
+  pageHeading?: ReactNode;
   lists?: Record<"active" | "mine" | "won" | "sold", AuctionPresentation[]>;
   activeSales?: string;
   onToggleWatch?: (id: string) => Promise<void>;
@@ -759,22 +761,86 @@ export function MarketView({
       </button>
     </>
   );
+  const toolbar = (
+    <div className="yk-collection-toolbar yk-market-toolbar-band">
+      <button
+        type="button"
+        className="yk-mobile-filter-trigger"
+        aria-expanded={filtersOpen}
+        aria-controls="market-filters"
+        onClick={() => setFiltersOpen(true)}
+      >
+        <svg
+          aria-hidden="true"
+          width="17"
+          height="17"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        >
+          <path d="M4 6h16M7 12h10M10 18h4" />
+        </svg>
+        Filtres{filtered ? <span>•</span> : null}
+      </button>
+      <div
+        className="yk-market-sections"
+        role="tablist"
+        aria-label="Sections du marché"
+      >
+        {(
+          [
+            ["browse", "Enchères", lists?.active.length],
+            ["mine", "Mes enchères", mineCount]
+          ] as const
+        ).map(([key, label, count]) => (
+          <button
+            key={key}
+            type="button"
+            role="tab"
+            aria-selected={section === key}
+            className="yk-market-section"
+            onClick={() => {
+              setSection(key);
+              setCategory("");
+            }}
+          >
+            {label}
+            {count != null && <span>{count}</span>}
+          </button>
+        ))}
+      </div>
+      <div className="yk-market-band-actions">
+        <StatusPill>Mes ventes actives · {activeSales ?? "—"}</StatusPill>
+      </div>
+    </div>
+  );
   return (
     <section aria-label="Marché aux enchères" className="yk-market">
-      <div className="yk-catalogue-heading">
-        <div>
-          <p role="status" className="font-display text-xl">
+      {pageHeading ? (
+        <header className="yk-market-heading">
+          {pageHeading}
+          <p role="status" className="sr-only">
             {heading}
           </p>
-          <p className="mt-1 text-xs text-ink-3">
-            {filtered
-              ? "Résultats correspondant à vos filtres"
-              : section === "browse"
-                ? "Toutes les enchères en cours"
-                : "Tes ventes et tes mises"}
-          </p>
+          {toolbar}
+        </header>
+      ) : (
+        <div className="yk-catalogue-heading">
+          <div>
+            <p role="status" className="font-display text-xl">
+              {heading}
+            </p>
+            <p className="mt-1 text-xs text-ink-3">
+              {filtered
+                ? "Résultats correspondant à vos filtres"
+                : section === "browse"
+                  ? "Toutes les enchères en cours"
+                  : "Tes ventes et tes mises"}
+            </p>
+          </div>
         </div>
-      </div>
+      )}
       {filtersOpen && (
         <button
           type="button"
@@ -802,64 +868,7 @@ export function MarketView({
           {filters}
         </aside>
         <div className="yk-collection-main">
-          <div className="yk-collection-toolbar yk-market-toolbar-band">
-            <button
-              type="button"
-              className="yk-mobile-filter-trigger"
-              aria-expanded={filtersOpen}
-              aria-controls="market-filters"
-              onClick={() => setFiltersOpen(true)}
-            >
-              <svg
-                aria-hidden="true"
-                width="17"
-                height="17"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-              >
-                <path d="M4 6h16M7 12h10M10 18h4" />
-              </svg>
-              Filtres{filtered ? <span>•</span> : null}
-            </button>
-            <div
-              className="yk-market-sections"
-              role="tablist"
-              aria-label="Sections du marché"
-            >
-              {(
-                [
-                  ["browse", "Enchères", lists?.active.length],
-                  ["mine", "Mes enchères", mineCount]
-                ] as const
-              ).map(([key, label, count]) => (
-                <button
-                  key={key}
-                  type="button"
-                  role="tab"
-                  aria-selected={section === key}
-                  className="yk-market-section"
-                  onClick={() => {
-                    setSection(key);
-                    setCategory("");
-                  }}
-                >
-                  {label}
-                  {count != null && <span>{count}</span>}
-                </button>
-              ))}
-            </div>
-            <div className="yk-market-band-actions">
-              <StatusPill>Mes ventes actives · {activeSales ?? "—"}</StatusPill>
-              <Link
-                href="/collection"
-                className="yk-button yk-button-secondary"
-              >
-                + Vendre une carte
-              </Link>
-            </div>
-          </div>
+          {!pageHeading && toolbar}
           {section === "browse" ? (
             !browse ? (
               <Unavailable>Chargement des enchères…</Unavailable>
@@ -2527,8 +2536,10 @@ export function CommunityView({
   joined,
   isMe = true,
   playerId,
-  auctionId
+  auctionId,
+  pageHeading
 }: {
+  pageHeading?: ReactNode;
   screen: CommunityScreen;
   account: ReactNode;
   name?: string;
@@ -2778,17 +2789,19 @@ export function CommunityView({
         id="main-content"
         className={`mx-auto w-full ${screen === "search" || screen === "market" || screen === "auction" || screen === "wishlist" ? "max-w-[var(--layout-collection-max)]" : "max-w-6xl"} px-6 py-10`}
       >
-        <div>
-          {screen === "auction" && (
-            <Link href="/marche" className="yk-back-link">
-              ← Retour au marché
-            </Link>
-          )}
-          <p className="eyebrow">{overline}</p>
-          <h1 className="yk-title mt-3">
-            {screen === "profile" && !isMe ? "Profil du joueur" : title}
-          </h1>
-        </div>
+        {screen !== "market" && (
+          <div>
+            {screen === "auction" && (
+              <Link href="/marche" className="yk-back-link">
+                ← Retour au marché
+              </Link>
+            )}
+            <p className="eyebrow">{overline}</p>
+            <h1 className="yk-title mt-3">
+              {screen === "profile" && !isMe ? "Profil du joueur" : title}
+            </h1>
+          </div>
+        )}
         {error && (
           <p
             role="alert"
@@ -2797,7 +2810,7 @@ export function CommunityView({
             {error}
           </p>
         )}
-        <div className="mt-8">
+        <div className={screen === "market" ? undefined : "mt-8"}>
           {screen === "profile" && (
             <ProfileView
               name={name}
@@ -2810,6 +2823,7 @@ export function CommunityView({
           {screen === "friends" && <FriendsPanel />}
           {screen === "market" && (
             <MarketView
+              pageHeading={pageHeading}
               lists={lists}
               activeSales={activeSales}
               onToggleWatch={watchFromMarket}
