@@ -8,6 +8,8 @@ Dans l’onglet Tableau, les deux colonnes partagent la même hauteur sur ordina
 
 Sur le profil d’un autre joueur, le menu « … » se trouve à droite du pseudo, sur ordinateur comme sur mobile. Ses actions Signaler et Bloquer sont conservées ; le bouton d’amitié reste sous la biographie.
 
+Le compteur « Voir la collection » retrouve un contour doré au survol, ainsi qu’un repère de focus clavier, sans modifier l’alignement des compteurs.
+
 Le nombre de boosters ouverts apparaît sous son libellé, aligné à gauche comme les compteurs LR/SSR. Après transmission réussie d’un signalement, la notification partagée des paramètres apparaît en bas à droite : « Merci, ton signalement a été transmis. ». Une erreur conserve la modale et n’affiche pas de confirmation.
 
 Un utilisateur connecté peut aimer le profil d’un autre joueur et retirer son like. Il ne peut pas aimer son propre profil ; une contrainte unique par paire empêche les likes multiples. Les vues sont comptées à chaque nouvelle ouverture du profil d’un autre joueur, pas au changement d’onglet ni au rendu React. Une clé de visite empêche les retries et StrictMode de compter deux fois la même ouverture. Les visites à son propre profil ne comptent pas. Les écritures sont refusées entre utilisateurs bloqués, dans les deux sens.

@@ -389,6 +389,18 @@ main:has(.yk-profile-hub) {
   color: inherit;
   min-width: 0;
 }
+.yk-profile-side-counts > button {
+  border-radius: 6px;
+  outline: 1px solid transparent;
+  outline-offset: 8px;
+  transition: outline-color 160ms var(--ease-standard);
+}
+.yk-profile-side-counts > button:hover {
+  outline-color: var(--color-accent-gold);
+}
+.yk-profile-side-counts > button:focus-visible {
+  outline: 2px solid var(--color-accent-gold);
+}
 .yk-profile-side-counts p {
   margin: 0 0 7px;
   font-size: 11px;

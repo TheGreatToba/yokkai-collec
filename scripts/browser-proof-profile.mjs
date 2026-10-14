@@ -417,6 +417,57 @@ try {
   await waitFor("!document.querySelector('.yk-profile-preferences-form')");
   await assertAlignedProfile("without widgets");
   await navigate("?visitor=1");
+  const collectionButton = ".yk-profile-side-counts > button";
+  const collectionNode = await send("DOM.getDocument");
+  const collectionMatch = await send("DOM.querySelector", {
+    nodeId: collectionNode.root.nodeId,
+    selector: collectionButton
+  });
+  const normalOutline = await evaluate(
+    "getComputedStyle(document.querySelector('.yk-profile-side-counts > button')).outlineColor"
+  );
+  await send("CSS.enable");
+  await send("CSS.forcePseudoState", {
+    nodeId: collectionMatch.nodeId,
+    forcedPseudoClasses: ["hover"]
+  });
+  await delay(200);
+  assert.notEqual(
+    await evaluate(
+      "getComputedStyle(document.querySelector('.yk-profile-side-counts > button')).outlineColor"
+    ),
+    normalOutline,
+    "Collection tile gains its gold outline on hover"
+  );
+  assert.equal(
+    await evaluate(
+      "getComputedStyle(document.querySelector('.yk-profile-side-counts > button')).outlineColor"
+    ),
+    await evaluate(
+      "getComputedStyle(document.querySelector('.yk-profile-side-counts > button span')).color"
+    ),
+    "Collection hover uses the existing gold accent"
+  );
+  await capture("collection-hover.png");
+  await send("CSS.forcePseudoState", {
+    nodeId: collectionMatch.nodeId,
+    forcedPseudoClasses: []
+  });
+  await send("CSS.forcePseudoState", {
+    nodeId: collectionMatch.nodeId,
+    forcedPseudoClasses: ["focus-visible"]
+  });
+  assert.equal(
+    await evaluate(
+      "getComputedStyle(document.querySelector('.yk-profile-side-counts > button')).outlineWidth"
+    ),
+    "2px",
+    "Collection tile remains visibly focusable with the keyboard"
+  );
+  await send("CSS.forcePseudoState", {
+    nodeId: collectionMatch.nodeId,
+    forcedPseudoClasses: []
+  });
   const assertModerationPlacement = async () => {
     assert.ok(
       await evaluate(
