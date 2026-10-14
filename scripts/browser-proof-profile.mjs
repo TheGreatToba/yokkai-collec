@@ -40,9 +40,12 @@ try {
     socket.addEventListener("open", resolve, { once: true })
   );
   let id = 0;
+  const browserErrors = [];
   const pending = new Map();
   socket.addEventListener("message", event => {
     const message = JSON.parse(event.data);
+    if (message.method === "Runtime.exceptionThrown")
+      browserErrors.push(message.params.exceptionDetails);
     if (!pending.has(message.id)) return;
     const { resolve, reject } = pending.get(message.id);
     pending.delete(message.id);
@@ -94,7 +97,8 @@ try {
     assert.ok(
       await evaluate(
         `Boolean(document.querySelector('.yk-profile-tabs button.is-active').textContent.startsWith(${JSON.stringify(label)}))`
-      )
+      ),
+      `Tab ${label}: ${JSON.stringify(browserErrors)}`
     );
   };
   const capture = async name => {
@@ -132,6 +136,7 @@ try {
     );
   };
   await send("Page.enable");
+  await send("Runtime.enable");
   await send("Emulation.setDeviceMetricsOverride", {
     width: 1440,
     height: 1000,
@@ -830,8 +835,159 @@ try {
     await evaluate("document.querySelector('#wall-text').value"),
     "Ne pas perdre mon brouillon"
   );
+  // Sales and every auction mutation are mocked: never bid on production.
+  await send("Emulation.setDeviceMetricsOverride", {
+    width: 1440,
+    height: 1000,
+    deviceScaleFactor: 1,
+    mobile: false
+  });
+  await navigate("?visitor=1");
+  await clickTab("Activité");
+  await waitFor("document.querySelectorAll('.yk-profile-sale').length === 2");
+  const profileUrl = await evaluate("location.href");
+  await evaluate("document.querySelector('.yk-profile-sale').click()");
+  await waitFor(
+    "Boolean(document.querySelector('dialog.yk-profile-auction-modal[open] .yk-bid-quick:not(:disabled)'))"
+  );
+  assert.equal(
+    await evaluate("location.href"),
+    profileUrl,
+    "Auction opens in a modal without leaving the profile"
+  );
+  assert.ok(
+    await evaluate(
+      "document.querySelector('.yk-profile-auction-modal .yk-auction-price').textContent.includes('500')"
+    )
+  );
+  await evaluate(
+    "document.querySelector('.yk-profile-auction-modal .yk-bid-quick').click()"
+  );
+  await waitFor(
+    "document.querySelector('.yk-profile-auction-modal .yk-auction-price').textContent.includes('510')"
+  );
+  assert.equal(
+    await evaluate(
+      "document.querySelectorAll('.yk-profile-auction-modal .yk-auction-history li').length"
+    ),
+    1
+  );
+  assert.ok(
+    await evaluate(
+      "document.querySelector('.yk-profile-sale .yk-profile-sale-meta').textContent.includes('510')"
+    ),
+    "Bid updates the profile sale price"
+  );
+  await evaluate(
+    "document.querySelector('.yk-profile-auction-modal [aria-label=\"Suivre cette enchère\"]').click()"
+  );
+  await waitFor(
+    "Boolean(document.querySelector('.yk-profile-auction-modal [aria-label=\"Ne plus suivre cette enchère\"][aria-pressed=true]'))"
+  );
+  await evaluate(
+    "(() => {const input=document.querySelector('.yk-profile-auction-modal #bid');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,'999999');input.dispatchEvent(new Event('input',{bubbles:true}));})()"
+  );
+  await waitFor(
+    "document.querySelector('.yk-profile-auction-modal .yk-auction-offer button').disabled"
+  );
+  assert.ok(
+    await evaluate(
+      "document.querySelector('.yk-profile-auction-modal').textContent.includes('Solde de Karas insuffisant')"
+    )
+  );
+  await capture("profile-sale-modal-desktop.png");
+  await send("Emulation.setDeviceMetricsOverride", {
+    width: 390,
+    height: 844,
+    deviceScaleFactor: 1,
+    mobile: true
+  });
+  await capture("profile-sale-modal-mobile.png");
+  await waitFor(
+    "(() => {const dialog=document.querySelector('.yk-profile-auction-modal');return dialog.scrollWidth<=dialog.clientWidth&&document.documentElement.scrollWidth<=window.innerWidth;})()"
+  );
+  await capture("profile-sale-modal-mobile.png");
+  await evaluate(
+    "document.querySelector('.yk-profile-auction-modal [aria-label=Fermer]').click()"
+  );
+  await waitFor(
+    "!document.querySelector('dialog.yk-profile-auction-modal[open]')"
+  );
+  await navigate("");
+  await clickTab("Activité");
+  await waitFor("document.querySelectorAll('.yk-profile-sale').length === 2");
+  await evaluate("document.querySelector('.yk-profile-sale').click()");
+  await waitFor(
+    "document.querySelector('.yk-profile-auction-modal .yk-auction-hint')?.textContent.includes('C’est ta vente')"
+  );
+  assert.equal(
+    await evaluate(
+      "document.querySelectorAll('.yk-profile-auction-modal .yk-bid-quick').length"
+    ),
+    0,
+    "Seller cannot bid on own auction"
+  );
+  await evaluate(
+    "Array.from(document.querySelectorAll('.yk-profile-auction-modal button')).find(button=>button.textContent.includes('Retirer la carte')).click()"
+  );
+  await waitFor("document.querySelectorAll('dialog[open]').length===2");
+  await evaluate(
+    "Array.from(document.querySelectorAll('dialog[open] button')).find(button=>button.textContent.includes('Confirmer le retrait')).click()"
+  );
+  await waitFor("document.querySelectorAll('.yk-profile-sale').length===1");
+  await evaluate(
+    "document.querySelector('.yk-profile-auction-modal [aria-label=Fermer]').click()"
+  );
+  await navigate("?visitor=1&auctionClosed=1");
+  await clickTab("Activité");
+  await waitFor("Boolean(document.querySelector('.yk-profile-sale'))");
+  await evaluate("document.querySelector('.yk-profile-sale').click()");
+  await waitFor(
+    "document.querySelector('.yk-profile-auction-modal .yk-auction-countdown')?.textContent==='00:00:00'"
+  );
+  assert.equal(
+    await evaluate(
+      "document.querySelectorAll('.yk-profile-auction-modal .yk-bid-quick').length"
+    ),
+    0,
+    "Closed auctions do not allow bids"
+  );
+  await navigate("?visitor=1&auctionError=1");
+  await clickTab("Activité");
+  await waitFor("Boolean(document.querySelector('.yk-profile-sale'))");
+  await evaluate("document.querySelector('.yk-profile-sale').click()");
+  await waitFor(
+    "document.querySelector('.yk-profile-auction-modal [role=alert]')?.textContent.includes('introuvable')"
+  );
+  await send("Page.navigate", {
+    url: "http://localhost:3000/design-system/profile-preview?catalogue=demo&visitor=1&private=1"
+  });
+  await waitFor("Boolean(document.querySelector('.yk-profile-hub'))");
+  await clickTab("Activité");
+  assert.equal(
+    await evaluate("document.querySelectorAll('.yk-profile-sales').length"),
+    0,
+    "Unauthorized private profile does not load seller auctions"
+  );
+  await navigate("?salesEmpty=1");
+  await clickTab("Activité");
+  await waitFor(
+    "document.querySelector('.yk-profile-sales')?.textContent.includes('Aucune carte en vente')"
+  );
+  await navigate("?salesError=1");
+  await clickTab("Activité");
+  await waitFor(
+    "Boolean(document.querySelector('.yk-profile-sales [role=alert]'))"
+  );
+  assert.equal(
+    await evaluate(
+      "document.querySelectorAll('.yk-profile-activity li').length"
+    ),
+    3,
+    "Sales failure keeps activity history available"
+  );
   console.log(
-    "Profile browser proof OK: no free-text favorites, category license lists, search/select/save, left identity, tabs, widget ordering, banner upload/save/remove, completion, activity, wishlist, mutual friends, privacy and mobile width."
+    "Profile browser proof OK: favorite licenses, sidebar, tabs, banner, completion, activity, wishlist, friends, wall, sales modal, mock bidding/watch/cancel, privacy, errors and mobile width."
   );
   await send("Browser.close");
 } finally {

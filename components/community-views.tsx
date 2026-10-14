@@ -1402,12 +1402,14 @@ export function AuctionView({
   auction,
   onBid,
   onCancel,
-  onToggleWatch
+  onToggleWatch,
+  chatAdapter
 }: {
   auction?: AuctionPresentation;
   onBid?: (amount: number) => Promise<void>;
   onCancel?: () => Promise<void>;
   onToggleWatch?: () => Promise<void>;
+  chatAdapter?: AuctionChatAdapter;
 }) {
   const [offer, setOffer] = useState("");
   const [pending, setPending] = useState(false);
@@ -1657,6 +1659,7 @@ export function AuctionView({
           auctionId={auction.id}
           refreshKey={auction.bids}
           finished={!!auction.finished}
+          adapter={chatAdapter}
         />
       </div>
       <Modal

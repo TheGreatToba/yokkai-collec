@@ -56,6 +56,7 @@ const allowlist = {
   "public.publish_profile_wall_post(uuid, text, text, text)": ["authenticated"], // Idempotent own posts only, bounded text/rate/count and owner-scoped private media.
   "public.delete_profile_wall_post(uuid)": ["authenticated"], // Author deletes only their own post; private attachment cleanup stays owner-scoped.
   "public.get_profile_details(text)": ["authenticated"], // Calls get_profile first; inventory, activity and favorites obey its collection privacy; mutual friends obey friendsVisible.
+  "public.get_profile_active_auctions(uuid, jsonb, integer)": ["authenticated"], // Read-only bounded seller feed; collection privacy, bilateral blocks and deletion fences; no new bidding rights.
   "public.get_profile_engagement(uuid)": ["authenticated"], // Authenticated profile lookup; exposes aggregate counts and only the caller's like status, never viewer identities.
   "public.record_profile_view(uuid, uuid)": ["authenticated"], // One counted visit per bounded receipt ID; caller only, self views excluded, bilateral blocks and deletion fences enforced.
   "public.set_profile_like(uuid, boolean)": ["authenticated"], // Idempotent own like only, no self likes; bilateral blocks, unique pair and account deletion guards enforced.

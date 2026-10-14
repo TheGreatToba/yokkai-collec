@@ -1,6 +1,102 @@
 main:has(.yk-profile-hub) {
   max-width: 1440px;
 }
+#main-content:has(.yk-profile-hub) {
+  max-width: 1440px;
+}
+#main-content:has(.yk-profile-hub) > div:first-child {
+  position: static;
+  width: auto;
+  max-width: none;
+  margin-inline: 0;
+}
+.yk-profile-sales {
+  margin-bottom: 32px;
+}
+.yk-profile-sales-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.yk-profile-sale {
+  min-width: 0;
+  max-width: 210px;
+  padding: 12px;
+  text-align: left;
+  border: 1px solid var(--color-veil-strong);
+  border-radius: 14px;
+  background: var(--color-night);
+}
+.yk-profile-sale:hover,
+.yk-profile-sale:focus-visible {
+  border-color: var(--color-accent-gold);
+}
+.yk-profile-sale-meta {
+  display: grid;
+  gap: 6px;
+  margin-top: 14px;
+  font-size: 11px;
+  color: var(--color-ink-3);
+}
+.yk-profile-sale-meta > span:last-child {
+  color: var(--color-accent-gold);
+}
+.yk-profile-auction-modal {
+  width: min(940px, calc(100vw - 32px));
+  max-width: 940px;
+}
+.yk-profile-auction-modal .yk-auction-page {
+  left: 0;
+  grid-template-columns: 190px minmax(0, 1fr);
+  grid-template-areas: "art main" "history main";
+  grid-template-rows: min-content 1fr;
+  gap: 20px;
+  margin: 0;
+}
+.yk-profile-auction-modal .yk-auction-main {
+  width: auto;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "header" "panel" "chat";
+  gap: 16px;
+}
+.yk-profile-auction-modal .yk-auction-art {
+  width: 100%;
+}
+.yk-profile-auction-modal .yk-auction-header h2 {
+  font-size: 24px;
+}
+.yk-profile-auction-modal .yk-auction-panel,
+.yk-profile-auction-modal .yk-auction-history {
+  padding: 16px;
+}
+.yk-profile-auction-error {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+@media (max-width: 640px) {
+  .yk-profile-auction-modal .yk-auction-page {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "art" "main" "history";
+    grid-template-rows: auto;
+  }
+  .yk-profile-auction-modal .yk-auction-art {
+    width: 150px;
+    margin-inline: auto;
+  }
+  .yk-profile-auction-modal .yk-auction-offer-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .yk-profile-auction-modal .yk-auction-figures {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .yk-profile-auction-modal .yk-auction-figures > div + div {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
 .yk-profile-wall,
 .yk-wall-posts,
 .yk-wall-composer {

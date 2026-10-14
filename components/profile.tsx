@@ -11,7 +11,9 @@ import { CollectionView } from "@/components/collection";
 import { PlayerModeration } from "@/components/player-moderation";
 import { ProfileLicensePicker } from "@/components/profile-license-picker";
 import { ProfileWall } from "@/components/profile-wall";
+import { ProfileSales } from "@/components/profile-sales";
 import type { WallAdapter } from "@/lib/data/profile-wall";
+import type { ProfileMarketAdapter } from "@/lib/data/profile-market";
 import { listBlockedUsers, type BlockedUser } from "@/lib/data/moderation";
 import { type ModerationAdapter } from "@/lib/data/moderation";
 import { FriendAction, type FriendActionAdapter } from "@/components/friends";
@@ -941,6 +943,7 @@ function ProfileCompletion({
 
 export type ProfileAdapter = {
   wall?: WallAdapter;
+  market?: ProfileMarketAdapter;
   // Compatibility harness for the retired widget UI; never enabled by liveProfile.
   previewWidgets?: boolean;
   profile: typeof getProfile;
@@ -1295,6 +1298,13 @@ export function ProfileExperience({
             )}
           </div>
           <div hidden={tab !== "activity"} className="yk-profile-panel">
+            {tab === "activity" && profile.canViewCollection && (
+              <ProfileSales
+                key={profile.id}
+                ownerId={profile.id}
+                adapter={adapter.market}
+              />
+            )}
             <div className="yk-profile-section-heading">
               <div>
                 <p className="eyebrow">Le fil du collectionneur</p>

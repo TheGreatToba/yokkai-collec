@@ -134,6 +134,7 @@ function renderProfile(profile) {
     "@/lib/data/moderation": {},
     "@/components/player-moderation": { PlayerModeration: () => null },
     "@/components/profile-wall": { ProfileWall: () => null },
+    "@/components/profile-sales": { ProfileSales: () => null },
     "@/components/profile-license-picker": load(
       "components/profile-license-picker.tsx",
       {

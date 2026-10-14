@@ -8,6 +8,23 @@ import { getPaniniAlbumsPage, type CollectedCard } from "@/lib/data/cards";
 import type { ProfileDetails, ProfileInterests } from "@/lib/data/profile";
 import type { ProfileEngagement } from "@/lib/data/profile";
 import type { WallPost } from "@/lib/data/profile-wall";
+import type { AuctionDetail, AuctionChatMessage } from "@/lib/data/market";
+
+function previewSales(): AuctionDetail[] {
+  return collection.slice(0, 2).map((card, index) => ({
+    id: `preview-sale-${index}`,
+    card,
+    amount: index ? 180 : 500,
+    endsAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    status: "active",
+    seller: "Toba",
+    sellerId: "preview",
+    bids: 0,
+    watched: false,
+    balance: 2578,
+    history: []
+  }));
+}
 
 const collection: CollectedCard[] = [
   ["SATORU GOJO", "Jujutsu Kaisen", "gojou.webp", "LR"],
@@ -110,6 +127,8 @@ export function ProfilePreview() {
     }
   ]);
   const wallUploads = useRef(new Map<string, string>());
+  const sales = useRef<AuctionDetail[] | null>(null);
+  const chatMessages = useRef<AuctionChatMessage[]>([]);
   useEffect(
     () => () => {
       previewUrls.current.forEach(url => URL.revokeObjectURL(url));
@@ -151,6 +170,107 @@ export function ProfilePreview() {
     };
     return {
       previewWidgets,
+      market: {
+        viewer: async () => (visitor ? "preview-visitor" : "preview"),
+        list: async () => {
+          if (params.get("salesError") === "1")
+            throw new Error(
+              "Les ventes en cours sont temporairement indisponibles."
+            );
+          sales.current ??= previewSales();
+          return {
+            items:
+              hiddenCollection || params.get("salesEmpty") === "1"
+                ? []
+                : sales.current.filter(item => item.status === "active"),
+            nextCursor: null
+          };
+        },
+        get: async id => {
+          if (params.get("auctionError") === "1")
+            throw new Error("Cette enchère est introuvable.");
+          const item = sales.current?.find(item => item.id === id);
+          if (!item) throw new Error("Cette enchère est introuvable.");
+          return {
+            ...item,
+            ...(params.get("auctionClosed") === "1"
+              ? { status: "sold" as const, winner: "Kitsune" }
+              : {}),
+            history: [...item.history]
+          };
+        },
+        bid: async (id, amount) => {
+          const item = sales.current?.find(item => item.id === id);
+          if (!visitor)
+            throw new Error("Vous ne pouvez pas miser sur votre propre vente.");
+          if (
+            !item ||
+            item.status !== "active" ||
+            params.get("auctionClosed") === "1"
+          )
+            throw new Error("Cette enchère est terminée.");
+          if (amount < item.amount + 10)
+            throw new Error(
+              "La mise doit dépasser l’offre actuelle d’au moins 10 karas."
+            );
+          if (amount > item.balance)
+            throw new Error("Votre solde de karas est insuffisant.");
+          item.balance -= amount;
+          item.amount = amount;
+          item.bids++;
+          item.buyerId = "preview-visitor";
+          item.history.unshift({
+            id: `mock-bid-${item.bids}`,
+            name: "Visiteur",
+            amount,
+            createdAt: new Date().toISOString(),
+            mine: true
+          });
+          return {
+            currentPrice: amount,
+            endsAt: item.endsAt,
+            balance: item.balance
+          };
+        },
+        cancel: async id => {
+          const item = sales.current?.find(item => item.id === id);
+          if (visitor || !item || item.bids)
+            throw new Error("Retrait impossible.");
+          item.status = "expired";
+        },
+        watch: async id => {
+          const item = sales.current?.find(item => item.id === id);
+          if (!item) throw new Error("Enchère introuvable.");
+          return (item.watched = !item.watched);
+        },
+        chat: {
+          get: async id => ({
+            canPost:
+              !visitor || !!sales.current?.find(item => item.id === id)?.bids,
+            participants: [],
+            messages: [...chatMessages.current]
+          }),
+          send: async (_id, message, gifUrl) => {
+            const item = {
+              id: crypto.randomUUID(),
+              userId: visitor ? "preview-visitor" : "preview",
+              pseudo: visitor ? "Visiteur" : "Toba",
+              message,
+              gifUrl,
+              createdAt: new Date().toISOString(),
+              mine: true
+            };
+            chatMessages.current.push(item);
+            return item;
+          },
+          moderation: {
+            list: async () => [],
+            block: async () => {},
+            unblock: async () => {},
+            report: async () => {}
+          }
+        }
+      },
       wall: {
         list: async () => {
           if (hiddenCollection) throw new Error("Ce mur est privé.");

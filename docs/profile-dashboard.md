@@ -4,6 +4,14 @@ L’identité, la date d’inscription et les statistiques occupent un panneau �
 
 Dans l’onglet Tableau, la vitrine « Cartes mises en avant » apparaît en premier, puis « Complétion » avec la progression des classeurs favoris. Cet ordre est identique dans le DOM, sur ordinateur et sur mobile. Les deux colonnes partagent la même hauteur sur ordinateur : le bas de la fiche profil reste aligné avec celui du contenu à droite. La grille s’adapte au contenu sans hauteur fixe. Les compteurs Cartes/Différentes/Vues du profil/Likes apparaissent juste sous les actions, suivis des boosters et LR/SSR. La date « Membre depuis » termine la fiche et reste ancrée en bas dans le Tableau. Les autres onglets conservent leur panneau sticky ; le mobile garde deux blocs superposés de hauteur naturelle. Les nombres d’amis et de cartes recherchées restent dans leurs onglets ; les accès à la collection et à la wishlist complète d’un ami sont conservés.
 
+## Ventes dans Activité
+
+L’onglet Activité commence par les cartes actuellement en vente du joueur, puis conserve l’historique des acquisitions/achats/ventes. Les ventes sont chargées uniquement à l’ouverture de l’onglet, par pages de 20, filtrées par vendeur côté serveur et limitées aux enchères actives non échues. Le bouton Actualiser recharge la première page ; Voir plus utilise un curseur immuable date de création/ID.
+
+Un clic ouvre une modale compacte sur place réutilisant `AuctionView` : prix, temps restant, mise rapide ou montant libre, solde, suivi, historique et chat. Les RPC du marché restent inchangés et seuls responsables des fonds, des droits et de l’anti-sniping. Le vendeur ne peut pas miser sur sa propre carte ; il peut confirmer son retrait si aucune offre n’existe. Une vente terminée devient non enchérissable. La modale actualise ses données toutes les trois secondes seulement quand la page est visible et arrête ses lectures à la fermeture. Les écritures sont verrouillées et un échec de relecture après une mise réussie n’est pas présenté comme un échec de mise.
+
+Le flux vendeur respecte la confidentialité de la collection, les amis acceptés, les blocages bilatéraux et les gardes de suppression de compte. Aucun historique privé ni solde du vendeur n’est exposé. Migration `20261015000000_profile_active_auctions.sql` : nouvelle RPC de lecture uniquement, authenticated ; NON appliquée sur le VPS. L’aperçu local simule toutes les ventes, mises, suivis, retraits et messages sans écriture en production (`salesEmpty=1`, `salesError=1`, `auctionClosed=1`, `auctionError=1` pour les cas limites).
+
 ## Likes et vues
 
 Sur le profil d’un autre joueur, le menu « … » se trouve à droite du pseudo, sur ordinateur comme sur mobile. Ses actions Signaler et Bloquer sont conservées ; le bouton d’amitié reste sous la biographie.
