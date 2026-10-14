@@ -133,6 +133,9 @@ test("les suites en chiffres romains sont regroupées uniquement pour ANIME/MANG
       ('roman-anime-ace','Ace','ANIME/MANGA','Ace of the Diamond act II','C','https://example.test/ace.png','roman-license-test'),
       ('roman-anime-2','Ciel','ANIME/MANGA','Black Butler II','R','https://example.test/ii.png','roman-license-test'),
       ('roman-anime-3','Grell','ANIME/MANGA','Black Butler III','SR','https://example.test/iii.png','roman-license-test'),
+      ('roman-anime-ova','Ova','ANIME/MANGA','Black Butler II OVA','C','https://example.test/ova.png','roman-license-test'),
+      ('roman-anime-book','Book','ANIME/MANGA','Black Butler: Book of Circus','C','https://example.test/book.png','roman-license-test'),
+      ('roman-anime-emerald','Emerald','ANIME/MANGA','Black Butler: Emerald Witch Arc','C','https://example.test/emerald.png','roman-license-test'),
       ('roman-anime-link','Linked','ANIME/MANGA','Another Anime','C','https://example.test/link.png','roman-license-test'),
       ('roman-anime-x','X','ANIME/MANGA','BEYBLADE X','C','https://example.test/x.png','roman-license-test'),
       ('roman-anime-v','V','ANIME/MANGA','Combattler V','C','https://example.test/v.png','roman-license-test'),
@@ -164,11 +167,14 @@ test("les suites en chiffres romains sont regroupées uniquement pour ANIME/MANG
       { source_id: "roman-anime-3", franchise: "Black Butler" },
       { source_id: "roman-anime-ace", franchise: "Ace of the Diamond" },
       { source_id: "roman-anime-base", franchise: "Black Butler" },
+      { source_id: "roman-anime-book", franchise: "Black Butler" },
       {
         source_id: "roman-anime-colon",
         franchise: "Honkai Impact 3rd - Reburn"
       },
+      { source_id: "roman-anime-emerald", franchise: "Black Butler" },
       { source_id: "roman-anime-link", franchise: "Another Anime" },
+      { source_id: "roman-anime-ova", franchise: "Black Butler" },
       { source_id: "roman-anime-v", franchise: "Combattler V" },
       {
         source_id: "roman-anime-word",

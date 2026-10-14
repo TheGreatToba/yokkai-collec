@@ -385,6 +385,7 @@ export function CollectionView({
     ? cards.filter(card => {
         const specialCategory = [
           "ARTIST",
+          "BRAINROT",
           "DISNEY CHANNEL",
           "FILM",
           "INTERNET PERSONALITY",
