@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Modal } from "@/components/ui";
+import { Button, Modal, Toast } from "@/components/ui";
 import {
   liveModeration,
   type ModerationAdapter,
@@ -110,11 +110,7 @@ export function PlayerModeration({
           </div>
         </details>
       )}
-      {success && (
-        <p className="mt-2 text-sm text-ink-2" role="status">
-          {success}
-        </p>
-      )}
+      <Toast message={success} onDismiss={() => setSuccess("")} />
       <Modal
         open={sheet !== null}
         onClose={() => {

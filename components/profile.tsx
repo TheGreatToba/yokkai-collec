@@ -3,12 +3,17 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Avatar, Button, Modal, Toast } from "@/components/ui";
 import { YokaiCard } from "@/components/yokai-card";
 import { CardShell } from "@/components/card-shell";
 import { CollectionView } from "@/components/collection";
 import { PlayerModeration } from "@/components/player-moderation";
+import { ProfileLicensePicker } from "@/components/profile-license-picker";
+import { ProfileWall } from "@/components/profile-wall";
+import { ProfileSales } from "@/components/profile-sales";
+import type { WallAdapter } from "@/lib/data/profile-wall";
+import type { ProfileMarketAdapter } from "@/lib/data/profile-market";
 import { listBlockedUsers, type BlockedUser } from "@/lib/data/moderation";
 import { type ModerationAdapter } from "@/lib/data/moderation";
 import { FriendAction, type FriendActionAdapter } from "@/components/friends";
@@ -23,8 +28,18 @@ import {
   getFriendPaniniAlbumCardsPage,
   getFriendPaniniAlbumsPage,
   getProfile,
-  saveProfile,
+  getProfileDetails,
+  getProfileEngagement,
+  recordProfileView,
+  setProfileLike,
+  getProfileWidgetLicenses,
+  saveProfileAppearance,
+  saveProfileWidgets,
+  uploadBanner,
   uploadAvatar,
+  type ProfileDetails,
+  type ProfileEngagement,
+  type ProfileWidget,
   type Profile
 } from "@/lib/data/profile";
 import { getWishlist, type WishlistCard } from "@/lib/data/wishlist";
@@ -33,6 +48,246 @@ import { matchesCardSearch } from "@/lib/ui/card-search";
 const FEATURED_CARD_LIMIT = 5;
 const PROFILE_CARD_IMAGE_SIZES =
   "(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 190px";
+
+function widgetLabel(category: string) {
+  const labels: Record<string, string> = {
+    "ANIME/MANGA": "Animes & mangas favoris",
+    "VIDEO GAMES": "Jeux préférés",
+    KPOP: "Groupes de K-pop",
+    FILM: "Films préférés",
+    SERIE: "Séries préférées",
+    KDRAMA: "K-dramas favoris",
+    COMICS: "Comics favoris",
+    ARTIST: "Artistes préférés",
+    VOCALOID: "Vocaloid favoris",
+    MANWHA: "Manhwas favoris",
+    SPORT: "Sports préférés",
+    "DISNEY CHANNEL": "Disney Channel",
+    MEME: "Mèmes favoris",
+    BRAINROT: "Brainrot favoris"
+  };
+  return labels[category] ?? category;
+}
+
+function ProfilePrivate() {
+  return (
+    <p className="yk-profile-empty">
+      Cette collection est privée. Son activité et ses classeurs sont réservés
+      aux personnes autorisées.
+    </p>
+  );
+}
+
+function PreferencesEditor({
+  widgets,
+  categories,
+  loadLicenses,
+  save,
+  onSaved
+}: {
+  widgets: ProfileWidget[];
+  categories: string[];
+  loadLicenses: typeof getProfileWidgetLicenses;
+  save: typeof saveProfileWidgets;
+  onSaved: (value: ProfileWidget[]) => void;
+}) {
+  const [values, setValues] = useState<ProfileWidget[]>(() =>
+    widgets.map(widget => ({ ...widget, entries: [...widget.entries] }))
+  );
+  const [activeCategory, setActiveCategory] = useState(
+    widgets[0]?.category ?? ""
+  );
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  return (
+    <form
+      className="yk-profile-preferences-form"
+      onSubmit={async event => {
+        event.preventDefault();
+        if (busy) return;
+        const next = values;
+        if (next.some(widget => widget.entries.length > 12)) {
+          setError("Maximum 12 licences par catégorie.");
+          return;
+        }
+        setBusy(true);
+        setError("");
+        try {
+          onSaved(await save(next));
+        } catch (reason) {
+          setError(
+            reason instanceof Error
+              ? reason.message
+              : "Enregistrement impossible."
+          );
+        } finally {
+          setBusy(false);
+        }
+      }}
+    >
+      <p className="yk-profile-muted">
+        Choisis une catégorie, puis jusqu’à 12 licences du catalogue à mettre en
+        avant. Aucune saisie libre.
+      </p>
+      <div
+        className="yk-profile-widget-picker"
+        aria-label="Catégories disponibles"
+      >
+        {categories.map(category => {
+          const selected = values.some(widget => widget.category === category);
+          return (
+            <button
+              key={category}
+              type="button"
+              aria-pressed={selected}
+              disabled={busy || (!selected && values.length >= 12)}
+              onClick={() => {
+                if (!selected)
+                  setValues(current => [...current, { category, entries: [] }]);
+                setActiveCategory(category);
+              }}
+            >
+              <span aria-hidden="true">{selected ? "✓" : "+"}</span> {category}
+            </button>
+          );
+        })}
+      </div>
+      {!categories.length && (
+        <p className="yk-profile-empty">
+          Aucune catégorie disponible pour le moment.
+        </p>
+      )}
+      {values.map((widget, index) => (
+        <section
+          className="yk-profile-widget-editor"
+          data-editor-category={widget.category}
+          key={widget.category}
+        >
+          <div className="yk-profile-section-heading">
+            <h3>{widgetLabel(widget.category)}</h3>
+            <div className="yk-profile-widget-tools">
+              {([-1, 1] as const).map(direction => (
+                <button
+                  key={direction}
+                  type="button"
+                  disabled={
+                    busy ||
+                    index + direction < 0 ||
+                    index + direction >= values.length
+                  }
+                  aria-label={`${direction < 0 ? "Monter" : "Descendre"} le widget ${widget.category}`}
+                  onClick={() =>
+                    setValues(current => {
+                      const next = [...current];
+                      [next[index], next[index + direction]] = [
+                        next[index + direction],
+                        next[index]
+                      ];
+                      return next;
+                    })
+                  }
+                >
+                  {direction < 0 ? "↑" : "↓"}
+                </button>
+              ))}
+              <button
+                type="button"
+                disabled={busy}
+                aria-label={`Retirer le widget ${widget.category}`}
+                onClick={() =>
+                  setValues(current =>
+                    current.filter(value => value.category !== widget.category)
+                  )
+                }
+              >
+                ×
+              </button>
+            </div>
+          </div>
+          <div
+            className="yk-profile-selected-licenses"
+            aria-label={`Licences choisies · ${widget.category}`}
+          >
+            {widget.entries.map(license => (
+              <button
+                key={license}
+                type="button"
+                disabled={busy}
+                aria-label={`Retirer ${license} des favoris ${widget.category}`}
+                onClick={() =>
+                  setValues(current =>
+                    current.map(value =>
+                      value.category === widget.category
+                        ? {
+                            ...value,
+                            entries: value.entries.filter(
+                              name => name !== license
+                            )
+                          }
+                        : value
+                    )
+                  )
+                }
+              >
+                {license} <span aria-hidden="true">×</span>
+              </button>
+            ))}
+            {!widget.entries.length && (
+              <p className="yk-profile-muted">Aucune licence sélectionnée.</p>
+            )}
+          </div>
+          <Button
+            variant="secondary"
+            disabled={busy}
+            aria-expanded={activeCategory === widget.category}
+            onClick={() =>
+              setActiveCategory(
+                activeCategory === widget.category ? "" : widget.category
+              )
+            }
+          >
+            {activeCategory === widget.category
+              ? "Masquer les licences"
+              : "Choisir les licences"}
+          </Button>
+          {activeCategory === widget.category && (
+            <ProfileLicensePicker
+              key={widget.category}
+              category={widget.category}
+              selected={widget.entries}
+              disabled={busy}
+              load={loadLicenses}
+              onToggle={license =>
+                setValues(current =>
+                  current.map(value =>
+                    value.category === widget.category
+                      ? {
+                          ...value,
+                          entries: value.entries.includes(license)
+                            ? value.entries.filter(name => name !== license)
+                            : value.entries.length < 12
+                              ? [...value.entries, license]
+                              : value.entries
+                        }
+                      : value
+                  )
+                )
+              }
+            />
+          )}
+        </section>
+      ))}
+      {error && (
+        <p role="alert" className="text-danger-ink">
+          {error}
+        </p>
+      )}
+      <Button disabled={busy} type="submit">
+        {busy ? "Enregistrement…" : "Enregistrer mon tableau"}
+      </Button>
+    </form>
+  );
+}
 
 function Featured({
   cards,
@@ -80,16 +335,21 @@ function Featured({
 function Editor({
   profile,
   collection,
+  initialBannerUrl,
+  adapter,
   onSaved,
   onClose
 }: {
   profile: Profile;
   collection: CollectedCard[];
-  onSaved: (p: Profile) => void;
+  initialBannerUrl: string | null;
+  adapter: ProfileAdapter;
+  onSaved: (p: Profile & { bannerUrl: string | null }) => void;
   onClose: () => void;
 }) {
   const [bio, setBio] = useState(profile.bio);
   const [avatar, setAvatar] = useState(profile.avatarUrl);
+  const [bannerUrl, setBannerUrl] = useState(initialBannerUrl);
   const [selected, setSelected] = useState(
     () => new Set(profile.featuredCards.map(c => c.instanceId))
   );
@@ -131,7 +391,7 @@ function Editor({
     let active = true;
     const timer = window.setTimeout(
       () =>
-        void searchCards(bannerQuery, 8).then(
+        void (adapter.search ?? searchCards)(bannerQuery, 8).then(
           cards => {
             if (active) setBannerResults(cards);
           },
@@ -145,7 +405,7 @@ function Editor({
       active = false;
       window.clearTimeout(timer);
     };
-  }, [bannerQuery, bannerCard]);
+  }, [bannerQuery, bannerCard, adapter]);
   function toggle(id: string) {
     setSelected(current => {
       const next = new Set(current);
@@ -155,26 +415,45 @@ function Editor({
     });
   }
   async function photo(file?: File) {
-    if (!file) return;
+    if (!file || busy) return;
     setBusy(true);
     setError("");
     try {
-      setAvatar(await uploadAvatar(file, profile.id));
+      setAvatar(await (adapter.uploadAvatar ?? uploadAvatar)(file, profile.id));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Envoi impossible.");
     } finally {
       setBusy(false);
     }
   }
-  async function submit() {
+  async function banner(file?: File) {
+    if (!file || busy) return;
     setBusy(true);
     setError("");
     try {
-      const updated = await saveProfile(
+      setBannerUrl(
+        await (adapter.uploadBanner ?? uploadBanner)(file, profile.id)
+      );
+      setBannerCard(null);
+      setBannerQuery("");
+      setBannerResults([]);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Envoi impossible.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function submit() {
+    if (busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      const updated = await (adapter.saveAppearance ?? saveProfileAppearance)(
         bio,
         avatar,
         [...selected],
-        bannerCard?.id ?? null
+        bannerCard?.id ?? null,
+        bannerUrl
       );
       onSaved(updated);
       onClose();
@@ -193,6 +472,7 @@ function Editor({
           <input
             className="sr-only"
             type="file"
+            disabled={busy}
             accept="image/jpeg,image/png,image/webp,image/gif"
             onChange={e => void photo(e.target.files?.[0])}
           />
@@ -211,10 +491,50 @@ function Editor({
           {bio.length}/300
         </span>
       </label>
+      <section className="yk-profile-banner-editor">
+        <h3 className="font-display text-lg">Bannière personnalisée</h3>
+        <p className="yk-profile-muted">
+          Importe une image depuis ton ordinateur ou ton téléphone. JPG, PNG,
+          WebP ou GIF, 2 Mo maximum. L’image est centrée et recadrée pour la
+          bannière.
+        </p>
+        {bannerUrl && (
+          <img
+            className="yk-profile-banner-preview"
+            src={bannerUrl}
+            alt="Aperçu de la bannière"
+          />
+        )}
+        <div className="yk-profile-widget-tools">
+          <label className="yk-button yk-button-secondary cursor-pointer">
+            Importer une bannière
+            <input
+              className="sr-only"
+              aria-label="Importer une bannière"
+              type="file"
+              disabled={busy}
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              onChange={event => {
+                void banner(event.target.files?.[0]);
+                event.target.value = "";
+              }}
+            />
+          </label>
+          {bannerUrl && (
+            <Button
+              variant="secondary"
+              disabled={busy}
+              onClick={() => setBannerUrl(null)}
+            >
+              Retirer la bannière
+            </Button>
+          )}
+        </div>
+      </section>
       <section>
         <h3 className="font-display text-lg">Personnage de bannière</h3>
         <p className="mt-2 text-xs text-ink-3">
-          Recherchez un personnage dans tout le catalogue.
+          Ou choisis un personnage du catalogue à la place de l’image importée.
         </p>
         {bannerCard && (
           <div className="yk-banner-choice mt-4">
@@ -257,6 +577,7 @@ function Editor({
                     type="button"
                     onClick={() => {
                       setBannerCard(card);
+                      setBannerUrl(null);
                       setBannerQuery(card.name);
                       setBannerResults([]);
                     }}
@@ -544,17 +865,112 @@ function FriendWishlist({
   );
 }
 
+function ProfileCompletion({
+  profile,
+  details,
+  detailsError,
+  isMe
+}: {
+  profile: Profile;
+  details?: ProfileDetails;
+  detailsError: string;
+  isMe: boolean;
+}) {
+  return (
+    <>
+      {!profile.canViewCollection ? (
+        <ProfilePrivate />
+      ) : details?.favoriteAlbums.length ? (
+        <section className="yk-profile-surface">
+          <div className="yk-profile-completion-summary">
+            <strong>
+              {
+                details.favoriteAlbums.filter(
+                  album => album.owned === album.total
+                ).length
+              }
+            </strong>
+            <span>
+              classeurs favoris complétés{" "}
+              <small>sur {details.favoriteAlbums.length} favoris</small>
+            </span>
+          </div>
+          <ul className="yk-profile-album-progress">
+            {details.favoriteAlbums.map(album => (
+              <li key={album.license}>
+                <div>
+                  <strong>
+                    <span aria-hidden="true">★</span> {album.license}
+                  </strong>
+                  <span>
+                    {album.owned} / {album.total}
+                  </span>
+                </div>
+                <progress
+                  max={album.total}
+                  value={album.owned}
+                  aria-label={`Complétion de ${album.license}`}
+                />
+                <small>{album.percent}% complété</small>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : !details ? (
+        <p className="yk-profile-empty">
+          {detailsError
+            ? "La progression des classeurs est temporairement indisponible."
+            : "Chargement de la progression…"}
+        </p>
+      ) : (
+        <div className="yk-profile-surface yk-profile-completion-empty">
+          <span aria-hidden="true">☆</span>
+          <h3>Aucun classeur favori pour le moment</h3>
+          <p>
+            Les classeurs marqués d’une étoile apparaîtront ici avec leur
+            progression.
+          </p>
+          {isMe && (
+            <Link className="yk-button yk-button-secondary" href="/collection">
+              Choisir mes classeurs favoris
+            </Link>
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
 export type ProfileAdapter = {
+  wall?: WallAdapter;
+  market?: ProfileMarketAdapter;
+  // Compatibility harness for the retired widget UI; never enabled by liveProfile.
+  previewWidgets?: boolean;
   profile: typeof getProfile;
   wishlist: typeof getWishlist;
   blocked: typeof listBlockedUsers;
   moderation?: ModerationAdapter;
   friendAction?: FriendActionAdapter;
+  details?: typeof getProfileDetails;
+  engagement?: typeof getProfileEngagement;
+  recordView?: typeof recordProfileView;
+  like?: typeof setProfileLike;
+  saveWidgets?: typeof saveProfileWidgets;
+  widgetLicenses?: typeof getProfileWidgetLicenses;
+  saveAppearance?: typeof saveProfileAppearance;
+  uploadAvatar?: typeof uploadAvatar;
+  uploadBanner?: typeof uploadBanner;
+  search?: typeof searchCards;
 };
 const liveProfile: ProfileAdapter = {
   profile: getProfile,
   wishlist: getWishlist,
-  blocked: listBlockedUsers
+  blocked: listBlockedUsers,
+  details: getProfileDetails,
+  engagement: getProfileEngagement,
+  recordView: recordProfileView,
+  like: setProfileLike,
+  saveWidgets: saveProfileWidgets
 };
 export function ProfileExperience({
   identifier,
@@ -578,6 +994,72 @@ export function ProfileExperience({
   const [wishlistOpen, setWishlistOpen] = useState(false);
   const [friendCards, setFriendCards] = useState<CollectedCard[]>();
   const [collectionError, setCollectionError] = useState("");
+  const [tab, setTab] = useState("tableau");
+  const [details, setDetails] = useState<ProfileDetails>();
+  const [detailsError, setDetailsError] = useState("");
+  const [preferencesOpen, setPreferencesOpen] = useState(false);
+  const [mutualOnly, setMutualOnly] = useState(false);
+  const [wishlistLimit, setWishlistLimit] = useState(28);
+  const [engagement, setEngagement] = useState<ProfileEngagement>();
+  const [engagementError, setEngagementError] = useState("");
+  const [likeBusy, setLikeBusy] = useState(false);
+  const likePending = useRef(false);
+  const visitIds = useRef(new Map<string, string>());
+  const [savedBannerUrl, setSavedBannerUrl] = useState<
+    string | null | undefined
+  >();
+  const profileId = profile?.id;
+  const ownProfile = profile?.friendshipStatus === "self";
+  const profileBlocked = blocked.some(player => player.id === profileId);
+  useEffect(() => {
+    if (!profileId || !adapter.engagement) return;
+    let active = true;
+    const load = async () => {
+      if (ownProfile || profileBlocked || !adapter.recordView)
+        return adapter.engagement!(profileId);
+      let visitId = visitIds.current.get(profileId);
+      if (!visitId) {
+        visitId = crypto.randomUUID();
+        visitIds.current.set(profileId, visitId);
+      }
+      return adapter.recordView(profileId, visitId);
+    };
+    void load().then(
+      value => {
+        if (active) {
+          setEngagement(value);
+          setEngagementError("");
+        }
+      },
+      () => {
+        if (active)
+          setEngagementError(
+            "Les vues et likes sont temporairement indisponibles."
+          );
+      }
+    );
+    return () => {
+      active = false;
+    };
+  }, [profileId, ownProfile, profileBlocked, adapter]);
+  useEffect(() => {
+    let active = true;
+    if (adapter.details)
+      void adapter.details(identifier).then(
+        data => {
+          if (active) setDetails(data);
+        },
+        () => {
+          if (active)
+            setDetailsError(
+              "Les statistiques et le tableau sont temporairement indisponibles."
+            );
+        }
+      );
+    return () => {
+      active = false;
+    };
+  }, [identifier, adapter]);
   const loadFriendPaniniAlbums = useCallback(
     (options: Parameters<typeof getFriendPaniniAlbumsPage>[1]) => {
       if (!profile) return Promise.reject(new Error("Profil indisponible."));
@@ -628,6 +1110,30 @@ export function ProfileExperience({
       </div>
     );
   const isMe = profile.friendshipStatus === "self";
+  async function likeProfile() {
+    if (
+      !profile ||
+      !engagement ||
+      isMe ||
+      profileBlocked ||
+      likePending.current ||
+      !adapter.like
+    )
+      return;
+    likePending.current = true;
+    setLikeBusy(true);
+    setEngagementError("");
+    try {
+      setEngagement(await adapter.like(profile.id, !engagement.likedByMe));
+    } catch (reason) {
+      setEngagementError(
+        reason instanceof Error ? reason.message : "Like indisponible."
+      );
+    } finally {
+      likePending.current = false;
+      setLikeBusy(false);
+    }
+  }
   const friends = profile.friends ?? [];
   const blockedByMe = blocked.some(player => player.id === profile.id);
   function afterBlock() {
@@ -667,204 +1173,509 @@ export function ProfileExperience({
         a.localeCompare(b, "fr")
       )
     : [];
+  const bannerImage =
+    (savedBannerUrl === undefined ? details?.bannerUrl : savedBannerUrl) ||
+    profile.bannerCard?.image;
   return (
     <>
-      <div
-        className={`yk-profile-banner ${profile.bannerCard ? "has-image" : ""}`}
-      >
-        {profile.bannerCard && (
-          <>
-            <img
-              src={profile.bannerCard.image}
-              alt=""
-              aria-hidden="true"
-              decoding="async"
-            />
-            <span className="yk-profile-banner-shade" />
-            <span className="yk-profile-banner-label">
-              <strong>{profile.bannerCard.name}</strong>
-              <small>
-                {profile.bannerCard.anime ?? profile.bannerCard.category}
-              </small>
-            </span>
-          </>
-        )}
-      </div>
-      <div className="relative -mt-14 flex flex-wrap items-end justify-between gap-5 px-6">
-        <div>
-          <Avatar
-            name={profile.pseudo}
-            image={profile.avatarUrl ?? undefined}
-            size={112}
-          />
-          <h2 className="mt-5 font-display text-[30px]">{profile.pseudo}</h2>
-          {profile.bio ? (
-            <p className="mt-3 max-w-2xl whitespace-pre-wrap text-sm leading-6 text-ink-2">
-              {profile.bio}
-            </p>
-          ) : (
-            <p className="mt-3 text-sm italic text-ink-3">
-              Aucune bio pour le moment.
-            </p>
-          )}
-          {isMe && joined && (
-            <p className="mt-2 text-xs text-ink-3">
-              Membre depuis le{" "}
-              {new Date(joined).toLocaleDateString("fr-FR", {
-                dateStyle: "long"
-              })}
-            </p>
-          )}
-        </div>
-        {isMe ? (
-          <Button variant="secondary" onClick={() => setEditing(true)}>
-            Modifier le profil
-          </Button>
-        ) : (
-          <div className="flex items-center gap-3">
-            <FriendAction
-              key={`${profile.id}:${profile.friendshipStatus}:${blockedByMe}`}
-              userId={profile.id}
-              status={profile.friendshipStatus}
-              blockedByMe={blockedByMe}
-              adapter={adapter.friendAction}
-              onUnblocked={afterUnblock}
-            />
-            <PlayerModeration
-              userId={profile.id}
-              pseudo={profile.pseudo}
-              blockedByMe={blockedByMe}
-              adapter={adapter.moderation}
-              onBlocked={afterBlock}
-            />
-          </div>
-        )}
-      </div>
-      <div
-        className={`my-8 grid grid-cols-2 gap-3 ${profile.friendsVisible ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}
-      >
-        {!isMe && profile.canViewCollection ? (
-          <button
-            type="button"
-            className="rounded-panel border border-veil bg-surface p-5 text-left transition hover:border-accent-gold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-gold"
-            onClick={() => void openFriendCollection()}
-            aria-label={`Voir les ${profile.cardCount} cartes de ${profile.pseudo}`}
-          >
-            <p className="text-xs text-ink-3">Cartes</p>
-            <p className="mt-3 font-display text-2xl">{profile.cardCount}</p>
-            <span className="mt-2 block text-xs text-accent-gold">
-              Voir la collection →
-            </span>
-          </button>
-        ) : (
-          <div className="rounded-panel border border-veil bg-surface p-5">
-            <p className="text-xs text-ink-3">Cartes</p>
-            <p className="mt-3 font-display text-2xl">
-              {profile.canViewCollection ? profile.cardCount : "Privée"}
-            </p>
-          </div>
-        )}
-        <div className="rounded-panel border border-veil bg-surface p-5">
-          <p className="text-xs text-ink-3">Différentes</p>
-          <p className="mt-3 font-display text-2xl">
-            {profile.canViewCollection ? profile.distinctCardCount : "Privée"}
-          </p>
-        </div>
-        {profile.friendsVisible && (
-          <div className="rounded-panel border border-veil bg-surface p-5">
-            <p className="text-xs text-ink-3">Amis</p>
-            <p className="mt-3 font-display text-2xl">{friends.length}</p>
-          </div>
-        )}
-        {profile.friendshipStatus === "accepted" ? (
-          <button
-            type="button"
-            className="rounded-panel border border-veil bg-surface p-5 text-left transition hover:border-accent-gold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-gold"
-            onClick={() => setWishlistOpen(true)}
-            aria-label={`Voir les ${wishlist.length} cartes de la wishlist de ${profile.pseudo}`}
-          >
-            <p className="text-xs text-ink-3">Wishlist</p>
-            <p className="mt-3 font-display text-2xl">{wishlist.length}</p>
-            <span className="mt-2 block text-xs text-accent-gold">
-              Voir la wishlist →
-            </span>
-          </button>
-        ) : (
-          <div className="rounded-panel border border-veil bg-surface p-5">
-            <p className="text-xs text-ink-3">Wishlist</p>
-            <p className="mt-3 font-display text-2xl">{wishlist.length}</p>
-          </div>
-        )}
-      </div>
-      <div className={profile.friendsVisible ? "yk-profile-columns" : ""}>
-        <section>
-          <h3 className="yk-section-title">Cartes mises en avant</h3>
-          <Featured cards={profile.featuredCards} />
-          <h3 className="yk-section-title mt-10">Wishlist</h3>
-          {wishlist.length ? (
-            <div className="yk-card-grid yk-profile-wishlist-preview mt-5">
-              {wishlist.slice(0, 6).map(card => (
-                <Link
-                  href={`/recherche?carte=${card.id}`}
-                  key={card.id}
-                  className="rounded-panel border border-veil bg-surface p-3 hover:border-accent-gold"
-                >
-                  <YokaiCard
-                    {...card}
-                    animated={false}
-                    imageSizes={PROFILE_CARD_IMAGE_SIZES}
-                  />
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <p className="mt-4 text-sm text-ink-3">
-              Aucune carte souhaitée pour le moment.
-            </p>
-          )}
-          {isMe && collection ? (
-            <>
-              <h3 className="yk-section-title mt-10">Ma collection</h3>
-              <p className="mt-3 text-sm text-ink-3">
-                Retrouvez la gestion complète dans l’onglet Collection.
-              </p>
-              <Link
-                className="yk-button yk-button-secondary mt-5 inline-flex"
-                href="/collection"
+      <div className="yk-profile-hub" data-profile-tab={tab}>
+        <section className="yk-profile-main">
+          <nav className="yk-profile-tabs" aria-label="Sections du profil">
+            {[
+              ["tableau", "Tableau"],
+              ["wall", "Mur"],
+              ["activity", "Activité"],
+              ["wishlist", "Wishlist"],
+              ...(profile.friendsVisible ? [["friends", "Amis"]] : [])
+            ].map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                aria-pressed={tab === key}
+                onClick={() => setTab(key)}
+                className={tab === key ? "is-active" : ""}
               >
-                Ouvrir ma collection
-              </Link>
-            </>
-          ) : null}
-        </section>
-        {profile.friendsVisible && (
-          <aside className="h-fit rounded-panel border border-veil bg-surface p-5">
-            <h3 className="yk-section-title">Amis</h3>
-            {friends.length ? (
-              <ul className="mt-5 space-y-3">
-                {friends.map(friend => (
-                  <li key={friend.id}>
-                    <Link
-                      href={`/profil/${encodeURIComponent(friend.pseudo)}`}
-                      className="flex items-center gap-3 rounded-input p-2 hover:bg-veil"
+                {key === "friends" ? (
+                  <p className="yk-profile-tab-label">Amis</p>
+                ) : (
+                  label
+                )}
+                {key === "wishlist" && <span>{wishlist.length}</span>}
+                {key === "friends" && (
+                  <p className="yk-profile-tab-count">{friends.length}</p>
+                )}
+              </button>
+            ))}
+          </nav>
+          {detailsError && (
+            <p role="status" className="yk-profile-notice">
+              {detailsError}
+            </p>
+          )}
+          <div hidden={tab !== "tableau"} className="yk-profile-panel">
+            <section className="yk-profile-surface yk-profile-showcase">
+              <div className="yk-profile-section-heading">
+                <h3 className="yk-section-title">Cartes mises en avant</h3>
+                <span className="yk-profile-muted">Sa vitrine</span>
+              </div>
+              <Featured cards={profile.featuredCards} />
+            </section>
+            {adapter.previewWidgets ? (
+              <section className="yk-profile-universe">
+                <div className="yk-profile-section-heading">
+                  <div>
+                    <p className="eyebrow">Son univers</p>
+                    <h2>Le tableau de {profile.pseudo}</h2>
+                  </div>
+                  {isMe && (
+                    <Button
+                      variant="secondary"
+                      disabled={!details}
+                      onClick={() => setPreferencesOpen(true)}
                     >
-                      <Avatar
-                        name={friend.pseudo}
-                        image={friend.avatarUrl ?? undefined}
+                      Personnaliser mon tableau
+                    </Button>
+                  )}
+                </div>
+                <div className="yk-profile-interests">
+                  {(details?.widgets ?? []).map(widget => (
+                    <section
+                      key={widget.category}
+                      className="yk-profile-surface"
+                      data-widget-category={widget.category}
+                    >
+                      <div className="yk-profile-section-heading">
+                        <h3>
+                          <span aria-hidden="true">✧</span>{" "}
+                          {widgetLabel(widget.category)}
+                        </h3>
+                        <span className="yk-profile-muted">
+                          {widget.entries.length}
+                        </span>
+                      </div>
+                      {widget.entries.length ? (
+                        <ol className="yk-profile-taste-list">
+                          {widget.entries.map((name, index) => (
+                            <li key={index}>
+                              <span className="yk-profile-taste-number">
+                                {String(index + 1).padStart(2, "0")}
+                              </span>
+                              <strong>{name}</strong>
+                            </li>
+                          ))}
+                        </ol>
+                      ) : (
+                        <p className="yk-profile-empty">
+                          {isMe
+                            ? "Ajoute tes favoris pour partager ce que tu aimes."
+                            : "Ses favoris apparaîtront ici."}
+                        </p>
+                      )}
+                    </section>
+                  ))}
+                </div>
+                {details && !details.widgets.length && (
+                  <p className="yk-profile-surface yk-profile-empty">
+                    {isMe
+                      ? "Personnalise ton tableau en ajoutant les widgets de tes catégories préférées."
+                      : "Ses widgets favoris apparaîtront ici."}
+                  </p>
+                )}
+              </section>
+            ) : (
+              <section className="yk-profile-completion">
+                <div className="yk-profile-section-heading">
+                  <h2>Complétion</h2>
+                  <span className="yk-profile-muted">Classeurs favoris</span>
+                </div>
+                <ProfileCompletion
+                  profile={profile}
+                  details={details}
+                  detailsError={detailsError}
+                  isMe={isMe}
+                />
+              </section>
+            )}
+          </div>
+          <div hidden={tab !== "activity"} className="yk-profile-panel">
+            {tab === "activity" && profile.canViewCollection && (
+              <ProfileSales
+                key={profile.id}
+                ownerId={profile.id}
+                adapter={adapter.market}
+              />
+            )}
+            <div className="yk-profile-section-heading">
+              <div>
+                <p className="eyebrow">Le fil du collectionneur</p>
+                <h2>Activité récente</h2>
+              </div>
+              <span className="yk-profile-muted">20 dernières activités</span>
+            </div>
+            {!profile.canViewCollection ? (
+              <ProfilePrivate />
+            ) : details?.activity.length ? (
+              <ol className="yk-profile-activity">
+                {details.activity.map(event => (
+                  <li
+                    key={event.kind + event.id}
+                    className="yk-profile-surface"
+                  >
+                    <Link
+                      href={`/recherche?carte=${event.card.id}`}
+                      className="yk-profile-activity-image"
+                    >
+                      <img
+                        src={event.card.image}
+                        alt={event.card.name}
+                        loading="lazy"
+                        decoding="async"
                       />
-                      <span className="min-w-0 truncate font-display">
-                        {friend.pseudo}
-                      </span>
                     </Link>
+                    <div>
+                      <p className={`yk-profile-event-label is-${event.kind}`}>
+                        {event.kind === "sold"
+                          ? "Carte vendue"
+                          : event.kind === "bought"
+                            ? "Carte achetée"
+                            : "Carte obtenue"}
+                      </p>
+                      <Link href={`/recherche?carte=${event.card.id}`}>
+                        <h3>{event.card.name}</h3>
+                      </Link>
+                      <p className="yk-profile-muted">
+                        {event.card.anime || event.card.category}{" "}
+                        <span
+                          className={`text-rarity-${event.card.rarity.toLowerCase()}`}
+                        >
+                          · {event.card.rarity}
+                        </span>
+                      </p>
+                      {event.price !== undefined && (
+                        <p className="yk-profile-event-price">
+                          {event.price.toLocaleString("fr-FR")} Karas
+                        </p>
+                      )}
+                    </div>
+                    <time dateTime={event.at}>
+                      {new Date(event.at).toLocaleDateString("fr-FR", {
+                        day: "numeric",
+                        month: "short"
+                      })}
+                    </time>
                   </li>
                 ))}
-              </ul>
+              </ol>
             ) : (
-              <p className="mt-5 text-sm text-ink-3">Aucun ami à afficher.</p>
+              <p className="yk-profile-empty">
+                {details
+                  ? "Aucune activité à afficher pour le moment."
+                  : detailsError
+                    ? "L’activité est temporairement indisponible."
+                    : "Chargement de l’activité…"}
+              </p>
             )}
-          </aside>
-        )}
+          </div>
+          <div hidden={tab !== "wishlist"} className="yk-profile-panel">
+            <div className="yk-profile-section-heading">
+              <div>
+                <p className="eyebrow">À la recherche de</p>
+                <h2>Wishlist</h2>
+              </div>
+              <span className="yk-profile-muted">{wishlist.length} cartes</span>
+            </div>
+            {profile.friendshipStatus === "accepted" ? (
+              <button
+                type="button"
+                className="yk-profile-filter"
+                onClick={() => setWishlistOpen(true)}
+                aria-label={`Voir les ${wishlist.length} cartes de la wishlist de ${profile.pseudo}`}
+              >
+                Voir la wishlist complète · {wishlist.length}
+              </button>
+            ) : null}
+            {wishlist.length ? (
+              <div className="yk-card-grid yk-profile-wishlist-preview mt-5">
+                {wishlist.slice(0, wishlistLimit).map(card => (
+                  <Link
+                    href={`/recherche?carte=${card.id}`}
+                    key={card.id}
+                    aria-label={`Voir ${card.name} dans le catalogue`}
+                  >
+                    <CardShell>
+                      <YokaiCard
+                        {...card}
+                        animated={false}
+                        imageSizes={PROFILE_CARD_IMAGE_SIZES}
+                      />
+                    </CardShell>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="yk-profile-empty">
+                Aucune carte souhaitée pour le moment.
+              </p>
+            )}
+            {wishlist.length > wishlistLimit && (
+              <Button
+                variant="secondary"
+                onClick={() => setWishlistLimit(current => current + 28)}
+              >
+                Afficher plus de cartes
+              </Button>
+            )}
+          </div>
+          {profile.friendsVisible && (
+            <div hidden={tab !== "friends"} className="yk-profile-panel">
+              <div className="yk-profile-section-heading">
+                <div>
+                  <p className="eyebrow">Sa communauté</p>
+                  <h3>Amis</h3>
+                </div>
+                {!isMe && (
+                  <button
+                    type="button"
+                    className="yk-profile-filter"
+                    aria-pressed={mutualOnly}
+                    onClick={() => setMutualOnly(!mutualOnly)}
+                  >
+                    Amis en commun · {details?.mutualFriends.length ?? 0}
+                  </button>
+                )}
+              </div>
+              {(mutualOnly ? (details?.mutualFriends ?? []) : friends)
+                .length ? (
+                <ul className="yk-profile-friend-list">
+                  {(mutualOnly ? (details?.mutualFriends ?? []) : friends).map(
+                    friend => (
+                      <li key={friend.id}>
+                        <Link
+                          href={`/profil/${encodeURIComponent(friend.pseudo)}`}
+                        >
+                          <Avatar
+                            name={friend.pseudo}
+                            image={friend.avatarUrl ?? undefined}
+                            size={48}
+                          />
+                          <span>
+                            <strong>{friend.pseudo}</strong>
+                            {details?.mutualFriends.some(
+                              common => common.id === friend.id
+                            ) && <small>Ami en commun</small>}
+                          </span>
+                          <span
+                            className="yk-profile-friend-arrow"
+                            aria-hidden="true"
+                          >
+                            ↗
+                          </span>
+                        </Link>
+                      </li>
+                    )
+                  )}
+                </ul>
+              ) : (
+                <p className="yk-profile-empty">
+                  {mutualOnly
+                    ? "Vous n’avez pas d’amis en commun."
+                    : "Aucun ami à afficher."}
+                </p>
+              )}
+            </div>
+          )}
+          <div hidden={tab !== "wall"} className="yk-profile-panel">
+            <ProfileWall
+              key={profile.id}
+              ownerId={profile.id}
+              pseudo={profile.pseudo}
+              avatarUrl={profile.avatarUrl}
+              isMe={isMe}
+              isPublic={profile.isPublic}
+              canRead={profile.canViewCollection}
+              active={tab === "wall"}
+              adapter={adapter.wall}
+            />
+          </div>
+        </section>
+        <aside className="yk-profile-identity">
+          <div
+            className={`yk-profile-banner ${bannerImage ? "has-image" : ""}`}
+          >
+            {bannerImage && (
+              <>
+                <img
+                  src={bannerImage}
+                  alt=""
+                  aria-hidden="true"
+                  decoding="async"
+                />
+                <span className="yk-profile-banner-shade" />
+              </>
+            )}
+          </div>
+          <div className="yk-profile-identity-content">
+            <div className="yk-profile-avatar">
+              <Avatar
+                name={profile.pseudo}
+                image={profile.avatarUrl ?? undefined}
+                size={96}
+              />
+            </div>
+            <span className="yk-profile-identity-label">COLLECTIONNEUR</span>
+            <div className="yk-profile-name-row">
+              <h2>{profile.pseudo}</h2>
+              {!isMe && (
+                <PlayerModeration
+                  userId={profile.id}
+                  pseudo={profile.pseudo}
+                  blockedByMe={blockedByMe}
+                  adapter={adapter.moderation}
+                  onBlocked={afterBlock}
+                />
+              )}
+            </div>
+            <p className="yk-profile-bio">
+              {profile.bio || "Aucune bio pour le moment."}
+            </p>
+            <div className="yk-profile-actions">
+              {isMe ? (
+                <Button variant="secondary" onClick={() => setEditing(true)}>
+                  Modifier le profil
+                </Button>
+              ) : (
+                <>
+                  <FriendAction
+                    key={`${profile.id}:${profile.friendshipStatus}:${blockedByMe}`}
+                    userId={profile.id}
+                    status={profile.friendshipStatus}
+                    blockedByMe={blockedByMe}
+                    adapter={adapter.friendAction}
+                    onUnblocked={afterUnblock}
+                  />
+                </>
+              )}
+            </div>
+            {!isMe && (
+              <Button
+                variant="secondary"
+                disabled={
+                  !engagement || likeBusy || profileBlocked || !adapter.like
+                }
+                aria-pressed={engagement?.likedByMe ?? false}
+                onClick={() => void likeProfile()}
+              >
+                {likeBusy
+                  ? "Enregistrement…"
+                  : engagement?.likedByMe
+                    ? "♥ Profil aimé"
+                    : "♡ Aimer ce profil"}
+              </Button>
+            )}
+            {engagementError && (
+              <p className="yk-profile-muted" role="status">
+                {engagementError}
+              </p>
+            )}
+            <div className="yk-profile-side-counts">
+              {!isMe && profile.canViewCollection ? (
+                <button
+                  type="button"
+                  onClick={() => void openFriendCollection()}
+                  aria-label={`Voir les ${profile.cardCount} cartes de ${profile.pseudo}`}
+                >
+                  <p>Cartes</p>
+                  <strong>{profile.cardCount}</strong>
+                  <span>Voir la collection →</span>
+                </button>
+              ) : (
+                <Link href="/collection">
+                  <p>Cartes</p>
+                  <strong>
+                    {profile.canViewCollection ? profile.cardCount : "Privée"}
+                  </strong>
+                </Link>
+              )}
+              <div>
+                <p>Différentes</p>
+                <strong>
+                  {profile.canViewCollection
+                    ? profile.distinctCardCount
+                    : "Privée"}
+                </strong>
+              </div>
+              <div>
+                <p>Vues du profil</p>
+                <strong data-profile-views>
+                  {engagement?.views.toLocaleString("fr-FR") ?? "—"}
+                </strong>
+              </div>
+              <div>
+                <p>Likes</p>
+                <strong data-profile-likes>
+                  {engagement?.likes.toLocaleString("fr-FR") ?? "—"}
+                </strong>
+              </div>
+            </div>
+            <div className="yk-profile-side-stats">
+              <div>
+                <p>Boosters ouverts</p>
+                <strong>
+                  {profile.canViewCollection
+                    ? (details?.boostersOpened?.toLocaleString("fr-FR") ?? "—")
+                    : "Privé"}
+                </strong>
+              </div>
+              <div className="is-lr">
+                <p>✦ LR</p>
+                <strong>
+                  {profile.canViewCollection
+                    ? (details?.lrCount?.toLocaleString("fr-FR") ?? "—")
+                    : "Privé"}
+                </strong>
+              </div>
+              <div className="is-ssr">
+                <p>✦ SSR</p>
+                <strong>
+                  {profile.canViewCollection
+                    ? (details?.ssrCount?.toLocaleString("fr-FR") ?? "—")
+                    : "Privé"}
+                </strong>
+              </div>
+            </div>
+            <div className="yk-profile-member">
+              <p>Membre depuis</p>
+              <strong>
+                {details?.joinedAt || (isMe && joined)
+                  ? new Date(details?.joinedAt || joined!).toLocaleDateString(
+                      "fr-FR",
+                      { dateStyle: "long" }
+                    )
+                  : "—"}
+              </strong>
+            </div>
+          </div>
+        </aside>
       </div>
+      <Modal
+        open={preferencesOpen}
+        onClose={() => setPreferencesOpen(false)}
+        title="Personnaliser mon tableau"
+      >
+        {details && (
+          <PreferencesEditor
+            widgets={details.widgets}
+            categories={details.widgetCategories}
+            loadLicenses={adapter.widgetLicenses ?? getProfileWidgetLicenses}
+            save={adapter.saveWidgets ?? saveProfileWidgets}
+            onSaved={widgets => {
+              setDetails({ ...details, widgets });
+              setPreferencesOpen(false);
+              setToast("Tableau mis à jour");
+            }}
+          />
+        )}
+      </Modal>
       <Modal
         open={collectionOpen}
         onClose={() => setCollectionOpen(false)}
@@ -921,16 +1732,27 @@ export function ProfileExperience({
         title="Modifier mon profil"
         className="max-w-4xl"
       >
-        {collection && (
+        {isMe && collection && details ? (
           <Editor
             profile={profile}
             collection={collection}
+            initialBannerUrl={
+              (savedBannerUrl === undefined
+                ? details?.bannerUrl
+                : savedBannerUrl) ?? null
+            }
+            adapter={adapter}
             onClose={() => setEditing(false)}
             onSaved={p => {
               setProfile(p);
+              setSavedBannerUrl(p.bannerUrl);
               setToast("Profil mis à jour");
             }}
           />
+        ) : (
+          <p className="yk-profile-empty">
+            {detailsError || "Chargement de l’éditeur du profil…"}
+          </p>
         )}
       </Modal>
       <Toast message={toast} onDismiss={() => setToast("")} />

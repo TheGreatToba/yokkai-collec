@@ -135,7 +135,7 @@ try {
   await send("Input.insertText", { text: "Détail depuis le profil" });
   await click("dialog[open]", "Transmettre le signalement");
   await wait(
-    "document.querySelector('[data-proof=profile]')?.textContent.includes('Merci, ton signalement a été transmis.')",
+    "document.querySelector('.yk-toast[role=status]')?.textContent === 'Merci, ton signalement a été transmis.'",
     "Confirmation signalement profil"
   );
 
