@@ -181,7 +181,10 @@ fichiers dérivés, rendus de partages, caches CDN et éventuels exports privés
 être inventoriés et purgés selon leur ownership réel. Vérifier également copies
 VPS, snapshots de volumes, réplications, caches et anciennes versions d'objets.
 
-## Proposition de rétention (à approuver et mettre en place)
+## Politique de rétention retenue (à mettre en place)
+
+La rétention des sauvegardes de 30 jours est validée par Walid le 14 octobre 2026. Cette validation ne constitue pas une preuve de sa mise en œuvre sur les
+serveurs ou chez les fournisseurs de stockage.
 
 - 7 dumps quotidiens, 4 hebdomadaires, tous supprimés au plus tard à 30 jours
   depuis leur création ; pas de copie mensuelle indéfinie. Même plafond pour
