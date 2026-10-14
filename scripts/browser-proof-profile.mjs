@@ -78,6 +78,13 @@ try {
     await waitFor(
       "Boolean(document.querySelector('.yk-profile-hub') && document.querySelector('.yk-profile-side-stats').textContent.includes('824'))"
     );
+    assert.deepEqual(
+      await evaluate(
+        "Array.from(document.querySelectorAll('.yk-profile-tabs button')).slice(0, 2).map(button => button.textContent.trim())"
+      ),
+      ["Tableau", "Mur"],
+      "Wall is the second profile tab, directly after Tableau"
+    );
   };
   const clickTab = async label => {
     await evaluate(

@@ -1180,10 +1180,10 @@ export function ProfileExperience({
           <nav className="yk-profile-tabs" aria-label="Sections du profil">
             {[
               ["tableau", "Tableau"],
+              ["wall", "Mur"],
               ["activity", "Activité"],
               ["wishlist", "Wishlist"],
-              ...(profile.friendsVisible ? [["friends", "Amis"]] : []),
-              ["wall", "Mur"]
+              ...(profile.friendsVisible ? [["friends", "Amis"]] : [])
             ].map(([key, label]) => (
               <button
                 key={key}
