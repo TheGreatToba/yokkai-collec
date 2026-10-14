@@ -8,6 +8,8 @@ strict
 set search_path = ''
 as $$
   select case
+    when btrim(value) ~* '^devil[[:space:]]+may[[:space:]]+cry([[:space:]:-]|$)'
+      then btrim(value)
     when btrim(regexp_replace(
       public.normalize_card_franchise(value),
       '([[:space:]]+|[[:space:]]*[:-][[:space:]]*)(II|III|IV)[[:space:]]*$',
@@ -24,7 +26,7 @@ as $$
 $$;
 
 comment on function public.normalize_anime_franchise(text) is
-  'Canonicalizes ANIME/MANGA franchises, including standalone Roman-numeral sequel suffixes II-IV.';
+  'Canonicalizes ANIME/MANGA franchises, including standalone Roman-numeral sequel suffixes II-IV, while preserving Devil May Cry.';
 
 create or replace function public.normalize_card_franchise_before_write()
 returns trigger

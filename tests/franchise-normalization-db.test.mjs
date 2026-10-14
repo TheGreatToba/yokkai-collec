@@ -137,6 +137,7 @@ test("les suites en chiffres romains sont regroupées uniquement pour ANIME/MANG
       ('roman-anime-v','V','ANIME/MANGA','Combattler V','C','https://example.test/v.png','roman-license-test'),
       ('roman-anime-word','Ii','ANIME/MANGA','Yakuza Fiancé: Raise wa Tanin ga Ii','C','https://example.test/word.png','roman-license-test'),
       ('roman-anime-colon','Colon','ANIME/MANGA','Honkai Impact 3rd - Reburn: II','C','https://example.test/colon.png','roman-license-test'),
+      ('roman-video-game','Dante','ANIME/MANGA','Devil May Cry III','C','https://example.test/dmc.png','roman-license-test'),
       ('roman-film','Film II','FILM','Black Butler II','C','https://example.test/film.png','roman-license-test');
   `);
 
@@ -172,6 +173,7 @@ test("les suites en chiffres romains sont regroupées uniquement pour ANIME/MANG
         franchise: "Yakuza Fiancé: Raise wa Tanin ga Ii"
       },
       { source_id: "roman-anime-x", franchise: "BEYBLADE X" },
+      { source_id: "roman-video-game", franchise: "Devil May Cry III" },
       { source_id: "roman-film", franchise: "Black Butler II" }
     ]
   );
