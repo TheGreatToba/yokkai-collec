@@ -1021,7 +1021,7 @@ export function ProfileExperience({
     profile.bannerCard?.image;
   return (
     <>
-      <div className="yk-profile-hub">
+      <div className="yk-profile-hub" data-profile-tab={tab}>
         <section className="yk-profile-main">
           <nav className="yk-profile-tabs" aria-label="Sections du profil">
             {[

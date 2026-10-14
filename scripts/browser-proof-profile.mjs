@@ -94,6 +94,18 @@ try {
     const { data } = await send("Page.captureScreenshot", { format: "png" });
     await writeFile(new URL(name, output), Buffer.from(data, "base64"));
   };
+  const assertAlignedProfile = async label => {
+    await waitFor("document.documentElement.scrollWidth <= window.innerWidth");
+    await waitFor(
+      "(() => {const left=document.querySelector('.yk-profile-identity').getBoundingClientRect(); const right=document.querySelector('.yk-profile-main').getBoundingClientRect(); const showcase=document.querySelector('.yk-profile-main .yk-profile-panel:not([hidden]) > section:last-child').getBoundingClientRect(); return Math.abs(left.bottom-right.bottom) < 1 && Math.abs(left.bottom-showcase.bottom) < 1;})()"
+    );
+    assert.ok(
+      await evaluate(
+        "(() => {const left=document.querySelector('.yk-profile-identity').getBoundingClientRect();const right=document.querySelector('.yk-profile-main').getBoundingClientRect();return Math.abs(left.top-right.top)<1;})()"
+      ),
+      `Profile columns share top and bottom: ${label}`
+    );
+  };
   await send("Page.enable");
   await send("Emulation.setDeviceMetricsOverride", {
     width: 1440,
@@ -102,6 +114,7 @@ try {
     mobile: false
   });
   await navigate("");
+  await assertAlignedProfile("1440px");
   assert.ok(
     await evaluate(
       "document.querySelector('.yk-profile-identity').getBoundingClientRect().width >= 400"
@@ -126,17 +139,50 @@ try {
     deviceScaleFactor: 1,
     mobile: false
   });
+  await assertAlignedProfile("1920px");
   assert.ok(
     await evaluate(
       "document.querySelector('.yk-profile-identity').getBoundingClientRect().width >= 440"
     ),
     "Wide-screen profile uses the left-hand space"
   );
+  if (
+    await evaluate("document.documentElement.scrollWidth > window.innerWidth")
+  )
+    console.log(
+      await evaluate(
+        "({width:innerWidth,scrollWidth:document.documentElement.scrollWidth,overflow:[...document.querySelectorAll('main, .yk-profile-hub, .yk-profile-main, .yk-profile-panel, .yk-profile-surface, .yk-featured-stage')].map(node=>({class:node.className,width:node.getBoundingClientRect().width,right:node.getBoundingClientRect().right,cssWidth:getComputedStyle(node).width}))})"
+      )
+    );
   assert.ok(
     await evaluate("document.documentElement.scrollWidth <= window.innerWidth"),
     "No desktop horizontal overflow"
   );
   await capture("desktop-wide.png");
+  await send("Emulation.setDeviceMetricsOverride", {
+    width: 2560,
+    height: 1440,
+    deviceScaleFactor: 1,
+    mobile: false
+  });
+  await assertAlignedProfile("2560px");
+  await capture("desktop-large-aligned.png");
+  await send("Emulation.setDeviceMetricsOverride", {
+    width: 3840,
+    height: 2160,
+    deviceScaleFactor: 1,
+    mobile: false
+  });
+  await assertAlignedProfile("3840px");
+  for (const width of [1024, 901]) {
+    await send("Emulation.setDeviceMetricsOverride", {
+      width,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false
+    });
+    await assertAlignedProfile(`${width}px`);
+  }
   await send("Emulation.setDeviceMetricsOverride", {
     width: 1440,
     height: 1000,
@@ -245,6 +291,7 @@ try {
     "document.querySelector('.yk-profile-preferences-form button[type=submit]').click()"
   );
   await waitFor("!document.querySelector('.yk-profile-preferences-form')");
+  await assertAlignedProfile("after widget edits");
   assert.ok(
     await evaluate(
       "Array.from(document.querySelectorAll('.yk-profile-taste-list')).some(list=>list.textContent.includes('Bleach'))"
@@ -301,6 +348,7 @@ try {
     )
   );
   await capture("desktop.png");
+  await assertAlignedProfile("after imported banner");
   await evaluate(
     "Array.from(document.querySelectorAll('button')).find(button=>button.textContent==='Modifier le profil').click()"
   );
@@ -320,6 +368,23 @@ try {
     ),
     0
   );
+  await evaluate(
+    "Array.from(document.querySelectorAll('button')).find(button=>button.textContent==='Personnaliser mon tableau').click()"
+  );
+  await waitFor(
+    "Boolean(document.querySelector('.yk-profile-preferences-form'))"
+  );
+  await evaluate(
+    "Array.from(document.querySelectorAll('.yk-profile-widget-tools button')).filter(button=>button.getAttribute('aria-label')?.startsWith('Retirer le widget')).forEach(button=>button.click())"
+  );
+  await waitFor(
+    "document.querySelectorAll('.yk-profile-widget-editor').length === 0"
+  );
+  await evaluate(
+    "document.querySelector('.yk-profile-preferences-form button[type=submit]').click()"
+  );
+  await waitFor("!document.querySelector('.yk-profile-preferences-form')");
+  await assertAlignedProfile("without widgets");
   await navigate("?visitor=1");
   await clickTab("Amis");
   await evaluate("document.querySelector('.yk-profile-filter').click()");
