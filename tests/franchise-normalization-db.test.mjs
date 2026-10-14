@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
+import { readdirSync, readFileSync } from "node:fs";
 import test from "node:test";
 import { replayMigrations } from "../scripts/replay-migrations.mjs";
 
 const player = "71000000-0000-4000-8000-000000000001";
+const migrationName = "20261014000002_normalize_remaining_anime_licenses.sql";
 
 test("les saisons, films, cours et parties numerotees partagent la meme licence", async t => {
   const { db } = await replayMigrations();
@@ -15,6 +17,12 @@ test("les saisons, films, cours et parties numerotees partagent la meme licence"
     ["HAIKYU!! 2nd Season", "HAIKYU!!"],
     ["Fruits Basket The Final Season", "Fruits Basket"],
     ["KENGAN ASHURA Season 2 Part.2", "KENGAN ASHURA"],
+    ["Noragami Aragoto", "Noragami"],
+    ["Noragami OVA", "Noragami"],
+    [
+      "A Returner's Magic Should Be Special",
+      "A Returner's Magic Should Be Special"
+    ],
     ["One Piece Film: Red", "One Piece"],
     ["ONE PIECE: The Movie", "One Piece"],
     ["Naruto Shippuden the Movie: Blood Prison", "Naruto"],
@@ -69,6 +77,11 @@ test("les saisons, films, cours et parties numerotees partagent la meme licence"
       ('one-piece-red','One Piece Red','ANIME/MANGA','One Piece Film: Red','R','https://example.test/op-red.png','movie-license-test'),
       ('naruto-base','Naruto Base','ANIME/MANGA','Naruto','C','https://example.test/naruto-base.png','movie-license-test'),
       ('naruto-road','Naruto Road','ANIME/MANGA','Road to Ninja: Naruto the Movie','SR','https://example.test/naruto-road.png','movie-license-test');
+    insert into public.cards(source_id,nom,categorie,franchise,rarete_base,image_url,source)
+    values
+      ('noragami-base','Noragami Base','ANIME/MANGA','Noragami','C','https://example.test/noragami-base.png','remaining-license-test'),
+      ('noragami-aragoto','Noragami Aragoto','ANIME/MANGA','Noragami Aragoto','R','https://example.test/noragami-aragoto.png','remaining-license-test'),
+      ('noragami-ova','Noragami OVA','ANIME/MANGA','Noragami OVA','SR','https://example.test/noragami-ova.png','remaining-license-test');
   `);
   await db.exec("reset role");
 
@@ -79,6 +92,28 @@ test("les saisons, films, cours et parties numerotees partagent la meme licence"
       )
     ).rows,
     [{ franchise: "Kingdom" }]
+  );
+
+  assert.deepEqual(
+    (
+      await db.query(
+        "select franchise, count(*)::int as total from public.cards where source='remaining-license-test' group by franchise order by franchise"
+      )
+    ).rows,
+    [{ franchise: "Noragami", total: 3 }]
+  );
+
+  assert.deepEqual(
+    (
+      await db.query(
+        `select links.franchise, count(*)::int as total
+         from public.card_franchises links
+         join public.cards cards on cards.id=links.card_id
+         where cards.source='remaining-license-test'
+         group by links.franchise order by links.franchise`
+      )
+    ).rows,
+    [{ franchise: "Noragami", total: 3 }]
   );
 
   assert.deepEqual(
@@ -119,4 +154,79 @@ test("les saisons, films, cours et parties numerotees partagent la meme licence"
   ).rows[0].value;
   assert.equal(cards.total, 3);
   assert.ok(cards.items.every(card => card.anime === "Kingdom"));
+});
+
+test("la migration fusionne les anciens alias sans perdre les favoris ni dupliquer les liens", async t => {
+  const directory = new URL("../supabase/migrations/", import.meta.url);
+  const previousMigrations = readdirSync(directory)
+    .filter(name => name.endsWith(".sql") && name < migrationName)
+    .sort();
+  const { db } = await replayMigrations({ migrations: previousMigrations });
+  t.after(() => db.close());
+
+  await db.query(
+    "insert into auth.users(id,raw_user_meta_data) values ($1,$2::jsonb)",
+    [player, JSON.stringify({ pseudo: "AliasMigration" })]
+  );
+  await db.exec("set role service_role");
+  await db.exec(`
+    insert into public.cards(source_id,nom,categorie,franchise,rarete_base,image_url,source)
+    values
+      ('legacy-noragami','Legacy Noragami','ANIME/MANGA','Noragami','C','https://example.test/base.png','legacy-alias-test'),
+      ('legacy-aragoto','Legacy Aragoto','ANIME/MANGA','Noragami Aragoto','R','https://example.test/aragoto.png','legacy-alias-test'),
+      ('legacy-ova','Legacy OVA','ANIME/MANGA','Noragami OVA','SR','https://example.test/ova.png','legacy-alias-test'),
+      ('golden-base','Golden Base','ANIME/MANGA','Golden Kamuy','C','https://example.test/golden-base.png','generic-alias-test'),
+      ('golden-oad','Golden OAD','ANIME/MANGA','Golden Kamuy OAD','R','https://example.test/golden-oad.png','generic-alias-test'),
+      ('real-special-title','Real Special','ANIME/MANGA','A Returner''s Magic Should Be Special','SR','https://example.test/real-special.png','generic-alias-test');
+    insert into public.card_franchises(card_id,franchise,position)
+    select id,'Noragami',1 from public.cards where source_id='legacy-aragoto';
+    insert into public.panini_album_favorites(user_id,license)
+    values ('${player}','Noragami'),('${player}','Noragami Aragoto'),('${player}','Noragami OVA');
+  `);
+  await db.exec("reset role");
+
+  await db.exec(readFileSync(new URL(migrationName, directory), "utf8"));
+
+  assert.deepEqual(
+    (
+      await db.query(
+        "select franchise,count(*)::int total from public.cards where source='legacy-alias-test' group by franchise"
+      )
+    ).rows,
+    [{ franchise: "Noragami", total: 3 }]
+  );
+  assert.deepEqual(
+    (
+      await db.query(
+        `select cards.source_id,links.franchise
+         from public.card_franchises links join public.cards cards on cards.id=links.card_id
+         where cards.source='legacy-alias-test' order by cards.source_id,links.franchise`
+      )
+    ).rows,
+    [
+      { source_id: "legacy-aragoto", franchise: "Noragami" },
+      { source_id: "legacy-noragami", franchise: "Noragami" },
+      { source_id: "legacy-ova", franchise: "Noragami" }
+    ]
+  );
+  assert.deepEqual(
+    (
+      await db.query(
+        "select license from public.panini_album_favorites where user_id=$1 order by license",
+        [player]
+      )
+    ).rows,
+    [{ license: "Noragami" }]
+  );
+  assert.deepEqual(
+    (
+      await db.query(
+        "select franchise,count(*)::int total from public.cards where source='generic-alias-test' group by franchise order by franchise"
+      )
+    ).rows,
+    [
+      { franchise: "A Returner's Magic Should Be Special", total: 1 },
+      { franchise: "Golden Kamuy", total: 2 }
+    ]
+  );
 });
