@@ -1,12 +1,10 @@
 name: CI
 
 on:
-  push:
-    branches:
-      - master
   pull_request:
-    branches:
-      - master
+    branches: [master]
+  push:
+    branches: [master]
   workflow_dispatch:
 
 concurrency:

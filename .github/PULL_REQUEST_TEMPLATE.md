@@ -5,7 +5,7 @@
 ## Checklist
 
 - [ ] CI verte — une PR rouge ne se merge pas, même si GitHub le permet
-- [ ] Vérifications reproduites localement (`npm ci`, lint, types, tests, build)
+- Vérifications locales facultatives ; la CI GitHub Actions valide les contrôles complets
 - [ ] Testé manuellement — comment :
 - [ ] Contient une migration Supabase — laquelle :
   - [ ] Déjà appliquée sur le VPS
