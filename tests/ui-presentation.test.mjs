@@ -2499,6 +2499,9 @@ test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
     normalizeWhitespace(search),
     normalizeWhitespace(/2 cartes aux enchères/)
   );
+  assert.match(search, /role="status" class="sr-only"/);
+  assert.match(search, /<header class="yk-market-heading">/);
+  assert.doesNotMatch(search, /Vendre une carte|Toutes les enchères en cours/);
   assert.match(
     normalizeWhitespace(search),
     normalizeWhitespace(/<span>Manga<\/span>/)
