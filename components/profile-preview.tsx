@@ -104,11 +104,9 @@ export function ProfilePreview() {
   const reportError = params.get("reportError") === "1";
   const previewUrls = useRef<string[]>([]);
   const social = useRef<ProfileEngagement>({
-    views: 1284,
     likes: 42,
     likedByMe: false
   });
-  const countedVisits = useRef(new Set<string>());
   const wallPosts = useRef<WallPost[]>([
     {
       id: "demo-wall-1",
@@ -313,7 +311,10 @@ export function ProfilePreview() {
       },
       profile: async () => profile(),
       wishlist: async () =>
-        collection.map(card => ({
+        (hiddenCollection || params.get("wishlistEmpty") === "1"
+          ? []
+          : collection
+        ).map(card => ({
           ...card,
           createdAt: "2026-10-13T10:00:00Z"
         })),
@@ -328,16 +329,6 @@ export function ProfilePreview() {
         }
       },
       engagement: async () => ({ ...social.current }),
-      recordView: async (_id, visitId) => {
-        if (!countedVisits.current.has(visitId)) {
-          countedVisits.current.add(visitId);
-          social.current = {
-            ...social.current,
-            views: social.current.views + 1
-          };
-        }
-        return { ...social.current };
-      },
       like: async (_id, liked) => {
         social.current = {
           ...social.current,

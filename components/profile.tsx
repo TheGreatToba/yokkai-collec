@@ -30,7 +30,6 @@ import {
   getProfile,
   getProfileDetails,
   getProfileEngagement,
-  recordProfileView,
   setProfileLike,
   getProfileWidgetLicenses,
   saveProfileAppearance,
@@ -953,7 +952,6 @@ export type ProfileAdapter = {
   friendAction?: FriendActionAdapter;
   details?: typeof getProfileDetails;
   engagement?: typeof getProfileEngagement;
-  recordView?: typeof recordProfileView;
   like?: typeof setProfileLike;
   saveWidgets?: typeof saveProfileWidgets;
   widgetLicenses?: typeof getProfileWidgetLicenses;
@@ -968,7 +966,6 @@ const liveProfile: ProfileAdapter = {
   blocked: listBlockedUsers,
   details: getProfileDetails,
   engagement: getProfileEngagement,
-  recordView: recordProfileView,
   like: setProfileLike,
   saveWidgets: saveProfileWidgets
 };
@@ -999,32 +996,19 @@ export function ProfileExperience({
   const [detailsError, setDetailsError] = useState("");
   const [preferencesOpen, setPreferencesOpen] = useState(false);
   const [mutualOnly, setMutualOnly] = useState(false);
-  const [wishlistLimit, setWishlistLimit] = useState(28);
   const [engagement, setEngagement] = useState<ProfileEngagement>();
   const [engagementError, setEngagementError] = useState("");
   const [likeBusy, setLikeBusy] = useState(false);
   const likePending = useRef(false);
-  const visitIds = useRef(new Map<string, string>());
   const [savedBannerUrl, setSavedBannerUrl] = useState<
     string | null | undefined
   >();
   const profileId = profile?.id;
-  const ownProfile = profile?.friendshipStatus === "self";
   const profileBlocked = blocked.some(player => player.id === profileId);
   useEffect(() => {
     if (!profileId || !adapter.engagement) return;
     let active = true;
-    const load = async () => {
-      if (ownProfile || profileBlocked || !adapter.recordView)
-        return adapter.engagement!(profileId);
-      let visitId = visitIds.current.get(profileId);
-      if (!visitId) {
-        visitId = crypto.randomUUID();
-        visitIds.current.set(profileId, visitId);
-      }
-      return adapter.recordView(profileId, visitId);
-    };
-    void load().then(
+    void adapter.engagement(profileId).then(
       value => {
         if (active) {
           setEngagement(value);
@@ -1033,15 +1017,13 @@ export function ProfileExperience({
       },
       () => {
         if (active)
-          setEngagementError(
-            "Les vues et likes sont temporairement indisponibles."
-          );
+          setEngagementError("Les likes sont temporairement indisponibles.");
       }
     );
     return () => {
       active = false;
     };
-  }, [profileId, ownProfile, profileBlocked, adapter]);
+  }, [profileId, adapter]);
   useEffect(() => {
     let active = true;
     if (adapter.details)
@@ -1185,7 +1167,6 @@ export function ProfileExperience({
               ["tableau", "Tableau"],
               ["wall", "Mur"],
               ["activity", "Activité"],
-              ["wishlist", "Wishlist"],
               ...(profile.friendsVisible ? [["friends", "Amis"]] : [])
             ].map(([key, label]) => (
               <button
@@ -1200,7 +1181,6 @@ export function ProfileExperience({
                 ) : (
                   label
                 )}
-                {key === "wishlist" && <span>{wishlist.length}</span>}
                 {key === "friends" && (
                   <p className="yk-profile-tab-count">{friends.length}</p>
                 )}
@@ -1374,56 +1354,6 @@ export function ProfileExperience({
                     ? "L’activité est temporairement indisponible."
                     : "Chargement de l’activité…"}
               </p>
-            )}
-          </div>
-          <div hidden={tab !== "wishlist"} className="yk-profile-panel">
-            <div className="yk-profile-section-heading">
-              <div>
-                <p className="eyebrow">À la recherche de</p>
-                <h2>Wishlist</h2>
-              </div>
-              <span className="yk-profile-muted">{wishlist.length} cartes</span>
-            </div>
-            {profile.friendshipStatus === "accepted" ? (
-              <button
-                type="button"
-                className="yk-profile-filter"
-                onClick={() => setWishlistOpen(true)}
-                aria-label={`Voir les ${wishlist.length} cartes de la wishlist de ${profile.pseudo}`}
-              >
-                Voir la wishlist complète · {wishlist.length}
-              </button>
-            ) : null}
-            {wishlist.length ? (
-              <div className="yk-card-grid yk-profile-wishlist-preview mt-5">
-                {wishlist.slice(0, wishlistLimit).map(card => (
-                  <Link
-                    href={`/recherche?carte=${card.id}`}
-                    key={card.id}
-                    aria-label={`Voir ${card.name} dans le catalogue`}
-                  >
-                    <CardShell>
-                      <YokaiCard
-                        {...card}
-                        animated={false}
-                        imageSizes={PROFILE_CARD_IMAGE_SIZES}
-                      />
-                    </CardShell>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <p className="yk-profile-empty">
-                Aucune carte souhaitée pour le moment.
-              </p>
-            )}
-            {wishlist.length > wishlistLimit && (
-              <Button
-                variant="secondary"
-                onClick={() => setWishlistLimit(current => current + 28)}
-              >
-                Afficher plus de cartes
-              </Button>
             )}
           </div>
           {profile.friendsVisible && (
@@ -1604,12 +1534,20 @@ export function ProfileExperience({
                     : "Privée"}
                 </strong>
               </div>
-              <div>
-                <p>Vues du profil</p>
-                <strong data-profile-views>
-                  {engagement?.views.toLocaleString("fr-FR") ?? "—"}
+              <button
+                type="button"
+                onClick={() => setWishlistOpen(true)}
+                disabled={!profile.canViewCollection}
+                data-profile-wishlist
+                aria-haspopup="dialog"
+                aria-label={`Voir les ${wishlist.length} cartes de la wishlist de ${profile.pseudo}`}
+              >
+                <p>Wishlist</p>
+                <strong>
+                  {profile.canViewCollection ? wishlist.length : "Privée"}
                 </strong>
-              </div>
+                {profile.canViewCollection && <span>Voir la wishlist →</span>}
+              </button>
               <div>
                 <p>Likes</p>
                 <strong data-profile-likes>
@@ -1710,7 +1648,7 @@ export function ProfileExperience({
         )}
       </Modal>
       <Modal
-        open={wishlistOpen}
+        open={wishlistOpen && profile.canViewCollection}
         onClose={() => setWishlistOpen(false)}
         title={`Wishlist de ${profile.pseudo}`}
         className="yk-friend-collection-modal"
