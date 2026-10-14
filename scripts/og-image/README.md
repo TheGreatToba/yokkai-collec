@@ -1,0 +1,1 @@
+Regenerate with `node scripts/og-image/render.cjs`; use already-installed Playwright via `NODE_PATH` if necessary and `CHROMIUM_PATH` for a custom Chromium executable. No npm dependency is added. The native Arial face preserves the original raster typography; the ornate lettering belongs to the existing logo asset, not a new font.
