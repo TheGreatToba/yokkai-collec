@@ -27,7 +27,7 @@ import { CardShell } from "@/components/card-shell";
 import { CardShareButton, MyCardShares } from "@/components/card-sharing";
 import { CardReportButton } from "@/components/card-report-button";
 import { CatalogueCardModal } from "@/components/catalogue-card-modal";
-import { CARD_PAGE_SIZES } from "@/lib/ui/pagination";
+import { BINDER_CARD_PAGE_SIZES, CARD_PAGE_SIZES } from "@/lib/ui/pagination";
 import {
   COLLECTION_SORTS,
   isCollectionSort,
@@ -312,7 +312,7 @@ export function CollectionView({
   const [paniniAlbumPage, setPaniniAlbumPage] = useState(1);
   const [paniniPage, setPaniniPage] = useState(1);
   const [paniniPageSize, setPaniniPageSize] = useState<number>(
-    CARD_PAGE_SIZES[0]
+    BINDER_CARD_PAGE_SIZES[0]
   );
   const [hideMissingCards, setHideMissingCards] = useState(false);
   const [favoritesOnly, setFavoritesOnly] = useState(false);
@@ -1467,7 +1467,7 @@ export function CollectionView({
                                 setPaniniPage(1);
                               }}
                             >
-                              {CARD_PAGE_SIZES.map(size => (
+                              {BINDER_CARD_PAGE_SIZES.map(size => (
                                 <option key={size} value={size}>
                                   {size}
                                 </option>
