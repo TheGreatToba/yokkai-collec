@@ -180,11 +180,13 @@ export async function getLicenseCatalogueTotals(): Promise<LicenseCatalogueTotal
 export async function getPaniniAlbumsPage({
   query = "",
   category = "",
+  favoritesOnly = false,
   page = 1,
   pageSize = 72
 }: {
   query?: string;
   category?: string;
+  favoritesOnly?: boolean;
   page?: number;
   pageSize?: number;
 } = {}): Promise<PaniniAlbumPage> {
@@ -193,6 +195,7 @@ export async function getPaniniAlbumsPage({
   const { data, error } = await db().rpc("get_panini_albums_page", {
     p_query: query,
     p_category: category,
+    p_favorites_only: favoritesOnly,
     p_offset: (safePage - 1) * safePageSize,
     p_limit: safePageSize
   });
@@ -248,7 +251,7 @@ export async function setPaniniAlbumFavorite(
   const request = favorite
     ? db()
         .from("panini_album_favorites")
-        .upsert({ user_id: id, license: safeLicense })
+        .insert({ user_id: id, license: safeLicense })
     : db()
         .from("panini_album_favorites")
         .delete()

@@ -44,7 +44,6 @@ test("les albums Panini sont paginés et leurs cartes chargées à la demande", 
     "insert into public.panini_album_favorites(user_id,license) values ($1,'Licence 075')",
     [player]
   );
-
   const first = (
     await db.query(
       "select public.get_panini_albums_page('', '', 0, 72) as value"
@@ -66,6 +65,14 @@ test("les albums Panini sont paginés et leurs cartes chargées à la demande", 
     percent: 100,
     favorite: false
   });
+
+  const favoritesOnly = (
+    await db.query(
+      "select public.get_panini_albums_page('', '', 0, 72, true) as value"
+    )
+  ).rows[0].value;
+  assert.equal(favoritesOnly.total, 1);
+  assert.deepEqual(favoritesOnly.items, [first.items[0]]);
 
   const second = (
     await db.query(
@@ -122,7 +129,7 @@ test("les albums Panini sont paginés et leurs cartes chargées à la demande", 
     assert.equal(
       (
         await db.query(
-          "select has_function_privilege($1,'public.get_panini_albums_page(text,text,integer,integer)','EXECUTE') as allowed",
+          "select has_function_privilege($1,'public.get_panini_albums_page(text,text,integer,integer,boolean)','EXECUTE') as allowed",
           [role]
         )
       ).rows[0].allowed,

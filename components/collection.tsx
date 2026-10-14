@@ -225,6 +225,7 @@ export function CollectionView({
   loadPaniniAlbums?: (options: {
     query?: string;
     category?: string;
+    favoritesOnly?: boolean;
     page?: number;
     pageSize?: number;
   }) => Promise<PaniniAlbumPage>;
@@ -314,6 +315,7 @@ export function CollectionView({
     CARD_PAGE_SIZES[0]
   );
   const [hideMissingCards, setHideMissingCards] = useState(false);
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [selectedMissingCard, setSelectedMissingCard] = useState<Card | null>(
     null
   );
@@ -327,6 +329,7 @@ export function CollectionView({
   });
   const [paniniBusy, setPaniniBusy] = useState(false);
   const [paniniError, setPaniniError] = useState("");
+  const [favoriteError, setFavoriteError] = useState("");
   const [paniniAlbumRefresh, setPaniniAlbumRefresh] = useState(0);
   const [favoriteLicenseBusy, setFavoriteLicenseBusy] = useState<string | null>(
     null
@@ -411,6 +414,7 @@ export function CollectionView({
       void loadPaniniAlbums({
         query,
         category,
+        favoritesOnly,
         page: activePaniniAlbumPage,
         pageSize: 72
       })
@@ -438,6 +442,7 @@ export function CollectionView({
   }, [
     activePaniniAlbumPage,
     category,
+    favoritesOnly,
     loadPaniniAlbums,
     paniniAlbumRefresh,
     query,
@@ -451,7 +456,7 @@ export function CollectionView({
   ) => {
     if (!onSetPaniniAlbumFavorite || favoriteLicenseBusy) return;
     setFavoriteLicenseBusy(license);
-    setPaniniError("");
+    setFavoriteError("");
     setPaniniAlbums(current => ({
       ...current,
       items: current.items.map(item =>
@@ -469,7 +474,7 @@ export function CollectionView({
           item.license === license ? { ...item, favorite: !favorite } : item
         )
       }));
-      setPaniniError(
+      setFavoriteError(
         error instanceof Error
           ? error.message
           : "Impossible de modifier ce favori."
@@ -1481,30 +1486,50 @@ export function CollectionView({
                           {paniniAlbums.total > 1 ? "s" : ""}
                         </p>
                       </div>
-                      <label className="yk-panini-search">
-                        <span className="sr-only">Rechercher une licence</span>
-                        <svg
-                          aria-hidden="true"
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.8"
-                        >
-                          <circle cx="11" cy="11" r="7" />
-                          <path d="m20 20-4-4" />
-                        </svg>
-                        <input
-                          type="search"
-                          value={query}
-                          onChange={event => {
-                            setQuery(event.target.value);
-                            setPaniniAlbumPage(1);
-                          }}
-                          placeholder="Rechercher une licence…"
-                        />
-                      </label>
+                      <div className="yk-panini-album-filters">
+                        <label className="yk-panini-search">
+                          <span className="sr-only">
+                            Rechercher une licence
+                          </span>
+                          <svg
+                            aria-hidden="true"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                          >
+                            <circle cx="11" cy="11" r="7" />
+                            <path d="m20 20-4-4" />
+                          </svg>
+                          <input
+                            type="search"
+                            value={query}
+                            onChange={event => {
+                              setQuery(event.target.value);
+                              setPaniniAlbumPage(1);
+                            }}
+                            placeholder="Rechercher une licence…"
+                          />
+                        </label>
+                        {onSetPaniniAlbumFavorite && (
+                          <button
+                            type="button"
+                            className="yk-panini-owned-toggle"
+                            aria-pressed={favoritesOnly}
+                            onClick={() => {
+                              setFavoritesOnly(current => !current);
+                              setPaniniAlbumPage(1);
+                            }}
+                          >
+                            <span aria-hidden="true">
+                              {favoritesOnly ? "✓" : "○"}
+                            </span>
+                            ★ Favoris uniquement
+                          </button>
+                        )}
+                      </div>
                       {paniniError && (
                         <div className="yk-panini-empty" role="alert">
                           <strong>Chargement impossible</strong>
@@ -1514,6 +1539,11 @@ export function CollectionView({
                       {paniniBusy && (
                         <div className="yk-panini-empty" role="status">
                           <strong>Chargement des classeurs…</strong>
+                        </div>
+                      )}
+                      {favoriteError && (
+                        <div className="yk-panini-favorite-error" role="alert">
+                          {favoriteError}
                         </div>
                       )}
                       {!paniniBusy &&
@@ -1562,12 +1592,16 @@ export function CollectionView({
                                   aria-label={`${item.favorite ? "Retirer" : "Ajouter"} ${item.license} ${item.favorite ? "des" : "aux"} favoris`}
                                   aria-pressed={item.favorite}
                                   disabled={favoriteLicenseBusy !== null}
-                                  onClick={() =>
+                                  onPointerDown={event =>
+                                    event.stopPropagation()
+                                  }
+                                  onClick={event => {
+                                    event.stopPropagation();
                                     void togglePaniniAlbumFavorite(
                                       item.license,
                                       !item.favorite
-                                    )
-                                  }
+                                    );
+                                  }}
                                 >
                                   <svg
                                     aria-hidden="true"
