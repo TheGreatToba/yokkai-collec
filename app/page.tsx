@@ -203,6 +203,11 @@ export default async function Home() {
       <footer className="yk-landing-footer">
         <span>Yokkai Collec’</span>
         <span>À chaque carte, une découverte.</span>
+        {process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() && (
+          <a href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL.trim()}`}>
+            {process.env.NEXT_PUBLIC_CONTACT_EMAIL.trim()}
+          </a>
+        )}
       </footer>
     </div>
   );
