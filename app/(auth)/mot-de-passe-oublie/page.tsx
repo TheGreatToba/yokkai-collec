@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { PasswordResetRequestForm } from "@/components/password-reset-forms";
 
 export const metadata: Metadata = {
-  title: "Mot de passe oublié · Yokkai Collec’"
+  title: "Forgot password · Yokkai Collec’"
 };
 
 export default async function ForgotPasswordPage({
@@ -13,10 +13,10 @@ export default async function ForgotPasswordPage({
   const { lien } = await searchParams;
   return (
     <>
-      <p className="eyebrow">Retrouve ta collection</p>
-      <h1 className="yk-auth-title">Réinitialise ton mot de passe</h1>
+      <p className="eyebrow">Return to your collection</p>
+      <h1 className="yk-auth-title">Reset your password</h1>
       <p className="yk-auth-intro">
-        Indique ton adresse email pour recevoir un lien sécurisé.
+        Enter your email address to receive a secure reset link.
       </p>
       <PasswordResetRequestForm
         invalidLink={lien === "erreur"}

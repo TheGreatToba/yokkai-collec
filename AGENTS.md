@@ -53,3 +53,14 @@ Rules:
 - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
 - After modifying code, run `graphify update .` when the CLI and local graph are available (AST-only, no API cost).
+
+## Langue du produit : English first
+
+- Yokkai Collec' est un produit en anglais d'abord, pour un public mondial.
+- Tout texte visible par les joueurs est en anglais : interface, boutons, erreurs et succès, états vides, notifications, aria-label et alt, métadonnées, emails Auth, noms et descriptions des succès, pages légales et d'aide.
+- Toute nouvelle route est en anglais, minuscules, avec des tirets.
+- Noms de tables/colonnes et valeurs techniques en anglais ; textes affichés aux joueurs enregistrés en base en anglais.
+- Les nouvelles fonctions SQL renvoient des codes d'erreur stables ; le texte anglais est affiché côté interface.
+- Formats (dates, nombres, pluriels) en-US ; noms propres de cartes/personnages/franchises inchangés.
+- PR, commits et docs internes peuvent rester en français ; seul ce que voient les joueurs doit être en anglais.
+- Avant chaque PR : grep des textes visibles ajoutés, aucun mot de français dans l'interface.

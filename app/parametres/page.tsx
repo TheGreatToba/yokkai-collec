@@ -26,8 +26,8 @@ export default async function SettingsPage() {
         karas={karas}
       />
       <main className="mx-auto w-full max-w-5xl px-6 py-10">
-        <p className="eyebrow">Ton compte</p>
-        <h1 className="yk-title mt-3">Paramètres</h1>
+        <p className="eyebrow">Your account</p>
+        <h1 className="yk-title mt-3">Settings</h1>
         <div className="mt-8">
           <SettingsPanel />
           <DataExportForm />

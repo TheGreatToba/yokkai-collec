@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { AuthForm } from "@/components/auth-form";
 
 export const metadata: Metadata = {
-  title: "Connexion · Yokkai Collec’",
+  title: "Sign in · Yokkai Collec’",
   description:
-    "Connectez-vous à Yokkai Collec’ pour retrouver votre collection, ouvrir vos packs et échanger vos cartes."
+    "Sign in to Yokkai Collec’ to explore your collection, open packs, and trade cards."
 };
 
 export default async function SignInPage({
@@ -15,14 +15,14 @@ export default async function SignInPage({
   const { confirmation, "mot-de-passe": passwordStatus } = await searchParams;
   return (
     <>
-      <p className="eyebrow">La chasse continue</p>
-      <h1 className="yk-auth-title">Content de te revoir</h1>
+      <p className="eyebrow">The hunt continues</p>
+      <h1 className="yk-auth-title">Welcome back</h1>
       <p className="yk-auth-intro">
-        Retrouve ta collection. Elle t’attend dans l’ombre.
+        Your collection awaits. Step back into the adventure.
       </p>
       {passwordStatus === "modifie" && (
         <p role="status" className="yk-auth-notice">
-          Ton mot de passe a été modifié. Tu peux maintenant te connecter.
+          Your password has been updated. You can now sign in.
         </p>
       )}
       <AuthForm

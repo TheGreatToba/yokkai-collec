@@ -113,7 +113,7 @@ test("dÃ©veloppement : l'inscription journalise le diagnostic Auth sans donnÃ
     }
   );
   const result = await loaded.signUp({}, form());
-  assert.match(result.error, /indisponible/);
+  assert.match(result.error, /unavailable/);
   assert.equal(calls.length, 1);
   assert.equal(calls[0][1].code, "unexpected_failure");
   assert.equal(calls[0][1].status, 500);
@@ -145,7 +145,7 @@ test("réinitialisation : validation de l’email et confirmation identique", ()
   const validPassword = "x".repeat(12);
   assert.match(
     forms.validateEmail(form({ email: "incorrect" })).error,
-    /email valide/
+    /valid email address/
   );
   assert.equal(
     forms.validateEmail(form({ email: "  joueur@example.com " })).email,
@@ -160,8 +160,8 @@ test("réinitialisation : validation de l’email et confirmation identique", ()
   const mismatch = forms.validateNewPassword(
     form({ password: "x".repeat(5), confirmPassword: "y".repeat(5) })
   );
-  assert.match(mismatch.fields.password, /8 à 128/);
-  assert.match(mismatch.fields.confirmPassword, /ne correspondent pas/);
+  assert.match(mismatch.fields.password, /8–128/);
+  assert.match(mismatch.fields.confirmPassword, /don't match/);
 });
 
 test("paramètres : validation du mot de passe actuel et du nouveau", () => {
@@ -173,7 +173,7 @@ test("paramètres : validation du mot de passe actuel et du nouveau", () => {
       confirmPassword: validPassword
     })
   );
-  assert.match(missing.fields.currentPassword, /actuel/);
+  assert.match(missing.fields.currentPassword, /current password/);
   const identical = forms.validatePasswordChange(
     form({
       currentPassword: validPassword,
@@ -181,7 +181,7 @@ test("paramètres : validation du mot de passe actuel et du nouveau", () => {
       confirmPassword: validPassword
     })
   );
-  assert.match(identical.fields.password, /différent/);
+  assert.match(identical.fields.password, /different/);
 });
 
 test("réinitialisation : demande non énumérable et retour canonique", async () => {
@@ -291,19 +291,19 @@ test("paramètres : un mauvais mot de passe actuel ne permet aucune modification
       confirmPassword: "y".repeat(12)
     })
   );
-  assert.match(result.fields.currentPassword, /incorrect/);
+  assert.match(result.fields.currentPassword, /Incorrect/);
   assert.equal(updates, 0);
 });
 
 test("inscription : règles du pseudo et comptage Unicode", () => {
   assert.match(
     forms.validateCredentials(form({ pseudo: "ab" }), true).fields.pseudo,
-    /au moins 3/
+    /at least 3/
   );
   assert.match(
     forms.validateCredentials(form({ pseudo: "a".repeat(31) }), true).fields
       .pseudo,
-    /30 caractères maximum/
+    /no more than 30 characters/
   );
   for (const pseudo of [
     "a/b",
@@ -317,7 +317,7 @@ test("inscription : règles du pseudo et comptage Unicode", () => {
   ]) {
     assert.match(
       forms.validateCredentials(form({ pseudo }), true).fields.pseudo,
-      /ne peut pas contenir/
+      /can't contain/
     );
   }
   for (const pseudo of [" Émi ", "Yōkai 👺", "😀".repeat(30)]) {
@@ -362,7 +362,7 @@ test("inscription : un pseudo pris est refusé avant tout appel Auth", async () 
   const result = await api.signUp({}, form({ pseudo: "  KITSUNE  " }));
   assert.equal(
     result.fields.pseudo,
-    "Ce pseudo est déjà pris, essaie-en un autre."
+    "That username is already taken. Try another one."
   );
   assert.equal(authCalls, 0);
 });
@@ -384,7 +384,7 @@ test("inscription : la collision arrivée entre la vérification et Auth est rec
   assert.equal(checks, 2);
   assert.equal(
     result.fields.pseudo,
-    "Ce pseudo est déjà pris, essaie-en un autre."
+    "That username is already taken. Try another one."
   );
 });
 
@@ -404,7 +404,7 @@ test("inscription sans confirmation et connexion : session puis invalidation du 
   assert.equal(api.revalidated.length, 2);
 });
 
-test("erreurs Auth : messages français, pas de détails techniques ni de mot de passe", async () => {
+test("erreurs Auth : messages anglais, pas de détails techniques ni de mot de passe", async () => {
   for (const code of [
     "invalid_credentials",
     "email_not_confirmed",
@@ -426,32 +426,32 @@ test("erreurs Auth : messages français, pas de détails techniques ni de mot de
       throw new Error("network");
     }
   }).signUp({}, form());
-  assert.match(result.error, /indisponible/);
+  assert.match(result.error, /unavailable/);
 });
 
 test("inscription : chaque erreur Auth identifiable a un message distinct", () => {
   const expected = new Map([
-    ["user_banned", /Votre compte est banni\./],
-    ["weak_password", /mot de passe est trop faible/],
-    ["email_exists", /déjà utilisée/],
-    ["user_already_exists", /déjà utilisée/],
-    ["over_request_rate_limit", /Trop de tentatives/],
-    ["over_email_send_rate_limit", /Trop de tentatives/],
-    ["email_address_invalid", /n’est pas valide/],
-    ["email_address_not_authorized", /n’est pas autorisée/],
-    ["signup_disabled", /inscriptions sont temporairement désactivées/],
-    ["email_provider_disabled", /inscriptions sont temporairement désactivées/],
-    ["unexpected_failure", /momentanément indisponible/],
-    ["request_timeout", /momentanément indisponible/]
+    ["user_banned", /Your account is banned\./],
+    ["weak_password", /password is too weak/],
+    ["email_exists", /already in use/],
+    ["user_already_exists", /already in use/],
+    ["over_request_rate_limit", /Too many attempts/],
+    ["over_email_send_rate_limit", /Too many attempts/],
+    ["email_address_invalid", /is invalid/],
+    ["email_address_not_authorized", /can't be used to sign up/],
+    ["signup_disabled", /Sign-ups are temporarily disabled/],
+    ["email_provider_disabled", /Sign-ups are temporarily disabled/],
+    ["unexpected_failure", /temporarily unavailable/],
+    ["request_timeout", /temporarily unavailable/]
   ]);
   for (const [code, message] of expected)
     assert.match(forms.authError(code), message);
   assert.match(
     forms.authError("validation_failed", 400),
-    /demande d’authentification a été refusée/
+    /Authentication was declined/
   );
-  assert.match(forms.authError(undefined, 0), /momentanément indisponible/);
-  assert.match(forms.authError(undefined, 503), /momentanément indisponible/);
+  assert.match(forms.authError(undefined, 0), /temporarily unavailable/);
+  assert.match(forms.authError(undefined, 503), /temporarily unavailable/);
 });
 
 test("connexion : un incident réseau transitoire est retenté une seule fois", async () => {
@@ -467,7 +467,7 @@ test("connexion : un incident réseau transitoire est retenté une seule fois", 
   });
   const result = await api.signIn({}, form());
   assert.equal(attempts, 2);
-  assert.match(result.error, /incorrect/);
+  assert.match(result.error, /Incorrect/);
 });
 
 test("connexion : une erreur Auth levée conserve son code utilisateur", async () => {
@@ -479,7 +479,7 @@ test("connexion : une erreur Auth levée conserve son code utilisateur", async (
     }
   });
   const result = await api.signIn({}, form());
-  assert.match(result.error, /Confirmez/);
+  assert.match(result.error, /Confirm your email/);
   assert.equal(JSON.stringify(result).includes("provider details"), false);
 });
 
@@ -516,7 +516,7 @@ test("déconnexion locale, propagation des erreurs et redirection après succès
   const failed = await actions({
     signOut: async () => ({ error: { message: "network" } })
   }).signOut();
-  assert.match(failed.error, /échoué/);
+  assert.match(failed.error, /Couldn't sign out/);
 });
 
 function confirm(auth, env = {}) {
@@ -668,7 +668,7 @@ test("renvoi : adresse validée, retour canonique, réponse neutre et délai", a
     { resend: () => assert.fail("must not send") },
     { NODE_ENV: "production" }
   ).resendConfirmation({}, form());
-  assert.match(missingOrigin.error, /indisponible/);
+  assert.match(missingOrigin.error, /unavailable/);
 });
 
 test("e-mails : quota global, délai par adresse et SMTP ont des messages distincts", async () => {
@@ -679,7 +679,7 @@ test("e-mails : quota global, délai par adresse et SMTP ont des messages distin
         status: 429,
         message: "Email rate limit exceeded"
       },
-      /limite.*e-mails/i
+      /email sending limit/i
     ],
     [
       {
@@ -688,7 +688,7 @@ test("e-mails : quota global, délai par adresse et SMTP ont des messages distin
         message:
           "For security purposes, you can only request this after 60 seconds."
       },
-      /Trop de tentatives/
+      /Too many attempts/
     ],
     [
       {
@@ -696,7 +696,7 @@ test("e-mails : quota global, délai par adresse et SMTP ont des messages distin
         status: 500,
         message: "Error sending confirmation email"
       },
-      /service d’envoi.*indisponible/i
+      /Email delivery.*unavailable/i
     ]
   ];
   for (const [error, expected] of cases) {
@@ -722,7 +722,7 @@ test("e-mails : quota global, délai par adresse et SMTP ont des messages distin
       status: 500,
       message: "Database error saving new user"
     }),
-    /service de connexion/
+    /Sign-in/
   );
 });
 
@@ -783,19 +783,19 @@ test("e-mails : les erreurs HTTP réelles du SDK conservent la distinction quota
       429,
       "over_email_send_rate_limit",
       "Email rate limit exceeded",
-      /limite.*e-mails/i
+      /email sending limit/i
     ],
     [
       429,
       "over_email_send_rate_limit",
       "For security purposes, you can only request this after 60 seconds.",
-      /Trop de tentatives/
+      /Too many attempts/
     ],
     [
       500,
       "unexpected_failure",
       "Error sending confirmation email",
-      /service d’envoi.*indisponible/i
+      /Email delivery.*unavailable/i
     ]
   ]) {
     let calls = 0;
@@ -910,10 +910,7 @@ test("captcha : jeton absent, doublon ou trop long refusé avant tout appel Auth
         NEXT_PUBLIC_TURNSTILE_SITE_KEY: "public-local-test"
       }
     );
-    assert.match(
-      (await api.signUp({}, data)).error,
-      /vérification anti-robot/i
-    );
+    assert.match((await api.signUp({}, data)).error, /Bot verification/i);
   }
   const data = form({ "cf-turnstile-response": "one" });
   data.append("cf-turnstile-response", "two");
@@ -949,7 +946,7 @@ test("captcha : refus Auth à la récupération n’est jamais annoncé comme un
       error: { code: "captcha_failed", status: 400 }
     })
   }).requestPasswordReset({}, form());
-  assert.match(result.error, /vérification anti-robot/i);
+  assert.match(result.error, /Bot verification/i);
   assert.equal(result.success, undefined);
 });
 
@@ -992,7 +989,8 @@ test("widget : jeton capturé puis renouvelé, y compris après reset et démont
       process: { env: { NEXT_PUBLIC_TURNSTILE_SITE_KEY: "public-local-test" } },
       window: {
         turnstile: {
-          render: () => {
+          render: (_container, options) => {
+            assert.equal(options.language, "en");
             field = "token-" + ++generation;
             return "widget-local";
           },

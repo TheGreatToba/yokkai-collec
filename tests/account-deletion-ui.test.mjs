@@ -211,14 +211,13 @@ test("deletion failure only includes the configured contact email", async () => 
   const form = new FormData();
   form.set("pseudo", "EraseMe");
   const original =
-    "La suppression n’a pas pu être terminée. Ne répète pas la demande ; contacte l’équipe pour vérifier son état.";
+    "We couldn't finish deleting your account. Don't submit another request. Contact the team to check its status.";
   for (const contactEmail of [undefined, "", "   ", " contact@example.test "]) {
     const h = actionHarness({ deletionError: true, contactEmail });
     const state = await h.deleteAccountAction({}, form);
     assert.equal(
       state.error,
-      original +
-        (contactEmail?.trim() ? " Contact : contact@example.test." : "")
+      original + (contactEmail?.trim() ? " Contact: contact@example.test." : "")
     );
   }
 });

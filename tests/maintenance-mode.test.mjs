@@ -48,7 +48,8 @@ test("le mode maintenance intercepte toutes les routes avant la session", async 
     assert.equal(response.status, 503);
     assert.match(response.headers.get("content-type"), /^text\/html/);
     assert.equal(response.headers.get("cache-control"), "no-store, max-age=0");
-    assert.match(html, /Yokkai Collec' est en maintenance/);
+    assert.match(html, /<html lang="en"/);
+    assert.match(html, /Yokkai Collec' is undergoing maintenance/);
     assert.equal(loaded.sessionChecks(), 0);
   }
 });

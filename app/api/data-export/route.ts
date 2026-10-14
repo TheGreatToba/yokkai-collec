@@ -15,7 +15,7 @@ const privateHeaders = {
 
 export function GET() {
   return Response.json(
-    { error: "Méthode refusée." },
+    { error: "Method not allowed." },
     { status: 405, headers: { ...privateHeaders, Allow: "POST" } }
   );
 }
@@ -29,11 +29,11 @@ export async function POST(request: Request) {
   const reply = (status: number, body: object, extra = {}) =>
     Response.json(body, { status, headers: { ...privateHeaders, ...extra } });
   const site = process.env.NEXT_PUBLIC_SITE_URL;
-  if (!site) return reply(503, { error: "Téléchargement indisponible." });
+  if (!site) return reply(503, { error: "Download unavailable." });
   if (request.headers.get("origin") !== new URL(site).origin)
-    return reply(403, { error: "Requête refusée." });
+    return reply(403, { error: "Request denied." });
   if (request.headers.get("content-type") !== "application/json")
-    return reply(400, { error: "Requête invalide." });
+    return reply(400, { error: "Invalid request." });
   let userId: string | undefined;
   let admin: SupabaseClient | undefined;
   let attempted = false;
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     // Bound the body even when Content-Length is absent or forged. No player ID
     // is accepted; the only valid payload is an empty object.
     const reader = request.body?.getReader();
-    if (!reader) return reply(400, { error: "Requête invalide." });
+    if (!reader) return reply(400, { error: "Invalid request." });
     const chunks: Uint8Array[] = [];
     let length = 0;
     while (true) {
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
       length += value.byteLength;
       if (length > 1024) {
         await reader.cancel();
-        return reply(400, { error: "Requête invalide." });
+        return reply(400, { error: "Invalid request." });
       }
       chunks.push(value);
     }
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
     try {
       input = JSON.parse(Buffer.concat(chunks).toString("utf8"));
     } catch {
-      return reply(400, { error: "Requête invalide." });
+      return reply(400, { error: "Invalid request." });
     }
     if (
       !input ||
@@ -87,7 +87,7 @@ export async function POST(request: Request) {
       Array.isArray(input) ||
       Object.keys(input).length
     )
-      return reply(400, { error: "Requête invalide." });
+      return reply(400, { error: "Invalid request." });
     const { url, key, cookieName } = getSupabaseConfig();
     const store = await cookies();
     const client = createServerClient(url, key, {
@@ -115,19 +115,19 @@ export async function POST(request: Request) {
       claims.data.claims.is_anonymous === true
     )
       return reply(401, {
-        error: "Connecte-toi pour télécharger tes données.",
+        error: "Sign in to download your data.",
         reconnect: true
       });
     if (!hasRecentAuthentication(claims.data.claims))
       return reply(403, {
         error:
-          "Reconnecte-toi puis reviens dans les paramètres : une connexion de moins de cinq minutes est nécessaire.",
+          "Sign in again, then return to settings. You must have signed in within the last five minutes.",
         reconnect: true
       });
     userId = identity.data.user.id;
     const secret =
       process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!secret) return reply(503, { error: "Téléchargement indisponible." });
+    if (!secret) return reply(503, { error: "Download unavailable." });
     admin = createClient(url, secret, {
       auth: {
         persistSession: false,
@@ -148,7 +148,7 @@ export async function POST(request: Request) {
         return reply(
           429,
           {
-            error: "Un téléchargement est possible toutes les 24 heures.",
+            error: "You can download your data once every 24 hours.",
             retryAfter: seconds
           },
           { "Retry-After": String(seconds) }
@@ -156,7 +156,7 @@ export async function POST(request: Request) {
       }
       if (reserved.error.message === "EXPORT_IN_PROGRESS")
         return reply(409, {
-          error: "Un téléchargement est déjà en préparation."
+          error: "Your data download is already being prepared."
         });
       throw new Error("EXPORT_UNAVAILABLE");
     }
@@ -188,7 +188,7 @@ export async function POST(request: Request) {
         ...privateHeaders,
         "Content-Type": "application/json; charset=utf-8",
         "Content-Length": String(bytes),
-        "Content-Disposition": `attachment; filename="mes-donnees-${new Date().toISOString().slice(0, 10)}.json"`
+        "Content-Disposition": `attachment; filename="my-data-${new Date().toISOString().slice(0, 10)}.json"`
       }
     });
     // after runs on HTTP completion, including premature close. On Node, Next
@@ -202,8 +202,8 @@ export async function POST(request: Request) {
       error instanceof Error && error.message === "EXPORT_TOO_LARGE";
     return reply(oversized ? 413 : 503, {
       error: oversized
-        ? "Tes données dépassent la taille du téléchargement automatique. Contacte l’équipe pour obtenir un export complet."
-        : "La préparation a échoué. Tu peux réessayer ; aucun téléchargement n’a été comptabilisé."
+        ? "Your data exceeds the automatic download size limit. Contact the team for a complete export."
+        : "We couldn't prepare your data. Try again; this attempt won't count toward your download limit."
     });
   } finally {
     if (!handedOff) await receipt(false);

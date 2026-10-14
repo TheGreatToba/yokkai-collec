@@ -16,7 +16,7 @@ export default async function AuthLayout({
         <Link
           href="/"
           className="yk-auth-brand"
-          aria-label="Yokkai Collec’, accueil"
+          aria-label="Yokkai Collec’, home"
         >
           <Image
             className="yk-auth-brand-image"
@@ -28,14 +28,14 @@ export default async function AuthLayout({
           />
         </Link>
         <Link href="/" className="yk-auth-return">
-          <span aria-hidden="true">←</span> Retour à l’accueil
+          <span aria-hidden="true">←</span> Back to home
         </Link>
       </header>
       <main className="yk-auth-main">
         <section className="yk-auth-panel">{children}</section>
       </main>
       <footer className="yk-auth-footer">
-        Yokkai Collec’ · À chaque carte, une découverte.
+        Yokkai Collec’ · A new discovery in every card.
         {process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() && (
           <>
             {" "}

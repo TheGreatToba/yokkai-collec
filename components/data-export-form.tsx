@@ -17,7 +17,7 @@ export function DataExportForm() {
   async function download() {
     setPending(true);
     setError(false);
-    setMessage("Préparation de tes données…");
+    setMessage("Preparing your data…");
     try {
       const response = await fetch("/api/data-export", {
         method: "POST",
@@ -31,12 +31,12 @@ export function DataExportForm() {
         setReconnect(problem.reconnect === true);
         const next =
           typeof problem.retryAfter === "number"
-            ? ` Prochain téléchargement possible le ${new Date(Date.now() + problem.retryAfter * 1000).toLocaleString("fr-FR")}.`
+            ? ` You can download your data again on ${new Date(Date.now() + problem.retryAfter * 1000).toLocaleString("en-US")}.`
             : "";
         throw new Error(
           (typeof problem.error === "string"
             ? problem.error
-            : "Le téléchargement a échoué.") + next
+            : "Download failed.") + next
         );
       }
       const blob = await response.blob();
@@ -46,21 +46,21 @@ export function DataExportForm() {
       link.download =
         response.headers
           .get("Content-Disposition")
-          ?.match(/filename="(mes-donnees-\d{4}-\d{2}-\d{2}\.json)"/)?.[1] ??
-        "mes-donnees.json";
+          ?.match(/filename="(my-data-\d{4}-\d{2}-\d{2}\.json)"/)?.[1] ??
+        "my-data.json";
       document.body.appendChild(link);
       link.click();
       link.remove();
       setTimeout(() => URL.revokeObjectURL(href), 1000);
       setMessage(
-        "Téléchargement lancé. Un nouveau téléchargement sera possible dans 24 heures."
+        "Download started. You can download your data again in 24 hours."
       );
     } catch (failure) {
       setError(true);
       setMessage(
         failure instanceof Error
           ? failure.message
-          : "Le téléchargement a échoué. Réessaie plus tard."
+          : "Download failed. Please try again later."
       );
     } finally {
       setPending(false);
@@ -74,13 +74,12 @@ export function DataExportForm() {
       className="mt-6 rounded-panel border border-border bg-surface p-6"
     >
       <h2 id="data-export-title" className="font-display text-xl">
-        Mes données
+        My data
       </h2>
       <p className="mt-3 text-sm leading-6 text-ink-2">
-        Télécharge tes données de compte et de jeu dans un fichier JSON. Les
-        avatars sont décrits sans leur image. Une connexion de moins de cinq
-        minutes est nécessaire. Un téléchargement est possible toutes les 24
-        heures.
+        Download your account and game data as a JSON file. Avatar details are
+        included, but image files aren't. You must have signed in within the
+        last five minutes. You can download your data once every 24 hours.
       </p>
       <div className="mt-6" aria-busy={pending}>
         <Button
@@ -88,7 +87,7 @@ export function DataExportForm() {
           onClick={download}
           disabled={pending || reconnect}
         >
-          {pending ? "Préparation en cours…" : "Télécharger mes données"}
+          {pending ? "Preparing…" : "Download my data"}
         </Button>
       </div>
       <p
@@ -100,7 +99,7 @@ export function DataExportForm() {
       {reconnect && (
         <form action={reconnectAction} className="mt-3">
           <Button type="submit" disabled={reconnecting}>
-            {reconnecting ? "Déconnexion…" : "Me reconnecter"}
+            {reconnecting ? "Signing out…" : "Sign in again"}
           </Button>
           {reconnectState.error && (
             <p role="alert" className="mt-3 text-sm text-danger">

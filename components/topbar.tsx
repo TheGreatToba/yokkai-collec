@@ -279,17 +279,13 @@ export function Topbar({
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-full focus:bg-accent-gold focus:p-3 focus:text-void"
       >
-        Aller au contenu
+        Skip to content
       </a>
       <header
         className="yk-topbar"
         data-mobile-menu={mobileMenu ? "open" : "closed"}
       >
-        <Link
-          href="/"
-          className="yk-brand"
-          aria-label="Yokkai Collec’, accueil"
-        >
+        <Link href="/" className="yk-brand" aria-label="Yokkai Collec’, home">
           <Image
             className="yk-brand-image"
             src="/assets/header-logo-gold.png"
@@ -301,14 +297,14 @@ export function Topbar({
         </Link>
         <nav
           id="primary-navigation"
-          aria-label="Navigation principale"
+          aria-label="Main navigation"
           className="yk-primary-nav"
         >
           <Link
             href="/boosters"
             aria-current={view === "packs" ? "page" : undefined}
           >
-            Boosters
+            Packs
           </Link>
           <Link
             href="/collection"
@@ -322,19 +318,19 @@ export function Topbar({
               view === "market" || view === "auction" ? "page" : undefined
             }
           >
-            Marché
+            Market
           </Link>
           <Link
             href="/echanges"
             aria-current={view === "trades" ? "page" : undefined}
           >
-            Échanges
+            Trades
           </Link>
           <Link
             href="/amis"
             aria-current={view === "friends" ? "page" : undefined}
           >
-            Amis
+            Friends
           </Link>
           <Link
             href="/wishlist"
@@ -346,7 +342,7 @@ export function Topbar({
             href="/recherche"
             aria-current={view === "search" ? "page" : undefined}
           >
-            Catalogue
+            Catalog
           </Link>
           {isAdmin && (
             <Link
@@ -361,7 +357,7 @@ export function Topbar({
           <button
             type="button"
             className="yk-icon-button yk-menu-toggle"
-            aria-label={mobileMenu ? "Fermer le menu" : "Ouvrir le menu"}
+            aria-label={mobileMenu ? "Close menu" : "Open menu"}
             aria-expanded={mobileMenu}
             aria-controls="primary-navigation"
             onClick={() => setMobileMenu(open => !open)}
@@ -388,10 +384,8 @@ export function Topbar({
             type="button"
             onClick={sound.toggle}
             aria-pressed={sound.enabled}
-            aria-label={
-              sound.enabled ? "Désactiver les sons" : "Activer les sons"
-            }
-            title={sound.enabled ? "Son activé" : "Son coupé"}
+            aria-label={sound.enabled ? "Disable sound" : "Enable sound"}
+            title={sound.enabled ? "Sound on" : "Sound off"}
             className="yk-icon-button"
           >
             <svg
@@ -414,7 +408,7 @@ export function Topbar({
           <Link
             href="/recherche"
             className="yk-icon-button"
-            aria-label="Ouvrir le catalogue"
+            aria-label="Open catalog"
           >
             <svg
               aria-hidden="true"
@@ -433,7 +427,7 @@ export function Topbar({
             <button
               type="button"
               className="yk-icon-button"
-              aria-label={`Notifications${unread ? `, ${unread} non lues` : ""}`}
+              aria-label={`Notifications${unread ? `, ${unread} unread` : ""}`}
               aria-expanded={panel === "notifications"}
               aria-controls="notifications-panel"
               onClick={toggleNotifications}
@@ -503,7 +497,7 @@ export function Topbar({
                           else feed.retry();
                         }}
                       >
-                        Réessayer
+                        Try again
                       </button>
                     </div>
                   ) : !shown ? (
@@ -579,7 +573,7 @@ export function Topbar({
           </div>
           <span
             className="yk-balance"
-            title={karas == null ? "Chargement du solde" : "Mon solde"}
+            title={karas == null ? "Loading balance" : "My balance"}
           >
             {infoError ? (
               <button
@@ -588,12 +582,12 @@ export function Topbar({
                 title={infoError}
                 onClick={onRetryInfo}
               >
-                Solde et pseudo indisponibles · Réessayer
+                Balance and username unavailable · Try again
               </button>
             ) : karas == null ? (
               <span
                 role="status"
-                aria-label="Chargement du solde Karas"
+                aria-label="Loading Karas balance"
                 className="yk-balance-skeleton"
               />
             ) : (
@@ -603,8 +597,8 @@ export function Topbar({
           <div className="relative">
             <button
               type="button"
-              aria-label="Ouvrir mon compte"
-              title="Mon compte"
+              aria-label="Open my account"
+              title="My account"
               aria-expanded={panel === "account"}
               aria-controls="account-panel"
               className="yk-account-trigger"
@@ -612,7 +606,7 @@ export function Topbar({
                 setPanel(current => (current === "account" ? null : "account"))
               }
             >
-              <Avatar name={name || "Compte"} image={avatarUrl} />
+              <Avatar name={name || "Account"} image={avatarUrl} />
               <svg
                 aria-hidden="true"
                 width="12"
@@ -630,37 +624,37 @@ export function Topbar({
                 <button
                   type="button"
                   tabIndex={-1}
-                  aria-label="Fermer le compte"
+                  aria-label="Close account menu"
                   className="yk-notification-backdrop yk-account-backdrop"
                   onClick={() => setPanel(null)}
                 />
                 <section
                   id="account-panel"
-                  aria-label="Menu du profil"
+                  aria-label="Profile menu"
                   className="yk-account-panel"
                   onKeyDown={event => {
                     if (event.key === "Escape") setPanel(null);
                   }}
                 >
-                  <p className="yk-account-overline">Profil utilisateur</p>
+                  <p className="yk-account-overline">Player profile</p>
                   <div className="yk-account-summary">
                     <Avatar
-                      name={name || "Compte"}
+                      name={name || "Account"}
                       image={avatarUrl}
                       size={40}
                     />
                     <div>
-                      <strong>{name || "Compte"}</strong>
-                      <span>@{name || "compte"} · Chasseur</span>
+                      <strong>{name || "Account"}</strong>
+                      <span>@{name || "account"} · Collector</span>
                       {karas != null && (
                         <small className="yk-account-karas">
-                          {karas.toLocaleString("fr-FR")} Karas
+                          {karas.toLocaleString("en-US")} Karas
                         </small>
                       )}
                     </div>
                   </div>
                   <nav
-                    aria-label="Actions du profil"
+                    aria-label="Profile actions"
                     className="yk-account-actions"
                   >
                     <Link
@@ -680,7 +674,7 @@ export function Topbar({
                         <circle cx="12" cy="8" r="4" />
                         <path d="M4 21a8 8 0 0 1 16 0" />
                       </svg>
-                      Voir mon profil
+                      View my profile
                     </Link>
                     <Link
                       href="/profil?edition=1"
@@ -699,7 +693,7 @@ export function Topbar({
                         <circle cx="12" cy="12" r="3" />
                         <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21H9.6v-.1A1.7 1.7 0 0 0 8.5 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3V9.6h.1A1.7 1.7 0 0 0 4.6 8.5a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.1A1.7 1.7 0 0 0 15.5 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.14.38.35.72.6 1 .3.3.68.44 1.1.44h.1v4h-.1A1.7 1.7 0 0 0 19.4 15Z" />
                       </svg>
-                      Paramètres
+                      Settings
                     </Link>
                     <Link
                       href="/succes"
@@ -717,13 +711,13 @@ export function Topbar({
                       >
                         <path d="M8 3h8v6a4 4 0 0 1-8 0V3ZM10 17h4M12 13v4M8 21h8M8 6H4v2a4 4 0 0 0 4 4M16 6h4v2a4 4 0 0 1-4 4" />
                       </svg>
-                      Mes succès
+                      My achievements
                     </Link>
                   </nav>
                   <div className="yk-account-separator" />
                   {account || (
                     <p className="yk-account-unavailable">
-                      Session indisponible.
+                      Session unavailable.
                     </p>
                   )}
                 </section>

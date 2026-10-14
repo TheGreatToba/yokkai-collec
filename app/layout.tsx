@@ -42,6 +42,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || "https://yokkai-collec.com"
   ),
+  openGraph: { locale: "en_US" },
   icons: {
     apple: [
       { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }
@@ -49,7 +50,7 @@ export const metadata: Metadata = {
   },
   title: "Yokkai Collec'",
   description:
-    "Collectionnez vos personnages et découvrez cinq cartes dans chaque Regular Pack."
+    "Collect your favorite characters and discover five cards in every Regular Pack."
 };
 
 export default function RootLayout({
@@ -59,7 +60,7 @@ export default function RootLayout({
 }) {
   return (
     <html
-      lang="fr"
+      lang="en"
       className={`h-full antialiased ${cinzel.variable} ${sora.variable} ${noto.variable} ${hyWenHei.variable}`}
     >
       <head>

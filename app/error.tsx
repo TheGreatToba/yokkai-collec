@@ -11,8 +11,8 @@ export default function ErrorPage({ retry }: { retry: () => void }) {
         fontFamily: "Arial, sans-serif"
       }}
     >
-      <h1>Impossible d’afficher cette page</h1>
-      <p role="alert">Une erreur est survenue. Vous pouvez réessayer.</p>
+      <h1>Unable to load this page</h1>
+      <p role="alert">Something went wrong. Please try again.</p>
       <button
         type="button"
         onClick={retry}
@@ -25,7 +25,7 @@ export default function ErrorPage({ retry }: { retry: () => void }) {
           cursor: "pointer"
         }}
       >
-        Réessayer
+        Try again
       </button>
     </main>
   );

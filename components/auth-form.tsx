@@ -59,11 +59,11 @@ export function AuthForm({
             ✓
           </span>
           <div>
-            <h2>Vérifie ta boîte mail</h2>
+            <h2>Check your inbox</h2>
             <p>
-              Si cette adresse permet une nouvelle inscription, tu recevras un
-              lien de confirmation. Pense aussi aux courriers indésirables. Si
-              tu as déjà un compte, tu peux te connecter directement.
+              If this email address can be used to create an account, you'll
+              receive a confirmation link. Check your spam folder too. If you
+              already have an account, you can sign in.
             </p>
           </div>
         </div>
@@ -72,7 +72,7 @@ export function AuthForm({
           initialDelay={state.retryAfter}
         />
         <Link href="/connexion" className="yk-auth-link">
-          Se connecter →
+          Sign in →
         </Link>
       </div>
     );
@@ -82,15 +82,15 @@ export function AuthForm({
       <form action={action} className="yk-auth-form" aria-busy={pending}>
         {confirmationError && (
           <p role="alert" className="auth-error">
-            Ce lien de confirmation est invalide, a expiré ou a déjà été
-            utilisé. Si ton adresse est déjà confirmée, connecte-toi. Sinon,
-            demande un nouveau lien ci-dessous.
+            This confirmation link is invalid, expired, or already used. If your
+            email is already confirmed, sign in. Otherwise, request a new link
+            below.
           </p>
         )}
         {confirmationUnavailable && (
           <p role="alert" className="auth-error">
-            La confirmation est momentanément indisponible. Réessaie ton lien
-            dans un instant.
+            Email confirmation is temporarily unavailable. Try your link again
+            in a moment.
           </p>
         )}
         {state.error && (
@@ -100,12 +100,12 @@ export function AuthForm({
         )}
         <fieldset disabled={pending}>
           <legend className="sr-only">
-            {signup ? "Créer un compte" : "Se connecter"}
+            {signup ? "Create an account" : "Sign in"}
           </legend>
           {signup && (
             <div>
               <label htmlFor="pseudo" className="auth-label">
-                Pseudo
+                Username
               </label>
               <input
                 id="pseudo"
@@ -119,7 +119,7 @@ export function AuthForm({
                   setPseudoAvailability("idle");
                 }}
                 className="auth-input"
-                placeholder="Votre nom de collectionneur"
+                placeholder="Your collector name"
                 aria-invalid={Boolean(state.fields?.pseudo)}
                 aria-describedby={
                   state.fields?.pseudo
@@ -131,8 +131,8 @@ export function AuthForm({
               />
               {!state.fields?.pseudo && pseudoAvailability === "idle" && (
                 <p id="pseudo-help" className="mt-2 text-xs text-white/50">
-                  3 à 30 caractères. Espaces internes, accents et emoji
-                  autorisés.
+                  3–30 characters. Spaces between characters, accents, and emoji
+                  are allowed.
                 </p>
               )}
               {!state.fields?.pseudo && pseudoAvailability !== "idle" && (
@@ -142,10 +142,10 @@ export function AuthForm({
                   role="status"
                 >
                   {pseudoAvailability === "checking"
-                    ? "Vérification…"
+                    ? "Checking…"
                     : pseudoAvailability === "available"
-                      ? "Disponible"
-                      : "Déjà pris"}
+                      ? "Available"
+                      : "Already taken"}
                 </p>
               )}
               {state.fields?.pseudo && (
@@ -172,7 +172,7 @@ export function AuthForm({
               maxLength={254}
               defaultValue={state.values?.email}
               className="auth-input"
-              placeholder="vous@exemple.fr"
+              placeholder="you@example.com"
               aria-invalid={Boolean(state.fields?.email)}
               aria-describedby={state.fields?.email ? "email-error" : undefined}
             />
@@ -188,7 +188,7 @@ export function AuthForm({
           </div>
           <div>
             <label htmlFor="password" className="auth-label">
-              Mot de passe
+              Password
             </label>
             <input
               id="password"
@@ -210,7 +210,7 @@ export function AuthForm({
             />
             {signup && (
               <p id="password-help" className="mt-2 text-xs text-white/50">
-                8 caractères minimum.
+                At least 8 characters.
               </p>
             )}
             {state.fields?.password && (
@@ -232,26 +232,26 @@ export function AuthForm({
           >
             {pending
               ? signup
-                ? "Création du compte…"
-                : "Connexion…"
+                ? "Creating account…"
+                : "Signing in…"
               : signup
-                ? "Créer mon compte"
-                : "Se connecter"}
+                ? "Create my account"
+                : "Sign in"}
           </button>
         </fieldset>
         <p className="yk-auth-switch">
-          {signup ? "Déjà un compte ? " : "Pas encore de compte ? "}
+          {signup ? "Already have an account? " : "New here? "}
           <Link
             href={signup ? "/connexion" : "/inscription"}
             className="yk-auth-link"
           >
-            {signup ? "Se connecter" : "Rejoindre la chasse"}
+            {signup ? "Sign in" : "Join the hunt"}
           </Link>
         </p>
         {!signup && (
           <p className="yk-auth-switch">
             <Link href="/mot-de-passe-oublie" className="yk-auth-link">
-              Mot de passe oublié ?
+              Forgot password?
             </Link>
           </p>
         )}
@@ -261,9 +261,7 @@ export function AuthForm({
           className="yk-auth-switch"
           open={confirmationError || undefined}
         >
-          <summary className="yk-auth-link">
-            Renvoyer un lien de confirmation
-          </summary>
+          <summary className="yk-auth-link">Resend confirmation link</summary>
           <ConfirmationResendForm email={state.values?.email} />
         </details>
       )}

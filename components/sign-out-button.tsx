@@ -29,7 +29,7 @@ export function SignOutButton() {
         >
           <path d="M10 17l5-5-5-5M15 12H3M14 4h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-5" />
         </svg>
-        {pending ? "Déconnexion…" : "Se déconnecter"}
+        {pending ? "Signing out…" : "Sign out"}
       </button>
       {state.error && (
         <p role="alert" className="mt-2 max-w-56 text-xs text-red-200">

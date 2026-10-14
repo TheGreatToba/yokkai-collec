@@ -10,7 +10,7 @@ type TurnstileApi = {
       sitekey: string;
       theme: "auto";
       size: "flexible";
-      language: "fr";
+      language: "en";
       callback(): void;
       "expired-callback"(): void;
       "timeout-callback"(): void;
@@ -56,27 +56,27 @@ export function AuthTurnstile() {
         sitekey: siteKey,
         theme: "auto",
         size: "flexible",
-        language: "fr",
+        language: "en",
         callback: () => setError(""),
         "expired-callback": () => {
           if (widget.current !== undefined)
             window.turnstile?.reset(widget.current);
           setError(
-            "La vérification a expiré. Attends la nouvelle vérification ou réessaie."
+            "Verification has expired. Wait for a new check or try again."
           );
         },
         "timeout-callback": () => {
           if (widget.current !== undefined)
             window.turnstile?.reset(widget.current);
-          setError("La vérification a pris trop de temps. Réessaie.");
+          setError("Verification timed out. Please try again.");
         },
         "error-callback": () =>
           setError(
-            "La vérification anti-robot est indisponible. Réessaie ou utilise un autre navigateur compatible."
+            "Bot verification is unavailable. Try again or use another supported browser."
           )
       });
     } catch {
-      setError("La vérification anti-robot est indisponible. Réessaie.");
+      setError("Bot verification is unavailable. Please try again.");
     }
   }
 
@@ -103,8 +103,8 @@ export function AuthTurnstile() {
   return (
     <div className="grid gap-2">
       <p className="text-sm">
-        Vérification anti-robot : le widget est utilisable au clavier. Aucun
-        puzzle visuel n’est nécessaire.
+        Bot verification supports keyboard navigation. No visual puzzle is
+        required.
       </p>
       <div ref={container} />
       <Script
@@ -114,7 +114,7 @@ export function AuthTurnstile() {
         onReady={renderWidget}
         onError={() =>
           setError(
-            "La vérification n’a pas pu charger. Vérifie ta connexion ou réessaie."
+            "Verification couldn't load. Check your connection or try again."
           )
         }
       />
@@ -137,7 +137,7 @@ export function AuthTurnstile() {
           setError("");
         }}
       >
-        Réessayer la vérification
+        Retry verification
       </button>
       {supportUrl && (
         <a
@@ -146,12 +146,12 @@ export function AuthTurnstile() {
           rel="noopener noreferrer"
           className="yk-auth-link text-sm"
         >
-          Vérification inaccessible ? Demander une aide humaine
+          Can't complete verification? Get help from the team
         </a>
       )}
       <noscript>
-        Active JavaScript pour utiliser cette vérification accessible. Si elle
-        reste inaccessible, demande de l’aide à l’équipe par ton canal habituel.
+        Enable JavaScript to use this accessible verification. If you still
+        can't complete it, contact the team through your usual support channel.
       </noscript>
     </div>
   );

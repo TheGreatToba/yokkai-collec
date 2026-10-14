@@ -29,15 +29,15 @@ export function PasswordResetRequestForm({
             ✓
           </span>
           <div>
-            <h2>Vérifie ta boîte mail</h2>
+            <h2>Check your inbox</h2>
             <p>
-              Si un compte correspond à cette adresse, tu recevras un lien de
-              réinitialisation. Pense aussi aux courriers indésirables.
+              If an account matches this email address, you'll receive a
+              password reset link. Check your spam folder too.
             </p>
           </div>
         </div>
         <Link href="/connexion" className="yk-auth-link">
-          Retour à la connexion →
+          Back to sign in →
         </Link>
       </div>
     );
@@ -46,14 +46,14 @@ export function PasswordResetRequestForm({
     <form action={action} className="yk-auth-form" aria-busy={pending}>
       {invalidLink && (
         <p role="alert" className="auth-error">
-          Ce lien de réinitialisation est invalide, a expiré ou a déjà été
-          utilisé. Demande un nouveau lien.
+          This password reset link is invalid, expired, or already used. Request
+          a new link.
         </p>
       )}
       {confirmationUnavailable && (
         <p role="alert" className="auth-error">
-          La vérification du lien est momentanément indisponible. Réessaie ton
-          lien dans un instant.
+          Link verification is temporarily unavailable. Try your link again in a
+          moment.
         </p>
       )}
       {state.error && (
@@ -62,9 +62,7 @@ export function PasswordResetRequestForm({
         </p>
       )}
       <fieldset disabled={pending}>
-        <legend className="sr-only">
-          Recevoir un lien de réinitialisation
-        </legend>
+        <legend className="sr-only">Request a password reset link</legend>
         <div>
           <label htmlFor="email" className="auth-label">
             Email
@@ -78,7 +76,7 @@ export function PasswordResetRequestForm({
             maxLength={254}
             defaultValue={state.values?.email}
             className="auth-input"
-            placeholder="vous@exemple.fr"
+            placeholder="you@example.com"
             aria-invalid={Boolean(state.fields?.email)}
             aria-describedby={state.fields?.email ? "email-error" : undefined}
           />
@@ -95,12 +93,12 @@ export function PasswordResetRequestForm({
           aria-busy={pending}
           className="primary yk-auth-submit"
         >
-          {pending ? "Envoi du lien…" : "Envoyer le lien"}
+          {pending ? "Sending link…" : "Send link"}
         </button>
       </fieldset>
       <p className="yk-auth-switch">
         <Link href="/connexion" className="yk-auth-link">
-          Retour à la connexion
+          Back to sign in
         </Link>
       </p>
     </form>
@@ -120,10 +118,10 @@ export function PasswordUpdateForm() {
         </p>
       )}
       <fieldset disabled={pending}>
-        <legend className="sr-only">Choisir un nouveau mot de passe</legend>
+        <legend className="sr-only">Choose a new password</legend>
         <div>
           <label htmlFor="password" className="auth-label">
-            Nouveau mot de passe
+            New password
           </label>
           <input
             id="password"
@@ -142,7 +140,7 @@ export function PasswordUpdateForm() {
             }
           />
           <p id="password-help" className="mt-2 text-xs text-white/50">
-            8 caractères minimum.
+            At least 8 characters.
           </p>
           {state.fields?.password && (
             <p id="password-error" role="alert">
@@ -152,7 +150,7 @@ export function PasswordUpdateForm() {
         </div>
         <div>
           <label htmlFor="confirmPassword" className="auth-label">
-            Confirmer le mot de passe
+            Confirm password
           </label>
           <input
             id="confirmPassword"
@@ -182,7 +180,7 @@ export function PasswordUpdateForm() {
           aria-busy={pending}
           className="primary yk-auth-submit"
         >
-          {pending ? "Mise à jour…" : "Enregistrer le nouveau mot de passe"}
+          {pending ? "Updating…" : "Save new password"}
         </button>
       </fieldset>
     </form>

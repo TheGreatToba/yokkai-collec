@@ -40,13 +40,13 @@ export function ConfirmationResendForm({
   return (
     <form action={action} className="yk-auth-form" aria-busy={pending}>
       <p>
-        Si cette adresse correspond à un compte à confirmer, tu recevras un
-        nouveau lien. Vérifie aussi les courriers indésirables.
+        If this email address belongs to an account awaiting confirmation,
+        you'll receive a new link. Check your spam folder too.
       </p>
       {state.success && (
         <p role="status" className="yk-auth-notice">
-          Si une confirmation est nécessaire, un e-mail te sera envoyé. Si ton
-          compte est déjà confirmé, tu peux te connecter.
+          If confirmation is needed, we'll send you an email. If your account is
+          already confirmed, you can sign in.
         </p>
       )}
       {state.error && (
@@ -55,9 +55,9 @@ export function ConfirmationResendForm({
         </p>
       )}
       <fieldset disabled={pending}>
-        <legend className="sr-only">Renvoyer la confirmation d’e-mail</legend>
+        <legend className="sr-only">Resend email confirmation</legend>
         <label htmlFor="confirmation-email" className="auth-label">
-          Adresse e-mail à confirmer
+          Email address to confirm
         </label>
         <input
           id="confirmation-email"
@@ -86,10 +86,10 @@ export function ConfirmationResendForm({
           aria-busy={pending}
         >
           {pending
-            ? "Envoi de la demande…"
+            ? "Sending request…"
             : waiting
-              ? "Renvoyer dans " + remaining + " s"
-              : "Renvoyer la confirmation"}
+              ? `Resend in ${remaining} ${remaining === 1 ? "second" : "seconds"}`
+              : "Resend confirmation"}
         </button>
       </fieldset>
     </form>
