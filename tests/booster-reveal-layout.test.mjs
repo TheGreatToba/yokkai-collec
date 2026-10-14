@@ -32,6 +32,28 @@ test("l'ouverture isole le clavier et restaure le focus sans scroll", () => {
   assert.match(css, /\.yk-opening-stage:focus-visible/);
 });
 
+test("l'ouverture capture le bouton activé même si le navigateur ne le focalise pas", () => {
+  const expression = boosters.match(/openingTrigger\.current = ([^;]+);/)[1];
+  const capture = new Function(
+    "trigger",
+    "document",
+    "HTMLElement",
+    `return ${expression}`
+  );
+  class Element {
+    constructor(tabIndex) {
+      this.tabIndex = tabIndex;
+    }
+  }
+  const body = new Element(-1);
+  const button = new Element(0);
+  assert.equal(capture(button, { activeElement: body }, Element), button);
+  assert.equal(capture(undefined, { activeElement: body }, Element), null);
+  assert.equal(capture(undefined, { activeElement: button }, Element), button);
+  assert.match(boosters, /start\("regular", event\.currentTarget\)/);
+  assert.match(boosters, /start\("decision", event\.currentTarget\)/);
+});
+
 test("la révélation remonte les cartes et masque le grand en-tête de page", () => {
   assert.match(game, /yk-game-main/);
   assert.match(game, /yk-pack-page-heading/);
