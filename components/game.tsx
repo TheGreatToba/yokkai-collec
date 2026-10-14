@@ -369,7 +369,9 @@ export function Game({
     .toString()
     .padStart(2, "0")}:${(decisionSeconds % 60).toString().padStart(2, "0")}`;
   return (
-    <div className="w-full">
+    <div
+      className={view === "packs" ? "flex min-h-dvh w-full flex-col" : "w-full"}
+    >
       {!previewData && (
         <Topbar
           view={view}
@@ -383,7 +385,7 @@ export function Game({
       )}
       <main
         id="main-content"
-        className={`yk-game-main mx-auto px-6 ${view === "collection" ? "max-w-[var(--layout-collection-max)] py-6" : "max-w-6xl py-10"}`}
+        className={`yk-game-main mx-auto px-6 ${view === "collection" ? "max-w-[var(--layout-collection-max)] py-6" : "w-full max-w-6xl flex-1 py-10"}`}
       >
         {view === "packs" ? (
           <header className="yk-pack-page-heading">

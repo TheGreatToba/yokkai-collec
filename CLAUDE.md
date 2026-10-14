@@ -6,6 +6,8 @@ Règles non négociables :
 
 - Aucune PR mergée sans CI GitHub Actions verte sur la branche à jour avec origin/master.
 
+- `npm run verify` local est facultatif et sert au confort de développement. Un build local bloqué par le téléchargement des polices Google ne bloque ni le push ni l'ouverture de la PR ; signaler l'échec réseau dans la PR et vérifier `gh pr checks` avant le merge.
+
 - Lancer npm run format avant tout commit ; ne jamais utiliser --no-verify.
 
 - Ne jamais affaiblir un test existant (assertion supprimée ou assouplie, seuil abaissé, test ignoré) dans la même PR que le code qu'il vérifie. Si un test protège une décision produit (qualité des images, droits SQL, taux de drop…), toute modification doit être signalée explicitement dans la description de la PR et validée par Walid.
