@@ -5,7 +5,28 @@ alter table public.user_profiles add column interests jsonb not null default
 alter table public.user_profiles add column profile_widgets jsonb not null default '[]'::jsonb;
 alter table public.user_profiles add column banner_url text;
 
--- Only the caller's profile can be changed; categories come from the live catalogue.
+-- Read-only catalogue access under the caller's existing RLS permissions.
+create or replace function public.get_profile_widget_licenses(
+  p_category text, p_query text default '', p_offset integer default 0, p_limit integer default 72
+)
+returns jsonb language sql stable security invoker set search_path = '' as $$
+  with licenses as materialized (
+    select distinct links.franchise license from public.card_franchises links
+    join public.cards c on c.id = links.card_id
+    where upper(btrim(c.categorie)) = upper(btrim(p_category))
+      and strpos(lower(links.franchise),lower(btrim(coalesce(p_query,'')))) > 0
+  ), page as (
+    select license from licenses order by license
+    offset greatest(coalesce(p_offset,0),0) limit least(greatest(coalesce(p_limit,72),1),72)
+  )
+  select jsonb_build_object('items',coalesce((select jsonb_agg(license order by license) from page),'[]'::jsonb),
+    'total',(select count(*) from licenses));
+$$;
+revoke all on function public.get_profile_widget_licenses(text,text,integer,integer) from public,anon,authenticated;
+grant execute on function public.get_profile_widget_licenses(text,text,integer,integer) to authenticated;
+
+-- Only the caller's profile can be changed. Entries must be actual category licenses,
+-- not free text; the JSON byte cap and per-widget count bound full catalogue titles.
 create or replace function public.update_profile_widgets(p_widgets jsonb)
 returns jsonb language plpgsql security definer set search_path = '' as $$
 declare player uuid := auth.uid(); widget jsonb; item jsonb; seen text[] := '{}'; category text;
@@ -27,9 +48,14 @@ begin
     seen := array_append(seen, category);
     if jsonb_array_length(widget->'entries') > 12 then raise exception 'WIDGETS_INVALID'; end if;
     for item in select value from jsonb_array_elements(widget->'entries') loop
-      if jsonb_typeof(item) <> 'string' or char_length(btrim(item #>> '{}')) not between 1 and 100
+      if jsonb_typeof(item) <> 'string' or not exists(
+        select 1 from public.card_franchises links join public.cards c on c.id = links.card_id
+        where upper(btrim(c.categorie)) = category and links.franchise = (item #>> '{}')
+      )
         then raise exception 'WIDGETS_INVALID'; end if;
     end loop;
+    if jsonb_array_length(widget->'entries') <> (select count(distinct value) from jsonb_array_elements(widget->'entries'))
+      then raise exception 'WIDGETS_INVALID'; end if;
   end loop;
   update public.user_profiles set profile_widgets = p_widgets where user_id = player;
   return p_widgets;

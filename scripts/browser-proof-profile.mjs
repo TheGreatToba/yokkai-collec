@@ -73,7 +73,7 @@ try {
   };
   const navigate = async suffix => {
     await send("Page.navigate", {
-      url: `http://localhost:3000/design-system/profile-preview${suffix}`
+      url: `http://localhost:3000/design-system/profile-preview${suffix}${suffix ? "&" : "?"}catalogue=demo`
     });
     await waitFor(
       "Boolean(document.querySelector('.yk-profile-hub') && document.querySelector('.yk-profile-side-stats').textContent.includes('824'))"
@@ -145,18 +145,50 @@ try {
   await waitFor(
     "Boolean(document.querySelector('.yk-profile-preferences-form'))"
   );
-  await evaluate(
-    `(() => {const input=document.querySelector('.yk-profile-preferences-form textarea'); Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(input,'Bleach\\nNoragami'); input.dispatchEvent(new Event('input',{bubbles:true}));})()`
+  assert.equal(
+    await evaluate(
+      "document.querySelectorAll('.yk-profile-preferences-form textarea').length"
+    ),
+    0,
+    "No free text favorites input"
   );
-  await delay(150);
+  await waitFor(
+    "document.querySelectorAll('.yk-profile-license-results button').length > 0"
+  );
+  await evaluate(
+    "Array.from(document.querySelectorAll('.yk-profile-widget-picker button')).find(button=>button.textContent.includes('ANIME/MANGA')).click()"
+  );
+  assert.equal(
+    await evaluate(
+      "document.querySelectorAll('.yk-profile-widget-editor').length"
+    ),
+    4,
+    "Clicking a selected category opens its licences without removing the widget"
+  );
+  for (const name of ["One Piece", "Black Butler", "Jujutsu Kaisen"])
+    await evaluate(
+      `Array.from(document.querySelectorAll('button')).find(button=>button.getAttribute('aria-label')===${JSON.stringify(`Retirer ${name} des favoris ANIME/MANGA`)}).click()`
+    );
+  await evaluate(
+    "Array.from(document.querySelectorAll('.yk-profile-license-results button')).find(button=>button.textContent.includes('Bleach')).click()"
+  );
   await evaluate(
     "Array.from(document.querySelectorAll('.yk-profile-widget-picker button')).find(button=>button.textContent.includes('KDRAMA')).click()"
   );
   await waitFor(
     "document.querySelectorAll('.yk-profile-widget-editor').length === 5"
   );
+  await waitFor(
+    "Array.from(document.querySelectorAll('.yk-profile-license-results button')).some(button=>button.textContent.includes('Goblin'))"
+  );
   await evaluate(
-    `(() => {const input=Array.from(document.querySelectorAll('.yk-profile-widget-editor')).find(section=>section.textContent.includes('K-dramas')).querySelector('textarea'); Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(input,'Goblin'); input.dispatchEvent(new Event('input',{bubbles:true}));})()`
+    `(() => {const input=document.querySelector('.yk-profile-license-picker input'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,'gob'); input.dispatchEvent(new Event('input',{bubbles:true}));})()`
+  );
+  await waitFor(
+    "document.querySelectorAll('.yk-profile-license-results button').length === 1"
+  );
+  await evaluate(
+    "document.querySelector('.yk-profile-license-results button').click()"
   );
   for (let i = 0; i < 4; i++) {
     await evaluate(
@@ -270,7 +302,7 @@ try {
     "No horizontal overflow on mobile"
   );
   await send("Page.navigate", {
-    url: "http://localhost:3000/design-system/profile-preview?visitor=1&private=1"
+    url: "http://localhost:3000/design-system/profile-preview?visitor=1&private=1&catalogue=demo"
   });
   await waitFor(
     "Boolean(document.querySelector('.yk-profile-side-stats')?.textContent.includes('Privé'))"
@@ -282,7 +314,7 @@ try {
     0
   );
   console.log(
-    "Profile browser proof OK: left identity, tabs, widgets add/remove/reorder/save, banner upload/save/remove, completion, activity, wishlist, mutual friends, privacy and mobile width."
+    "Profile browser proof OK: no free-text favorites, category license lists, search/select/save, left identity, tabs, widget ordering, banner upload/save/remove, completion, activity, wishlist, mutual friends, privacy and mobile width."
   );
   await send("Browser.close");
 } finally {

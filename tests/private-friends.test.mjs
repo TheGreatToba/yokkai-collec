@@ -133,6 +133,13 @@ function renderProfile(profile) {
     "@/components/friends": friendsModule,
     "@/lib/data/moderation": {},
     "@/components/player-moderation": { PlayerModeration: () => null },
+    "@/components/profile-license-picker": load(
+      "components/profile-license-picker.tsx",
+      {
+        "@/components/ui": ui,
+        "@/lib/data/profile": {}
+      }
+    ),
     "@/components/yokai-card": { YokaiCard: () => null },
     "@/components/card-shell": {},
     "@/components/collection": {},

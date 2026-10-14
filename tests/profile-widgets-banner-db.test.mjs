@@ -20,6 +20,16 @@ test("profile widgets use real categories and banner saves remain owner-scoped a
       "insert into public.cards(source_id,nom,categorie,franchise,rarete_base,image_url,source) values ($1,'Widget card',$2,'Widgets','C','https://example.test/card.png','test')",
       [`widget-${i}`, i === 0 ? "ANIME/MANGA" : `CATEGORY ${i}`]
     );
+  // Previously free-text preferences now have to exist in the catalogue.
+  for (const [index, name, category] of [
+    [100, "Noragami", "ANIME/MANGA"],
+    [101, "Black Butler", "ANIME/MANGA"],
+    [102, "Other account", "CATEGORY 2"]
+  ])
+    await db.query(
+      "insert into public.cards(source_id,nom,categorie,franchise,rarete_base,image_url,source) values ($1,'Widget card',$2,$3,'C','https://example.test/card.png','test')",
+      [`widget-${index}`, category, name]
+    );
   await db.exec("set role authenticated");
   await db.query("select set_config('request.jwt.claim.sub',$1,false)", [
     owner

@@ -49,6 +49,56 @@
 .yk-profile-widget-editor textarea {
   margin-top: 8px;
 }
+.yk-profile-selected-licenses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.yk-profile-selected-licenses button {
+  border: 1px solid var(--color-accent-gold);
+  color: var(--color-accent-gold);
+  background: transparent;
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+.yk-profile-license-picker {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+}
+.yk-profile-license-picker input {
+  margin-top: 8px;
+}
+.yk-profile-license-results {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  max-height: 290px;
+  overflow-y: auto;
+}
+.yk-profile-license-results button {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  text-align: left;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-veil);
+  background: transparent;
+  color: var(--color-ink-2);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.yk-profile-license-results button[aria-pressed="true"] {
+  color: var(--color-accent-gold);
+  border-color: var(--color-accent-gold);
+}
+.yk-profile-license-results button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 .yk-profile-banner-editor {
   display: grid;
   gap: 12px;
@@ -545,6 +595,9 @@
   }
 }
 @media (max-width: 540px) {
+  .yk-profile-license-results {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .yk-profile-interests,
   .yk-profile-album-progress,
   .yk-profile-friend-list {

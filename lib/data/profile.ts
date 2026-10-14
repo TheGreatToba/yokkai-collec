@@ -7,6 +7,7 @@ import { publishPlayerSnapshotInvalidation } from "@/lib/data/player-state";
 export type Profile = {id:string;pseudo:string;avatarUrl:string|null;bio:string;bannerCard:Card|null;friendshipStatus:FriendshipStatus;isPublic:boolean;canViewCollection:boolean;featuredCards:CollectedCard[];friends:(FriendUser&{avatarUrl?:string|null})[];friendsVisible:boolean;cardCount:number|null;distinctCardCount:number|null};
 export type ProfileInterests = { anime: string[]; games: string[]; kpop: string[]; other: string[] };
 export type ProfileWidget = { category: string; entries: string[] };
+export type ProfileLicensePage = {items: string[]; total: number};
 export type ProfileDetails = {
   joinedAt: string | null;
   interests: ProfileInterests;
@@ -38,9 +39,15 @@ export async function saveProfileInterests(interests: ProfileInterests): Promise
 }
 export async function saveProfileWidgets(widgets: ProfileWidget[]): Promise<ProfileWidget[]> {
   const {data,error} = await db().rpc("update_profile_widgets", {p_widgets: widgets});
-  if (error) throw new Error("Impossible d’enregistrer les widgets. Choisissez jusqu’à 12 catégories du jeu, avec 12 titres de 100 caractères chacune.");
+  if (error) throw new Error("Impossible d’enregistrer les widgets. Choisissez jusqu’à 12 licences du catalogue par catégorie ; une licence a peut-être été renommée ou supprimée.");
   publishPlayerSnapshotInvalidation(["profile"]);
   return data as ProfileWidget[];
+}
+export async function getProfileWidgetLicenses({category,query="",page=1}: {category:string;query?:string;page?:number}): Promise<ProfileLicensePage> {
+  const {data,error} = await readRequest(signal => db().rpc("get_profile_widget_licenses", {p_category:category,p_query:query,p_offset:(Math.max(1,Math.trunc(page))-1)*72,p_limit:72}).abortSignal(signal));
+  if (error) throw new Error("Impossible de charger les licences. Réessayez dans un instant.");
+  const result = data as ProfileLicensePage | null;
+  return {items:result?.items??[],total:result?.total??0};
 }
 export async function saveProfileAppearance(bio: string, avatarUrl: string | null, featuredIds: string[], bannerCardId: string | null, bannerUrl: string | null): Promise<Profile & {bannerUrl: string | null}> {
   const {data,error} = await db().rpc("update_profile_appearance", {p_bio:bio,p_avatar_url:avatarUrl,p_featured_card_ids:featuredIds,p_banner_card_id:bannerCardId,p_banner_url:bannerUrl});

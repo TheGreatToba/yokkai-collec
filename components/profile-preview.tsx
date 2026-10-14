@@ -4,7 +4,11 @@ import { useEffect, useMemo, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { ProfileExperience, type ProfileAdapter } from "@/components/profile";
 import { Topbar } from "@/components/topbar";
-import type { CollectedCard } from "@/lib/data/cards";
+import {
+  getGameInfo,
+  getPaniniAlbumsPage,
+  type CollectedCard
+} from "@/lib/data/cards";
 import type { ProfileDetails, ProfileInterests } from "@/lib/data/profile";
 
 const collection: CollectedCard[] = [
@@ -33,11 +37,51 @@ const initial: ProfileInterests = {
   kpop: ["BTS", "TWICE", "Stray Kids"],
   other: ["Studio Ghibli", "Le Seigneur des Anneaux", "Daft Punk"]
 };
+const licenses: Record<string, string[]> = {
+  "ANIME/MANGA": [
+    ...initial.anime,
+    "Bleach",
+    "Naruto",
+    "Demon Slayer",
+    "Attack on Titan",
+    "Fullmetal Alchemist",
+    "Hunter x Hunter",
+    "Death Note",
+    "Dragon Ball",
+    "Chainsaw Man"
+  ],
+  "VIDEO GAMES": [
+    ...initial.games,
+    "Persona 5",
+    "The Last of Us",
+    "Elden Ring"
+  ],
+  KPOP: [...initial.kpop, "BLACKPINK", "EXO", "SEVENTEEN"],
+  FILM: [
+    "Le Seigneur des Anneaux",
+    "Harry Potter",
+    "Star Wars",
+    "Studio Ghibli"
+  ],
+  KDRAMA: ["Goblin", "Crash Landing on You", "Squid Game"],
+  COMICS: ["Marvel", "DC"],
+  ARTIST: ["Daft Punk", "Taylor Swift", "The Weeknd"],
+  BRAINROT: ["BRAINROT"],
+  MEME: ["MEME"],
+  VOCALOID: ["VOCALOID"],
+  "DISNEY CHANNEL": ["DISNEY CHANNEL"],
+  SPORT: ["NBA", "Football"],
+  SERIE: ["Breaking Bad", "Stranger Things"],
+  MANWHA: ["Solo Leveling", "Omniscient Reader"],
+  ESPORT: ["League of Legends", "Valorant"],
+  "INTERNET PERSONALITY": ["MrBeast", "Logan Paul"]
+};
 
 export function ProfilePreview() {
   const params = useSearchParams();
   const visitor = params.get("visitor") === "1";
   const privateProfile = params.get("private") === "1";
+  const demoCatalogue = params.get("catalogue") === "demo";
   const previewUrls = useRef<string[]>([]);
   useEffect(
     () => () => {
@@ -87,6 +131,29 @@ export function ProfilePreview() {
         })),
       blocked: async () => [],
       saveWidgets: async value => value,
+      widgetLicenses: async ({ category, query = "", page = 1 }) => {
+        if (!demoCatalogue) {
+          const data = await getPaniniAlbumsPage({
+            category,
+            query,
+            page,
+            pageSize: 72
+          });
+          return {
+            items: data.items.map(album => album.license),
+            total: data.total
+          };
+        }
+        const items = (licenses[category] ?? [])
+          .filter(license =>
+            license.toLowerCase().includes(query.trim().toLowerCase())
+          )
+          .toSorted((a, b) => a.localeCompare(b, "fr"));
+        return {
+          items: items.slice((page - 1) * 72, page * 72),
+          total: items.length
+        };
+      },
       uploadAvatar: upload,
       uploadBanner: upload,
       search: async query =>
@@ -111,26 +178,20 @@ export function ProfilePreview() {
             { category: "ANIME/MANGA", entries: initial.anime },
             { category: "VIDEO GAMES", entries: initial.games },
             { category: "KPOP", entries: initial.kpop },
-            { category: "FILM", entries: initial.other }
+            {
+              category: "FILM",
+              entries: ["Studio Ghibli", "Le Seigneur des Anneaux"]
+            }
           ],
-          widgetCategories: [
-            "ANIME/MANGA",
-            "ARTIST",
-            "BRAINROT",
-            "COMICS",
-            "DISNEY CHANNEL",
-            "ESPORT",
-            "FILM",
-            "INTERNET PERSONALITY",
-            "KDRAMA",
-            "KPOP",
-            "MANWHA",
-            "MEME",
-            "SERIE",
-            "SPORT",
-            "VIDEO GAMES",
-            "VOCALOID"
-          ],
+          widgetCategories: demoCatalogue
+            ? Object.keys(licenses)
+            : [
+                ...new Set(
+                  (await getGameInfo()).categories.map(category =>
+                    category.trim().toUpperCase()
+                  )
+                )
+              ].sort(),
           bannerUrl: null,
           boostersOpened: privateProfile ? null : 824,
           lrCount: privateProfile ? null : 12,
@@ -162,16 +223,31 @@ export function ProfilePreview() {
               }))
         }) satisfies ProfileDetails
     };
-  }, [visitor, privateProfile]);
+  }, [visitor, privateProfile, demoCatalogue]);
   return (
     <>
       <Topbar view="profile" name="Toba" karas={2578} notifications={[]} />
       <main className="mx-auto w-full max-w-6xl px-6 py-10">
         <p className="eyebrow">Aperçu local · données de démonstration</p>
+        {!demoCatalogue && (
+          <p className="yk-profile-muted mt-3">
+            Les catégories et licences viennent du catalogue réel, en lecture
+            seule. Connecte-toi en local pour les consulter. Les modifications
+            du profil restent temporaires.
+          </p>
+        )}
+        {!demoCatalogue && (
+          <a
+            className="yk-profile-muted underline"
+            href="/design-system/profile-preview?catalogue=demo"
+          >
+            Essayer avec les données de démonstration sans connexion
+          </a>
+        )}
         <h1 className="yk-title mt-3">Profil du collectionneur</h1>
         <div className="mt-8">
           <ProfileExperience
-            key={`${visitor}:${privateProfile}`}
+            key={`${visitor}:${privateProfile}:${demoCatalogue}`}
             adapter={adapter}
             collection={collection}
           />

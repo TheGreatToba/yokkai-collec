@@ -9,6 +9,7 @@ import { YokaiCard } from "@/components/yokai-card";
 import { CardShell } from "@/components/card-shell";
 import { CollectionView } from "@/components/collection";
 import { PlayerModeration } from "@/components/player-moderation";
+import { ProfileLicensePicker } from "@/components/profile-license-picker";
 import { listBlockedUsers, type BlockedUser } from "@/lib/data/moderation";
 import { type ModerationAdapter } from "@/lib/data/moderation";
 import { FriendAction, type FriendActionAdapter } from "@/components/friends";
@@ -24,6 +25,7 @@ import {
   getFriendPaniniAlbumsPage,
   getProfile,
   getProfileDetails,
+  getProfileWidgetLicenses,
   saveProfileAppearance,
   saveProfileWidgets,
   uploadBanner,
@@ -71,19 +73,21 @@ function ProfilePrivate() {
 function PreferencesEditor({
   widgets,
   categories,
+  loadLicenses,
   save,
   onSaved
 }: {
   widgets: ProfileWidget[];
   categories: string[];
+  loadLicenses: typeof getProfileWidgetLicenses;
   save: typeof saveProfileWidgets;
   onSaved: (value: ProfileWidget[]) => void;
 }) {
-  const [values, setValues] = useState(() =>
-    widgets.map(widget => ({
-      category: widget.category,
-      text: widget.entries.join("\n")
-    }))
+  const [values, setValues] = useState<ProfileWidget[]>(() =>
+    widgets.map(widget => ({ ...widget, entries: [...widget.entries] }))
+  );
+  const [activeCategory, setActiveCategory] = useState(
+    widgets[0]?.category ?? ""
   );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -93,25 +97,9 @@ function PreferencesEditor({
       onSubmit={async event => {
         event.preventDefault();
         if (busy) return;
-        const next = values.map(widget => ({
-          category: widget.category,
-          entries: [
-            ...new Set(
-              widget.text
-                .split("\n")
-                .map(value => value.trim())
-                .filter(Boolean)
-            )
-          ]
-        }));
-        if (
-          next.some(
-            widget =>
-              widget.entries.length > 12 ||
-              widget.entries.some(item => item.length > 100)
-          )
-        ) {
-          setError("Maximum 12 favoris par section, 100 caractères par titre.");
+        const next = values;
+        if (next.some(widget => widget.entries.length > 12)) {
+          setError("Maximum 12 licences par catégorie.");
           return;
         }
         setBusy(true);
@@ -130,8 +118,8 @@ function PreferencesEditor({
       }}
     >
       <p className="yk-profile-muted">
-        Choisis jusqu’à 12 widgets parmi les catégories du jeu. Un favori par
-        ligne, jusqu’à 12 par widget.
+        Choisis une catégorie, puis jusqu’à 12 licences du catalogue à mettre en
+        avant. Aucune saisie libre.
       </p>
       <div
         className="yk-profile-widget-picker"
@@ -145,13 +133,11 @@ function PreferencesEditor({
               type="button"
               aria-pressed={selected}
               disabled={busy || (!selected && values.length >= 12)}
-              onClick={() =>
-                setValues(current =>
-                  selected
-                    ? current.filter(widget => widget.category !== category)
-                    : [...current, { category, text: "" }]
-                )
-              }
+              onClick={() => {
+                if (!selected)
+                  setValues(current => [...current, { category, entries: [] }]);
+                setActiveCategory(category);
+              }}
             >
               <span aria-hidden="true">{selected ? "✓" : "+"}</span> {category}
             </button>
@@ -164,7 +150,11 @@ function PreferencesEditor({
         </p>
       )}
       {values.map((widget, index) => (
-        <section className="yk-profile-widget-editor" key={widget.category}>
+        <section
+          className="yk-profile-widget-editor"
+          data-editor-category={widget.category}
+          key={widget.category}
+        >
           <div className="yk-profile-section-heading">
             <h3>{widgetLabel(widget.category)}</h3>
             <div className="yk-profile-widget-tools">
@@ -206,26 +196,77 @@ function PreferencesEditor({
               </button>
             </div>
           </div>
-          <label>
-            {`Tes favoris · ${widget.category}`}
-            <textarea
-              className="auth-input"
-              rows={4}
-              maxLength={1212}
+          <div
+            className="yk-profile-selected-licenses"
+            aria-label={`Licences choisies · ${widget.category}`}
+          >
+            {widget.entries.map(license => (
+              <button
+                key={license}
+                type="button"
+                disabled={busy}
+                aria-label={`Retirer ${license} des favoris ${widget.category}`}
+                onClick={() =>
+                  setValues(current =>
+                    current.map(value =>
+                      value.category === widget.category
+                        ? {
+                            ...value,
+                            entries: value.entries.filter(
+                              name => name !== license
+                            )
+                          }
+                        : value
+                    )
+                  )
+                }
+              >
+                {license} <span aria-hidden="true">×</span>
+              </button>
+            ))}
+            {!widget.entries.length && (
+              <p className="yk-profile-muted">Aucune licence sélectionnée.</p>
+            )}
+          </div>
+          <Button
+            variant="secondary"
+            disabled={busy}
+            aria-expanded={activeCategory === widget.category}
+            onClick={() =>
+              setActiveCategory(
+                activeCategory === widget.category ? "" : widget.category
+              )
+            }
+          >
+            {activeCategory === widget.category
+              ? "Masquer les licences"
+              : "Choisir les licences"}
+          </Button>
+          {activeCategory === widget.category && (
+            <ProfileLicensePicker
+              key={widget.category}
+              category={widget.category}
+              selected={widget.entries}
               disabled={busy}
-              value={widget.text}
-              placeholder="Un titre, un groupe ou un personnage par ligne…"
-              onChange={event =>
+              load={loadLicenses}
+              onToggle={license =>
                 setValues(current =>
                   current.map(value =>
                     value.category === widget.category
-                      ? { ...value, text: event.target.value }
+                      ? {
+                          ...value,
+                          entries: value.entries.includes(license)
+                            ? value.entries.filter(name => name !== license)
+                            : value.entries.length < 12
+                              ? [...value.entries, license]
+                              : value.entries
+                        }
                       : value
                   )
                 )
               }
             />
-          </label>
+          )}
         </section>
       ))}
       {error && (
@@ -824,6 +865,7 @@ export type ProfileAdapter = {
   friendAction?: FriendActionAdapter;
   details?: typeof getProfileDetails;
   saveWidgets?: typeof saveProfileWidgets;
+  widgetLicenses?: typeof getProfileWidgetLicenses;
   saveAppearance?: typeof saveProfileAppearance;
   uploadAvatar?: typeof uploadAvatar;
   uploadBanner?: typeof uploadBanner;
@@ -1470,6 +1512,7 @@ export function ProfileExperience({
           <PreferencesEditor
             widgets={details.widgets}
             categories={details.widgetCategories}
+            loadLicenses={adapter.widgetLicenses ?? getProfileWidgetLicenses}
             save={adapter.saveWidgets ?? saveProfileWidgets}
             onSaved={widgets => {
               setDetails({ ...details, widgets });
