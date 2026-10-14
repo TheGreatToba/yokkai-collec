@@ -94,7 +94,16 @@ try {
     const { data } = await send("Page.captureScreenshot", { format: "png" });
     await writeFile(new URL(name, output), Buffer.from(data, "base64"));
   };
+  const assertTableauOrder = async () => {
+    assert.ok(
+      await evaluate(
+        "(() => {const cards=document.querySelector('.yk-profile-showcase');const universe=document.querySelector('.yk-profile-universe');return cards.nextElementSibling === universe && cards.getBoundingClientRect().bottom <= universe.getBoundingClientRect().top;})()"
+      ),
+      "Featured cards precede Son univers in DOM and on screen"
+    );
+  };
   const assertAlignedProfile = async label => {
+    await assertTableauOrder();
     assert.ok(
       await evaluate(
         "(() => {const label=document.querySelector('.yk-profile-side-stats > div:first-child p').getBoundingClientRect();const count=document.querySelector('.yk-profile-side-stats > div:first-child strong').getBoundingClientRect();return label.bottom <= count.top && Math.abs(label.left-count.left)<1;})()"
@@ -595,6 +604,7 @@ try {
     mobile: true
   });
   await capture("mobile.png");
+  await assertTableauOrder();
   await assertModerationPlacement();
   assert.ok(
     await evaluate(

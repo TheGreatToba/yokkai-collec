@@ -207,6 +207,12 @@ main:has(.yk-profile-hub) {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
+.yk-profile-universe {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
 .yk-profile-interests h3 > span {
   color: var(--color-accent-gold);
   margin-right: 6px;
@@ -646,7 +652,7 @@ main:has(.yk-profile-hub) {
   }
   .yk-profile-hub[data-profile-tab="tableau"]
     .yk-profile-panel
-    > .yk-profile-surface:last-child {
+    > :is(.yk-profile-surface, .yk-profile-universe):last-child {
     flex: 1;
   }
   .yk-profile-hub[data-profile-tab="tableau"] .yk-profile-identity-content {

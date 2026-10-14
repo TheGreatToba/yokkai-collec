@@ -1129,71 +1129,73 @@ export function ProfileExperience({
             </p>
           )}
           <div hidden={tab !== "tableau"} className="yk-profile-panel">
-            <div className="yk-profile-section-heading">
-              <div>
-                <p className="eyebrow">Son univers</p>
-                <h2>Le tableau de {profile.pseudo}</h2>
-              </div>
-              {isMe && (
-                <Button
-                  variant="secondary"
-                  disabled={!details}
-                  onClick={() => setPreferencesOpen(true)}
-                >
-                  Personnaliser mon tableau
-                </Button>
-              )}
-            </div>
-            <div className="yk-profile-interests">
-              {(details?.widgets ?? []).map(widget => (
-                <section
-                  key={widget.category}
-                  className="yk-profile-surface"
-                  data-widget-category={widget.category}
-                >
-                  <div className="yk-profile-section-heading">
-                    <h3>
-                      <span aria-hidden="true">✧</span>{" "}
-                      {widgetLabel(widget.category)}
-                    </h3>
-                    <span className="yk-profile-muted">
-                      {widget.entries.length}
-                    </span>
-                  </div>
-                  {widget.entries.length ? (
-                    <ol className="yk-profile-taste-list">
-                      {widget.entries.map((name, index) => (
-                        <li key={index}>
-                          <span className="yk-profile-taste-number">
-                            {String(index + 1).padStart(2, "0")}
-                          </span>
-                          <strong>{name}</strong>
-                        </li>
-                      ))}
-                    </ol>
-                  ) : (
-                    <p className="yk-profile-empty">
-                      {isMe
-                        ? "Ajoute tes favoris pour partager ce que tu aimes."
-                        : "Ses favoris apparaîtront ici."}
-                    </p>
-                  )}
-                </section>
-              ))}
-            </div>
-            {details && !details.widgets.length && (
-              <p className="yk-profile-surface yk-profile-empty">
-                {isMe
-                  ? "Personnalise ton tableau en ajoutant les widgets de tes catégories préférées."
-                  : "Ses widgets favoris apparaîtront ici."}
-              </p>
-            )}
-            <section className="yk-profile-surface">
+            <section className="yk-profile-surface yk-profile-showcase">
               <div className="yk-profile-section-heading">
                 <h3 className="yk-section-title">Cartes mises en avant</h3>
                 <span className="yk-profile-muted">Sa vitrine</span>
               </div>
               <Featured cards={profile.featuredCards} />
+            </section>
+            <section className="yk-profile-universe">
+              <div className="yk-profile-section-heading">
+                <div>
+                  <p className="eyebrow">Son univers</p>
+                  <h2>Le tableau de {profile.pseudo}</h2>
+                </div>
+                {isMe && (
+                  <Button
+                    variant="secondary"
+                    disabled={!details}
+                    onClick={() => setPreferencesOpen(true)}
+                  >
+                    Personnaliser mon tableau
+                  </Button>
+                )}
+              </div>
+              <div className="yk-profile-interests">
+                {(details?.widgets ?? []).map(widget => (
+                  <section
+                    key={widget.category}
+                    className="yk-profile-surface"
+                    data-widget-category={widget.category}
+                  >
+                    <div className="yk-profile-section-heading">
+                      <h3>
+                        <span aria-hidden="true">✧</span>{" "}
+                        {widgetLabel(widget.category)}
+                      </h3>
+                      <span className="yk-profile-muted">
+                        {widget.entries.length}
+                      </span>
+                    </div>
+                    {widget.entries.length ? (
+                      <ol className="yk-profile-taste-list">
+                        {widget.entries.map((name, index) => (
+                          <li key={index}>
+                            <span className="yk-profile-taste-number">
+                              {String(index + 1).padStart(2, "0")}
+                            </span>
+                            <strong>{name}</strong>
+                          </li>
+                        ))}
+                      </ol>
+                    ) : (
+                      <p className="yk-profile-empty">
+                        {isMe
+                          ? "Ajoute tes favoris pour partager ce que tu aimes."
+                          : "Ses favoris apparaîtront ici."}
+                      </p>
+                    )}
+                  </section>
+                ))}
+              </div>
+              {details && !details.widgets.length && (
+                <p className="yk-profile-surface yk-profile-empty">
+                  {isMe
+                    ? "Personnalise ton tableau en ajoutant les widgets de tes catégories préférées."
+                    : "Ses widgets favoris apparaîtront ici."}
+                </p>
+              )}
             </section>
           </div>
           <div hidden={tab !== "activity"} className="yk-profile-panel">
