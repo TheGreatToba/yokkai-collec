@@ -95,6 +95,12 @@ try {
     await writeFile(new URL(name, output), Buffer.from(data, "base64"));
   };
   const assertAlignedProfile = async label => {
+    assert.ok(
+      await evaluate(
+        "(() => {const label=document.querySelector('.yk-profile-side-stats > div:first-child p').getBoundingClientRect();const count=document.querySelector('.yk-profile-side-stats > div:first-child strong').getBoundingClientRect();return label.bottom <= count.top && Math.abs(label.left-count.left)<1;})()"
+      ),
+      "Booster count sits below its label, aligned left"
+    );
     await waitFor(
       "(() => {const counts=document.querySelector('.yk-profile-side-counts').getBoundingClientRect();const stats=document.querySelector('.yk-profile-side-stats').getBoundingClientRect();const member=document.querySelector('.yk-profile-member').getBoundingClientRect();return counts.bottom <= stats.top && stats.bottom <= member.top;})()"
     );
@@ -448,6 +454,26 @@ try {
   );
   await waitFor("!document.querySelector('dialog[open]')");
   await evaluate(
+    "Array.from(document.querySelectorAll('.yk-profile-name-row button')).find(button=>button.textContent==='Signaler').click()"
+  );
+  await waitFor("Boolean(document.querySelector('dialog[open]'))");
+  await evaluate(
+    "Array.from(document.querySelectorAll('dialog[open] button')).find(button=>button.textContent==='Transmettre le signalement').click()"
+  );
+  await waitFor("!document.querySelector('dialog[open]')");
+  await waitFor(
+    "document.querySelector('.yk-toast[role=status]')?.textContent === 'Merci, ton signalement a été transmis.'"
+  );
+  await capture("report-success.png");
+  assert.equal(
+    await evaluate(
+      "document.querySelector('.yk-profile-name-row').textContent.includes('Merci, ton signalement')"
+    ),
+    false,
+    "Report confirmation does not expand the username row"
+  );
+  await waitFor("!document.querySelector('.yk-toast')");
+  await evaluate(
     "document.querySelector('.yk-profile-name-row summary').click()"
   );
   await waitFor(
@@ -540,6 +566,25 @@ try {
       "document.querySelectorAll('.yk-profile-activity li, .yk-profile-album-progress li, .yk-profile-friend-list li').length"
     ),
     0
+  );
+  await navigate("?visitor=1&reportError=1");
+  await evaluate(
+    "document.querySelector('.yk-profile-name-row summary').click()"
+  );
+  await evaluate(
+    "Array.from(document.querySelectorAll('.yk-profile-name-row button')).find(button=>button.textContent==='Signaler').click()"
+  );
+  await waitFor("Boolean(document.querySelector('dialog[open]'))");
+  await evaluate(
+    "Array.from(document.querySelectorAll('dialog[open] button')).find(button=>button.textContent==='Transmettre le signalement').click()"
+  );
+  await waitFor(
+    "document.querySelector('dialog[open] [role=alert]')?.textContent === 'Impossible de transmettre ce signalement.'"
+  );
+  assert.equal(
+    await evaluate("document.querySelector('.yk-toast')"),
+    null,
+    "No success toast when reporting fails"
   );
   console.log(
     "Profile browser proof OK: no free-text favorites, category license lists, search/select/save, left identity, tabs, widget ordering, banner upload/save/remove, completion, activity, wishlist, mutual friends, privacy and mobile width."

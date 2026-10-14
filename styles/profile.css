@@ -356,9 +356,6 @@ main:has(.yk-profile-hub) {
 }
 .yk-profile-side-stats > div:first-child {
   grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
 }
 .yk-profile-side-stats p {
   font-size: 11px;

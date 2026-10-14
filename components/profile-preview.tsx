@@ -83,6 +83,7 @@ export function ProfilePreview() {
   const visitor = params.get("visitor") === "1";
   const privateProfile = params.get("private") === "1";
   const demoCatalogue = params.get("catalogue") === "demo";
+  const reportError = params.get("reportError") === "1";
   const previewUrls = useRef<string[]>([]);
   const social = useRef<ProfileEngagement>({
     views: 1284,
@@ -137,6 +138,15 @@ export function ProfilePreview() {
           createdAt: "2026-10-13T10:00:00Z"
         })),
       blocked: async () => [],
+      moderation: {
+        list: async () => [],
+        block: async () => {},
+        unblock: async () => {},
+        report: async () => {
+          if (reportError)
+            throw new Error("Impossible de transmettre ce signalement.");
+        }
+      },
       engagement: async () => ({ ...social.current }),
       recordView: async (_id, visitId) => {
         if (!countedVisits.current.has(visitId)) {
@@ -252,7 +262,7 @@ export function ProfilePreview() {
               }))
         }) satisfies ProfileDetails
     };
-  }, [visitor, privateProfile, demoCatalogue]);
+  }, [visitor, privateProfile, demoCatalogue, reportError]);
   return (
     <>
       <Topbar view="profile" name="Toba" karas={2578} notifications={[]} />
