@@ -354,7 +354,7 @@ export async function changePassword(
     });
     if (verification.error?.code === "invalid_credentials") {
       return {
-        fields: { currentPassword: "Le mot de passe actuel est incorrect." }
+        fields: { currentPassword: "Incorrect current password." }
       };
     }
     if (verification.error)
