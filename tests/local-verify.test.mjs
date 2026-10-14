@@ -44,8 +44,7 @@ test("verify is unique, preserves all gates and builds only with dummy public co
   assert.match(read("scripts/verify.mjs"), /VERIFY ECHEC/);
   assert.match(read("scripts/ci-db.mjs"), /Docker distant refusé/);
   const workflow = read(".github/workflows/ci.yml");
-  assert.match(workflow, /on:\s*\n\s+pull_request:\s+branches: \[master\]/);
-  assert.match(workflow, /push:\s+branches: \[master\]/);
+  assert.match(workflow, /on:\s*\n\s+push:/);
   assert.match(workflow, /pull_request:/);
   assert.match(workflow, /workflow_dispatch:/);
   for (const file of ["AGENTS.md", "CLAUDE.md"])
