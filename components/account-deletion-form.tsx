@@ -33,6 +33,11 @@ export function AccountDeletionForm({ pseudo }: { pseudo: string }) {
         conservés afficheront « Joueur supprimé ».
       </p>
       <p className="mt-3 text-sm leading-6 text-ink-2">
+        <a href="#mes-donnees" className="underline underline-offset-4">
+          Exporter d’abord mes données
+        </a>
+      </p>
+      <p className="mt-3 text-sm leading-6 text-ink-2">
         Pour protéger ton compte, une connexion de moins de cinq minutes est
         nécessaire.
       </p>

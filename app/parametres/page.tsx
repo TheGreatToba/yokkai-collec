@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { Topbar } from "@/components/topbar";
 import { AccountMenu } from "@/components/account-menu";
 import { SettingsPanel } from "@/components/settings";
+import { DataExportForm } from "@/components/data-export-form";
 import { AccountDeletionForm } from "@/components/account-deletion-form";
 import {
   getCurrentKarasBalance,
@@ -29,6 +30,7 @@ export default async function SettingsPage() {
         <h1 className="yk-title mt-3">Paramètres</h1>
         <div className="mt-8">
           <SettingsPanel />
+          <DataExportForm />
           {name && (
             <div className="mt-6">
               <AccountDeletionForm pseudo={name} />
