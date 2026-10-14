@@ -283,6 +283,32 @@ main:has(.yk-profile-hub) {
   margin: 8px 0;
   overflow-wrap: anywhere;
 }
+.yk-profile-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.yk-profile-name-row h2 {
+  min-width: 0;
+  flex: 1;
+}
+.yk-profile-name-row > div {
+  flex-shrink: 0;
+}
+.yk-profile-name-row summary {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  list-style: none;
+}
+.yk-profile-name-row summary::-webkit-details-marker {
+  display: none;
+}
 .yk-profile-bio {
   white-space: pre-wrap;
   overflow-wrap: anywhere;

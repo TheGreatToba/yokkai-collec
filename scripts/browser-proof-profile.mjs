@@ -411,6 +411,45 @@ try {
   await waitFor("!document.querySelector('.yk-profile-preferences-form')");
   await assertAlignedProfile("without widgets");
   await navigate("?visitor=1");
+  const assertModerationPlacement = async () => {
+    assert.ok(
+      await evaluate(
+        "(() => {const name=document.querySelector('.yk-profile-name-row h2').getBoundingClientRect();const menu=document.querySelector('.yk-profile-name-row summary').getBoundingClientRect();return name.right <= menu.left && Math.abs((name.top+name.bottom)/2-(menu.top+menu.bottom)/2)<1;})()"
+      ),
+      "Report menu sits next to the username"
+    );
+    assert.equal(
+      await evaluate(
+        "document.querySelectorAll('.yk-profile-actions summary').length"
+      ),
+      0,
+      "Report menu no longer sits among friend actions"
+    );
+  };
+  await assertModerationPlacement();
+  await evaluate(
+    "document.querySelector('.yk-profile-name-row summary').click()"
+  );
+  await waitFor("document.querySelector('.yk-profile-name-row details').open");
+  assert.ok(
+    await evaluate(
+      "document.querySelector('.yk-profile-name-row details').textContent.includes('Bloquer') && document.querySelector('.yk-profile-name-row details').textContent.includes('Signaler')"
+    )
+  );
+  await capture("report-menu.png");
+  await evaluate(
+    "Array.from(document.querySelectorAll('.yk-profile-name-row button')).find(button=>button.textContent==='Signaler').click()"
+  );
+  await waitFor(
+    "Boolean(document.querySelector('dialog[open]')?.textContent.includes('Signaler Toba'))"
+  );
+  await evaluate(
+    "Array.from(document.querySelectorAll('dialog[open] button')).find(button=>button.textContent==='Annuler').click()"
+  );
+  await waitFor("!document.querySelector('dialog[open]')");
+  await evaluate(
+    "document.querySelector('.yk-profile-name-row summary').click()"
+  );
   await waitFor(
     "document.querySelector('[data-profile-views]').textContent.replace(/\\s/g,'') === '1285'"
   );
@@ -479,6 +518,7 @@ try {
     mobile: true
   });
   await capture("mobile.png");
+  await assertModerationPlacement();
   assert.ok(
     await evaluate(
       "(() => {const counts=document.querySelector('.yk-profile-side-counts').getBoundingClientRect();const stats=document.querySelector('.yk-profile-side-stats').getBoundingClientRect();const member=document.querySelector('.yk-profile-member').getBoundingClientRect();return counts.bottom <= stats.top && stats.bottom <= member.top;})()"

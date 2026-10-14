@@ -1473,7 +1473,18 @@ export function ProfileExperience({
               />
             </div>
             <span className="yk-profile-identity-label">COLLECTIONNEUR</span>
-            <h2>{profile.pseudo}</h2>
+            <div className="yk-profile-name-row">
+              <h2>{profile.pseudo}</h2>
+              {!isMe && (
+                <PlayerModeration
+                  userId={profile.id}
+                  pseudo={profile.pseudo}
+                  blockedByMe={blockedByMe}
+                  adapter={adapter.moderation}
+                  onBlocked={afterBlock}
+                />
+              )}
+            </div>
             <p className="yk-profile-bio">
               {profile.bio || "Aucune bio pour le moment."}
             </p>
@@ -1491,13 +1502,6 @@ export function ProfileExperience({
                     blockedByMe={blockedByMe}
                     adapter={adapter.friendAction}
                     onUnblocked={afterUnblock}
-                  />
-                  <PlayerModeration
-                    userId={profile.id}
-                    pseudo={profile.pseudo}
-                    blockedByMe={blockedByMe}
-                    adapter={adapter.moderation}
-                    onBlocked={afterBlock}
                   />
                 </>
               )}
