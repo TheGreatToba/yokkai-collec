@@ -4,8 +4,7 @@ Le dépôt étant désormais public, la CI automatique est réactivée pour les 
 Requests ciblant `master` et les pushes sur `master`. Le lancement manuel reste
 disponible avec `workflow_dispatch`.
 
-Les contrôles locaux restent obligatoires : le passage en dépôt public ne
-remplace ni le hook pre-push ni `npm run verify` avant un merge.
+Les contrôles locaux complets sont facultatifs. Aucune PR mergée sans CI GitHub Actions verte sur la branche à jour avec origin/master. Le hook pre-push bloque uniquement les pushes directs sur master.
 
 ## Budget historique — 12/10/2026
 
