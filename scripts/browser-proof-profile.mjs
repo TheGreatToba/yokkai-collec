@@ -97,9 +97,9 @@ try {
   const assertTableauOrder = async () => {
     assert.ok(
       await evaluate(
-        "(() => {const cards=document.querySelector('.yk-profile-showcase');const universe=document.querySelector('.yk-profile-universe');return cards.nextElementSibling === universe && cards.getBoundingClientRect().bottom <= universe.getBoundingClientRect().top;})()"
+        "(() => {const cards=document.querySelector('.yk-profile-showcase');const overview=document.querySelector('.yk-profile-completion, .yk-profile-universe');return cards.nextElementSibling === overview && cards.getBoundingClientRect().bottom <= overview.getBoundingClientRect().top;})()"
       ),
-      "Featured cards precede Son univers in DOM and on screen"
+      "Featured cards precede the overview in DOM and on screen"
     );
   };
   const assertAlignedProfile = async label => {
@@ -236,16 +236,37 @@ try {
     "Identity is left of the tabs on desktop"
   );
   await capture("desktop.png");
+  assert.equal(
+    await evaluate(
+      "document.querySelectorAll('.yk-profile-universe, [data-widget-category]').length"
+    ),
+    0,
+    "Widgets are removed from the normal profile"
+  );
+  assert.equal(
+    await evaluate(
+      "document.querySelector('.yk-profile-completion h2').textContent"
+    ),
+    "Complétion"
+  );
+  assert.equal(
+    await evaluate(
+      "document.querySelectorAll('.yk-profile-completion progress').length"
+    ),
+    6,
+    "The overview shows every favorite binder"
+  );
+  await capture("profile-completion-overview.png");
   await clickTab("Complétion");
   assert.equal(
     await evaluate(
-      "document.querySelectorAll('.yk-profile-album-progress progress').length"
+      "document.querySelectorAll('.yk-profile-panel:not([hidden]) .yk-profile-album-progress progress').length"
     ),
     6
   );
   assert.equal(
     await evaluate(
-      "document.querySelector('.yk-profile-completion-summary > strong').textContent"
+      "document.querySelector('.yk-profile-panel:not([hidden]) .yk-profile-completion-summary > strong').textContent"
     ),
     "1"
   );
@@ -266,6 +287,8 @@ try {
     3
   );
   await clickTab("Tableau");
+  // Keep all regression assertions for the retired widget editor in a mock-only harness.
+  await navigate("?widgets=1");
   await evaluate(
     "Array.from(document.querySelectorAll('button')).find(button=>button.textContent==='Personnaliser mon tableau').click()"
   );
@@ -627,6 +650,34 @@ try {
       "document.querySelectorAll('.yk-profile-activity li, .yk-profile-album-progress li, .yk-profile-friend-list li').length"
     ),
     0
+  );
+  await navigate("?favorites=empty");
+  assert.equal(
+    await evaluate(
+      "document.querySelectorAll('.yk-profile-completion progress').length"
+    ),
+    0,
+    "An empty favorite list does not invent progress"
+  );
+  assert.ok(
+    await evaluate(
+      "document.querySelector('.yk-profile-completion').textContent.includes('Aucun classeur favori pour le moment')"
+    )
+  );
+  assert.equal(
+    await evaluate(
+      "document.querySelector('.yk-profile-completion a').getAttribute('href')"
+    ),
+    "/collection",
+    "The owner can choose favorite binders"
+  );
+  await navigate("?visitor=1&favorites=empty");
+  assert.equal(
+    await evaluate(
+      "document.querySelectorAll('.yk-profile-completion a').length"
+    ),
+    0,
+    "Visitors cannot edit the owner's favorites"
   );
   await navigate("?visitor=1&reportError=1");
   await evaluate(

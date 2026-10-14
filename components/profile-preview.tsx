@@ -4,11 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { ProfileExperience, type ProfileAdapter } from "@/components/profile";
 import { Topbar } from "@/components/topbar";
-import {
-  getGameInfo,
-  getPaniniAlbumsPage,
-  type CollectedCard
-} from "@/lib/data/cards";
+import { getPaniniAlbumsPage, type CollectedCard } from "@/lib/data/cards";
 import type { ProfileDetails, ProfileInterests } from "@/lib/data/profile";
 import type { ProfileEngagement } from "@/lib/data/profile";
 
@@ -83,6 +79,8 @@ export function ProfilePreview() {
   const visitor = params.get("visitor") === "1";
   const privateProfile = params.get("private") === "1";
   const demoCatalogue = params.get("catalogue") === "demo";
+  const previewWidgets = demoCatalogue && params.get("widgets") === "1";
+  const emptyFavorites = params.get("favorites") === "empty";
   const reportError = params.get("reportError") === "1";
   const previewUrls = useRef<string[]>([]);
   const social = useRef<ProfileEngagement>({
@@ -131,6 +129,7 @@ export function ProfilePreview() {
       return url;
     };
     return {
+      previewWidgets,
       profile: async () => profile(),
       wishlist: async () =>
         collection.map(card => ({
@@ -222,35 +221,33 @@ export function ProfilePreview() {
               entries: ["Studio Ghibli", "Le Seigneur des Anneaux"]
             }
           ],
-          widgetCategories: demoCatalogue
-            ? Object.keys(licenses)
-            : [
-                ...new Set(
-                  (await getGameInfo()).categories.map(category =>
-                    category.trim().toUpperCase()
-                  )
-                )
-              ].sort(),
+          widgetCategories: previewWidgets ? Object.keys(licenses) : [],
           bannerUrl: null,
           boostersOpened: privateProfile ? null : 824,
           lrCount: privateProfile ? null : 12,
           ssrCount: privateProfile ? null : 86,
           mutualFriends: privateProfile ? [] : friends.slice(0, 2),
-          favoriteAlbums: privateProfile
-            ? []
-            : [
-                { license: "One Piece", owned: 156, total: 195, percent: 80 },
-                { license: "Naruto", owned: 95, total: 119, percent: 80 },
-                {
-                  license: "Black Butler",
-                  owned: 107,
-                  total: 107,
-                  percent: 100
-                },
-                { license: "KPOP", owned: 47, total: 56, percent: 84 },
-                { license: "Noragami", owned: 45, total: 62, percent: 73 },
-                { license: "Final Fantasy", owned: 48, total: 63, percent: 76 }
-              ],
+          favoriteAlbums:
+            privateProfile || emptyFavorites
+              ? []
+              : [
+                  { license: "One Piece", owned: 156, total: 195, percent: 80 },
+                  { license: "Naruto", owned: 95, total: 119, percent: 80 },
+                  {
+                    license: "Black Butler",
+                    owned: 107,
+                    total: 107,
+                    percent: 100
+                  },
+                  { license: "KPOP", owned: 47, total: 56, percent: 84 },
+                  { license: "Noragami", owned: 45, total: 62, percent: 73 },
+                  {
+                    license: "Final Fantasy",
+                    owned: 48,
+                    total: 63,
+                    percent: 76
+                  }
+                ],
           activity: privateProfile
             ? []
             : collection.map((card, index) => ({
@@ -262,27 +259,19 @@ export function ProfilePreview() {
               }))
         }) satisfies ProfileDetails
     };
-  }, [visitor, privateProfile, demoCatalogue, reportError]);
+  }, [
+    visitor,
+    privateProfile,
+    demoCatalogue,
+    reportError,
+    previewWidgets,
+    emptyFavorites
+  ]);
   return (
     <>
       <Topbar view="profile" name="Toba" karas={2578} notifications={[]} />
       <main className="mx-auto w-full max-w-6xl px-6 py-10">
         <p className="eyebrow">Aperçu local · données de démonstration</p>
-        {!demoCatalogue && (
-          <p className="yk-profile-muted mt-3">
-            Les catégories et licences viennent du catalogue réel, en lecture
-            seule. Connecte-toi en local pour les consulter. Les modifications
-            du profil restent temporaires.
-          </p>
-        )}
-        {!demoCatalogue && (
-          <a
-            className="yk-profile-muted underline"
-            href="/design-system/profile-preview?catalogue=demo"
-          >
-            Essayer avec les données de démonstration sans connexion
-          </a>
-        )}
         <h1 className="yk-title mt-3">Profil du collectionneur</h1>
         <div className="mt-8">
           <ProfileExperience

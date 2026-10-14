@@ -861,7 +861,85 @@ function FriendWishlist({
   );
 }
 
+function ProfileCompletion({
+  profile,
+  details,
+  detailsError,
+  isMe
+}: {
+  profile: Profile;
+  details?: ProfileDetails;
+  detailsError: string;
+  isMe: boolean;
+}) {
+  return (
+    <>
+      {!profile.canViewCollection ? (
+        <ProfilePrivate />
+      ) : details?.favoriteAlbums.length ? (
+        <section className="yk-profile-surface">
+          <div className="yk-profile-completion-summary">
+            <strong>
+              {
+                details.favoriteAlbums.filter(
+                  album => album.owned === album.total
+                ).length
+              }
+            </strong>
+            <span>
+              classeurs favoris complétés{" "}
+              <small>sur {details.favoriteAlbums.length} favoris</small>
+            </span>
+          </div>
+          <ul className="yk-profile-album-progress">
+            {details.favoriteAlbums.map(album => (
+              <li key={album.license}>
+                <div>
+                  <strong>
+                    <span aria-hidden="true">★</span> {album.license}
+                  </strong>
+                  <span>
+                    {album.owned} / {album.total}
+                  </span>
+                </div>
+                <progress
+                  max={album.total}
+                  value={album.owned}
+                  aria-label={`Complétion de ${album.license}`}
+                />
+                <small>{album.percent}% complété</small>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : !details ? (
+        <p className="yk-profile-empty">
+          {detailsError
+            ? "La progression des classeurs est temporairement indisponible."
+            : "Chargement de la progression…"}
+        </p>
+      ) : (
+        <div className="yk-profile-surface yk-profile-completion-empty">
+          <span aria-hidden="true">☆</span>
+          <h3>Aucun classeur favori pour le moment</h3>
+          <p>
+            Les classeurs marqués d’une étoile apparaîtront ici avec leur
+            progression.
+          </p>
+          {isMe && (
+            <Link className="yk-button yk-button-secondary" href="/collection">
+              Choisir mes classeurs favoris
+            </Link>
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
 export type ProfileAdapter = {
+  // Compatibility harness for the retired widget UI; never enabled by liveProfile.
+  previewWidgets?: boolean;
   profile: typeof getProfile;
   wishlist: typeof getWishlist;
   blocked: typeof listBlockedUsers;
@@ -1136,67 +1214,82 @@ export function ProfileExperience({
               </div>
               <Featured cards={profile.featuredCards} />
             </section>
-            <section className="yk-profile-universe">
-              <div className="yk-profile-section-heading">
-                <div>
-                  <p className="eyebrow">Son univers</p>
-                  <h2>Le tableau de {profile.pseudo}</h2>
+            {adapter.previewWidgets ? (
+              <section className="yk-profile-universe">
+                <div className="yk-profile-section-heading">
+                  <div>
+                    <p className="eyebrow">Son univers</p>
+                    <h2>Le tableau de {profile.pseudo}</h2>
+                  </div>
+                  {isMe && (
+                    <Button
+                      variant="secondary"
+                      disabled={!details}
+                      onClick={() => setPreferencesOpen(true)}
+                    >
+                      Personnaliser mon tableau
+                    </Button>
+                  )}
                 </div>
-                {isMe && (
-                  <Button
-                    variant="secondary"
-                    disabled={!details}
-                    onClick={() => setPreferencesOpen(true)}
-                  >
-                    Personnaliser mon tableau
-                  </Button>
+                <div className="yk-profile-interests">
+                  {(details?.widgets ?? []).map(widget => (
+                    <section
+                      key={widget.category}
+                      className="yk-profile-surface"
+                      data-widget-category={widget.category}
+                    >
+                      <div className="yk-profile-section-heading">
+                        <h3>
+                          <span aria-hidden="true">✧</span>{" "}
+                          {widgetLabel(widget.category)}
+                        </h3>
+                        <span className="yk-profile-muted">
+                          {widget.entries.length}
+                        </span>
+                      </div>
+                      {widget.entries.length ? (
+                        <ol className="yk-profile-taste-list">
+                          {widget.entries.map((name, index) => (
+                            <li key={index}>
+                              <span className="yk-profile-taste-number">
+                                {String(index + 1).padStart(2, "0")}
+                              </span>
+                              <strong>{name}</strong>
+                            </li>
+                          ))}
+                        </ol>
+                      ) : (
+                        <p className="yk-profile-empty">
+                          {isMe
+                            ? "Ajoute tes favoris pour partager ce que tu aimes."
+                            : "Ses favoris apparaîtront ici."}
+                        </p>
+                      )}
+                    </section>
+                  ))}
+                </div>
+                {details && !details.widgets.length && (
+                  <p className="yk-profile-surface yk-profile-empty">
+                    {isMe
+                      ? "Personnalise ton tableau en ajoutant les widgets de tes catégories préférées."
+                      : "Ses widgets favoris apparaîtront ici."}
+                  </p>
                 )}
-              </div>
-              <div className="yk-profile-interests">
-                {(details?.widgets ?? []).map(widget => (
-                  <section
-                    key={widget.category}
-                    className="yk-profile-surface"
-                    data-widget-category={widget.category}
-                  >
-                    <div className="yk-profile-section-heading">
-                      <h3>
-                        <span aria-hidden="true">✧</span>{" "}
-                        {widgetLabel(widget.category)}
-                      </h3>
-                      <span className="yk-profile-muted">
-                        {widget.entries.length}
-                      </span>
-                    </div>
-                    {widget.entries.length ? (
-                      <ol className="yk-profile-taste-list">
-                        {widget.entries.map((name, index) => (
-                          <li key={index}>
-                            <span className="yk-profile-taste-number">
-                              {String(index + 1).padStart(2, "0")}
-                            </span>
-                            <strong>{name}</strong>
-                          </li>
-                        ))}
-                      </ol>
-                    ) : (
-                      <p className="yk-profile-empty">
-                        {isMe
-                          ? "Ajoute tes favoris pour partager ce que tu aimes."
-                          : "Ses favoris apparaîtront ici."}
-                      </p>
-                    )}
-                  </section>
-                ))}
-              </div>
-              {details && !details.widgets.length && (
-                <p className="yk-profile-surface yk-profile-empty">
-                  {isMe
-                    ? "Personnalise ton tableau en ajoutant les widgets de tes catégories préférées."
-                    : "Ses widgets favoris apparaîtront ici."}
-                </p>
-              )}
-            </section>
+              </section>
+            ) : (
+              <section className="yk-profile-completion">
+                <div className="yk-profile-section-heading">
+                  <h2>Complétion</h2>
+                  <span className="yk-profile-muted">Classeurs favoris</span>
+                </div>
+                <ProfileCompletion
+                  profile={profile}
+                  details={details}
+                  detailsError={detailsError}
+                  isMe={isMe}
+                />
+              </section>
+            )}
           </div>
           <div hidden={tab !== "activity"} className="yk-profile-panel">
             <div className="yk-profile-section-heading">
@@ -1386,68 +1479,12 @@ export function ProfileExperience({
               </div>
               <span className="yk-profile-muted">Classeurs favoris</span>
             </div>
-            {!profile.canViewCollection ? (
-              <ProfilePrivate />
-            ) : details?.favoriteAlbums.length ? (
-              <section className="yk-profile-surface">
-                <div className="yk-profile-completion-summary">
-                  <strong>
-                    {
-                      details.favoriteAlbums.filter(
-                        album => album.owned === album.total
-                      ).length
-                    }
-                  </strong>
-                  <span>
-                    classeurs favoris complétés{" "}
-                    <small>sur {details.favoriteAlbums.length} favoris</small>
-                  </span>
-                </div>
-                <ul className="yk-profile-album-progress">
-                  {details.favoriteAlbums.map(album => (
-                    <li key={album.license}>
-                      <div>
-                        <strong>
-                          <span aria-hidden="true">★</span> {album.license}
-                        </strong>
-                        <span>
-                          {album.owned} / {album.total}
-                        </span>
-                      </div>
-                      <progress
-                        max={album.total}
-                        value={album.owned}
-                        aria-label={`Complétion de ${album.license}`}
-                      />
-                      <small>{album.percent}% complété</small>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ) : !details ? (
-              <p className="yk-profile-empty">
-                {detailsError
-                  ? "La progression des classeurs est temporairement indisponible."
-                  : "Chargement de la progression…"}
-              </p>
-            ) : (
-              <div className="yk-profile-surface yk-profile-completion-empty">
-                <span aria-hidden="true">☆</span>
-                <h3>Aucun classeur favori pour le moment</h3>
-                <p>
-                  Les classeurs marqués d’une étoile apparaîtront ici avec leur
-                  progression.
-                </p>
-                {isMe && (
-                  <Link
-                    className="yk-button yk-button-secondary"
-                    href="/collection"
-                  >
-                    Choisir mes classeurs favoris
-                  </Link>
-                )}
-              </div>
-            )}
+            <ProfileCompletion
+              profile={profile}
+              details={details}
+              detailsError={detailsError}
+              isMe={isMe}
+            />
           </div>
         </section>
         <aside className="yk-profile-identity">
