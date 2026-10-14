@@ -146,12 +146,13 @@ export function AuthTurnstile() {
           rel="noopener noreferrer"
           className="yk-auth-link text-sm"
         >
-          Can't complete verification? Get help from the team
+          Can&apos;t complete verification? Get help from the team
         </a>
       )}
       <noscript>
         Enable JavaScript to use this accessible verification. If you still
-        can't complete it, contact the team through your usual support channel.
+        can&apos;t complete it, contact the team through your usual support
+        channel.
       </noscript>
     </div>
   );

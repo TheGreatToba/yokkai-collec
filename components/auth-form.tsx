@@ -61,9 +61,9 @@ export function AuthForm({
           <div>
             <h2>Check your inbox</h2>
             <p>
-              If this email address can be used to create an account, you'll
-              receive a confirmation link. Check your spam folder too. If you
-              already have an account, you can sign in.
+              If this email address can be used to create an account,
+              you&apos;ll receive a confirmation link. Check your spam folder
+              too. If you already have an account, you can sign in.
             </p>
           </div>
         </div>

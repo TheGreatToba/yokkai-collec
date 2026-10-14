@@ -31,7 +31,7 @@ export function PasswordResetRequestForm({
           <div>
             <h2>Check your inbox</h2>
             <p>
-              If an account matches this email address, you'll receive a
+              If an account matches this email address, you&apos;ll receive a
               password reset link. Check your spam folder too.
             </p>
           </div>

@@ -78,8 +78,8 @@ export function DataExportForm() {
       </h2>
       <p className="mt-3 text-sm leading-6 text-ink-2">
         Download your account and game data as a JSON file. Avatar details are
-        included, but image files aren't. You must have signed in within the
-        last five minutes. You can download your data once every 24 hours.
+        included, but image files aren&apos;t. You must have signed in within
+        the last five minutes. You can download your data once every 24 hours.
       </p>
       <div className="mt-6" aria-busy={pending}>
         <Button

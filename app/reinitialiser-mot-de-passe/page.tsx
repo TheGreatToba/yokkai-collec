@@ -35,7 +35,7 @@ export default async function ResetPasswordPage() {
           <p className="eyebrow">Keep your collection safe</p>
           <h1 className="yk-auth-title">Choose a new password</h1>
           <p className="yk-auth-intro">
-            Use a unique password that you don't use on any other site.
+            Use a unique password that you don&apos;t use on any other site.
           </p>
           {user ? (
             <PasswordUpdateForm />

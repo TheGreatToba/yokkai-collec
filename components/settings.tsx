@@ -164,8 +164,8 @@ export function SettingsPanel() {
             </p>
             <p className="mt-3 text-xs leading-5 text-ink-3">
               With a private profile, only your friends can see your collection.
-              Other players won't see you in owner lists, and your copies won't
-              count toward their totals.
+              Other players won&apos;t see you in owner lists, and your copies
+              won&apos;t count toward their totals.
             </p>
           </div>
           <button

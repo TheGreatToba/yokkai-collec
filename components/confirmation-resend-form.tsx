@@ -41,12 +41,12 @@ export function ConfirmationResendForm({
     <form action={action} className="yk-auth-form" aria-busy={pending}>
       <p>
         If this email address belongs to an account awaiting confirmation,
-        you'll receive a new link. Check your spam folder too.
+        you&apos;ll receive a new link. Check your spam folder too.
       </p>
       {state.success && (
         <p role="status" className="yk-auth-notice">
-          If confirmation is needed, we'll send you an email. If your account is
-          already confirmed, you can sign in.
+          If confirmation is needed, we&apos;ll send you an email. If your
+          account is already confirmed, you can sign in.
         </p>
       )}
       {state.error && (

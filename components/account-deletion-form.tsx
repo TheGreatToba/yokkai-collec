@@ -28,8 +28,8 @@ export function AccountDeletionForm({ pseudo }: { pseudo: string }) {
         Deleting your account is permanent. All your cards, Karas, avatar, and
         profile data will be deleted. Your active listings will be canceled and
         bidders refunded. Your leading bids will be refunded and removed; other
-        players' auctions will continue. Your pending trades will be canceled.
-        Retained history will show “Deleted player”.
+        players&apos; auctions will continue. Your pending trades will be
+        canceled. Retained history will show “Deleted player”.
       </p>
       <p className="mt-3 text-sm leading-6 text-ink-2">
         <a href="#mes-donnees" className="underline underline-offset-4">

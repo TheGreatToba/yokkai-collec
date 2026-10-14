@@ -103,7 +103,7 @@ export default async function Home() {
             </h1>
             <p className="yk-landing-lead">
               Open packs, reveal iconic characters, and build a collection
-              that's yours alone.
+              that&apos;s yours alone.
             </p>
             <div className="yk-landing-actions">
               <Link
