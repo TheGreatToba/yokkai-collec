@@ -1,9 +1,21 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readdirSync } from "node:fs";
 import { replayMigrations } from "../scripts/replay-migrations.mjs";
 
 test("profile likes and visits are authenticated, idempotent, bounded, private and cleaned on account deletion", async t => {
-  const { db } = await replayMigrations();
+  // Preserve every assertion of the original views contract on its exact schema.
+  // Retirement and current likes contracts are checked separately on the full replay.
+  const migrations = readdirSync(
+    new URL("../supabase/migrations/", import.meta.url)
+  )
+    .filter(
+      name =>
+        name.endsWith(".sql") &&
+        name <= "20261015000000_profile_active_auctions.sql"
+    )
+    .sort();
+  const { db } = await replayMigrations({ migrations });
   t.after(() => db.close());
   const [owner, viewer, other] = [1, 2, 3].map(
     n => `74000000-0000-4000-8000-${String(n).padStart(12, "0")}`
