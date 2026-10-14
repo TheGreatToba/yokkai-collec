@@ -1,10 +1,12 @@
-// Regenerate: node scripts/og-image/render.cjs (installed Playwright and Chromium; NODE_PATH can point to the bundled runtime).
-const { chromium } = require("playwright");
-const { existsSync, readFileSync } = require("node:fs");
-const { resolve } = require("node:path");
-const { pathToFileURL } = require("node:url");
-const assert = require("node:assert/strict");
-
+// Regenerate: node scripts/og-image/render.mjs (installed Playwright and Chromium; NODE_PATH can point to the bundled runtime).
+import { createRequire } from "node:module";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve, dirname } from "node:path";
+import { pathToFileURL, fileURLToPath } from "node:url";
+import assert from "node:assert/strict";
+const load = createRequire(import.meta.url);
+const { chromium } = load("playwright");
+const sourceDirectory = dirname(fileURLToPath(import.meta.url));
 (async () => {
   const executablePath =
     process.env.CHROMIUM_PATH ||
@@ -22,7 +24,7 @@ const assert = require("node:assert/strict");
       viewport: { width: 1200, height: 630 },
       deviceScaleFactor: 1
     });
-    await page.goto(pathToFileURL(resolve(__dirname, "index.html")).href);
+    await page.goto(pathToFileURL(resolve(sourceDirectory, "index.html")).href);
     await page.evaluate(() => document.fonts.ready);
     assert(
       await page
@@ -49,7 +51,7 @@ const assert = require("node:assert/strict");
         `${selector} outside safe area`
       );
     }
-    const output = resolve(__dirname, "../../public/og-home.png");
+    const output = resolve(sourceDirectory, "../../public/og-home.png");
     await page.screenshot({ path: output });
     const png = readFileSync(output);
     assert.equal(png.readUInt32BE(16), 1200);
