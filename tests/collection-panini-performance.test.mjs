@@ -18,6 +18,10 @@ const catalogueModal = readFileSync(
   new URL("../components/catalogue-card-modal.tsx", import.meta.url),
   "utf8"
 );
+const collectionStyles = readFileSync(
+  new URL("../styles/collection.css", import.meta.url),
+  "utf8"
+);
 
 test("la collection normale ne télécharge plus le catalogue complet", () => {
   assert.doesNotMatch(game, /getAllCards/);
@@ -31,6 +35,30 @@ test("les classeurs personnels peuvent être placés en favoris", () => {
   assert.match(collection, /className="yk-panini-favorite"/);
   assert.match(collection, /aria-pressed=\{item\.favorite\}/);
   assert.match(collection, /togglePaniniAlbumFavorite/);
+  assert.match(
+    readFileSync(new URL("../lib/data/cards.ts", import.meta.url), "utf8"),
+    /from\("panini_album_favorites"\)\s*\.insert\(/
+  );
+  assert.match(
+    collection,
+    /togglePaniniAlbumFavorite[^]*catch \(error\) \{[^]*setFavoriteError\(/
+  );
+  assert.match(
+    collection,
+    /onPointerDown=\{event =>\s*event\.stopPropagation\(\)\s*\}/
+  );
+  assert.match(
+    collection,
+    /onClick=\{event => \{\s*event\.stopPropagation\(\);[^]*togglePaniniAlbumFavorite/
+  );
+  assert.match(collectionStyles, /\.yk-panini-favorite\s*\{[^}]*z-index:\s*2;/);
+  assert.match(collection, /★ Favoris uniquement/);
+  assert.match(collection, /aria-pressed=\{favoritesOnly\}/);
+  assert.match(collection, /favoritesOnly,/);
+  assert.match(
+    collection,
+    /className="yk-panini-owned-toggle"[^]*favoritesOnly \? "✓" : "○"/
+  );
 });
 
 test("les données Panini ne sont chargées que lorsque ce mode est ouvert", () => {
