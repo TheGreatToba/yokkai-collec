@@ -133,6 +133,10 @@ test("les suites en chiffres romains sont regroupées uniquement pour ANIME/MANG
       ('roman-anime-2','Ciel','ANIME/MANGA','Black Butler II','R','https://example.test/ii.png','roman-license-test'),
       ('roman-anime-3','Grell','ANIME/MANGA','Black Butler III','SR','https://example.test/iii.png','roman-license-test'),
       ('roman-anime-link','Linked','ANIME/MANGA','Another Anime','C','https://example.test/link.png','roman-license-test'),
+      ('roman-anime-x','X','ANIME/MANGA','BEYBLADE X','C','https://example.test/x.png','roman-license-test'),
+      ('roman-anime-v','V','ANIME/MANGA','Combattler V','C','https://example.test/v.png','roman-license-test'),
+      ('roman-anime-word','Ii','ANIME/MANGA','Yakuza Fiancé: Raise wa Tanin ga Ii','C','https://example.test/word.png','roman-license-test'),
+      ('roman-anime-colon','Colon','ANIME/MANGA','Honkai Impact 3rd - Reburn: II','C','https://example.test/colon.png','roman-license-test'),
       ('roman-film','Film II','FILM','Black Butler II','C','https://example.test/film.png','roman-license-test');
   `);
 
@@ -157,7 +161,17 @@ test("les suites en chiffres romains sont regroupées uniquement pour ANIME/MANG
       { source_id: "roman-anime-2", franchise: "Black Butler" },
       { source_id: "roman-anime-3", franchise: "Black Butler" },
       { source_id: "roman-anime-base", franchise: "Black Butler" },
+      {
+        source_id: "roman-anime-colon",
+        franchise: "Honkai Impact 3rd - Reburn"
+      },
       { source_id: "roman-anime-link", franchise: "Another Anime" },
+      { source_id: "roman-anime-v", franchise: "Combattler V" },
+      {
+        source_id: "roman-anime-word",
+        franchise: "Yakuza Fiancé: Raise wa Tanin ga Ii"
+      },
+      { source_id: "roman-anime-x", franchise: "BEYBLADE X" },
       { source_id: "roman-film", franchise: "Black Butler II" }
     ]
   );

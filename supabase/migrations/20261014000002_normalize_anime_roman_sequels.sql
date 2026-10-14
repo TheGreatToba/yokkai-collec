@@ -10,21 +10,21 @@ as $$
   select case
     when btrim(regexp_replace(
       public.normalize_card_franchise(value),
-      '[[:space:]]+(ii|iii|iv|v|vi|vii|viii|ix|x)[[:space:]]*$',
+      '([[:space:]]+|[[:space:]]*[:-][[:space:]]*)(II|III|IV)[[:space:]]*$',
       '',
-      'i'
+      ''
     )) = '' then public.normalize_card_franchise(value)
     else btrim(regexp_replace(
       public.normalize_card_franchise(value),
-      '[[:space:]]+(ii|iii|iv|v|vi|vii|viii|ix|x)[[:space:]]*$',
+      '([[:space:]]+|[[:space:]]*[:-][[:space:]]*)(II|III|IV)[[:space:]]*$',
       '',
-      'i'
+      ''
     ))
   end
 $$;
 
 comment on function public.normalize_anime_franchise(text) is
-  'Canonicalizes ANIME/MANGA franchises, including standalone Roman-numeral sequel suffixes II-X.';
+  'Canonicalizes ANIME/MANGA franchises, including standalone Roman-numeral sequel suffixes II-IV.';
 
 create or replace function public.normalize_card_franchise_before_write()
 returns trigger
