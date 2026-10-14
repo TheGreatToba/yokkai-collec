@@ -727,14 +727,6 @@ export function ProfileExperience({
   const [wishlistLimit, setWishlistLimit] = useState(28);
   useEffect(() => {
     let active = true;
-    setProfile(undefined);
-    setError("");
-    setWishlist([]);
-    setWishlistLimit(28);
-    setDetails(undefined);
-    setDetailsError("");
-    setTab("tableau");
-    setFriendCards(undefined);
     if (adapter.details)
       void adapter.details(identifier).then(
         data => {

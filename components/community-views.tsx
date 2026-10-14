@@ -1756,6 +1756,7 @@ export function ProfileView({
 }) {
   return (
     <ProfileExperience
+      key={identifier ?? "self"}
       identifier={isMe ? undefined : identifier}
       collection={cards}
       joined={joined}

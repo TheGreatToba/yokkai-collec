@@ -45,7 +45,8 @@ try {
     if (!pending.has(message.id)) return;
     const { resolve, reject } = pending.get(message.id);
     pending.delete(message.id);
-    message.error ? reject(message.error) : resolve(message.result);
+    if (message.error) reject(message.error);
+    else resolve(message.result);
   });
   const send = (method, params = {}) =>
     new Promise((resolve, reject) => {

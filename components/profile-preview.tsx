@@ -39,7 +39,6 @@ export function ProfilePreview() {
   const visitor = params.get("visitor") === "1";
   const privateProfile = params.get("private") === "1";
   const adapter = useMemo<ProfileAdapter>(() => {
-    let interests = initial;
     const friends = [
       { id: "friend-1", pseudo: "Kitsune" },
       { id: "friend-2", pseudo: "Sakura" },
@@ -67,14 +66,11 @@ export function ProfilePreview() {
           createdAt: "2026-10-13T10:00:00Z"
         })),
       blocked: async () => [],
-      saveInterests: async value => {
-        interests = value;
-        return value;
-      },
+      saveInterests: async value => value,
       details: async () =>
         ({
           joinedAt: "2025-11-21T10:00:00Z",
-          interests,
+          interests: initial,
           boostersOpened: privateProfile ? null : 824,
           lrCount: privateProfile ? null : 12,
           ssrCount: privateProfile ? null : 86,
@@ -113,7 +109,10 @@ export function ProfilePreview() {
         <p className="eyebrow">Aperçu local · données de démonstration</p>
         <h1 className="yk-title mt-3">Profil du collectionneur</h1>
         <div className="mt-8">
-          <ProfileExperience adapter={adapter} />
+          <ProfileExperience
+            key={`${visitor}:${privateProfile}`}
+            adapter={adapter}
+          />
         </div>
       </main>
     </>
