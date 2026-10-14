@@ -6,6 +6,7 @@ import { PresenceHeartbeat } from "@/components/presence-heartbeat";
 import "./globals.css";
 import "../styles/ui.css";
 import "../styles/community.css";
+import "../styles/profile.css";
 import "../styles/collection.css";
 import "../styles/boosters.css";
 import "../styles/market.css";

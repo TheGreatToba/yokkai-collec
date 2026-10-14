@@ -23,8 +23,12 @@ import {
   getFriendPaniniAlbumCardsPage,
   getFriendPaniniAlbumsPage,
   getProfile,
+  getProfileDetails,
   saveProfile,
+  saveProfileInterests,
   uploadAvatar,
+  type ProfileDetails,
+  type ProfileInterests,
   type Profile
 } from "@/lib/data/profile";
 import { getWishlist, type WishlistCard } from "@/lib/data/wishlist";
@@ -33,6 +37,139 @@ import { matchesCardSearch } from "@/lib/ui/card-search";
 const FEATURED_CARD_LIMIT = 5;
 const PROFILE_CARD_IMAGE_SIZES =
   "(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 190px";
+
+const INTEREST_SECTIONS: {
+  key: keyof ProfileInterests;
+  label: string;
+  icon: string;
+  placeholder: string;
+}[] = [
+  {
+    key: "anime",
+    label: "Animes & mangas favoris",
+    icon: "✧",
+    placeholder: "One Piece\nNoragami\nBlack Butler"
+  },
+  {
+    key: "games",
+    label: "Jeux préférés",
+    icon: "⌘",
+    placeholder: "Final Fantasy VII\nSilent Hill\nHollow Knight"
+  },
+  {
+    key: "kpop",
+    label: "Groupes de K-pop",
+    icon: "♫",
+    placeholder: "BTS\nBLACKPINK\nTWICE"
+  },
+  {
+    key: "other",
+    label: "Mes autres coups de cœur",
+    icon: "♡",
+    placeholder: "Films, artistes, séries…"
+  }
+];
+
+function ProfilePrivate() {
+  return (
+    <p className="yk-profile-empty">
+      Cette collection est privée. Son activité et ses classeurs sont réservés
+      aux personnes autorisées.
+    </p>
+  );
+}
+
+function PreferencesEditor({
+  interests,
+  save,
+  onSaved
+}: {
+  interests: ProfileInterests;
+  save: typeof saveProfileInterests;
+  onSaved: (value: ProfileInterests) => void;
+}) {
+  const [values, setValues] = useState(
+    () =>
+      Object.fromEntries(
+        INTEREST_SECTIONS.map(section => [
+          section.key,
+          interests[section.key].join("\n")
+        ])
+      ) as Record<keyof ProfileInterests, string>
+  );
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  return (
+    <form
+      className="yk-profile-preferences-form"
+      onSubmit={async event => {
+        event.preventDefault();
+        if (busy) return;
+        const next = Object.fromEntries(
+          INTEREST_SECTIONS.map(section => [
+            section.key,
+            [
+              ...new Set(
+                values[section.key]
+                  .split("\n")
+                  .map(value => value.trim())
+                  .filter(Boolean)
+              )
+            ]
+          ])
+        ) as ProfileInterests;
+        if (
+          Object.values(next).some(
+            items => items.length > 12 || items.some(item => item.length > 100)
+          )
+        ) {
+          setError("Maximum 12 favoris par section, 100 caractères par titre.");
+          return;
+        }
+        setBusy(true);
+        setError("");
+        try {
+          onSaved(await save(next));
+        } catch (reason) {
+          setError(
+            reason instanceof Error
+              ? reason.message
+              : "Enregistrement impossible."
+          );
+        } finally {
+          setBusy(false);
+        }
+      }}
+    >
+      <p className="yk-profile-muted">
+        Un favori par ligne, dans l’ordre de ton choix. Jusqu’à 12 par section.
+      </p>
+      {INTEREST_SECTIONS.map(section => (
+        <label key={section.key}>
+          {section.label}
+          <textarea
+            className="auth-input"
+            rows={4}
+            maxLength={1212}
+            value={values[section.key]}
+            placeholder={section.placeholder}
+            onChange={event =>
+              setValues({ ...values, [section.key]: event.target.value })
+            }
+          />
+        </label>
+      ))}
+      {error && (
+        <p role="alert" className="text-danger-ink">
+          {error}
+        </p>
+      )}
+      <Button disabled={busy} type="submit">
+        {busy ? "Enregistrement…" : "Enregistrer mon tableau"}
+      </Button>
+    </form>
+  );
+}
 
 function Featured({
   cards,
@@ -550,11 +687,15 @@ export type ProfileAdapter = {
   blocked: typeof listBlockedUsers;
   moderation?: ModerationAdapter;
   friendAction?: FriendActionAdapter;
+  details?: typeof getProfileDetails;
+  saveInterests?: typeof saveProfileInterests;
 };
 const liveProfile: ProfileAdapter = {
   profile: getProfile,
   wishlist: getWishlist,
-  blocked: listBlockedUsers
+  blocked: listBlockedUsers,
+  details: getProfileDetails,
+  saveInterests: saveProfileInterests
 };
 export function ProfileExperience({
   identifier,
@@ -578,6 +719,38 @@ export function ProfileExperience({
   const [wishlistOpen, setWishlistOpen] = useState(false);
   const [friendCards, setFriendCards] = useState<CollectedCard[]>();
   const [collectionError, setCollectionError] = useState("");
+  const [tab, setTab] = useState("tableau");
+  const [details, setDetails] = useState<ProfileDetails>();
+  const [detailsError, setDetailsError] = useState("");
+  const [preferencesOpen, setPreferencesOpen] = useState(false);
+  const [mutualOnly, setMutualOnly] = useState(false);
+  const [wishlistLimit, setWishlistLimit] = useState(28);
+  useEffect(() => {
+    let active = true;
+    setProfile(undefined);
+    setError("");
+    setWishlist([]);
+    setWishlistLimit(28);
+    setDetails(undefined);
+    setDetailsError("");
+    setTab("tableau");
+    setFriendCards(undefined);
+    if (adapter.details)
+      void adapter.details(identifier).then(
+        data => {
+          if (active) setDetails(data);
+        },
+        () => {
+          if (active)
+            setDetailsError(
+              "Les statistiques et le tableau sont temporairement indisponibles."
+            );
+        }
+      );
+    return () => {
+      active = false;
+    };
+  }, [identifier, adapter]);
   const loadFriendPaniniAlbums = useCallback(
     (options: Parameters<typeof getFriendPaniniAlbumsPage>[1]) => {
       if (!profile) return Promise.reject(new Error("Profil indisponible."));
@@ -669,202 +842,494 @@ export function ProfileExperience({
     : [];
   return (
     <>
-      <div
-        className={`yk-profile-banner ${profile.bannerCard ? "has-image" : ""}`}
-      >
-        {profile.bannerCard && (
-          <>
-            <img
-              src={profile.bannerCard.image}
-              alt=""
-              aria-hidden="true"
-              decoding="async"
-            />
-            <span className="yk-profile-banner-shade" />
-            <span className="yk-profile-banner-label">
-              <strong>{profile.bannerCard.name}</strong>
-              <small>
-                {profile.bannerCard.anime ?? profile.bannerCard.category}
-              </small>
-            </span>
-          </>
-        )}
-      </div>
-      <div className="relative -mt-14 flex flex-wrap items-end justify-between gap-5 px-6">
-        <div>
-          <Avatar
-            name={profile.pseudo}
-            image={profile.avatarUrl ?? undefined}
-            size={112}
-          />
-          <h2 className="mt-5 font-display text-[30px]">{profile.pseudo}</h2>
-          {profile.bio ? (
-            <p className="mt-3 max-w-2xl whitespace-pre-wrap text-sm leading-6 text-ink-2">
-              {profile.bio}
-            </p>
-          ) : (
-            <p className="mt-3 text-sm italic text-ink-3">
-              Aucune bio pour le moment.
+      <div className="yk-profile-hub">
+        <section className="yk-profile-main">
+          <nav className="yk-profile-tabs" aria-label="Sections du profil">
+            {[
+              ["tableau", "Tableau"],
+              ["activity", "Activité"],
+              ["wishlist", "Wishlist"],
+              ...(profile.friendsVisible ? [["friends", "Amis"]] : []),
+              ["completion", "Complétion"]
+            ].map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                aria-pressed={tab === key}
+                onClick={() => setTab(key)}
+                className={tab === key ? "is-active" : ""}
+              >
+                {label}
+                {key === "wishlist" && <span>{wishlist.length}</span>}
+                {key === "friends" && <span>{friends.length}</span>}
+              </button>
+            ))}
+          </nav>
+          {detailsError && (
+            <p role="status" className="yk-profile-notice">
+              {detailsError}
             </p>
           )}
-          {isMe && joined && (
-            <p className="mt-2 text-xs text-ink-3">
-              Membre depuis le{" "}
-              {new Date(joined).toLocaleDateString("fr-FR", {
-                dateStyle: "long"
-              })}
-            </p>
-          )}
-        </div>
-        {isMe ? (
-          <Button variant="secondary" onClick={() => setEditing(true)}>
-            Modifier le profil
-          </Button>
-        ) : (
-          <div className="flex items-center gap-3">
-            <FriendAction
-              key={`${profile.id}:${profile.friendshipStatus}:${blockedByMe}`}
-              userId={profile.id}
-              status={profile.friendshipStatus}
-              blockedByMe={blockedByMe}
-              adapter={adapter.friendAction}
-              onUnblocked={afterUnblock}
-            />
-            <PlayerModeration
-              userId={profile.id}
-              pseudo={profile.pseudo}
-              blockedByMe={blockedByMe}
-              adapter={adapter.moderation}
-              onBlocked={afterBlock}
-            />
-          </div>
-        )}
-      </div>
-      <div
-        className={`my-8 grid grid-cols-2 gap-3 ${profile.friendsVisible ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}
-      >
-        {!isMe && profile.canViewCollection ? (
-          <button
-            type="button"
-            className="rounded-panel border border-veil bg-surface p-5 text-left transition hover:border-accent-gold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-gold"
-            onClick={() => void openFriendCollection()}
-            aria-label={`Voir les ${profile.cardCount} cartes de ${profile.pseudo}`}
-          >
-            <p className="text-xs text-ink-3">Cartes</p>
-            <p className="mt-3 font-display text-2xl">{profile.cardCount}</p>
-            <span className="mt-2 block text-xs text-accent-gold">
-              Voir la collection →
-            </span>
-          </button>
-        ) : (
-          <div className="rounded-panel border border-veil bg-surface p-5">
-            <p className="text-xs text-ink-3">Cartes</p>
-            <p className="mt-3 font-display text-2xl">
-              {profile.canViewCollection ? profile.cardCount : "Privée"}
-            </p>
-          </div>
-        )}
-        <div className="rounded-panel border border-veil bg-surface p-5">
-          <p className="text-xs text-ink-3">Différentes</p>
-          <p className="mt-3 font-display text-2xl">
-            {profile.canViewCollection ? profile.distinctCardCount : "Privée"}
-          </p>
-        </div>
-        {profile.friendsVisible && (
-          <div className="rounded-panel border border-veil bg-surface p-5">
-            <p className="text-xs text-ink-3">Amis</p>
-            <p className="mt-3 font-display text-2xl">{friends.length}</p>
-          </div>
-        )}
-        {profile.friendshipStatus === "accepted" ? (
-          <button
-            type="button"
-            className="rounded-panel border border-veil bg-surface p-5 text-left transition hover:border-accent-gold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-gold"
-            onClick={() => setWishlistOpen(true)}
-            aria-label={`Voir les ${wishlist.length} cartes de la wishlist de ${profile.pseudo}`}
-          >
-            <p className="text-xs text-ink-3">Wishlist</p>
-            <p className="mt-3 font-display text-2xl">{wishlist.length}</p>
-            <span className="mt-2 block text-xs text-accent-gold">
-              Voir la wishlist →
-            </span>
-          </button>
-        ) : (
-          <div className="rounded-panel border border-veil bg-surface p-5">
-            <p className="text-xs text-ink-3">Wishlist</p>
-            <p className="mt-3 font-display text-2xl">{wishlist.length}</p>
-          </div>
-        )}
-      </div>
-      <div className={profile.friendsVisible ? "yk-profile-columns" : ""}>
-        <section>
-          <h3 className="yk-section-title">Cartes mises en avant</h3>
-          <Featured cards={profile.featuredCards} />
-          <h3 className="yk-section-title mt-10">Wishlist</h3>
-          {wishlist.length ? (
-            <div className="yk-card-grid yk-profile-wishlist-preview mt-5">
-              {wishlist.slice(0, 6).map(card => (
-                <Link
-                  href={`/recherche?carte=${card.id}`}
-                  key={card.id}
-                  className="rounded-panel border border-veil bg-surface p-3 hover:border-accent-gold"
+          <div hidden={tab !== "tableau"} className="yk-profile-panel">
+            <div className="yk-profile-section-heading">
+              <div>
+                <p className="eyebrow">Son univers</p>
+                <h2>Le tableau de {profile.pseudo}</h2>
+              </div>
+              {isMe && (
+                <Button
+                  variant="secondary"
+                  disabled={!details}
+                  onClick={() => setPreferencesOpen(true)}
                 >
-                  <YokaiCard
-                    {...card}
-                    animated={false}
-                    imageSizes={PROFILE_CARD_IMAGE_SIZES}
-                  />
-                </Link>
+                  Personnaliser mon tableau
+                </Button>
+              )}
+            </div>
+            <div className="yk-profile-interests">
+              {INTEREST_SECTIONS.map(section => (
+                <section key={section.key} className="yk-profile-surface">
+                  <div className="yk-profile-section-heading">
+                    <h3>
+                      <span aria-hidden="true">{section.icon}</span>{" "}
+                      {section.label}
+                    </h3>
+                    <span className="yk-profile-muted">
+                      {details?.interests[section.key]?.length ?? 0}
+                    </span>
+                  </div>
+                  {details?.interests[section.key]?.length ? (
+                    <ol className="yk-profile-taste-list">
+                      {details.interests[section.key].map((name, index) => (
+                        <li key={index}>
+                          <span className="yk-profile-taste-number">
+                            {String(index + 1).padStart(2, "0")}
+                          </span>
+                          <strong>{name}</strong>
+                        </li>
+                      ))}
+                    </ol>
+                  ) : (
+                    <p className="yk-profile-empty">
+                      {isMe
+                        ? "Ajoute tes favoris pour partager ce que tu aimes."
+                        : "Ses favoris apparaîtront ici."}
+                    </p>
+                  )}
+                </section>
               ))}
             </div>
-          ) : (
-            <p className="mt-4 text-sm text-ink-3">
-              Aucune carte souhaitée pour le moment.
-            </p>
-          )}
-          {isMe && collection ? (
-            <>
-              <h3 className="yk-section-title mt-10">Ma collection</h3>
-              <p className="mt-3 text-sm text-ink-3">
-                Retrouvez la gestion complète dans l’onglet Collection.
-              </p>
-              <Link
-                className="yk-button yk-button-secondary mt-5 inline-flex"
-                href="/collection"
-              >
-                Ouvrir ma collection
-              </Link>
-            </>
-          ) : null}
-        </section>
-        {profile.friendsVisible && (
-          <aside className="h-fit rounded-panel border border-veil bg-surface p-5">
-            <h3 className="yk-section-title">Amis</h3>
-            {friends.length ? (
-              <ul className="mt-5 space-y-3">
-                {friends.map(friend => (
-                  <li key={friend.id}>
+            <section className="yk-profile-surface">
+              <div className="yk-profile-section-heading">
+                <h3 className="yk-section-title">Cartes mises en avant</h3>
+                <span className="yk-profile-muted">Sa vitrine</span>
+              </div>
+              <Featured cards={profile.featuredCards} />
+            </section>
+          </div>
+          <div hidden={tab !== "activity"} className="yk-profile-panel">
+            <div className="yk-profile-section-heading">
+              <div>
+                <p className="eyebrow">Le fil du collectionneur</p>
+                <h2>Activité récente</h2>
+              </div>
+              <span className="yk-profile-muted">20 dernières activités</span>
+            </div>
+            {!profile.canViewCollection ? (
+              <ProfilePrivate />
+            ) : details?.activity.length ? (
+              <ol className="yk-profile-activity">
+                {details.activity.map(event => (
+                  <li
+                    key={event.kind + event.id}
+                    className="yk-profile-surface"
+                  >
                     <Link
-                      href={`/profil/${encodeURIComponent(friend.pseudo)}`}
-                      className="flex items-center gap-3 rounded-input p-2 hover:bg-veil"
+                      href={`/recherche?carte=${event.card.id}`}
+                      className="yk-profile-activity-image"
                     >
-                      <Avatar
-                        name={friend.pseudo}
-                        image={friend.avatarUrl ?? undefined}
+                      <img
+                        src={event.card.image}
+                        alt={event.card.name}
+                        loading="lazy"
+                        decoding="async"
                       />
-                      <span className="min-w-0 truncate font-display">
-                        {friend.pseudo}
-                      </span>
                     </Link>
+                    <div>
+                      <p className={`yk-profile-event-label is-${event.kind}`}>
+                        {event.kind === "sold"
+                          ? "Carte vendue"
+                          : event.kind === "bought"
+                            ? "Carte achetée"
+                            : "Carte obtenue"}
+                      </p>
+                      <Link href={`/recherche?carte=${event.card.id}`}>
+                        <h3>{event.card.name}</h3>
+                      </Link>
+                      <p className="yk-profile-muted">
+                        {event.card.anime || event.card.category}{" "}
+                        <span
+                          className={`text-rarity-${event.card.rarity.toLowerCase()}`}
+                        >
+                          · {event.card.rarity}
+                        </span>
+                      </p>
+                      {event.price !== undefined && (
+                        <p className="yk-profile-event-price">
+                          {event.price.toLocaleString("fr-FR")} Karas
+                        </p>
+                      )}
+                    </div>
+                    <time dateTime={event.at}>
+                      {new Date(event.at).toLocaleDateString("fr-FR", {
+                        day: "numeric",
+                        month: "short"
+                      })}
+                    </time>
                   </li>
                 ))}
-              </ul>
+              </ol>
             ) : (
-              <p className="mt-5 text-sm text-ink-3">Aucun ami à afficher.</p>
+              <p className="yk-profile-empty">
+                {details
+                  ? "Aucune activité à afficher pour le moment."
+                  : detailsError
+                    ? "L’activité est temporairement indisponible."
+                    : "Chargement de l’activité…"}
+              </p>
             )}
-          </aside>
-        )}
+          </div>
+          <div hidden={tab !== "wishlist"} className="yk-profile-panel">
+            <div className="yk-profile-section-heading">
+              <div>
+                <p className="eyebrow">À la recherche de</p>
+                <h2>Wishlist</h2>
+              </div>
+              <span className="yk-profile-muted">{wishlist.length} cartes</span>
+            </div>
+            {wishlist.length ? (
+              <div className="yk-card-grid yk-profile-wishlist-preview mt-5">
+                {wishlist.slice(0, wishlistLimit).map(card => (
+                  <Link
+                    href={`/recherche?carte=${card.id}`}
+                    key={card.id}
+                    aria-label={`Voir ${card.name} dans le catalogue`}
+                  >
+                    <CardShell>
+                      <YokaiCard
+                        {...card}
+                        animated={false}
+                        imageSizes={PROFILE_CARD_IMAGE_SIZES}
+                      />
+                    </CardShell>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="yk-profile-empty">
+                Aucune carte souhaitée pour le moment.
+              </p>
+            )}
+            {wishlist.length > wishlistLimit && (
+              <Button
+                variant="secondary"
+                onClick={() => setWishlistLimit(current => current + 28)}
+              >
+                Afficher plus de cartes
+              </Button>
+            )}
+          </div>
+          {profile.friendsVisible && (
+            <div hidden={tab !== "friends"} className="yk-profile-panel">
+              <div className="yk-profile-section-heading">
+                <div>
+                  <p className="eyebrow">Sa communauté</p>
+                  <h3>Amis</h3>
+                </div>
+                {!isMe && (
+                  <button
+                    type="button"
+                    className="yk-profile-filter"
+                    aria-pressed={mutualOnly}
+                    onClick={() => setMutualOnly(!mutualOnly)}
+                  >
+                    Amis en commun · {details?.mutualFriends.length ?? 0}
+                  </button>
+                )}
+              </div>
+              {(mutualOnly ? (details?.mutualFriends ?? []) : friends)
+                .length ? (
+                <ul className="yk-profile-friend-list">
+                  {(mutualOnly ? (details?.mutualFriends ?? []) : friends).map(
+                    friend => (
+                      <li key={friend.id}>
+                        <Link
+                          href={`/profil/${encodeURIComponent(friend.pseudo)}`}
+                        >
+                          <Avatar
+                            name={friend.pseudo}
+                            image={friend.avatarUrl ?? undefined}
+                            size={48}
+                          />
+                          <span>
+                            <strong>{friend.pseudo}</strong>
+                            {details?.mutualFriends.some(
+                              common => common.id === friend.id
+                            ) && <small>Ami en commun</small>}
+                          </span>
+                          <span
+                            className="yk-profile-friend-arrow"
+                            aria-hidden="true"
+                          >
+                            ↗
+                          </span>
+                        </Link>
+                      </li>
+                    )
+                  )}
+                </ul>
+              ) : (
+                <p className="yk-profile-empty">
+                  {mutualOnly
+                    ? "Vous n’avez pas d’amis en commun."
+                    : "Aucun ami à afficher."}
+                </p>
+              )}
+            </div>
+          )}
+          <div hidden={tab !== "completion"} className="yk-profile-panel">
+            <div className="yk-profile-section-heading">
+              <div>
+                <p className="eyebrow">Ses univers</p>
+                <h2>Complétion</h2>
+              </div>
+              <span className="yk-profile-muted">Classeurs favoris</span>
+            </div>
+            {!profile.canViewCollection ? (
+              <ProfilePrivate />
+            ) : details?.favoriteAlbums.length ? (
+              <section className="yk-profile-surface">
+                <div className="yk-profile-completion-summary">
+                  <strong>
+                    {
+                      details.favoriteAlbums.filter(
+                        album => album.owned === album.total
+                      ).length
+                    }
+                  </strong>
+                  <span>
+                    classeurs favoris complétés{" "}
+                    <small>sur {details.favoriteAlbums.length} favoris</small>
+                  </span>
+                </div>
+                <ul className="yk-profile-album-progress">
+                  {details.favoriteAlbums.map(album => (
+                    <li key={album.license}>
+                      <div>
+                        <strong>
+                          <span aria-hidden="true">★</span> {album.license}
+                        </strong>
+                        <span>
+                          {album.owned} / {album.total}
+                        </span>
+                      </div>
+                      <progress
+                        max={album.total}
+                        value={album.owned}
+                        aria-label={`Complétion de ${album.license}`}
+                      />
+                      <small>{album.percent}% complété</small>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : !details ? (
+              <p className="yk-profile-empty">
+                {detailsError
+                  ? "La progression des classeurs est temporairement indisponible."
+                  : "Chargement de la progression…"}
+              </p>
+            ) : (
+              <div className="yk-profile-surface yk-profile-completion-empty">
+                <span aria-hidden="true">☆</span>
+                <h3>Aucun classeur favori pour le moment</h3>
+                <p>
+                  Les classeurs marqués d’une étoile apparaîtront ici avec leur
+                  progression.
+                </p>
+                {isMe && (
+                  <Link
+                    className="yk-button yk-button-secondary"
+                    href="/collection"
+                  >
+                    Choisir mes classeurs favoris
+                  </Link>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+        <aside className="yk-profile-identity">
+          <div
+            className={`yk-profile-banner ${profile.bannerCard ? "has-image" : ""}`}
+          >
+            {profile.bannerCard && (
+              <>
+                <img
+                  src={profile.bannerCard.image}
+                  alt=""
+                  aria-hidden="true"
+                  decoding="async"
+                />
+                <span className="yk-profile-banner-shade" />
+              </>
+            )}
+          </div>
+          <div className="yk-profile-identity-content">
+            <div className="yk-profile-avatar">
+              <Avatar
+                name={profile.pseudo}
+                image={profile.avatarUrl ?? undefined}
+                size={96}
+              />
+            </div>
+            <span className="yk-profile-identity-label">COLLECTIONNEUR</span>
+            <h2>{profile.pseudo}</h2>
+            <p className="yk-profile-bio">
+              {profile.bio || "Aucune bio pour le moment."}
+            </p>
+            <div className="yk-profile-actions">
+              {isMe ? (
+                <Button variant="secondary" onClick={() => setEditing(true)}>
+                  Modifier le profil
+                </Button>
+              ) : (
+                <>
+                  <FriendAction
+                    key={`${profile.id}:${profile.friendshipStatus}:${blockedByMe}`}
+                    userId={profile.id}
+                    status={profile.friendshipStatus}
+                    blockedByMe={blockedByMe}
+                    adapter={adapter.friendAction}
+                    onUnblocked={afterUnblock}
+                  />
+                  <PlayerModeration
+                    userId={profile.id}
+                    pseudo={profile.pseudo}
+                    blockedByMe={blockedByMe}
+                    adapter={adapter.moderation}
+                    onBlocked={afterBlock}
+                  />
+                </>
+              )}
+            </div>
+            <div className="yk-profile-member">
+              <p>Membre depuis</p>
+              <strong>
+                {details?.joinedAt || (isMe && joined)
+                  ? new Date(details?.joinedAt || joined!).toLocaleDateString(
+                      "fr-FR",
+                      { dateStyle: "long" }
+                    )
+                  : "—"}
+              </strong>
+            </div>
+            <div className="yk-profile-side-stats">
+              <div>
+                <p>Boosters ouverts</p>
+                <strong>
+                  {profile.canViewCollection
+                    ? (details?.boostersOpened?.toLocaleString("fr-FR") ?? "—")
+                    : "Privé"}
+                </strong>
+              </div>
+              <div className="is-lr">
+                <p>✦ LR</p>
+                <strong>
+                  {profile.canViewCollection
+                    ? (details?.lrCount?.toLocaleString("fr-FR") ?? "—")
+                    : "Privé"}
+                </strong>
+              </div>
+              <div className="is-ssr">
+                <p>✦ SSR</p>
+                <strong>
+                  {profile.canViewCollection
+                    ? (details?.ssrCount?.toLocaleString("fr-FR") ?? "—")
+                    : "Privé"}
+                </strong>
+              </div>
+            </div>
+            <div className="yk-profile-side-counts">
+              {!isMe && profile.canViewCollection ? (
+                <button
+                  type="button"
+                  onClick={() => void openFriendCollection()}
+                  aria-label={`Voir les ${profile.cardCount} cartes de ${profile.pseudo}`}
+                >
+                  <p>Cartes</p>
+                  <strong>{profile.cardCount}</strong>
+                  <span>Voir la collection →</span>
+                </button>
+              ) : (
+                <Link href="/collection">
+                  <p>Cartes</p>
+                  <strong>
+                    {profile.canViewCollection ? profile.cardCount : "Privée"}
+                  </strong>
+                </Link>
+              )}
+              <div>
+                <p>Différentes</p>
+                <strong>
+                  {profile.canViewCollection
+                    ? profile.distinctCardCount
+                    : "Privée"}
+                </strong>
+              </div>
+              {profile.friendsVisible && (
+                <button type="button" onClick={() => setTab("friends")}>
+                  <p>Amis</p>
+                  <p>{friends.length}</p>
+                </button>
+              )}
+              {profile.friendshipStatus === "accepted" ? (
+                <button
+                  type="button"
+                  onClick={() => setWishlistOpen(true)}
+                  aria-label={`Voir les ${wishlist.length} cartes de la wishlist de ${profile.pseudo}`}
+                >
+                  <p>Wishlist</p>
+                  <strong>{wishlist.length}</strong>
+                  <span>Voir la wishlist →</span>
+                </button>
+              ) : (
+                <button type="button" onClick={() => setTab("wishlist")}>
+                  <p>Wishlist</p>
+                  <strong>{wishlist.length}</strong>
+                </button>
+              )}
+            </div>
+          </div>
+        </aside>
       </div>
+      <Modal
+        open={preferencesOpen}
+        onClose={() => setPreferencesOpen(false)}
+        title="Personnaliser mon tableau"
+      >
+        {details && (
+          <PreferencesEditor
+            interests={details.interests}
+            save={adapter.saveInterests ?? saveProfileInterests}
+            onSaved={interests => {
+              setDetails({ ...details, interests });
+              setPreferencesOpen(false);
+              setToast("Tableau mis à jour");
+            }}
+          />
+        )}
+      </Modal>
       <Modal
         open={collectionOpen}
         onClose={() => setCollectionOpen(false)}

@@ -49,6 +49,8 @@ const allowlist = {
   "public.get_my_active_auction_cards()": ["authenticated"], // Reads the current player's auctioned cards.
   "public.get_pack_destruction_values(uuid[])": ["authenticated"], // Estimates rewards for the player's eligible cards.
   "public.get_profile(text)": ["authenticated"], // Profile view applies viewer privacy rules.
+  "public.get_profile_details(text)": ["authenticated"], // Calls get_profile first; inventory, activity and favorites obey its collection privacy; mutual friends obey friendsVisible.
+  "public.update_profile_interests(jsonb)": ["authenticated"], // Bounded preferences update only auth.uid() after authenticated profile lookup.
   "public.get_profile_privacy()": ["authenticated"], // Reads the current player's privacy setting.
   "public.get_public_profile(uuid)": ["authenticated"], // Exposes the permitted public profile projection.
   "public.get_regular_pack_status()": ["authenticated"], // Reads the current player's pack timers.
