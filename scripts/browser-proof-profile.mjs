@@ -95,6 +95,9 @@ try {
     await writeFile(new URL(name, output), Buffer.from(data, "base64"));
   };
   const assertAlignedProfile = async label => {
+    await waitFor(
+      "(() => {const counts=document.querySelector('.yk-profile-side-counts').getBoundingClientRect();const stats=document.querySelector('.yk-profile-side-stats').getBoundingClientRect();const member=document.querySelector('.yk-profile-member').getBoundingClientRect();return counts.bottom <= stats.top && stats.bottom <= member.top;})()"
+    );
     await waitFor("document.documentElement.scrollWidth <= window.innerWidth");
     await waitFor(
       "(() => {const left=document.querySelector('.yk-profile-identity').getBoundingClientRect(); const right=document.querySelector('.yk-profile-main').getBoundingClientRect(); const showcase=document.querySelector('.yk-profile-main .yk-profile-panel:not([hidden]) > section:last-child').getBoundingClientRect(); return Math.abs(left.bottom-right.bottom) < 1 && Math.abs(left.bottom-showcase.bottom) < 1;})()"
@@ -418,6 +421,12 @@ try {
     mobile: true
   });
   await capture("mobile.png");
+  assert.ok(
+    await evaluate(
+      "(() => {const counts=document.querySelector('.yk-profile-side-counts').getBoundingClientRect();const stats=document.querySelector('.yk-profile-side-stats').getBoundingClientRect();const member=document.querySelector('.yk-profile-member').getBoundingClientRect();return counts.bottom <= stats.top && stats.bottom <= member.top;})()"
+    ),
+    "Mobile keeps counts, boosters/rarities, then membership date"
+  );
   assert.ok(
     await evaluate("document.documentElement.scrollWidth <= window.innerWidth"),
     "No horizontal overflow on mobile"

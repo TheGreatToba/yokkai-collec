@@ -290,7 +290,7 @@ main:has(.yk-profile-hub) {
 }
 .yk-profile-member {
   border-top: 1px solid var(--color-veil);
-  padding: 20px 0;
+  padding: 20px 0 0;
 }
 .yk-profile-member p {
   font-size: 10px;
@@ -307,6 +307,7 @@ main:has(.yk-profile-hub) {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+  margin: 22px 0 24px;
 }
 .yk-profile-side-stats > div {
   padding: 14px;
@@ -341,7 +342,8 @@ main:has(.yk-profile-hub) {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-  margin-top: 22px;
+  border-top: 1px solid var(--color-veil);
+  padding-top: 20px;
 }
 .yk-profile-side-counts > * {
   background: none;
@@ -603,9 +605,8 @@ main:has(.yk-profile-hub) {
     display: flex;
     flex-direction: column;
   }
-  .yk-profile-hub[data-profile-tab="tableau"] .yk-profile-side-counts {
+  .yk-profile-hub[data-profile-tab="tableau"] .yk-profile-member {
     margin-top: auto;
-    padding-top: 22px;
   }
   .yk-profile-identity .yk-profile-banner {
     height: 190px;

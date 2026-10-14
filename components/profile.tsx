@@ -1413,43 +1413,6 @@ export function ProfileExperience({
                 </>
               )}
             </div>
-            <div className="yk-profile-member">
-              <p>Membre depuis</p>
-              <strong>
-                {details?.joinedAt || (isMe && joined)
-                  ? new Date(details?.joinedAt || joined!).toLocaleDateString(
-                      "fr-FR",
-                      { dateStyle: "long" }
-                    )
-                  : "—"}
-              </strong>
-            </div>
-            <div className="yk-profile-side-stats">
-              <div>
-                <p>Boosters ouverts</p>
-                <strong>
-                  {profile.canViewCollection
-                    ? (details?.boostersOpened?.toLocaleString("fr-FR") ?? "—")
-                    : "Privé"}
-                </strong>
-              </div>
-              <div className="is-lr">
-                <p>✦ LR</p>
-                <strong>
-                  {profile.canViewCollection
-                    ? (details?.lrCount?.toLocaleString("fr-FR") ?? "—")
-                    : "Privé"}
-                </strong>
-              </div>
-              <div className="is-ssr">
-                <p>✦ SSR</p>
-                <strong>
-                  {profile.canViewCollection
-                    ? (details?.ssrCount?.toLocaleString("fr-FR") ?? "—")
-                    : "Privé"}
-                </strong>
-              </div>
-            </div>
             <div className="yk-profile-side-counts">
               {!isMe && profile.canViewCollection ? (
                 <button
@@ -1499,6 +1462,43 @@ export function ProfileExperience({
                   <strong>{wishlist.length}</strong>
                 </button>
               )}
+            </div>
+            <div className="yk-profile-side-stats">
+              <div>
+                <p>Boosters ouverts</p>
+                <strong>
+                  {profile.canViewCollection
+                    ? (details?.boostersOpened?.toLocaleString("fr-FR") ?? "—")
+                    : "Privé"}
+                </strong>
+              </div>
+              <div className="is-lr">
+                <p>✦ LR</p>
+                <strong>
+                  {profile.canViewCollection
+                    ? (details?.lrCount?.toLocaleString("fr-FR") ?? "—")
+                    : "Privé"}
+                </strong>
+              </div>
+              <div className="is-ssr">
+                <p>✦ SSR</p>
+                <strong>
+                  {profile.canViewCollection
+                    ? (details?.ssrCount?.toLocaleString("fr-FR") ?? "—")
+                    : "Privé"}
+                </strong>
+              </div>
+            </div>
+            <div className="yk-profile-member">
+              <p>Membre depuis</p>
+              <strong>
+                {details?.joinedAt || (isMe && joined)
+                  ? new Date(details?.joinedAt || joined!).toLocaleDateString(
+                      "fr-FR",
+                      { dateStyle: "long" }
+                    )
+                  : "—"}
+              </strong>
             </div>
           </div>
         </aside>
