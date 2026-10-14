@@ -39,7 +39,10 @@ const CATEGORY_ALBUMS = new Set([
   "DISNEY CHANNEL",
   "FILM",
   "INTERNET PERSONALITY",
+  "KDRAMA",
   "KPOP",
+  "MEME",
+  "VOCALOID",
   "WWE"
 ]);
 
