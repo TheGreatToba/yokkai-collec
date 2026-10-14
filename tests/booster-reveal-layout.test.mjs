@@ -11,6 +11,26 @@ const css = readFileSync(
   new URL("../styles/boosters.css", import.meta.url),
   "utf8"
 );
+const boosters = readFileSync(
+  new URL("../components/boosters.tsx", import.meta.url),
+  "utf8"
+);
+
+test("l'ouverture isole le clavier et restaure le focus sans scroll", () => {
+  assert.match(boosters, /ref=\{openingStage\}/);
+  assert.match(
+    boosters,
+    /openingPhase === "seal"[\s\S]*?focus\(\{\s*preventScroll:\s*true\s*\}\)/
+  );
+  assert.match(boosters, /element\.inert = true/);
+  assert.match(boosters, /element\.inert = inert/);
+  assert.match(boosters, /trigger\?\.isConnected/);
+  assert.match(
+    boosters,
+    /event\.key\s*===\s*"Tab"[\s\S]*?event\.preventDefault\(\)/
+  );
+  assert.match(css, /\.yk-opening-stage:focus-visible/);
+});
 
 test("la révélation remonte les cartes et masque le grand en-tête de page", () => {
   assert.match(game, /yk-game-main/);

@@ -318,6 +318,8 @@ export function Boosters({ statusError, decisionError, onRetryRegular, onRetryDe
   const [decisionKaras, setDecisionKaras] = useState<number>();
   const [ratesKind, setRatesKind] = useState<"regular" | "decision" | null>(null);
   const openingLock = useRef(false);
+  const openingStage = useRef<HTMLDivElement>(null);
+  const openingTrigger = useRef<HTMLElement | null>(null);
   const skipSeal = useRef<(() => void) | null>(null);
   const preloading = useRef<Promise<void>>(Promise.resolve());
   const playSound = onSound ?? noopSound;
@@ -332,6 +334,7 @@ export function Boosters({ statusError, decisionError, onRetryRegular, onRetryDe
   }
   function start(kind: "regular" | "decision") {
     if (openingLock.current) return;
+    openingTrigger.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     openingLock.current = true;
     setPriorCopies(packCopySnapshot(collection, collectionReady));
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -350,9 +353,36 @@ export function Boosters({ statusError, decisionError, onRetryRegular, onRetryDe
   const revealCards = packCopyLabels(draw, priorCopies);
   const revealing = showDraw && draw.length > 0 && openingPhase === "idle" && !busy;
   const opening = openingPhase !== "idle";
+  useEffect(() => {
+    const stage = openingStage.current;
+    if (!opening || !stage) return;
+    const trigger = openingTrigger.current;
+    const main = stage.closest("main");
+    const background: { element: HTMLElement; inert: boolean }[] = [];
+    stage.focus({ preventScroll: true });
+    for (let branch: HTMLElement = stage; branch.parentElement; branch = branch.parentElement) {
+      for (const sibling of branch.parentElement.children) {
+        if (sibling === branch || !(sibling instanceof HTMLElement)) continue;
+        const element = sibling;
+        background.push({ element, inert: element.inert });
+        element.inert = true;
+      }
+      if (branch.parentElement === document.body) break;
+    }
+    return () => {
+      for (const { element, inert } of background) element.inert = inert;
+      const target = trigger?.isConnected && !trigger.matches(":disabled")
+        ? trigger
+        : (main ?? document).querySelector<HTMLElement>('button:not(:disabled), a[href], [tabindex="0"]');
+      target?.focus({ preventScroll: true });
+    };
+  }, [opening]);
+  useEffect(() => {
+    if (openingPhase === "seal") openingStage.current?.focus({ preventScroll: true });
+  }, [openingPhase]);
   const shownRates = ratesKind === "decision" ? decisionDropRates : dropRates;
   return <>
-        {opening ? <div className={`yk-opening-stage yk-opening-${openingPhase}`} role={openingPhase === "seal" ? "button" : "status"} tabIndex={openingPhase === "seal" ? 0 : -1} aria-label={openingPhase === "seal" ? "Passer l’animation d’ouverture" : undefined} onClick={finishSeal} onKeyDown={event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();finishSeal();}}}><div className="yk-opening-pack">
+        {opening ? <div ref={openingStage} className={`yk-opening-stage yk-opening-${openingPhase}`} role={openingPhase === "seal" ? "button" : "status"} tabIndex={openingPhase === "seal" ? 0 : -1} aria-label={openingPhase === "seal" ? "Passer l’animation d’ouverture" : undefined} onClick={finishSeal} onKeyDown={event=>{if(event.key === "Tab"){event.preventDefault();}else if(openingPhase === "seal" && (event.key==="Enter"||event.key===" ")){event.preventDefault();finishSeal();}}}><div className="yk-opening-pack">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={drawKind === "decision" ? "/assets/decision-booster-pack.png" : "/assets/booster-pack.png"} alt="" width={240} height={360} /></div><p className="mt-8 text-sm text-ink-2">{openingPhase === "seal" ? "Le sceau se brise…" : waiting ? "L’ouverture prend un peu plus de temps…" : "Ouverture du pack…"}</p></div> : revealing ? <BoosterReveal key={draw[0].instanceId} cards={revealCards} collection={collection} folders={folders} revealed={revealed} onReveal={onReveal} onReturn={() => setShowDraw(false)} onNext={drawKind === "regular" ? () => start("regular") : undefined} nextDisabled={!status || status.available === 0 || busy} nextLabel={status?.available === 0 ? `Prochain dans ${countdown}` : "Prochain booster"} onDiscard={drawKind === "regular" ? onDiscard : undefined} onAuction={drawKind === "regular" ? onAuction : undefined} onMoveCard={drawKind === "regular" ? onMoveCard : undefined} onSetLocked={drawKind === "regular" ? onSetLocked : undefined} onEvolve={drawKind === "regular" ? onEvolve : undefined} onSetCustomImage={drawKind === "regular" ? onSetCustomImage : undefined} decision={drawKind === "decision" ? { keptId, busy, karasReward: decisionKaras, onKeep: async id => { const reward = await onKeepDecision(id); setDecisionKaras(reward); setKeptId(id); return reward; } } : undefined} onSound={playSound} /> : <div className="yk-pack-grid">
       <article className="yk-pack-panel"><div className="yk-pack-art-stage"><span className="yk-pack-badge"><StatusPill>{status ? `${status.available}/${status.maximum} en réserve` : statusError ? "Indisponible" : "Réserve…"}</StatusPill></span><button type="button" className="yk-pack-info" aria-label="Voir les taux du Booster Régulier" onClick={()=>setRatesKind("regular")}><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></svg></button><span className="yk-pack-orbit" />
