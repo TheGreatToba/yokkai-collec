@@ -1,6 +1,6 @@
 # Profil avec tableau et onglets
 
-L’identité, la date d’inscription et les statistiques occupent un panneau à gauche sur ordinateur et passent au-dessus sur mobile. Le Tableau, l’Activité, la Wishlist, les Amis et la Complétion sont à droite.
+L’identité, la date d’inscription et les statistiques occupent un panneau à gauche sur ordinateur et passent au-dessus sur mobile. Le Tableau, l’Activité, la Wishlist, les Amis et la Complétion sont à droite. La page atteint 1440 px sur grand écran et le panneau gauche mesure de 360 à 440 px selon la largeur disponible ; sa bannière atteint 190 px et ses textes sont agrandis sur ordinateur, sans réduire l’espace des widgets à droite.
 
 Le Tableau permet de choisir jusqu’à douze widgets parmi toutes les catégories réellement présentes dans le catalogue. Les widgets peuvent être ajoutés, retirés et réordonnés. Chacun contient jusqu’à douze licences choisies dans une liste recherchable et paginée (72 par lot), filtrée par catégorie et incluant les licences secondaires. Aucun titre libre ne peut être ajouté. Cliquer une catégorie déjà présente ouvre son sélecteur sans supprimer le widget ; les choix restent visibles sous forme de badges retirables.
 

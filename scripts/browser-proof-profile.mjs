@@ -104,6 +104,47 @@ try {
   await navigate("");
   assert.ok(
     await evaluate(
+      "document.querySelector('.yk-profile-identity').getBoundingClientRect().width >= 400"
+    ),
+    "Desktop identity panel is wider than the former 320px"
+  );
+  assert.ok(
+    await evaluate(
+      "document.querySelector('.yk-profile-main').getBoundingClientRect().width >= 700"
+    ),
+    "The wider page preserves room for the tabs and widgets"
+  );
+  assert.equal(
+    await evaluate(
+      "getComputedStyle(document.querySelector('.yk-profile-identity .yk-profile-banner')).height"
+    ),
+    "190px"
+  );
+  await send("Emulation.setDeviceMetricsOverride", {
+    width: 1920,
+    height: 1080,
+    deviceScaleFactor: 1,
+    mobile: false
+  });
+  assert.ok(
+    await evaluate(
+      "document.querySelector('.yk-profile-identity').getBoundingClientRect().width >= 440"
+    ),
+    "Wide-screen profile uses the left-hand space"
+  );
+  assert.ok(
+    await evaluate("document.documentElement.scrollWidth <= window.innerWidth"),
+    "No desktop horizontal overflow"
+  );
+  await capture("desktop-wide.png");
+  await send("Emulation.setDeviceMetricsOverride", {
+    width: 1440,
+    height: 1000,
+    deviceScaleFactor: 1,
+    mobile: false
+  });
+  assert.ok(
+    await evaluate(
       "document.querySelector('.yk-profile-identity').getBoundingClientRect().right < document.querySelector('.yk-profile-main').getBoundingClientRect().left"
     ),
     "Identity is left of the tabs on desktop"
@@ -290,6 +331,21 @@ try {
     2
   );
   await capture("mutual-friends.png");
+  await send("Emulation.setDeviceMetricsOverride", {
+    width: 1024,
+    height: 900,
+    deviceScaleFactor: 1,
+    mobile: false
+  });
+  assert.ok(
+    await evaluate("document.documentElement.scrollWidth <= window.innerWidth"),
+    "No tablet-width horizontal overflow"
+  );
+  assert.ok(
+    await evaluate(
+      "document.querySelector('.yk-profile-identity').getBoundingClientRect().width >= 360"
+    )
+  );
   await send("Emulation.setDeviceMetricsOverride", {
     width: 390,
     height: 844,
