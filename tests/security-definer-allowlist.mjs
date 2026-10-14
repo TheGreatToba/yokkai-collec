@@ -50,6 +50,9 @@ const allowlist = {
   "public.get_pack_destruction_values(uuid[])": ["authenticated"], // Estimates rewards for the player's eligible cards.
   "public.get_profile(text)": ["authenticated"], // Profile view applies viewer privacy rules.
   "public.get_profile_details(text)": ["authenticated"], // Calls get_profile first; inventory, activity and favorites obey its collection privacy; mutual friends obey friendsVisible.
+  "public.get_profile_engagement(uuid)": ["authenticated"], // Authenticated profile lookup; exposes aggregate counts and only the caller's like status, never viewer identities.
+  "public.record_profile_view(uuid, uuid)": ["authenticated"], // One counted visit per bounded receipt ID; caller only, self views excluded, bilateral blocks and deletion fences enforced.
+  "public.set_profile_like(uuid, boolean)": ["authenticated"], // Idempotent own like only, no self likes; bilateral blocks, unique pair and account deletion guards enforced.
   "public.update_profile_interests(jsonb)": ["authenticated"], // Bounded preferences update only auth.uid() after authenticated profile lookup.
   "public.update_profile_widgets(jsonb)": ["authenticated"], // Only auth.uid(); bounded titles, unique categories from live cards, no inventory writes.
   "public.update_profile_appearance(text, text, uuid[], uuid, text)": [

@@ -117,6 +117,28 @@ try {
     mobile: false
   });
   await navigate("");
+  await waitFor(
+    "document.querySelector('[data-profile-views]').textContent.replace(/\\s/g,'') === '1284'"
+  );
+  assert.equal(
+    await evaluate(
+      "document.querySelector('.yk-profile-side-counts').textContent.includes('Amis') || document.querySelector('.yk-profile-side-counts').textContent.includes('Wishlist')"
+    ),
+    false,
+    "Sidebar replaces duplicate friend/wishlist counts with engagement"
+  );
+  assert.ok(
+    await evaluate(
+      "document.querySelector('.yk-profile-side-counts').textContent.includes('Likes')"
+    )
+  );
+  assert.equal(
+    await evaluate(
+      "Array.from(document.querySelectorAll('button')).filter(button=>button.textContent.includes('Aimer ce profil') || button.textContent.includes('Profil aimé')).length"
+    ),
+    0,
+    "Cannot like own profile"
+  );
   await assertAlignedProfile("1440px");
   assert.ok(
     await evaluate(
@@ -389,8 +411,44 @@ try {
   await waitFor("!document.querySelector('.yk-profile-preferences-form')");
   await assertAlignedProfile("without widgets");
   await navigate("?visitor=1");
+  await waitFor(
+    "document.querySelector('[data-profile-views]').textContent.replace(/\\s/g,'') === '1285'"
+  );
+  assert.equal(
+    await evaluate(
+      "document.querySelector('[data-profile-likes]').textContent"
+    ),
+    "42"
+  );
+  await evaluate(
+    "Array.from(document.querySelectorAll('button')).find(button=>button.textContent.includes('Aimer ce profil')).click()"
+  );
+  await waitFor(
+    "document.querySelector('[data-profile-likes]').textContent === '43'"
+  );
+  assert.equal(
+    await evaluate(
+      "Array.from(document.querySelectorAll('button')).find(button=>button.textContent.includes('Profil aimé')).getAttribute('aria-pressed')"
+    ),
+    "true"
+  );
+  await evaluate(
+    "Array.from(document.querySelectorAll('button')).find(button=>button.textContent.includes('Profil aimé')).click()"
+  );
+  await waitFor(
+    "document.querySelector('[data-profile-likes]').textContent === '42'"
+  );
   await clickTab("Amis");
-  await evaluate("document.querySelector('.yk-profile-filter').click()");
+  assert.equal(
+    await evaluate(
+      "document.querySelector('[data-profile-views]').textContent.replace(/\\s/g,'')"
+    ),
+    "1285",
+    "Tabs and likes don't count as additional profile visits"
+  );
+  await evaluate(
+    "document.querySelector('.yk-profile-panel:not([hidden]) .yk-profile-filter').click()"
+  );
   await delay(150);
   assert.equal(
     await evaluate(

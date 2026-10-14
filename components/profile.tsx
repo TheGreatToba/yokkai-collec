@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Avatar, Button, Modal, Toast } from "@/components/ui";
 import { YokaiCard } from "@/components/yokai-card";
 import { CardShell } from "@/components/card-shell";
@@ -25,12 +25,16 @@ import {
   getFriendPaniniAlbumsPage,
   getProfile,
   getProfileDetails,
+  getProfileEngagement,
+  recordProfileView,
+  setProfileLike,
   getProfileWidgetLicenses,
   saveProfileAppearance,
   saveProfileWidgets,
   uploadBanner,
   uploadAvatar,
   type ProfileDetails,
+  type ProfileEngagement,
   type ProfileWidget,
   type Profile
 } from "@/lib/data/profile";
@@ -864,6 +868,9 @@ export type ProfileAdapter = {
   moderation?: ModerationAdapter;
   friendAction?: FriendActionAdapter;
   details?: typeof getProfileDetails;
+  engagement?: typeof getProfileEngagement;
+  recordView?: typeof recordProfileView;
+  like?: typeof setProfileLike;
   saveWidgets?: typeof saveProfileWidgets;
   widgetLicenses?: typeof getProfileWidgetLicenses;
   saveAppearance?: typeof saveProfileAppearance;
@@ -876,6 +883,9 @@ const liveProfile: ProfileAdapter = {
   wishlist: getWishlist,
   blocked: listBlockedUsers,
   details: getProfileDetails,
+  engagement: getProfileEngagement,
+  recordView: recordProfileView,
+  like: setProfileLike,
   saveWidgets: saveProfileWidgets
 };
 export function ProfileExperience({
@@ -906,9 +916,48 @@ export function ProfileExperience({
   const [preferencesOpen, setPreferencesOpen] = useState(false);
   const [mutualOnly, setMutualOnly] = useState(false);
   const [wishlistLimit, setWishlistLimit] = useState(28);
+  const [engagement, setEngagement] = useState<ProfileEngagement>();
+  const [engagementError, setEngagementError] = useState("");
+  const [likeBusy, setLikeBusy] = useState(false);
+  const likePending = useRef(false);
+  const visitIds = useRef(new Map<string, string>());
   const [savedBannerUrl, setSavedBannerUrl] = useState<
     string | null | undefined
   >();
+  const profileId = profile?.id;
+  const ownProfile = profile?.friendshipStatus === "self";
+  const profileBlocked = blocked.some(player => player.id === profileId);
+  useEffect(() => {
+    if (!profileId || !adapter.engagement) return;
+    let active = true;
+    const load = async () => {
+      if (ownProfile || profileBlocked || !adapter.recordView)
+        return adapter.engagement!(profileId);
+      let visitId = visitIds.current.get(profileId);
+      if (!visitId) {
+        visitId = crypto.randomUUID();
+        visitIds.current.set(profileId, visitId);
+      }
+      return adapter.recordView(profileId, visitId);
+    };
+    void load().then(
+      value => {
+        if (active) {
+          setEngagement(value);
+          setEngagementError("");
+        }
+      },
+      () => {
+        if (active)
+          setEngagementError(
+            "Les vues et likes sont temporairement indisponibles."
+          );
+      }
+    );
+    return () => {
+      active = false;
+    };
+  }, [profileId, ownProfile, profileBlocked, adapter]);
   useEffect(() => {
     let active = true;
     if (adapter.details)
@@ -977,6 +1026,30 @@ export function ProfileExperience({
       </div>
     );
   const isMe = profile.friendshipStatus === "self";
+  async function likeProfile() {
+    if (
+      !profile ||
+      !engagement ||
+      isMe ||
+      profileBlocked ||
+      likePending.current ||
+      !adapter.like
+    )
+      return;
+    likePending.current = true;
+    setLikeBusy(true);
+    setEngagementError("");
+    try {
+      setEngagement(await adapter.like(profile.id, !engagement.likedByMe));
+    } catch (reason) {
+      setEngagementError(
+        reason instanceof Error ? reason.message : "Like indisponible."
+      );
+    } finally {
+      likePending.current = false;
+      setLikeBusy(false);
+    }
+  }
   const friends = profile.friends ?? [];
   const blockedByMe = blocked.some(player => player.id === profile.id);
   function afterBlock() {
@@ -1038,9 +1111,15 @@ export function ProfileExperience({
                 onClick={() => setTab(key)}
                 className={tab === key ? "is-active" : ""}
               >
-                {label}
+                {key === "friends" ? (
+                  <p className="yk-profile-tab-label">Amis</p>
+                ) : (
+                  label
+                )}
                 {key === "wishlist" && <span>{wishlist.length}</span>}
-                {key === "friends" && <span>{friends.length}</span>}
+                {key === "friends" && (
+                  <p className="yk-profile-tab-count">{friends.length}</p>
+                )}
               </button>
             ))}
           </nav>
@@ -1197,6 +1276,16 @@ export function ProfileExperience({
               </div>
               <span className="yk-profile-muted">{wishlist.length} cartes</span>
             </div>
+            {profile.friendshipStatus === "accepted" ? (
+              <button
+                type="button"
+                className="yk-profile-filter"
+                onClick={() => setWishlistOpen(true)}
+                aria-label={`Voir les ${wishlist.length} cartes de la wishlist de ${profile.pseudo}`}
+              >
+                Voir la wishlist complète · {wishlist.length}
+              </button>
+            ) : null}
             {wishlist.length ? (
               <div className="yk-card-grid yk-profile-wishlist-preview mt-5">
                 {wishlist.slice(0, wishlistLimit).map(card => (
@@ -1413,6 +1502,27 @@ export function ProfileExperience({
                 </>
               )}
             </div>
+            {!isMe && (
+              <Button
+                variant="secondary"
+                disabled={
+                  !engagement || likeBusy || profileBlocked || !adapter.like
+                }
+                aria-pressed={engagement?.likedByMe ?? false}
+                onClick={() => void likeProfile()}
+              >
+                {likeBusy
+                  ? "Enregistrement…"
+                  : engagement?.likedByMe
+                    ? "♥ Profil aimé"
+                    : "♡ Aimer ce profil"}
+              </Button>
+            )}
+            {engagementError && (
+              <p className="yk-profile-muted" role="status">
+                {engagementError}
+              </p>
+            )}
             <div className="yk-profile-side-counts">
               {!isMe && profile.canViewCollection ? (
                 <button
@@ -1440,28 +1550,18 @@ export function ProfileExperience({
                     : "Privée"}
                 </strong>
               </div>
-              {profile.friendsVisible && (
-                <button type="button" onClick={() => setTab("friends")}>
-                  <p>Amis</p>
-                  <p>{friends.length}</p>
-                </button>
-              )}
-              {profile.friendshipStatus === "accepted" ? (
-                <button
-                  type="button"
-                  onClick={() => setWishlistOpen(true)}
-                  aria-label={`Voir les ${wishlist.length} cartes de la wishlist de ${profile.pseudo}`}
-                >
-                  <p>Wishlist</p>
-                  <strong>{wishlist.length}</strong>
-                  <span>Voir la wishlist →</span>
-                </button>
-              ) : (
-                <button type="button" onClick={() => setTab("wishlist")}>
-                  <p>Wishlist</p>
-                  <strong>{wishlist.length}</strong>
-                </button>
-              )}
+              <div>
+                <p>Vues du profil</p>
+                <strong data-profile-views>
+                  {engagement?.views.toLocaleString("fr-FR") ?? "—"}
+                </strong>
+              </div>
+              <div>
+                <p>Likes</p>
+                <strong data-profile-likes>
+                  {engagement?.likes.toLocaleString("fr-FR") ?? "—"}
+                </strong>
+              </div>
             </div>
             <div className="yk-profile-side-stats">
               <div>

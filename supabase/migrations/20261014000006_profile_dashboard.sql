@@ -5,6 +5,87 @@ alter table public.user_profiles add column interests jsonb not null default
 alter table public.user_profiles add column profile_widgets jsonb not null default '[]'::jsonb;
 alter table public.user_profiles add column banner_url text;
 
+create table public.profile_likes (
+  owner_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (owner_id,user_id), check (owner_id <> user_id)
+);
+-- One bounded receipt per visitor/profile pair, not an unbounded log per page load.
+create table public.profile_visit_receipts (
+  owner_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  visit_ids uuid[] not null check (cardinality(visit_ids) between 1 and 64),
+  views bigint not null default 1 check (views > 0),
+  last_visited_at timestamptz not null default now(),
+  primary key (owner_id,user_id), check (owner_id <> user_id)
+);
+create index profile_likes_sender_idx on public.profile_likes(user_id);
+create index profile_visits_sender_idx on public.profile_visit_receipts(user_id);
+alter table public.profile_likes enable row level security;
+alter table public.profile_visit_receipts enable row level security;
+revoke all on public.profile_likes,public.profile_visit_receipts from public,anon,authenticated;
+grant all on public.profile_likes,public.profile_visit_receipts to service_role;
+create trigger account_deletion_write_guard before insert or update or delete on public.profile_likes
+  for each statement execute function public.guard_deleted_account();
+create trigger account_deletion_reference_guard before insert or update on public.profile_likes
+  for each row execute function public.guard_deleted_account();
+create trigger account_deletion_write_guard before insert or update or delete on public.profile_visit_receipts
+  for each statement execute function public.guard_deleted_account();
+create trigger account_deletion_reference_guard before insert or update on public.profile_visit_receipts
+  for each row execute function public.guard_deleted_account();
+
+create function public.get_profile_engagement(p_owner_id uuid)
+returns jsonb language plpgsql stable security definer set search_path = '' as $$
+begin
+  if p_owner_id is null then raise exception 'INVALID_PROFILE'; end if;
+  perform public.get_profile(p_owner_id::text);
+  return jsonb_build_object(
+    'views',coalesce((select sum(views) from public.profile_visit_receipts where owner_id=p_owner_id),0),
+    'likes',(select count(*) from public.profile_likes where owner_id=p_owner_id),
+    'likedByMe',exists(select 1 from public.profile_likes where owner_id=p_owner_id and user_id=auth.uid())
+  );
+end; $$;
+
+create function public.record_profile_view(p_owner_id uuid,p_visit_id uuid)
+returns jsonb language plpgsql security definer set search_path = '' as $$
+declare viewer uuid := auth.uid();
+begin
+  perform public.get_profile(p_owner_id::text);
+  if viewer = p_owner_id then return public.get_profile_engagement(p_owner_id); end if;
+  if p_visit_id is null or p_owner_id is null then raise exception 'INVALID_VISIT'; end if;
+  if exists(select 1 from public.user_blocks where
+    (blocker_id=viewer and blocked_id=p_owner_id) or (blocker_id=p_owner_id and blocked_id=viewer))
+    then raise exception 'PROFILE_BLOCKED'; end if;
+  insert into public.profile_visit_receipts as receipts(owner_id,user_id,visit_ids)
+  values (p_owner_id,viewer,array[p_visit_id])
+  on conflict (owner_id,user_id) do update set
+    visit_ids=(array[p_visit_id] || receipts.visit_ids)[1:64],
+    views=receipts.views+1,last_visited_at=now()
+  where not p_visit_id=any(receipts.visit_ids);
+  return public.get_profile_engagement(p_owner_id);
+end; $$;
+
+create function public.set_profile_like(p_owner_id uuid,p_liked boolean)
+returns jsonb language plpgsql security definer set search_path = '' as $$
+declare viewer uuid := auth.uid();
+begin
+  perform public.get_profile(p_owner_id::text);
+  if p_owner_id is null or p_liked is null then raise exception 'INVALID_LIKE'; end if;
+  if viewer=p_owner_id then raise exception 'SELF_PROFILE_LIKE'; end if;
+  if exists(select 1 from public.user_blocks where
+    (blocker_id=viewer and blocked_id=p_owner_id) or (blocker_id=p_owner_id and blocked_id=viewer))
+    then raise exception 'PROFILE_BLOCKED'; end if;
+  perform pg_advisory_xact_lock(hashtextextended('profile-like:'||p_owner_id::text,0));
+  if p_liked then
+    insert into public.profile_likes(owner_id,user_id) values(p_owner_id,viewer) on conflict do nothing;
+  else delete from public.profile_likes where owner_id=p_owner_id and user_id=viewer;
+  end if;
+  return public.get_profile_engagement(p_owner_id);
+end; $$;
+revoke all on function public.get_profile_engagement(uuid),public.record_profile_view(uuid,uuid),public.set_profile_like(uuid,boolean) from public,anon,authenticated;
+grant execute on function public.get_profile_engagement(uuid),public.record_profile_view(uuid,uuid),public.set_profile_like(uuid,boolean) to authenticated;
+
 -- Read-only catalogue access under the caller's existing RLS permissions.
 create or replace function public.get_profile_widget_licenses(
   p_category text, p_query text default '', p_offset integer default 0, p_limit integer default 72
@@ -195,6 +276,12 @@ begin
     union all
     select 'progress'::text section, value from (select jsonb_build_object('regular_packs_opened', t.regular_packs_opened, 'decision_packs_completed', t.decision_packs_completed, 'auctions_won', t.auctions_won, 'trades_completed', t.trades_completed, 'ssr_evolved_to_lr', t.ssr_evolved_to_lr) value from public.user_achievement_stats t where t.user_id=p_user_id limit 100001) bounded
     union all
+    select 'profile_likes_sent'::text section,value from (select jsonb_build_object('profile',(select pseudo from public.user_profiles where user_id=t.owner_id),'created_at',t.created_at) value from public.profile_likes t where t.user_id=p_user_id limit 100001) bounded
+    union all
+    select 'profile_visits'::text section,value from (select jsonb_build_object('profile',(select pseudo from public.user_profiles where user_id=t.owner_id),'views',t.views,'last_visited_at',t.last_visited_at) value from public.profile_visit_receipts t where t.user_id=p_user_id limit 100001) bounded
+    union all
+    select 'profile_engagement'::text section,jsonb_build_object('views',coalesce((select sum(views) from public.profile_visit_receipts where owner_id=p_user_id),0),'likes',(select count(*) from public.profile_likes where owner_id=p_user_id))
+    union all
     select 'collection'::text section, value from (select jsonb_build_object('id', t.id, 'card_id', t.card_id, 'date_obtention', t.date_obtention, 'rarity', t.rarity, 'is_shiny', t.is_shiny, 'is_evolved', t.is_evolved, 'folder_id', t.folder_id, 'is_first_owner', t.is_first_owner, 'is_locked', t.is_locked) || jsonb_build_object('custom_image_url',case when t.custom_image_url ~ '^https://[^/@?#]+/' then regexp_replace(t.custom_image_url, '[?#].*$', '') else null end) value from public.user_cards t where t.user_id=p_user_id limit 100001) bounded
     union all
     select 'folders'::text section, value from (select jsonb_build_object('id', t.id, 'nom', t.nom, 'created_at', t.created_at) value from public.folders t where t.user_id=p_user_id limit 100001) bounded
@@ -239,7 +326,7 @@ begin
   ), size as (
     select count(*) n,coalesce(sum(octet_length(value::text)+2),0)+8192 bytes from rows
   ), sections as (
-    select section,case when section in('account','profile','progress') then (jsonb_agg(value)->0)
+    select section,case when section in('account','profile','progress','profile_engagement') then (jsonb_agg(value)->0)
       else jsonb_agg(value order by value::text) end value from rows group by section
   )
   select case when (select deleted from permitted) then '{"error":"ACCOUNT_DELETED"}'::jsonb
@@ -249,6 +336,9 @@ begin
       'catalogue_cards','[]'::jsonb,
       'account',null,
       'profile',null,
+      'profile_engagement',null,
+      'profile_likes_sent','[]'::jsonb,
+      'profile_visits','[]'::jsonb,
       'progress',null,
       'collection','[]'::jsonb,
       'folders','[]'::jsonb,

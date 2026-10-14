@@ -8,6 +8,22 @@ export type Profile = {id:string;pseudo:string;avatarUrl:string|null;bio:string;
 export type ProfileInterests = { anime: string[]; games: string[]; kpop: string[]; other: string[] };
 export type ProfileWidget = { category: string; entries: string[] };
 export type ProfileLicensePage = {items: string[]; total: number};
+export type ProfileEngagement = {views:number;likes:number;likedByMe:boolean};
+export async function getProfileEngagement(ownerId:string): Promise<ProfileEngagement> {
+  const {data,error} = await readRequest(signal => db().rpc("get_profile_engagement",{p_owner_id:ownerId}).abortSignal(signal));
+  if (error) throw new Error("Les vues et likes sont temporairement indisponibles.");
+  return data as ProfileEngagement;
+}
+export async function recordProfileView(ownerId:string,visitId:string): Promise<ProfileEngagement> {
+  const {data,error} = await db().rpc("record_profile_view",{p_owner_id:ownerId,p_visit_id:visitId});
+  if (error) throw new Error("Impossible d’enregistrer la visite du profil.");
+  return data as ProfileEngagement;
+}
+export async function setProfileLike(ownerId:string,liked:boolean): Promise<ProfileEngagement> {
+  const {data,error} = await db().rpc("set_profile_like",{p_owner_id:ownerId,p_liked:liked});
+  if (error) throw new Error("Impossible de modifier le like du profil. Réessayez dans un instant.");
+  return data as ProfileEngagement;
+}
 export type ProfileDetails = {
   joinedAt: string | null;
   interests: ProfileInterests;

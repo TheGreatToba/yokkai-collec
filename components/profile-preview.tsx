@@ -10,6 +10,7 @@ import {
   type CollectedCard
 } from "@/lib/data/cards";
 import type { ProfileDetails, ProfileInterests } from "@/lib/data/profile";
+import type { ProfileEngagement } from "@/lib/data/profile";
 
 const collection: CollectedCard[] = [
   ["SATORU GOJO", "Jujutsu Kaisen", "gojou.webp", "LR"],
@@ -83,6 +84,12 @@ export function ProfilePreview() {
   const privateProfile = params.get("private") === "1";
   const demoCatalogue = params.get("catalogue") === "demo";
   const previewUrls = useRef<string[]>([]);
+  const social = useRef<ProfileEngagement>({
+    views: 1284,
+    likes: 42,
+    likedByMe: false
+  });
+  const countedVisits = useRef(new Set<string>());
   useEffect(
     () => () => {
       previewUrls.current.forEach(url => URL.revokeObjectURL(url));
@@ -130,6 +137,28 @@ export function ProfilePreview() {
           createdAt: "2026-10-13T10:00:00Z"
         })),
       blocked: async () => [],
+      engagement: async () => ({ ...social.current }),
+      recordView: async (_id, visitId) => {
+        if (!countedVisits.current.has(visitId)) {
+          countedVisits.current.add(visitId);
+          social.current = {
+            ...social.current,
+            views: social.current.views + 1
+          };
+        }
+        return { ...social.current };
+      },
+      like: async (_id, liked) => {
+        social.current = {
+          ...social.current,
+          likes:
+            social.current.likes +
+            Number(liked) -
+            Number(social.current.likedByMe),
+          likedByMe: liked
+        };
+        return { ...social.current };
+      },
       saveWidgets: async value => value,
       widgetLicenses: async ({ category, query = "", page = 1 }) => {
         if (!demoCatalogue) {

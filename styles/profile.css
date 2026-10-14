@@ -121,6 +121,9 @@ main:has(.yk-profile-hub) {
   margin-bottom: 28px;
 }
 .yk-profile-tabs button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   border: 0;
   background: none;
   color: var(--color-ink-3);
@@ -128,6 +131,16 @@ main:has(.yk-profile-hub) {
   font-size: 13px;
   white-space: nowrap;
   position: relative;
+}
+.yk-profile-tab-label,
+.yk-profile-tab-count {
+  margin: 0;
+}
+.yk-profile-tab-count {
+  font-size: 10px;
+  background: var(--color-veil);
+  border-radius: 8px;
+  padding: 2px 5px;
 }
 .yk-profile-tabs button.is-active {
   color: var(--color-ink-1);
@@ -344,6 +357,7 @@ main:has(.yk-profile-hub) {
   gap: 16px;
   border-top: 1px solid var(--color-veil);
   padding-top: 20px;
+  margin-top: 20px;
 }
 .yk-profile-side-counts > * {
   background: none;
