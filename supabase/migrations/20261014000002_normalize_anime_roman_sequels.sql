@@ -10,6 +10,8 @@ as $$
   select case
     when btrim(value) ~* '^devil[[:space:]]+may[[:space:]]+cry([[:space:]:-]|$)'
       then btrim(value)
+    when btrim(value) ~* '^ace[[:space:]]+of[[:space:]]+the[[:space:]]+diamond[[:space:]]+act[[:space:]]+(ii|iii|iv)[[:space:]]*$'
+      then 'Ace of the Diamond'
     when btrim(regexp_replace(
       public.normalize_card_franchise(value),
       '([[:space:]]+|[[:space:]]*[:-][[:space:]]*)(II|III|IV)[[:space:]]*$',

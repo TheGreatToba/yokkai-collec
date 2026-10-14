@@ -130,6 +130,7 @@ test("les suites en chiffres romains sont regroupées uniquement pour ANIME/MANG
     insert into public.cards(source_id,nom,categorie,franchise,rarete_base,image_url,source)
     values
       ('roman-anime-base','Sebastian','ANIME/MANGA','Black Butler','C','https://example.test/base.png','roman-license-test'),
+      ('roman-anime-ace','Ace','ANIME/MANGA','Ace of the Diamond act II','C','https://example.test/ace.png','roman-license-test'),
       ('roman-anime-2','Ciel','ANIME/MANGA','Black Butler II','R','https://example.test/ii.png','roman-license-test'),
       ('roman-anime-3','Grell','ANIME/MANGA','Black Butler III','SR','https://example.test/iii.png','roman-license-test'),
       ('roman-anime-link','Linked','ANIME/MANGA','Another Anime','C','https://example.test/link.png','roman-license-test'),
@@ -161,6 +162,7 @@ test("les suites en chiffres romains sont regroupées uniquement pour ANIME/MANG
     [
       { source_id: "roman-anime-2", franchise: "Black Butler" },
       { source_id: "roman-anime-3", franchise: "Black Butler" },
+      { source_id: "roman-anime-ace", franchise: "Ace of the Diamond" },
       { source_id: "roman-anime-base", franchise: "Black Butler" },
       {
         source_id: "roman-anime-colon",
