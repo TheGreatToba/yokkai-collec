@@ -389,7 +389,10 @@ export function CollectionView({
           "DISNEY CHANNEL",
           "FILM",
           "INTERNET PERSONALITY",
+          "KDRAMA",
           "KPOP",
+          "MEME",
+          "VOCALOID",
           "WWE"
         ].includes(card.category.trim().toUpperCase());
         return specialCategory
