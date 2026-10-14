@@ -10,6 +10,8 @@ import { CardShell } from "@/components/card-shell";
 import { CollectionView } from "@/components/collection";
 import { PlayerModeration } from "@/components/player-moderation";
 import { ProfileLicensePicker } from "@/components/profile-license-picker";
+import { ProfileWall } from "@/components/profile-wall";
+import type { WallAdapter } from "@/lib/data/profile-wall";
 import { listBlockedUsers, type BlockedUser } from "@/lib/data/moderation";
 import { type ModerationAdapter } from "@/lib/data/moderation";
 import { FriendAction, type FriendActionAdapter } from "@/components/friends";
@@ -938,6 +940,7 @@ function ProfileCompletion({
 }
 
 export type ProfileAdapter = {
+  wall?: WallAdapter;
   // Compatibility harness for the retired widget UI; never enabled by liveProfile.
   previewWidgets?: boolean;
   profile: typeof getProfile;
@@ -1180,7 +1183,7 @@ export function ProfileExperience({
               ["activity", "Activité"],
               ["wishlist", "Wishlist"],
               ...(profile.friendsVisible ? [["friends", "Amis"]] : []),
-              ["completion", "Complétion"]
+              ["wall", "Mur"]
             ].map(([key, label]) => (
               <button
                 key={key}
@@ -1471,19 +1474,17 @@ export function ProfileExperience({
               )}
             </div>
           )}
-          <div hidden={tab !== "completion"} className="yk-profile-panel">
-            <div className="yk-profile-section-heading">
-              <div>
-                <p className="eyebrow">Ses univers</p>
-                <h2>Complétion</h2>
-              </div>
-              <span className="yk-profile-muted">Classeurs favoris</span>
-            </div>
-            <ProfileCompletion
-              profile={profile}
-              details={details}
-              detailsError={detailsError}
+          <div hidden={tab !== "wall"} className="yk-profile-panel">
+            <ProfileWall
+              key={profile.id}
+              ownerId={profile.id}
+              pseudo={profile.pseudo}
+              avatarUrl={profile.avatarUrl}
               isMe={isMe}
+              isPublic={profile.isPublic}
+              canRead={profile.canViewCollection}
+              active={tab === "wall"}
+              adapter={adapter.wall}
             />
           </div>
         </section>

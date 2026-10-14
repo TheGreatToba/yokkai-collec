@@ -133,6 +133,7 @@ function renderProfile(profile) {
     "@/components/friends": friendsModule,
     "@/lib/data/moderation": {},
     "@/components/player-moderation": { PlayerModeration: () => null },
+    "@/components/profile-wall": { ProfileWall: () => null },
     "@/components/profile-license-picker": load(
       "components/profile-license-picker.tsx",
       {

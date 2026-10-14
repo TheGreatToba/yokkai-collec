@@ -7,6 +7,7 @@ import { Topbar } from "@/components/topbar";
 import { getPaniniAlbumsPage, type CollectedCard } from "@/lib/data/cards";
 import type { ProfileDetails, ProfileInterests } from "@/lib/data/profile";
 import type { ProfileEngagement } from "@/lib/data/profile";
+import type { WallPost } from "@/lib/data/profile-wall";
 
 const collection: CollectedCard[] = [
   ["SATORU GOJO", "Jujutsu Kaisen", "gojou.webp", "LR"],
@@ -78,6 +79,8 @@ export function ProfilePreview() {
   const params = useSearchParams();
   const visitor = params.get("visitor") === "1";
   const privateProfile = params.get("private") === "1";
+  const hiddenCollection =
+    privateProfile && visitor && params.get("friend") !== "1";
   const demoCatalogue = params.get("catalogue") === "demo";
   const previewWidgets = demoCatalogue && params.get("widgets") === "1";
   const emptyFavorites = params.get("favorites") === "empty";
@@ -89,6 +92,24 @@ export function ProfilePreview() {
     likedByMe: false
   });
   const countedVisits = useRef(new Set<string>());
+  const wallPosts = useRef<WallPost[]>([
+    {
+      id: "demo-wall-1",
+      text: "Une nouvelle carte dans la collection ✨\nQuel est votre anime du moment ?",
+      mediaPath: null,
+      gifUrl: null,
+      createdAt: "2026-10-14T18:00:00Z"
+    },
+    {
+      id: "demo-wall-2",
+      text: "La carte que je cherchais depuis longtemps !",
+      mediaPath: "demo-image",
+      previewUrl: "/assets/landing/gojou.webp",
+      gifUrl: null,
+      createdAt: "2026-10-13T12:00:00Z"
+    }
+  ]);
+  const wallUploads = useRef(new Map<string, string>());
   useEffect(
     () => () => {
       previewUrls.current.forEach(url => URL.revokeObjectURL(url));
@@ -109,12 +130,12 @@ export function ProfilePreview() {
       bannerCard: collection[0],
       friendshipStatus: visitor ? ("accepted" as const) : ("self" as const),
       isPublic: !privateProfile,
-      canViewCollection: !privateProfile,
-      featuredCards: privateProfile ? [] : collection,
-      friendsVisible: !privateProfile,
-      friends: privateProfile ? [] : friends,
-      cardCount: privateProfile ? null : 2578,
-      distinctCardCount: privateProfile ? null : 1342
+      canViewCollection: !hiddenCollection,
+      featuredCards: hiddenCollection ? [] : collection,
+      friendsVisible: !hiddenCollection,
+      friends: hiddenCollection ? [] : friends,
+      cardCount: hiddenCollection ? null : 2578,
+      distinctCardCount: hiddenCollection ? null : 1342
     });
     const upload = async (file: File) => {
       if (
@@ -130,6 +151,46 @@ export function ProfilePreview() {
     };
     return {
       previewWidgets,
+      wall: {
+        list: async () => {
+          if (hiddenCollection) throw new Error("Ce mur est privé.");
+          return { items: [...wallPosts.current], next: null };
+        },
+        publish: async input => {
+          if (visitor) throw new Error("Seul le propriétaire peut publier.");
+          if (params.get("wallError") === "1")
+            throw new Error(
+              "Publication impossible. Ton brouillon est conservé."
+            );
+          const old = wallPosts.current.find(post => post.id === input.id);
+          if (old) return old;
+          const post = {
+            ...input,
+            createdAt: new Date().toISOString(),
+            previewUrl: input.mediaPath
+              ? wallUploads.current.get(input.mediaPath)
+              : undefined
+          };
+          wallPosts.current.unshift(post);
+          return post;
+        },
+        remove: async id => {
+          if (visitor) throw new Error("Seul le propriétaire peut supprimer.");
+          const post = wallPosts.current.find(item => item.id === id);
+          wallPosts.current = wallPosts.current.filter(item => item.id !== id);
+          return post?.mediaPath ?? null;
+        },
+        upload: async file => {
+          const url = URL.createObjectURL(file);
+          previewUrls.current.push(url);
+          const path = `preview/${crypto.randomUUID()}`;
+          wallUploads.current.set(path, url);
+          return path;
+        },
+        discard: async path => {
+          wallUploads.current.delete(path);
+        }
+      },
       profile: async () => profile(),
       wishlist: async () =>
         collection.map(card => ({
@@ -223,12 +284,12 @@ export function ProfilePreview() {
           ],
           widgetCategories: previewWidgets ? Object.keys(licenses) : [],
           bannerUrl: null,
-          boostersOpened: privateProfile ? null : 824,
-          lrCount: privateProfile ? null : 12,
-          ssrCount: privateProfile ? null : 86,
-          mutualFriends: privateProfile ? [] : friends.slice(0, 2),
+          boostersOpened: hiddenCollection ? null : 824,
+          lrCount: hiddenCollection ? null : 12,
+          ssrCount: hiddenCollection ? null : 86,
+          mutualFriends: hiddenCollection ? [] : friends.slice(0, 2),
           favoriteAlbums:
-            privateProfile || emptyFavorites
+            hiddenCollection || emptyFavorites
               ? []
               : [
                   { license: "One Piece", owned: 156, total: 195, percent: 80 },
@@ -248,7 +309,7 @@ export function ProfilePreview() {
                     percent: 76
                   }
                 ],
-          activity: privateProfile
+          activity: hiddenCollection
             ? []
             : collection.map((card, index) => ({
                 id: card.id,
@@ -262,10 +323,12 @@ export function ProfilePreview() {
   }, [
     visitor,
     privateProfile,
+    hiddenCollection,
     demoCatalogue,
     reportError,
     previewWidgets,
-    emptyFavorites
+    emptyFavorites,
+    params
   ]);
   return (
     <>

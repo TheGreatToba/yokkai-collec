@@ -257,7 +257,7 @@ try {
     "The overview shows every favorite binder"
   );
   await capture("profile-completion-overview.png");
-  await clickTab("Complétion");
+  await clickTab("Tableau");
   assert.equal(
     await evaluate(
       "document.querySelectorAll('.yk-profile-panel:not([hidden]) .yk-profile-album-progress progress').length"
@@ -697,6 +697,131 @@ try {
     await evaluate("document.querySelector('.yk-toast')"),
     null,
     "No success toast when reporting fails"
+  );
+  await send("Emulation.setDeviceMetricsOverride", {
+    width: 1440,
+    height: 1000,
+    deviceScaleFactor: 1,
+    mobile: false
+  });
+  await navigate("");
+  await clickTab("Mur");
+  await waitFor("document.querySelectorAll('.yk-wall-post').length === 2");
+  assert.equal(
+    await evaluate("document.querySelectorAll('.yk-wall-composer').length"),
+    1,
+    "Owner can publish on their own wall"
+  );
+  await evaluate(
+    "(() => {const input=document.querySelector('#wall-text');Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(input,'<script>window.wallUnsafe=true</script>\\nMa nouvelle carte !');input.dispatchEvent(new Event('input',{bubbles:true}));})()"
+  );
+  await evaluate("document.querySelector('.yk-wall-composer').requestSubmit()");
+  await waitFor("document.querySelectorAll('.yk-wall-post').length === 3");
+  assert.equal(
+    await evaluate("window.wallUnsafe"),
+    undefined,
+    "Wall text is never interpreted as HTML"
+  );
+  assert.equal(
+    await evaluate("document.querySelector('#wall-text').value"),
+    ""
+  );
+  await capture("wall-desktop.png");
+  const wallDoc = await send("DOM.getDocument");
+  const wallFile = await send("DOM.querySelector", {
+    nodeId: wallDoc.root.nodeId,
+    selector: 'input[aria-label="Image pour le mur"]'
+  });
+  await send("DOM.setFileInputFiles", {
+    nodeId: wallFile.nodeId,
+    files: [
+      fileURLToPath(
+        new URL("../public/assets/landing/luffy.webp", import.meta.url)
+      )
+    ]
+  });
+  await waitFor("Boolean(document.querySelector('.yk-wall-attachment img'))");
+  await evaluate("document.querySelector('.yk-wall-composer').requestSubmit()");
+  await waitFor("document.querySelectorAll('.yk-wall-post').length === 4");
+  assert.ok(
+    await evaluate(
+      "document.querySelector('.yk-wall-post img.yk-wall-media').src.startsWith('blob:')"
+    ),
+    "Uploaded image is shown after confirmation"
+  );
+  // Upload a real one-pixel GIF fixture without touching disk or contacting GIPHY.
+  await evaluate(
+    "(() => {const bytes=Uint8Array.from(atob('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'),c=>c.charCodeAt(0));const transfer=new DataTransfer();transfer.items.add(new File([bytes],'reaction.gif',{type:'image/gif'}));const input=document.querySelector('input[aria-label=\"Image pour le mur\"]');input.files=transfer.files;input.dispatchEvent(new Event('change',{bubbles:true}));})()"
+  );
+  await waitFor("Boolean(document.querySelector('.yk-wall-attachment img'))");
+  await evaluate("document.querySelector('.yk-wall-composer').requestSubmit()");
+  await waitFor("document.querySelectorAll('.yk-wall-post').length === 5");
+  await evaluate(
+    "document.querySelector('.yk-wall-post button[aria-label=\"Supprimer cette publication\"]').click()"
+  );
+  await waitFor("Boolean(document.querySelector('dialog[open]'))");
+  await evaluate(
+    "Array.from(document.querySelectorAll('dialog[open] button')).find(b=>b.textContent==='Supprimer la publication').click()"
+  );
+  await waitFor("document.querySelectorAll('.yk-wall-post').length === 4");
+  await send("Emulation.setDeviceMetricsOverride", {
+    width: 390,
+    height: 844,
+    deviceScaleFactor: 1,
+    mobile: true
+  });
+  assert.ok(
+    await evaluate("document.documentElement.scrollWidth <= window.innerWidth"),
+    "Wall does not overflow mobile width"
+  );
+  await capture("wall-mobile.png");
+  await navigate("?visitor=1");
+  await clickTab("Mur");
+  await waitFor("document.querySelectorAll('.yk-wall-post').length === 2");
+  assert.equal(
+    await evaluate(
+      "document.querySelectorAll('.yk-wall-composer, .yk-wall-post button').length"
+    ),
+    0,
+    "Visitors cannot publish or delete someone else's posts"
+  );
+  await send("Page.navigate", {
+    url: "http://localhost:3000/design-system/profile-preview?visitor=1&private=1&catalogue=demo"
+  });
+  await waitFor(
+    "document.querySelector('.yk-profile-side-stats')?.textContent.includes('Privé')"
+  );
+  await clickTab("Mur");
+  assert.ok(
+    await evaluate(
+      "document.querySelector('.yk-wall-private').textContent.includes('Ce mur est privé')"
+    )
+  );
+  assert.equal(
+    await evaluate("document.querySelectorAll('.yk-wall-post').length"),
+    0
+  );
+  await navigate("?visitor=1&private=1&friend=1");
+  await clickTab("Mur");
+  await waitFor("document.querySelectorAll('.yk-wall-post').length === 2");
+  assert.equal(
+    await evaluate("document.querySelectorAll('.yk-wall-composer').length"),
+    0,
+    "Accepted friends can read a private wall but cannot post for its owner"
+  );
+  await navigate("?wallError=1");
+  await clickTab("Mur");
+  await waitFor("document.querySelectorAll('.yk-wall-post').length === 2");
+  await evaluate(
+    "(() => {const input=document.querySelector('#wall-text');Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(input,'Ne pas perdre mon brouillon');input.dispatchEvent(new Event('input',{bubbles:true}));})()"
+  );
+  await evaluate("document.querySelector('.yk-wall-composer').requestSubmit()");
+  await waitFor(
+    "document.querySelector('.yk-profile-wall [role=alert]')?.textContent.includes('brouillon est conservé')"
+  );
+  assert.equal(
+    await evaluate("document.querySelector('#wall-text').value"),
+    "Ne pas perdre mon brouillon"
   );
   console.log(
     "Profile browser proof OK: no free-text favorites, category license lists, search/select/save, left identity, tabs, widget ordering, banner upload/save/remove, completion, activity, wishlist, mutual friends, privacy and mobile width."

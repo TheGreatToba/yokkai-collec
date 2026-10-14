@@ -133,3 +133,21 @@ test("Storage removal is bounded and Auth already absent is the only tolerated e
   );
   assert.equal(h.calls.at(-1)[0], "auth");
 });
+
+test("account removal deletes private wall files and avatars through their separate Storage buckets", async () => {
+  const h = harness({
+    manifest: [
+      { bucket: "avatars", name: `${id}/avatar.png` },
+      { bucket: "profile-wall-media", name: `${id}/post.png` }
+    ]
+  });
+  await h.deleteAccount(id, h.admin);
+  assert.deepEqual(
+    h.calls.filter(c => c[0] === "storage"),
+    [
+      ["storage", "avatars", [`${id}/avatar.png`]],
+      ["storage", "profile-wall-media", [`${id}/post.png`]]
+    ]
+  );
+  assert.equal(h.calls.at(-1)[0], "auth");
+});

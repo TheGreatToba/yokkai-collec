@@ -1,6 +1,93 @@
 main:has(.yk-profile-hub) {
   max-width: 1440px;
 }
+.yk-profile-wall,
+.yk-wall-posts,
+.yk-wall-composer {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+.yk-wall-audience {
+  font-size: 11px;
+  color: var(--color-accent-gold);
+}
+.yk-wall-composer textarea {
+  min-height: 130px;
+  resize: vertical;
+  padding: 14px;
+}
+.yk-wall-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.yk-wall-author strong {
+  display: block;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.yk-wall-author time {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--color-ink-3);
+}
+.yk-wall-compose-actions,
+.yk-wall-post header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+.yk-wall-compose-actions > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.yk-wall-compose-actions > span {
+  margin-left: auto;
+  color: var(--color-ink-3);
+  font-size: 11px;
+}
+.yk-wall-post {
+  display: grid;
+  gap: 18px;
+}
+.yk-wall-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  line-height: 1.8;
+  margin: 0;
+}
+.yk-wall-media,
+.yk-wall-attachment img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: 480px;
+  object-fit: contain;
+  border-radius: 12px;
+}
+.yk-wall-attachment {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+}
+.yk-wall-empty,
+.yk-wall-private {
+  padding: 30px;
+  color: var(--color-ink-2);
+}
+.yk-wall-empty h3,
+.yk-wall-private h2 {
+  color: var(--color-ink);
+  margin-bottom: 10px;
+}
 .yk-profile-hub {
   display: grid;
   grid-template-columns: clamp(360px, 30vw, 440px) minmax(0, 1fr);

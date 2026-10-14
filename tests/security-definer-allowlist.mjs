@@ -49,6 +49,12 @@ const allowlist = {
   "public.get_my_active_auction_cards()": ["authenticated"], // Reads the current player's auctioned cards.
   "public.get_pack_destruction_values(uuid[])": ["authenticated"], // Estimates rewards for the player's eligible cards.
   "public.get_profile(text)": ["authenticated"], // Profile view applies viewer privacy rules.
+  "public.can_read_profile_wall(uuid)": ["authenticated"], // RLS helper uses auth.uid(); dynamic profile privacy, accepted friends, bilateral blocks and deletion fence.
+  "public.get_profile_wall(uuid, timestamp with time zone, uuid, integer)": [
+    "authenticated"
+  ], // Bounded keyset pages of permitted wall posts only; no anon or private-wall bypass.
+  "public.publish_profile_wall_post(uuid, text, text, text)": ["authenticated"], // Idempotent own posts only, bounded text/rate/count and owner-scoped private media.
+  "public.delete_profile_wall_post(uuid)": ["authenticated"], // Author deletes only their own post; private attachment cleanup stays owner-scoped.
   "public.get_profile_details(text)": ["authenticated"], // Calls get_profile first; inventory, activity and favorites obey its collection privacy; mutual friends obey friendsVisible.
   "public.get_profile_engagement(uuid)": ["authenticated"], // Authenticated profile lookup; exposes aggregate counts and only the caller's like status, never viewer identities.
   "public.record_profile_view(uuid, uuid)": ["authenticated"], // One counted visit per bounded receipt ID; caller only, self views excluded, bilateral blocks and deletion fences enforced.
