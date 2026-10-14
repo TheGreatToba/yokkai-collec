@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { ProfileExperience, type ProfileAdapter } from "@/components/profile";
 import { Topbar } from "@/components/topbar";
@@ -38,39 +38,100 @@ export function ProfilePreview() {
   const params = useSearchParams();
   const visitor = params.get("visitor") === "1";
   const privateProfile = params.get("private") === "1";
+  const previewUrls = useRef<string[]>([]);
+  useEffect(
+    () => () => {
+      previewUrls.current.forEach(url => URL.revokeObjectURL(url));
+    },
+    []
+  );
   const adapter = useMemo<ProfileAdapter>(() => {
     const friends = [
       { id: "friend-1", pseudo: "Kitsune" },
       { id: "friend-2", pseudo: "Sakura" },
       { id: "friend-3", pseudo: "Rin" }
     ];
+    const profile = () => ({
+      id: "preview",
+      pseudo: "Toba",
+      avatarUrl: "/assets/landing/gojou.webp",
+      bio: "Les histoires qui restent, les cartes qu’on collectionne.\nAnime, RPG et découvertes en boucle ✧",
+      bannerCard: collection[0],
+      friendshipStatus: visitor ? ("accepted" as const) : ("self" as const),
+      isPublic: !privateProfile,
+      canViewCollection: !privateProfile,
+      featuredCards: privateProfile ? [] : collection,
+      friendsVisible: !privateProfile,
+      friends: privateProfile ? [] : friends,
+      cardCount: privateProfile ? null : 2578,
+      distinctCardCount: privateProfile ? null : 1342
+    });
+    const upload = async (file: File) => {
+      if (
+        file.size > 2 * 1024 * 1024 ||
+        !["image/jpeg", "image/png", "image/webp", "image/gif"].includes(
+          file.type
+        )
+      )
+        throw new Error("JPG, PNG, WebP ou GIF, 2 Mo maximum.");
+      const url = URL.createObjectURL(file);
+      previewUrls.current.push(url);
+      return url;
+    };
     return {
-      profile: async () => ({
-        id: "preview",
-        pseudo: "Toba",
-        avatarUrl: "/assets/landing/gojou.webp",
-        bio: "Les histoires qui restent, les cartes qu’on collectionne.\nAnime, RPG et découvertes en boucle ✧",
-        bannerCard: collection[0],
-        friendshipStatus: visitor ? "accepted" : "self",
-        isPublic: !privateProfile,
-        canViewCollection: !privateProfile,
-        featuredCards: privateProfile ? [] : collection,
-        friendsVisible: !privateProfile,
-        friends: privateProfile ? [] : friends,
-        cardCount: privateProfile ? null : 2578,
-        distinctCardCount: privateProfile ? null : 1342
-      }),
+      profile: async () => profile(),
       wishlist: async () =>
         collection.map(card => ({
           ...card,
           createdAt: "2026-10-13T10:00:00Z"
         })),
       blocked: async () => [],
-      saveInterests: async value => value,
+      saveWidgets: async value => value,
+      uploadAvatar: upload,
+      uploadBanner: upload,
+      search: async query =>
+        collection.filter(card =>
+          `${card.name} ${card.anime}`
+            .toLowerCase()
+            .includes(query.toLowerCase())
+        ),
+      saveAppearance: async (bio, avatarUrl, ids, bannerCardId, bannerUrl) => ({
+        ...profile(),
+        bio,
+        avatarUrl,
+        bannerUrl,
+        bannerCard: collection.find(card => card.id === bannerCardId) ?? null,
+        featuredCards: collection.filter(card => ids.includes(card.instanceId))
+      }),
       details: async () =>
         ({
           joinedAt: "2025-11-21T10:00:00Z",
           interests: initial,
+          widgets: [
+            { category: "ANIME/MANGA", entries: initial.anime },
+            { category: "VIDEO GAMES", entries: initial.games },
+            { category: "KPOP", entries: initial.kpop },
+            { category: "FILM", entries: initial.other }
+          ],
+          widgetCategories: [
+            "ANIME/MANGA",
+            "ARTIST",
+            "BRAINROT",
+            "COMICS",
+            "DISNEY CHANNEL",
+            "ESPORT",
+            "FILM",
+            "INTERNET PERSONALITY",
+            "KDRAMA",
+            "KPOP",
+            "MANWHA",
+            "MEME",
+            "SERIE",
+            "SPORT",
+            "VIDEO GAMES",
+            "VOCALOID"
+          ],
+          bannerUrl: null,
           boostersOpened: privateProfile ? null : 824,
           lrCount: privateProfile ? null : 12,
           ssrCount: privateProfile ? null : 86,
@@ -112,6 +173,7 @@ export function ProfilePreview() {
           <ProfileExperience
             key={`${visitor}:${privateProfile}`}
             adapter={adapter}
+            collection={collection}
           />
         </div>
       </main>

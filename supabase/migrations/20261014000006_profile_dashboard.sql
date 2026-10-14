@@ -2,6 +2,58 @@ begin;
 
 alter table public.user_profiles add column interests jsonb not null default
   '{"anime":[],"games":[],"kpop":[],"other":[]}'::jsonb;
+alter table public.user_profiles add column profile_widgets jsonb not null default '[]'::jsonb;
+alter table public.user_profiles add column banner_url text;
+
+-- Only the caller's profile can be changed; categories come from the live catalogue.
+create or replace function public.update_profile_widgets(p_widgets jsonb)
+returns jsonb language plpgsql security definer set search_path = '' as $$
+declare player uuid := auth.uid(); widget jsonb; item jsonb; seen text[] := '{}'; category text;
+begin
+  if player is null then raise exception 'AUTH_REQUIRED'; end if;
+  perform public.get_profile(null);
+  if jsonb_typeof(p_widgets) is distinct from 'array' or octet_length(p_widgets::text) > 20000
+    then raise exception 'WIDGETS_INVALID'; end if;
+  if jsonb_array_length(p_widgets) > 12 then raise exception 'WIDGETS_INVALID'; end if;
+  for widget in select value from jsonb_array_elements(p_widgets) loop
+    if jsonb_typeof(widget) is distinct from 'object' then raise exception 'WIDGETS_INVALID'; end if;
+    if jsonb_typeof(widget->'category') is distinct from 'string'
+      or jsonb_typeof(widget->'entries') is distinct from 'array'
+      or exists(select 1 from jsonb_object_keys(widget) k where k not in ('category','entries'))
+      then raise exception 'WIDGETS_INVALID'; end if;
+    category := widget->>'category';
+    if category = any(seen) or not exists(select 1 from public.cards c where upper(btrim(c.categorie)) = category)
+      then raise exception 'WIDGETS_INVALID'; end if;
+    seen := array_append(seen, category);
+    if jsonb_array_length(widget->'entries') > 12 then raise exception 'WIDGETS_INVALID'; end if;
+    for item in select value from jsonb_array_elements(widget->'entries') loop
+      if jsonb_typeof(item) <> 'string' or char_length(btrim(item #>> '{}')) not between 1 and 100
+        then raise exception 'WIDGETS_INVALID'; end if;
+    end loop;
+  end loop;
+  update public.user_profiles set profile_widgets = p_widgets where user_id = player;
+  return p_widgets;
+end; $$;
+
+-- Reuse all existing avatar/bio/owned-featured-card checks. Appearance saves atomically.
+-- Banners reuse the owner-scoped avatars bucket, with no new public upload policy.
+create or replace function public.update_profile_appearance(
+  p_bio text, p_avatar_url text, p_featured_card_ids uuid[], p_banner_card_id uuid, p_banner_url text
+)
+returns jsonb language plpgsql security definer set search_path = '' as $$
+declare player uuid := auth.uid(); banner text := nullif(btrim(p_banner_url),''); result jsonb;
+begin
+  if player is null then raise exception 'AUTH_REQUIRED'; end if;
+  if banner is not null and (char_length(p_banner_url) > 2048 or banner !~ (
+    '^https://api[.]yokkai-collec[.]com/storage/v1/object/public/avatars/' || player::text || '/banner[.](jpg|jpeg|png|webp|gif)([?]v=[0-9]+)?$'
+  )) then raise exception 'BANNER_URL_INVALID'; end if;
+  result := public.update_profile(p_bio,p_avatar_url,p_featured_card_ids,p_banner_card_id);
+  update public.user_profiles set banner_url = banner where user_id = player;
+  return result || jsonb_build_object('bannerUrl',banner);
+end; $$;
+
+revoke all on function public.update_profile_widgets(jsonb), public.update_profile_appearance(text,text,uuid[],uuid,text) from public, anon, authenticated;
+grant execute on function public.update_profile_widgets(jsonb), public.update_profile_appearance(text,text,uuid[],uuid,text) to authenticated;
 
 create or replace function public.update_profile_interests(p_interests jsonb)
 returns jsonb language plpgsql security definer set search_path = '' as $$
@@ -36,6 +88,10 @@ begin
   select jsonb_build_object(
     'joinedAt', (select to_jsonb(u)->>'created_at' from auth.users u where u.id = target),
     'interests', (select interests from public.user_profiles where user_id = target),
+    'widgets', (select profile_widgets from public.user_profiles where user_id = target),
+    'bannerUrl', (select banner_url from public.user_profiles where user_id = target),
+    'widgetCategories', coalesce((select jsonb_agg(category order by category) from
+      (select distinct upper(btrim(categorie)) category from public.cards where btrim(categorie) <> '') categories), '[]'::jsonb),
     'boostersOpened', case when allowed then
       coalesce((select regular_packs_opened from public.user_achievement_stats where user_id = target), 0)
       + (select count(*) from public.decision_packs where user_id = target) else null end,
@@ -109,7 +165,7 @@ begin
   ), rows as materialized (
     select 'account'::text section, value from (select jsonb_build_object('id',t.id,'email',to_jsonb(t)->'email','phone',to_jsonb(t)->'phone','created_at',to_jsonb(t)->'created_at','updated_at',to_jsonb(t)->'updated_at','email_confirmed_at',to_jsonb(t)->'email_confirmed_at','phone_confirmed_at',to_jsonb(t)->'phone_confirmed_at','is_admin',exists(select 1 from public.admin_users a where a.user_id=p_user_id)) value from auth.users t where t.id=p_user_id limit 100001) bounded
     union all
-    select 'profile'::text section, value from (select jsonb_build_object('pseudo',t.pseudo,'next_regular_pack_at',t.next_regular_pack_at,'next_decision_pack_at',t.next_decision_pack_at,'karas_balance',t.karas_balance,'avatar_url',case when t.avatar_url ~ '^https://[^/@?#]+/' then regexp_replace(t.avatar_url, '[?#].*$', '') else null end,'bio',t.bio,'featured_card_ids',t.featured_card_ids,'banner_card_id',t.banner_card_id,'is_public',t.is_public,'last_seen_at',t.last_seen_at,'presence_active',t.presence_active,'interests',t.interests) value from public.user_profiles t where t.user_id=p_user_id limit 100001) bounded
+    select 'profile'::text section, value from (select jsonb_build_object('pseudo',t.pseudo,'next_regular_pack_at',t.next_regular_pack_at,'next_decision_pack_at',t.next_decision_pack_at,'karas_balance',t.karas_balance,'avatar_url',case when t.avatar_url ~ '^https://[^/@?#]+/' then regexp_replace(t.avatar_url, '[?#].*$', '') else null end,'bio',t.bio,'featured_card_ids',t.featured_card_ids,'banner_card_id',t.banner_card_id,'is_public',t.is_public,'last_seen_at',t.last_seen_at,'presence_active',t.presence_active,'interests',t.interests,'profile_widgets',t.profile_widgets,'banner_url',case when t.banner_url ~ '^https://[^/@?#]+/' then regexp_replace(t.banner_url,'[?#].*$','') else null end) value from public.user_profiles t where t.user_id=p_user_id limit 100001) bounded
     union all
     select 'progress'::text section, value from (select jsonb_build_object('regular_packs_opened', t.regular_packs_opened, 'decision_packs_completed', t.decision_packs_completed, 'auctions_won', t.auctions_won, 'trades_completed', t.trades_completed, 'ssr_evolved_to_lr', t.ssr_evolved_to_lr) value from public.user_achievement_stats t where t.user_id=p_user_id limit 100001) bounded
     union all

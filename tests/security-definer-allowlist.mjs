@@ -51,6 +51,10 @@ const allowlist = {
   "public.get_profile(text)": ["authenticated"], // Profile view applies viewer privacy rules.
   "public.get_profile_details(text)": ["authenticated"], // Calls get_profile first; inventory, activity and favorites obey its collection privacy; mutual friends obey friendsVisible.
   "public.update_profile_interests(jsonb)": ["authenticated"], // Bounded preferences update only auth.uid() after authenticated profile lookup.
+  "public.update_profile_widgets(jsonb)": ["authenticated"], // Only auth.uid(); bounded titles, unique categories from live cards, no inventory writes.
+  "public.update_profile_appearance(text, text, uuid[], uuid, text)": [
+    "authenticated"
+  ], // Reuses update_profile checks atomically; banner URL limited to the caller's avatars/banner raster file on the API origin.
   "public.get_profile_privacy()": ["authenticated"], // Reads the current player's privacy setting.
   "public.get_public_profile(uuid)": ["authenticated"], // Exposes the permitted public profile projection.
   "public.get_regular_pack_status()": ["authenticated"], // Reads the current player's pack timers.

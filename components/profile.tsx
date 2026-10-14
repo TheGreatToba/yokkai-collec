@@ -24,11 +24,12 @@ import {
   getFriendPaniniAlbumsPage,
   getProfile,
   getProfileDetails,
-  saveProfile,
-  saveProfileInterests,
+  saveProfileAppearance,
+  saveProfileWidgets,
+  uploadBanner,
   uploadAvatar,
   type ProfileDetails,
-  type ProfileInterests,
+  type ProfileWidget,
   type Profile
 } from "@/lib/data/profile";
 import { getWishlist, type WishlistCard } from "@/lib/data/wishlist";
@@ -38,37 +39,25 @@ const FEATURED_CARD_LIMIT = 5;
 const PROFILE_CARD_IMAGE_SIZES =
   "(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 190px";
 
-const INTEREST_SECTIONS: {
-  key: keyof ProfileInterests;
-  label: string;
-  icon: string;
-  placeholder: string;
-}[] = [
-  {
-    key: "anime",
-    label: "Animes & mangas favoris",
-    icon: "✧",
-    placeholder: "One Piece\nNoragami\nBlack Butler"
-  },
-  {
-    key: "games",
-    label: "Jeux préférés",
-    icon: "⌘",
-    placeholder: "Final Fantasy VII\nSilent Hill\nHollow Knight"
-  },
-  {
-    key: "kpop",
-    label: "Groupes de K-pop",
-    icon: "♫",
-    placeholder: "BTS\nBLACKPINK\nTWICE"
-  },
-  {
-    key: "other",
-    label: "Mes autres coups de cœur",
-    icon: "♡",
-    placeholder: "Films, artistes, séries…"
-  }
-];
+function widgetLabel(category: string) {
+  const labels: Record<string, string> = {
+    "ANIME/MANGA": "Animes & mangas favoris",
+    "VIDEO GAMES": "Jeux préférés",
+    KPOP: "Groupes de K-pop",
+    FILM: "Films préférés",
+    SERIE: "Séries préférées",
+    KDRAMA: "K-dramas favoris",
+    COMICS: "Comics favoris",
+    ARTIST: "Artistes préférés",
+    VOCALOID: "Vocaloid favoris",
+    MANWHA: "Manhwas favoris",
+    SPORT: "Sports préférés",
+    "DISNEY CHANNEL": "Disney Channel",
+    MEME: "Mèmes favoris",
+    BRAINROT: "Brainrot favoris"
+  };
+  return labels[category] ?? category;
+}
 
 function ProfilePrivate() {
   return (
@@ -80,22 +69,21 @@ function ProfilePrivate() {
 }
 
 function PreferencesEditor({
-  interests,
+  widgets,
+  categories,
   save,
   onSaved
 }: {
-  interests: ProfileInterests;
-  save: typeof saveProfileInterests;
-  onSaved: (value: ProfileInterests) => void;
+  widgets: ProfileWidget[];
+  categories: string[];
+  save: typeof saveProfileWidgets;
+  onSaved: (value: ProfileWidget[]) => void;
 }) {
-  const [values, setValues] = useState(
-    () =>
-      Object.fromEntries(
-        INTEREST_SECTIONS.map(section => [
-          section.key,
-          interests[section.key].join("\n")
-        ])
-      ) as Record<keyof ProfileInterests, string>
+  const [values, setValues] = useState(() =>
+    widgets.map(widget => ({
+      category: widget.category,
+      text: widget.entries.join("\n")
+    }))
   );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -105,22 +93,22 @@ function PreferencesEditor({
       onSubmit={async event => {
         event.preventDefault();
         if (busy) return;
-        const next = Object.fromEntries(
-          INTEREST_SECTIONS.map(section => [
-            section.key,
-            [
-              ...new Set(
-                values[section.key]
-                  .split("\n")
-                  .map(value => value.trim())
-                  .filter(Boolean)
-              )
-            ]
-          ])
-        ) as ProfileInterests;
+        const next = values.map(widget => ({
+          category: widget.category,
+          entries: [
+            ...new Set(
+              widget.text
+                .split("\n")
+                .map(value => value.trim())
+                .filter(Boolean)
+            )
+          ]
+        }));
         if (
-          Object.values(next).some(
-            items => items.length > 12 || items.some(item => item.length > 100)
+          next.some(
+            widget =>
+              widget.entries.length > 12 ||
+              widget.entries.some(item => item.length > 100)
           )
         ) {
           setError("Maximum 12 favoris par section, 100 caractères par titre.");
@@ -142,22 +130,103 @@ function PreferencesEditor({
       }}
     >
       <p className="yk-profile-muted">
-        Un favori par ligne, dans l’ordre de ton choix. Jusqu’à 12 par section.
+        Choisis jusqu’à 12 widgets parmi les catégories du jeu. Un favori par
+        ligne, jusqu’à 12 par widget.
       </p>
-      {INTEREST_SECTIONS.map(section => (
-        <label key={section.key}>
-          {section.label}
-          <textarea
-            className="auth-input"
-            rows={4}
-            maxLength={1212}
-            value={values[section.key]}
-            placeholder={section.placeholder}
-            onChange={event =>
-              setValues({ ...values, [section.key]: event.target.value })
-            }
-          />
-        </label>
+      <div
+        className="yk-profile-widget-picker"
+        aria-label="Catégories disponibles"
+      >
+        {categories.map(category => {
+          const selected = values.some(widget => widget.category === category);
+          return (
+            <button
+              key={category}
+              type="button"
+              aria-pressed={selected}
+              disabled={busy || (!selected && values.length >= 12)}
+              onClick={() =>
+                setValues(current =>
+                  selected
+                    ? current.filter(widget => widget.category !== category)
+                    : [...current, { category, text: "" }]
+                )
+              }
+            >
+              <span aria-hidden="true">{selected ? "✓" : "+"}</span> {category}
+            </button>
+          );
+        })}
+      </div>
+      {!categories.length && (
+        <p className="yk-profile-empty">
+          Aucune catégorie disponible pour le moment.
+        </p>
+      )}
+      {values.map((widget, index) => (
+        <section className="yk-profile-widget-editor" key={widget.category}>
+          <div className="yk-profile-section-heading">
+            <h3>{widgetLabel(widget.category)}</h3>
+            <div className="yk-profile-widget-tools">
+              {([-1, 1] as const).map(direction => (
+                <button
+                  key={direction}
+                  type="button"
+                  disabled={
+                    busy ||
+                    index + direction < 0 ||
+                    index + direction >= values.length
+                  }
+                  aria-label={`${direction < 0 ? "Monter" : "Descendre"} le widget ${widget.category}`}
+                  onClick={() =>
+                    setValues(current => {
+                      const next = [...current];
+                      [next[index], next[index + direction]] = [
+                        next[index + direction],
+                        next[index]
+                      ];
+                      return next;
+                    })
+                  }
+                >
+                  {direction < 0 ? "↑" : "↓"}
+                </button>
+              ))}
+              <button
+                type="button"
+                disabled={busy}
+                aria-label={`Retirer le widget ${widget.category}`}
+                onClick={() =>
+                  setValues(current =>
+                    current.filter(value => value.category !== widget.category)
+                  )
+                }
+              >
+                ×
+              </button>
+            </div>
+          </div>
+          <label>
+            {`Tes favoris · ${widget.category}`}
+            <textarea
+              className="auth-input"
+              rows={4}
+              maxLength={1212}
+              disabled={busy}
+              value={widget.text}
+              placeholder="Un titre, un groupe ou un personnage par ligne…"
+              onChange={event =>
+                setValues(current =>
+                  current.map(value =>
+                    value.category === widget.category
+                      ? { ...value, text: event.target.value }
+                      : value
+                  )
+                )
+              }
+            />
+          </label>
+        </section>
       ))}
       {error && (
         <p role="alert" className="text-danger-ink">
@@ -217,16 +286,21 @@ function Featured({
 function Editor({
   profile,
   collection,
+  initialBannerUrl,
+  adapter,
   onSaved,
   onClose
 }: {
   profile: Profile;
   collection: CollectedCard[];
-  onSaved: (p: Profile) => void;
+  initialBannerUrl: string | null;
+  adapter: ProfileAdapter;
+  onSaved: (p: Profile & { bannerUrl: string | null }) => void;
   onClose: () => void;
 }) {
   const [bio, setBio] = useState(profile.bio);
   const [avatar, setAvatar] = useState(profile.avatarUrl);
+  const [bannerUrl, setBannerUrl] = useState(initialBannerUrl);
   const [selected, setSelected] = useState(
     () => new Set(profile.featuredCards.map(c => c.instanceId))
   );
@@ -268,7 +342,7 @@ function Editor({
     let active = true;
     const timer = window.setTimeout(
       () =>
-        void searchCards(bannerQuery, 8).then(
+        void (adapter.search ?? searchCards)(bannerQuery, 8).then(
           cards => {
             if (active) setBannerResults(cards);
           },
@@ -282,7 +356,7 @@ function Editor({
       active = false;
       window.clearTimeout(timer);
     };
-  }, [bannerQuery, bannerCard]);
+  }, [bannerQuery, bannerCard, adapter]);
   function toggle(id: string) {
     setSelected(current => {
       const next = new Set(current);
@@ -292,26 +366,45 @@ function Editor({
     });
   }
   async function photo(file?: File) {
-    if (!file) return;
+    if (!file || busy) return;
     setBusy(true);
     setError("");
     try {
-      setAvatar(await uploadAvatar(file, profile.id));
+      setAvatar(await (adapter.uploadAvatar ?? uploadAvatar)(file, profile.id));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Envoi impossible.");
     } finally {
       setBusy(false);
     }
   }
-  async function submit() {
+  async function banner(file?: File) {
+    if (!file || busy) return;
     setBusy(true);
     setError("");
     try {
-      const updated = await saveProfile(
+      setBannerUrl(
+        await (adapter.uploadBanner ?? uploadBanner)(file, profile.id)
+      );
+      setBannerCard(null);
+      setBannerQuery("");
+      setBannerResults([]);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Envoi impossible.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function submit() {
+    if (busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      const updated = await (adapter.saveAppearance ?? saveProfileAppearance)(
         bio,
         avatar,
         [...selected],
-        bannerCard?.id ?? null
+        bannerCard?.id ?? null,
+        bannerUrl
       );
       onSaved(updated);
       onClose();
@@ -330,6 +423,7 @@ function Editor({
           <input
             className="sr-only"
             type="file"
+            disabled={busy}
             accept="image/jpeg,image/png,image/webp,image/gif"
             onChange={e => void photo(e.target.files?.[0])}
           />
@@ -348,10 +442,50 @@ function Editor({
           {bio.length}/300
         </span>
       </label>
+      <section className="yk-profile-banner-editor">
+        <h3 className="font-display text-lg">Bannière personnalisée</h3>
+        <p className="yk-profile-muted">
+          Importe une image depuis ton ordinateur ou ton téléphone. JPG, PNG,
+          WebP ou GIF, 2 Mo maximum. L’image est centrée et recadrée pour la
+          bannière.
+        </p>
+        {bannerUrl && (
+          <img
+            className="yk-profile-banner-preview"
+            src={bannerUrl}
+            alt="Aperçu de la bannière"
+          />
+        )}
+        <div className="yk-profile-widget-tools">
+          <label className="yk-button yk-button-secondary cursor-pointer">
+            Importer une bannière
+            <input
+              className="sr-only"
+              aria-label="Importer une bannière"
+              type="file"
+              disabled={busy}
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              onChange={event => {
+                void banner(event.target.files?.[0]);
+                event.target.value = "";
+              }}
+            />
+          </label>
+          {bannerUrl && (
+            <Button
+              variant="secondary"
+              disabled={busy}
+              onClick={() => setBannerUrl(null)}
+            >
+              Retirer la bannière
+            </Button>
+          )}
+        </div>
+      </section>
       <section>
         <h3 className="font-display text-lg">Personnage de bannière</h3>
         <p className="mt-2 text-xs text-ink-3">
-          Recherchez un personnage dans tout le catalogue.
+          Ou choisis un personnage du catalogue à la place de l’image importée.
         </p>
         {bannerCard && (
           <div className="yk-banner-choice mt-4">
@@ -394,6 +528,7 @@ function Editor({
                     type="button"
                     onClick={() => {
                       setBannerCard(card);
+                      setBannerUrl(null);
                       setBannerQuery(card.name);
                       setBannerResults([]);
                     }}
@@ -688,14 +823,18 @@ export type ProfileAdapter = {
   moderation?: ModerationAdapter;
   friendAction?: FriendActionAdapter;
   details?: typeof getProfileDetails;
-  saveInterests?: typeof saveProfileInterests;
+  saveWidgets?: typeof saveProfileWidgets;
+  saveAppearance?: typeof saveProfileAppearance;
+  uploadAvatar?: typeof uploadAvatar;
+  uploadBanner?: typeof uploadBanner;
+  search?: typeof searchCards;
 };
 const liveProfile: ProfileAdapter = {
   profile: getProfile,
   wishlist: getWishlist,
   blocked: listBlockedUsers,
   details: getProfileDetails,
-  saveInterests: saveProfileInterests
+  saveWidgets: saveProfileWidgets
 };
 export function ProfileExperience({
   identifier,
@@ -725,6 +864,9 @@ export function ProfileExperience({
   const [preferencesOpen, setPreferencesOpen] = useState(false);
   const [mutualOnly, setMutualOnly] = useState(false);
   const [wishlistLimit, setWishlistLimit] = useState(28);
+  const [savedBannerUrl, setSavedBannerUrl] = useState<
+    string | null | undefined
+  >();
   useEffect(() => {
     let active = true;
     if (adapter.details)
@@ -832,6 +974,9 @@ export function ProfileExperience({
         a.localeCompare(b, "fr")
       )
     : [];
+  const bannerImage =
+    (savedBannerUrl === undefined ? details?.bannerUrl : savedBannerUrl) ||
+    profile.bannerCard?.image;
   return (
     <>
       <div className="yk-profile-hub">
@@ -879,20 +1024,24 @@ export function ProfileExperience({
               )}
             </div>
             <div className="yk-profile-interests">
-              {INTEREST_SECTIONS.map(section => (
-                <section key={section.key} className="yk-profile-surface">
+              {(details?.widgets ?? []).map(widget => (
+                <section
+                  key={widget.category}
+                  className="yk-profile-surface"
+                  data-widget-category={widget.category}
+                >
                   <div className="yk-profile-section-heading">
                     <h3>
-                      <span aria-hidden="true">{section.icon}</span>{" "}
-                      {section.label}
+                      <span aria-hidden="true">✧</span>{" "}
+                      {widgetLabel(widget.category)}
                     </h3>
                     <span className="yk-profile-muted">
-                      {details?.interests[section.key]?.length ?? 0}
+                      {widget.entries.length}
                     </span>
                   </div>
-                  {details?.interests[section.key]?.length ? (
+                  {widget.entries.length ? (
                     <ol className="yk-profile-taste-list">
-                      {details.interests[section.key].map((name, index) => (
+                      {widget.entries.map((name, index) => (
                         <li key={index}>
                           <span className="yk-profile-taste-number">
                             {String(index + 1).padStart(2, "0")}
@@ -911,6 +1060,13 @@ export function ProfileExperience({
                 </section>
               ))}
             </div>
+            {details && !details.widgets.length && (
+              <p className="yk-profile-surface yk-profile-empty">
+                {isMe
+                  ? "Personnalise ton tableau en ajoutant les widgets de tes catégories préférées."
+                  : "Ses widgets favoris apparaîtront ici."}
+              </p>
+            )}
             <section className="yk-profile-surface">
               <div className="yk-profile-section-heading">
                 <h3 className="yk-section-title">Cartes mises en avant</h3>
@@ -1163,12 +1319,12 @@ export function ProfileExperience({
         </section>
         <aside className="yk-profile-identity">
           <div
-            className={`yk-profile-banner ${profile.bannerCard ? "has-image" : ""}`}
+            className={`yk-profile-banner ${bannerImage ? "has-image" : ""}`}
           >
-            {profile.bannerCard && (
+            {bannerImage && (
               <>
                 <img
-                  src={profile.bannerCard.image}
+                  src={bannerImage}
                   alt=""
                   aria-hidden="true"
                   decoding="async"
@@ -1312,10 +1468,11 @@ export function ProfileExperience({
       >
         {details && (
           <PreferencesEditor
-            interests={details.interests}
-            save={adapter.saveInterests ?? saveProfileInterests}
-            onSaved={interests => {
-              setDetails({ ...details, interests });
+            widgets={details.widgets}
+            categories={details.widgetCategories}
+            save={adapter.saveWidgets ?? saveProfileWidgets}
+            onSaved={widgets => {
+              setDetails({ ...details, widgets });
               setPreferencesOpen(false);
               setToast("Tableau mis à jour");
             }}
@@ -1382,9 +1539,16 @@ export function ProfileExperience({
           <Editor
             profile={profile}
             collection={collection}
+            initialBannerUrl={
+              (savedBannerUrl === undefined
+                ? details?.bannerUrl
+                : savedBannerUrl) ?? null
+            }
+            adapter={adapter}
             onClose={() => setEditing(false)}
             onSaved={p => {
               setProfile(p);
+              setSavedBannerUrl(p.bannerUrl);
               setToast("Profil mis à jour");
             }}
           />

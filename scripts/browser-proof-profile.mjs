@@ -3,6 +3,7 @@ import { spawn } from "node:child_process";
 import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const output = new URL("../artifacts/profile-dashboard/", import.meta.url);
 await mkdir(output, { recursive: true });
@@ -101,6 +102,12 @@ try {
     mobile: false
   });
   await navigate("");
+  assert.ok(
+    await evaluate(
+      "document.querySelector('.yk-profile-identity').getBoundingClientRect().right < document.querySelector('.yk-profile-main').getBoundingClientRect().left"
+    ),
+    "Identity is left of the tabs on desktop"
+  );
   await capture("desktop.png");
   await clickTab("Complétion");
   assert.equal(
@@ -143,13 +150,102 @@ try {
   );
   await delay(150);
   await evaluate(
+    "Array.from(document.querySelectorAll('.yk-profile-widget-picker button')).find(button=>button.textContent.includes('KDRAMA')).click()"
+  );
+  await waitFor(
+    "document.querySelectorAll('.yk-profile-widget-editor').length === 5"
+  );
+  await evaluate(
+    `(() => {const input=Array.from(document.querySelectorAll('.yk-profile-widget-editor')).find(section=>section.textContent.includes('K-dramas')).querySelector('textarea'); Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(input,'Goblin'); input.dispatchEvent(new Event('input',{bubbles:true}));})()`
+  );
+  for (let i = 0; i < 4; i++) {
+    await evaluate(
+      "document.querySelector('button[aria-label=\"Monter le widget KDRAMA\"]').click()"
+    );
+    await delay(80);
+  }
+  await evaluate(
+    "document.querySelector('button[aria-label=\"Retirer le widget FILM\"]').click()"
+  );
+  await capture("widgets-editor.png");
+  await evaluate(
     "document.querySelector('.yk-profile-preferences-form button[type=submit]').click()"
   );
   await waitFor("!document.querySelector('.yk-profile-preferences-form')");
   assert.ok(
     await evaluate(
-      "document.querySelector('.yk-profile-taste-list').textContent.includes('Bleach')"
+      "Array.from(document.querySelectorAll('.yk-profile-taste-list')).some(list=>list.textContent.includes('Bleach'))"
     )
+  );
+  assert.equal(
+    await evaluate(
+      "document.querySelector('[data-widget-category]').dataset.widgetCategory"
+    ),
+    "KDRAMA"
+  );
+  assert.equal(
+    await evaluate(
+      "document.querySelectorAll('[data-widget-category=FILM]').length"
+    ),
+    0
+  );
+  assert.ok(
+    await evaluate(
+      "document.querySelector('[data-widget-category=KDRAMA]').textContent.includes('Goblin')"
+    )
+  );
+  await evaluate(
+    "Array.from(document.querySelectorAll('button')).find(button=>button.textContent==='Modifier le profil').click()"
+  );
+  await waitFor(
+    "Boolean(document.querySelector('input[aria-label=\"Importer une bannière\"]'))"
+  );
+  await send("DOM.enable");
+  const documentNode = await send("DOM.getDocument");
+  const bannerInput = await send("DOM.querySelector", {
+    nodeId: documentNode.root.nodeId,
+    selector: 'input[aria-label="Importer une bannière"]'
+  });
+  await send("DOM.setFileInputFiles", {
+    nodeId: bannerInput.nodeId,
+    files: [
+      fileURLToPath(
+        new URL("../public/assets/landing/luffy.webp", import.meta.url)
+      )
+    ]
+  });
+  await waitFor(
+    "Boolean(document.querySelector('.yk-profile-banner-preview')?.src.startsWith('blob:'))"
+  );
+  await capture("banner-editor.png");
+  await evaluate(
+    "Array.from(document.querySelectorAll('button')).find(button=>button.textContent==='Enregistrer').click()"
+  );
+  await waitFor("!document.querySelector('.yk-profile-banner-editor')");
+  assert.ok(
+    await evaluate(
+      "document.querySelector('.yk-profile-identity .yk-profile-banner img').src.startsWith('blob:')"
+    )
+  );
+  await capture("desktop.png");
+  await evaluate(
+    "Array.from(document.querySelectorAll('button')).find(button=>button.textContent==='Modifier le profil').click()"
+  );
+  await waitFor(
+    "Boolean(document.querySelector('.yk-profile-banner-preview'))"
+  );
+  await evaluate(
+    "Array.from(document.querySelectorAll('button')).find(button=>button.textContent==='Retirer la bannière').click()"
+  );
+  await evaluate(
+    "Array.from(document.querySelectorAll('button')).find(button=>button.textContent==='Enregistrer').click()"
+  );
+  await waitFor("!document.querySelector('.yk-profile-banner-editor')");
+  assert.equal(
+    await evaluate(
+      "document.querySelectorAll('.yk-profile-identity .yk-profile-banner img').length"
+    ),
+    0
   );
   await navigate("?visitor=1");
   await clickTab("Amis");
@@ -186,7 +282,7 @@ try {
     0
   );
   console.log(
-    "Profile browser proof OK: tabs, completion, activity, wishlist, preferences, mutual friends, privacy and mobile width."
+    "Profile browser proof OK: left identity, tabs, widgets add/remove/reorder/save, banner upload/save/remove, completion, activity, wishlist, mutual friends, privacy and mobile width."
   );
   await send("Browser.close");
 } finally {

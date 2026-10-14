@@ -1,11 +1,63 @@
 .yk-profile-hub {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: 320px minmax(0, 1fr);
   gap: 24px;
   align-items: start;
 }
 .yk-profile-main {
   min-width: 0;
+  grid-column: 2;
+  grid-row: 1;
+}
+.yk-profile-identity {
+  grid-column: 1;
+  grid-row: 1;
+}
+.yk-profile-widget-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.yk-profile-widget-picker button,
+.yk-profile-widget-tools button {
+  border: 1px solid var(--color-veil);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--color-ink-2);
+  background: var(--color-bg);
+}
+.yk-profile-widget-picker button[aria-pressed="true"] {
+  border-color: var(--color-accent-gold);
+  color: var(--color-accent-gold);
+}
+.yk-profile-widget-tools {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.yk-profile-widget-tools button:disabled,
+.yk-profile-widget-picker button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.yk-profile-widget-editor {
+  border: 1px solid var(--color-veil);
+  padding: 16px;
+  border-radius: 12px;
+}
+.yk-profile-widget-editor textarea {
+  margin-top: 8px;
+}
+.yk-profile-banner-editor {
+  display: grid;
+  gap: 12px;
+}
+.yk-profile-banner-preview {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 12px;
 }
 .yk-profile-tabs {
   display: flex;
@@ -477,6 +529,10 @@
   .yk-profile-identity {
     position: static;
     grid-row: 1;
+  }
+  .yk-profile-main {
+    grid-column: 1;
+    grid-row: 2;
   }
   .yk-profile-side-stats {
     grid-template-columns: 2fr 1fr 1fr;
