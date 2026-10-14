@@ -2,6 +2,8 @@
 
 `npm run verify` reste disponible pour un lancement manuel facultatif ; aucune CI complète locale n’est exigée avant un push ou un merge. Aucune PR mergée sans CI GitHub Actions verte sur la branche à jour avec origin/master. Lire `gh pr checks <PR>` pour vérifier les résultats sur le dernier commit.
 
+Un échec local du téléchargement des polices Google pour cause réseau ne bloque ni le push ni l'ouverture de la PR. Exécuter les contrôles disponibles (formatage, lint, TypeScript, tests unitaires et hook pre-push), mentionner la limitation réseau dans la PR et attendre la CI GitHub Actions verte avant de déclarer la PR prête à merger.
+
 La commande exécute audit prod (high), lint, TypeScript, format, tous les tests suivis par Git, build production, contrôle des routes design-system, puis le test existant de rejeu complet des migrations sur base vierge avec droits Supabase par défaut, SECURITY DEFINER et unicité des numéros. Le test de migration-security est exécuté une fois dans sa phase dédiée, sans être doublé dans la suite complète. Les fichiers locaux non suivis ne sont ni exécutés ni modifiés.
 
 Le build reçoit uniquement une configuration publique factice, sans session joueur. Sur Windows, Next.js utilise Webpack pour le build de production (la version installée de Turbopack a un problème local de chargement des polices) ; sur Linux, le build habituel reste utilisé. Aucun fichier de police ou de configuration produit n’est changé.
