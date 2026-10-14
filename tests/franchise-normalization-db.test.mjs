@@ -120,3 +120,55 @@ test("les saisons, films, cours et parties numerotees partagent la meme licence"
   assert.equal(cards.total, 3);
   assert.ok(cards.items.every(card => card.anime === "Kingdom"));
 });
+
+test("les suites en chiffres romains sont regroupées uniquement pour ANIME/MANGA", async t => {
+  const { db } = await replayMigrations();
+  t.after(() => db.close());
+
+  await db.exec("set role service_role");
+  await db.exec(`
+    insert into public.cards(source_id,nom,categorie,franchise,rarete_base,image_url,source)
+    values
+      ('roman-anime-base','Sebastian','ANIME/MANGA','Black Butler','C','https://example.test/base.png','roman-license-test'),
+      ('roman-anime-2','Ciel','ANIME/MANGA','Black Butler II','R','https://example.test/ii.png','roman-license-test'),
+      ('roman-anime-3','Grell','ANIME/MANGA','Black Butler III','SR','https://example.test/iii.png','roman-license-test'),
+      ('roman-anime-link','Linked','ANIME/MANGA','Another Anime','C','https://example.test/link.png','roman-license-test'),
+      ('roman-film','Film II','FILM','Black Butler II','C','https://example.test/film.png','roman-license-test');
+  `);
+
+  const animeCard = (
+    await db.query(
+      "select id from public.cards where source_id='roman-anime-link'"
+    )
+  ).rows[0];
+  await db.query(
+    "insert into public.card_franchises(card_id,franchise,position) values ($1,'Black Butler IV',1)",
+    [animeCard.id]
+  );
+  await db.exec("reset role");
+
+  assert.deepEqual(
+    (
+      await db.query(
+        "select source_id,franchise from public.cards where source='roman-license-test' order by source_id"
+      )
+    ).rows,
+    [
+      { source_id: "roman-anime-2", franchise: "Black Butler" },
+      { source_id: "roman-anime-3", franchise: "Black Butler" },
+      { source_id: "roman-anime-base", franchise: "Black Butler" },
+      { source_id: "roman-anime-link", franchise: "Another Anime" },
+      { source_id: "roman-film", franchise: "Black Butler II" }
+    ]
+  );
+
+  assert.deepEqual(
+    (
+      await db.query(
+        "select franchise from public.card_franchises where card_id=$1 order by position",
+        [animeCard.id]
+      )
+    ).rows,
+    [{ franchise: "Another Anime" }, { franchise: "Black Butler" }]
+  );
+});
