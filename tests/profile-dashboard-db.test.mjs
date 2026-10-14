@@ -164,4 +164,21 @@ test("profile dashboard uses real stats, distinct completion, mutual friends and
     ]),
     /permission denied/
   );
+  await db.exec(
+    "reset role; create table auth.identities(user_id uuid, provider text, created_at timestamptz, updated_at timestamptz); set role service_role"
+  );
+  const request = "71000000-0000-4000-8001-000000000001";
+  await db.query("select public.reserve_data_export($1,$2)", [owner, request]);
+  const exported = (
+    await db.query("select public.build_data_export($1,$2) value", [
+      owner,
+      request
+    ])
+  ).rows[0].value;
+  assert.deepEqual(
+    exported.profile.interests,
+    interests,
+    "personal favorites must be included in the owner's export"
+  );
+  assert.ok(!JSON.stringify(exported).includes("Viewer only"));
 });

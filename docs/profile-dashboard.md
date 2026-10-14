@@ -2,7 +2,7 @@
 
 La page profil présente le Tableau, l’Activité, la Wishlist, les Amis et la Complétion à gauche. L’identité, la date d’inscription et les statistiques occupent un panneau à droite sur ordinateur et passent au-dessus sur mobile.
 
-Le Tableau permet de saisir jusqu’à douze favoris par section : animes/mangas, jeux, K-pop et autres. Chaque titre comporte au maximum 100 caractères. La sauvegarde concerne exclusivement le compte connecté. La vitrine de cinq cartes et l’éditeur existant sont conservés.
+Le Tableau permet de saisir jusqu’à douze favoris par section : animes/mangas, jeux, K-pop et autres. Chaque titre comporte au maximum 100 caractères. La sauvegarde concerne exclusivement le compte connecté. Ces préférences sont incluses dans son export de données personnelles, avec les protections existantes. La vitrine de cinq cartes et l’éditeur existant sont conservés.
 
 `get_profile_details` appelle d’abord `get_profile`. Les comptes dont la collection est privée conservent les restrictions existantes pour les statistiques, l’activité et les classeurs favoris ; la liste d’amis et les amis en commun suivent `friendsVisible`. Aucune permission directe supplémentaire sur les tables n’est accordée.
 
