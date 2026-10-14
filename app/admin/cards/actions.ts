@@ -35,6 +35,7 @@ const value = (form: FormData, key: string) =>
 const MAX_FRANCHISES = 10;
 const CATEGORY_ALBUMS = new Set([
   "ARTIST",
+  "BRAINROT",
   "DISNEY CHANNEL",
   "FILM",
   "INTERNET PERSONALITY",
@@ -61,9 +62,9 @@ function franchiseInputs(form: FormData) {
 }
 
 function albumFranchises(franchises: string[], category: string) {
-  if (franchises.length) return franchises;
   const normalizedCategory = category.trim().toUpperCase();
-  return CATEGORY_ALBUMS.has(normalizedCategory) ? [normalizedCategory] : [];
+  if (CATEGORY_ALBUMS.has(normalizedCategory)) return [normalizedCategory];
+  return franchises;
 }
 const MAX_IMAGE_BYTES = 6 * 1024 * 1024;
 const ALLOWED_MIME = new Set([
