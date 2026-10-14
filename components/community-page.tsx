@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import type { ReactNode } from "react";
 import { getCurrentUser, getCurrentPseudo } from "@/lib/auth/session";
 import { AccountMenu } from "@/components/account-menu";
 import {
@@ -9,8 +10,10 @@ import {
 export async function CommunityPage({
   screen,
   playerId,
-  auctionId
+  auctionId,
+  pageHeading
 }: {
+  pageHeading?: ReactNode;
   screen: CommunityScreen;
   playerId?: string;
   auctionId?: string;
@@ -23,6 +26,7 @@ export async function CommunityPage({
     <CommunityView
       key={`${screen}:${playerId ?? auctionId ?? user.id}`}
       screen={screen}
+      pageHeading={pageHeading}
       account={<AccountMenu />}
       name={name ?? undefined}
       joined={isMe ? user.created_at : undefined}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import {
   AuctionView,
   MarketView,
@@ -51,8 +52,10 @@ const active: AuctionPresentation[] = Array.from(
 
 export function MarketPreview({
   empty = false,
-  long = false
+  long = false,
+  pageHeading
 }: {
+  pageHeading?: ReactNode;
   empty?: boolean;
   long?: boolean;
 }) {
@@ -84,6 +87,7 @@ export function MarketPreview({
       };
   return (
     <MarketView
+      pageHeading={pageHeading}
       lists={lists}
       activeSales={empty ? "0" : "2"}
       onToggleWatch={async id =>

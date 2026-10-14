@@ -569,10 +569,12 @@ export function compareMarketAuctions(
         : a.remainingSeconds - b.remainingSeconds;
 }
 export function MarketView({
+  pageHeading,
   lists,
   activeSales,
   onToggleWatch
 }: {
+  pageHeading?: ReactNode;
   lists?: Record<"active" | "mine" | "won" | "sold", AuctionPresentation[]>;
   activeSales?: string;
   onToggleWatch?: (id: string) => Promise<void>;
@@ -759,69 +761,86 @@ export function MarketView({
       </button>
     </>
   );
+  const toolbar = (
+    <div className="yk-collection-toolbar yk-market-toolbar-band">
+      <button
+        type="button"
+        className="yk-mobile-filter-trigger"
+        aria-expanded={filtersOpen}
+        aria-controls="market-filters"
+        onClick={() => setFiltersOpen(true)}
+      >
+        <svg
+          aria-hidden="true"
+          width="17"
+          height="17"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        >
+          <path d="M4 6h16M7 12h10M10 18h4" />
+        </svg>
+        Filtres{filtered ? <span>•</span> : null}
+      </button>
+      <div
+        className="yk-market-sections"
+        role="tablist"
+        aria-label="Sections du marché"
+      >
+        {(
+          [
+            ["browse", "Enchères", lists?.active.length],
+            ["mine", "Mes enchères", mineCount]
+          ] as const
+        ).map(([key, label, count]) => (
+          <button
+            key={key}
+            type="button"
+            role="tab"
+            aria-selected={section === key}
+            className="yk-market-section"
+            onClick={() => {
+              setSection(key);
+              setCategory("");
+            }}
+          >
+            {label}
+            {count != null && <span>{count}</span>}
+          </button>
+        ))}
+      </div>
+      <div className="yk-market-band-actions">
+        <StatusPill>Mes ventes actives · {activeSales ?? "—"}</StatusPill>
+      </div>
+    </div>
+  );
   return (
     <section aria-label="Marché aux enchères" className="yk-market">
-      <header className="yk-market-heading">
-        <div>
-          <p className="eyebrow">La salle des ventes</p>
-          <h1 className="yk-title mt-3">Marché</h1>
+      {pageHeading ? (
+        <header className="yk-market-heading">
+          {pageHeading}
           <p role="status" className="sr-only">
             {heading}
           </p>
-        </div>
-        <div className="yk-collection-toolbar yk-market-toolbar-band">
-          <button
-            type="button"
-            className="yk-mobile-filter-trigger"
-            aria-expanded={filtersOpen}
-            aria-controls="market-filters"
-            onClick={() => setFiltersOpen(true)}
-          >
-            <svg
-              aria-hidden="true"
-              width="17"
-              height="17"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-            >
-              <path d="M4 6h16M7 12h10M10 18h4" />
-            </svg>
-            Filtres{filtered ? <span>•</span> : null}
-          </button>
-          <div
-            className="yk-market-sections"
-            role="tablist"
-            aria-label="Sections du marché"
-          >
-            {(
-              [
-                ["browse", "Enchères", lists?.active.length],
-                ["mine", "Mes enchères", mineCount]
-              ] as const
-            ).map(([key, label, count]) => (
-              <button
-                key={key}
-                type="button"
-                role="tab"
-                aria-selected={section === key}
-                className="yk-market-section"
-                onClick={() => {
-                  setSection(key);
-                  setCategory("");
-                }}
-              >
-                {label}
-                {count != null && <span>{count}</span>}
-              </button>
-            ))}
-          </div>
-          <div className="yk-market-band-actions">
-            <StatusPill>Mes ventes actives · {activeSales ?? "—"}</StatusPill>
+          {toolbar}
+        </header>
+      ) : (
+        <div className="yk-catalogue-heading">
+          <div>
+            <p role="status" className="font-display text-xl">
+              {heading}
+            </p>
+            <p className="mt-1 text-xs text-ink-3">
+              {filtered
+                ? "Résultats correspondant à vos filtres"
+                : section === "browse"
+                  ? "Toutes les enchères en cours"
+                  : "Tes ventes et tes mises"}
+            </p>
           </div>
         </div>
-      </header>
+      )}
       {filtersOpen && (
         <button
           type="button"
@@ -849,6 +868,7 @@ export function MarketView({
           {filters}
         </aside>
         <div className="yk-collection-main">
+          {!pageHeading && toolbar}
           {section === "browse" ? (
             !browse ? (
               <Unavailable>Chargement des enchères…</Unavailable>
@@ -2516,8 +2536,10 @@ export function CommunityView({
   joined,
   isMe = true,
   playerId,
-  auctionId
+  auctionId,
+  pageHeading
 }: {
+  pageHeading?: ReactNode;
   screen: CommunityScreen;
   account: ReactNode;
   name?: string;
@@ -2801,6 +2823,7 @@ export function CommunityView({
           {screen === "friends" && <FriendsPanel />}
           {screen === "market" && (
             <MarketView
+              pageHeading={pageHeading}
               lists={lists}
               activeSales={activeSales}
               onToggleWatch={watchFromMarket}

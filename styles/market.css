@@ -22,6 +22,9 @@
 
 /* List & Mes enchères */
 .yk-market {
+  margin-top: calc(var(--spacing) * 2);
+}
+.yk-market:has(> .yk-market-heading) {
   margin-top: 0;
 }
 .yk-market-heading {
@@ -46,11 +49,14 @@
   border-radius: var(--radius-pill);
   background: var(--color-surface);
 }
+.yk-market-heading .yk-market-section {
+  min-height: 44px;
+}
 .yk-market-section {
   display: inline-flex;
   align-items: center;
   gap: calc(var(--spacing) * 2);
-  min-height: 44px;
+  min-height: 40px;
   padding: 0 calc(var(--spacing) * 4);
   border-radius: var(--radius-pill);
   color: var(--color-ink-2);
