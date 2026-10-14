@@ -27,6 +27,8 @@ de la taille totale lorsque des entrées sont utilisées.
 Contrôle ultérieur à 23:05 UTC : 15 Gio libres, occupation de 80 %, application et
 Supabase/Coolify en marche, trois routes toujours à 200. Cette amélioration
 supplémentaire est extérieure à notre purge ; son origine reste à confirmer.
+À 23:09 UTC, sept images applicatives restent présentes. Le script installé est
+inchangé ; la diminution du nombre des images est également extérieure à notre intervention.
 
 ## Ce qui existe déjà
 
@@ -88,20 +90,23 @@ d'un inventaire actualisé, sans déploiement en cours. Les identifiants histori
 ci-dessous ne constituent pas une autorisation future.
 
 Premier candidat à soumettre séparément : ancienne image applicative
-`16ff3d2d0a5f`, créée le 13 octobre à 18:59:41 UTC, 3,28 Go logiques, sans conteneur
-attaché lors du relevé. Docker annonçait 3,15 Go propres, estimation non garantie.
+`ff9198f37a57`, créée le 14 octobre à 13:28:13 UTC, 3,28 Go logiques.
+Elle était sans conteneur attaché au premier relevé et reste présente à 23:09 UTC.
+Gain indicatif : environ 1,5 Go de couches propres, à remesurer avant approbation.
 
 ```sh
-sudo docker image rm sha256:16ff3d2d0a5fd3449cd2c3ecd077bd69d40fd8c658ef94ff06a6637a6ebb1bb9
+sudo docker image rm sha256:ff9198f37a571eb13257c80fb16ba3d551d2bab797ea8a5f4a6c386b306fb070
 ```
 
 Effet : perte du rollback local vers cette version ; reconstruction du commit
 possible. Ne pas utiliser --force. Vérifier à nouveau les conteneurs arrêtés,
 la queue de déploiement et les images conservées avant toute exécution.
-Treize images applicatives dépassaient deux heures au relevé ; quatre étaient
+Au relevé initial de 17:35 UTC, treize images applicatives dépassaient deux heures ; quatre étaient
 protégées par les trois plus récentes, leur âge ou le conteneur actif.
 Leurs tailles propres cumulées suggèrent environ 19 Go potentiels, sans garantie
 sur l'espace réel rendu à df et sans supposer que toutes peuvent être supprimées.
+Ce lot initial est obsolète : plusieurs images ont disparu depuis. Refaire la
+simulation sur les sept images restantes avant de proposer une suppression groupée.
 
 Pour un nettoyage faible gain des journaux archivés, proposition distincte :
 
