@@ -1535,7 +1535,7 @@ export function ProfileExperience({
         title="Modifier mon profil"
         className="max-w-4xl"
       >
-        {collection && (
+        {isMe && collection && details ? (
           <Editor
             profile={profile}
             collection={collection}
@@ -1552,6 +1552,10 @@ export function ProfileExperience({
               setToast("Profil mis à jour");
             }}
           />
+        ) : (
+          <p className="yk-profile-empty">
+            {detailsError || "Chargement de l’éditeur du profil…"}
+          </p>
         )}
       </Modal>
       <Toast message={toast} onDismiss={() => setToast("")} />
