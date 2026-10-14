@@ -512,3 +512,86 @@ assert.equal(
 console.log(
   "Mentions: concurrent different authors leave exactly one unread notification with the first actor and timestamp untouched"
 );
+
+// Export: simultaneous requests serialize, and a commit between two table scans
+// never produces a mixed version. Test hooks live only in this disposable DB.
+await query(`set role postgres; create table auth.identities(user_id uuid,provider text,created_at timestamptz,updated_at timestamptz); reset role;
+  update public.user_profiles set bio='snapshot-before' where user_id='${seller}';
+  delete from public.folders where user_id='${seller}';
+  insert into public.folders(user_id,nom) values ('${seller}','snapshot-before');`);
+const exportRequest = "90000000-0000-4000-8000-000000000001";
+const exportNext = "90000000-0000-4000-8000-000000000002";
+const reservation = session(`begin; set local role service_role;
+  select public.reserve_data_export('${seller}','${exportRequest}'); select 'RESERVED';`);
+await until(
+  () => reservation.output().includes("RESERVED"),
+  "first export reservation"
+);
+const concurrentExport =
+  session(`set statement_timeout='10s'; set role service_role;
+  select public.reserve_data_export('${seller}','${exportNext}');`);
+concurrentExport.child.stdin.end();
+const concurrentResult = Promise.allSettled([concurrentExport.done]);
+reservation.child.stdin.end("commit;\n");
+await reservation.done;
+assert.match(String((await concurrentResult)[0].reason), /EXPORT_IN_PROGRESS/);
+const exportDefinition = await query(
+  "select pg_get_functiondef('public.build_data_export(uuid,uuid)'::regprocedure);"
+);
+assert.ok(exportDefinition.includes("'bio',t.bio"));
+await query(
+  `create function public.export_test_pause() returns text language plpgsql volatile as $$begin perform pg_sleep(2); return ''; end;$$;`
+);
+async function snapshotOverlap(definition) {
+  await query(`update public.user_profiles set bio='snapshot-before' where user_id='${seller}';
+    update public.folders set nom='snapshot-before' where user_id='${seller}';`);
+  await query(
+    definition.replace("'bio',t.bio", "'bio',t.bio||public.export_test_pause()")
+  );
+  const reader =
+    session(`set application_name='ci-export-snapshot-reader'; set role service_role;
+    select public.build_data_export('${seller}','${exportRequest}');`);
+  reader.child.stdin.end();
+  const outcome = Promise.allSettled([reader.done]);
+  await until(
+    async () =>
+      (await query(
+        "select count(*) from pg_stat_activity where application_name='ci-export-snapshot-reader' and wait_event='PgSleep';"
+      )) === "1",
+    "export paused between projections"
+  ).catch(async error => {
+    const result = (await outcome)[0];
+    throw result.status === "rejected" ? result.reason : error;
+  });
+  await query(`begin; update public.user_profiles set bio='snapshot-after' where user_id='${seller}';
+    update public.folders set nom='snapshot-after' where user_id='${seller}'; commit;`);
+  const result = (await outcome)[0];
+  assert.equal(result.status, "fulfilled");
+  const data = JSON.parse(result.value);
+  return { profile: data.profile.bio, folder: data.folders[0].nom };
+}
+try {
+  assert.deepEqual(await snapshotOverlap(exportDefinition), {
+    profile: "snapshot-before",
+    folder: "snapshot-before"
+  });
+  // Counterproof: re-reading a section in a second VOLATILE statement breaks it.
+  const splitRead = exportDefinition.replace(/\bSTABLE\b/i, "VOLATILE").replace(
+    "return result;",
+    `
+    result:=jsonb_set(result,'{folders}',(select jsonb_agg(jsonb_build_object('nom',nom)) from public.folders where user_id=p_user_id));
+    return result;`
+  );
+  assert.deepEqual(await snapshotOverlap(splitRead), {
+    profile: "snapshot-before",
+    folder: "snapshot-after"
+  });
+} finally {
+  await query(exportDefinition);
+  await query(
+    `select public.finish_data_export('${seller}','${exportRequest}',false); drop function public.export_test_pause();`
+  );
+}
+console.log(
+  "Export: concurrent reservations refuse the second caller; one statement preserves the snapshot; split-read counterproof mixes versions"
+);
