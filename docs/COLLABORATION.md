@@ -65,19 +65,18 @@ recoupement : se coordonner sur Discord avant de commencer.
 - Remplir le template de PR, en particulier la liste des fichiers/zones touchées et les
   migrations.
 
-La CI utilise Node 22 et exécute, dans l'ordre : installation reproductible des dépendances, lint,
-vérification TypeScript, tests et build. La CI complète locale n’est pas exigée avant un push ou un merge. Pour reproduire ces contrôles manuellement, de manière facultative :
+## CI — GitHub Actions uniquement
 
-```bash
-npm ci
-npm run lint
-npx tsc --noEmit
-npm test
-npm run build
-```
+- La CI complète est exécutée par GitHub Actions. Les agents ne lancent jamais `npm run verify`, `npm run ci` ni `npm run ci:db` en local, y compris dans les plans des PR de traduction.
+- En local : lancer `npm run format` avant chaque commit et laisser le hook pre-push existant (`verify:quick`) s'exécuter. Ne jamais contourner les hooks.
+- Les triggers `push` et `pull_request` vers `master` de `.github/workflows/ci.yml` restent actifs. Ne jamais les désactiver sans accord explicite de Walid.
+- Après le push, ouvrir la PR puis surveiller `gh pr checks`. Lire les logs seulement en cas d'échec (`gh run view <id> --log-failed`, fin utile uniquement), corriger puis repousser. Une PR est prête à merger quand la CI GitHub est verte sur la branche à jour avec `origin/master`.
+- Dans la partie validation de la PR, indiquer seulement les checks passés ou la cause de l'échec ; ne jamais coller de sortie de vérification locale.
+- Regrouper les commits et éviter les push à répétition.
 
-Le build nécessite les variables publiques listées dans `.env.example`. Des valeurs factices
-suffisent pour vérifier le build ; ne jamais utiliser de secret ou de clé de production en CI.
+## English first
+
+Attendre la confirmation de Walid que les PR #235, #226 et la correction du `<h1>` du marché sont mergées avant de rebaser et de commencer `wz/en-shell`. Cette règle CI s'applique aussi aux plans des PR de traduction.
 
 ## 5. Pousser souvent
 
