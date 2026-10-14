@@ -22,7 +22,9 @@ test("les albums Panini sont paginés et leurs cartes chargées à la demande", 
     insert into public.cards(source_id,nom,categorie,franchise,rarete_base,image_url,source)
     values
       ('film-a','Film A','FILM','Alien','R','https://example.test/film-a.png','panini-test'),
-      ('film-b','Film B','FILM','Matrix','SR','https://example.test/film-b.png','panini-test');
+      ('film-b','Film B','FILM','Matrix','SR','https://example.test/film-b.png','panini-test'),
+      ('brainrot-a','Brainrot A','BRAINROT','Tralalero Tralala','R','https://example.test/brainrot-a.png','panini-test'),
+      ('brainrot-b','Brainrot B','BRAINROT','Bombardiro Crocodilo','SR','https://example.test/brainrot-b.png','panini-test');
   `);
   const ownedCard = (
     await db.query("select id from public.cards where source_id='panini-1'")
@@ -50,7 +52,7 @@ test("les albums Panini sont paginés et leurs cartes chargées à la demande", 
     )
   ).rows[0].value;
   assert.equal(first.items.length, 72);
-  assert.equal(first.total, 77);
+  assert.equal(first.total, 78);
   assert.deepEqual(first.items[0], {
     license: "Licence 075",
     total: 1,
@@ -79,8 +81,8 @@ test("les albums Panini sont paginés et leurs cartes chargées à la demande", 
       "select public.get_panini_albums_page('', '', 72, 72) as value"
     )
   ).rows[0].value;
-  assert.equal(second.items.length, 5);
-  assert.equal(second.total, 77);
+  assert.equal(second.items.length, 6);
+  assert.equal(second.total, 78);
 
   const crossed = (
     await db.query(
@@ -115,6 +117,17 @@ test("les albums Panini sont paginés et leurs cartes chargées à la demande", 
     ]
   );
   assert.ok(cards.items.every(card => card.owned === false));
+
+  const brainrot = (
+    await db.query(
+      "select public.get_panini_album_cards_page('BRAINROT','','BRAINROT',false,0,24) as value"
+    )
+  ).rows[0].value;
+  assert.equal(brainrot.total, 2);
+  assert.deepEqual(
+    brainrot.items.map(card => card.name),
+    ["BRAINROT B", "BRAINROT A"]
+  );
 
   const ownedOnly = (
     await db.query(

@@ -14,16 +14,14 @@ npm run setup
 les dépendances étaient déjà installées. Vérifier :
 `git config core.hooksPath` doit afficher `.githooks`.
 
-> **État actuel : `master` n'est PAS protégée côté GitHub.** La protection de branche n'est pas
-> disponible pour un repo privé sur le plan gratuit. La discipline repose donc uniquement sur :
->
-> - le hook pre-push local, que **chaque dev doit installer** (`npm run setup`) ;
-> - le respect du workflow PR décrit ci-dessous.
+> **État actuel : le dépôt est public et la CI GitHub Actions est automatique.** Une Pull Request
+> vers `master` déclenche les contrôles complets ; un push sur `master` les rejoue après le merge.
+> La protection de branche doit être configurée côté GitHub pour rendre ces contrôles obligatoires.
 
 Ne jamais utiliser `--no-verify`, pour les humains comme pour les agents. Lancer `npm run format` avant tout commit. Le hook utilise Prettier déjà installé, respecte `.prettierignore`, réindexe uniquement le contenu staged et préserve les modifications non indexées et les fichiers non suivis.
 
-> Si le repo passe en GitHub Pro, la protection de branche (« Require a pull request before
-> merging ») pourra être activée dans Settings > Branches — ce document sera alors mis à jour.
+> La protection de branche (« Require a pull request before merging » et contrôles requis) est
+> disponible pour ce dépôt public et doit rester activée dans les paramètres GitHub.
 
 Le hook pre-push et la CI sont deux garde-fous distincts : le hook local bloque un push direct sur
 `master`, tandis que la CI vérifie le code d'une PR et surveille aussi les pushes sur `master`.
@@ -37,8 +35,8 @@ git fetch origin
 git checkout -b <branche> origin/master
 ```
 
-On ne pousse jamais sur `master` : on y merge via Pull Request. Rien ne l'empêche côté GitHub
-pour l'instant (voir § 0), seul le hook pre-push local le bloque.
+On ne pousse jamais sur `master` : on y merge via Pull Request. Le hook pre-push local reste une
+protection supplémentaire, même lorsque la règle GitHub est active.
 
 ## 2. Nom de branche : `<initiales>/<description-courte>`
 
@@ -68,7 +66,7 @@ recoupement : se coordonner sur Discord avant de commencer.
   migrations.
 
 La CI utilise Node 22 et exécute, dans l'ordre : installation reproductible des dépendances, lint,
-vérification TypeScript, tests et build. Pour reproduire ces contrôles localement :
+vérification TypeScript, tests et build. La CI complète locale n’est pas exigée avant un push ou un merge. Pour reproduire ces contrôles manuellement, de manière facultative :
 
 ```bash
 npm ci

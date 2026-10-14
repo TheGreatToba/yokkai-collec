@@ -1,4 +1,12 @@
-# Budget CI — 12/10/2026
+# CI GitHub Actions — réactivation du 14/10/2026
+
+Le dépôt étant désormais public, la CI automatique est réactivée pour les Pull
+Requests ciblant `master` et les pushes sur `master`. Le lancement manuel reste
+disponible avec `workflow_dispatch`.
+
+Les contrôles locaux complets sont facultatifs. Aucune PR mergée sans CI GitHub Actions verte sur la branche à jour avec origin/master. Le hook pre-push bloque uniquement les pushes directs sur master.
+
+## Budget historique — 12/10/2026
 
 ## Changements
 

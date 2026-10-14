@@ -73,7 +73,10 @@ export async function deleteAccountAction(
     // A partial deletion remains fenced. Never retry destructive calls silently.
     return {
       error:
-        "La suppression n’a pas pu être terminée. Ne répète pas la demande ; contacte l’équipe pour vérifier son état."
+        "La suppression n’a pas pu être terminée. Ne répète pas la demande ; contacte l’équipe pour vérifier son état." +
+        (process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim()
+          ? ` Contact : ${process.env.NEXT_PUBLIC_CONTACT_EMAIL.trim()}.`
+          : "")
     };
   }
   // Auth Admin already revoked all sessions. Still clear local session cookies.

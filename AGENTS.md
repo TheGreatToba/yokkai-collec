@@ -4,6 +4,8 @@ Deux devs travaillent en parallèle sur ce repo. Détails complets : [docs/COLLA
 
 Règles non négociables :
 
+- Aucune PR mergée sans CI GitHub Actions verte sur la branche à jour avec origin/master.
+
 - Lancer npm run format avant tout commit ; ne jamais utiliser --no-verify.
 
 - Ne jamais affaiblir un test existant (assertion supprimée ou assouplie, seuil abaissé, test ignoré) dans la même PR que le code qu'il vérifie. Si un test protège une décision produit (qualité des images, droits SQL, taux de drop…), toute modification doit être signalée explicitement dans la description de la PR et validée par Walid.
@@ -13,12 +15,7 @@ Règles non négociables :
 - Ouvrir une Pull Request pour toute tâche, même petite.
 - Indiquer dans la PR les migrations Supabase qu'elle contient et si elles sont déjà appliquées sur le VPS ou non.
 
-## CI locale
-
-- GitHub Actions n'est plus déclenché automatiquement (quota limité). Ne jamais réactiver les triggers `push`/`pull_request` sans l'accord de Walid.
-- Avant chaque push, le hook pre-push lance `npm run verify:quick` (lint, tsc, format:check et tests unitaires). Ne jamais contourner les hooks.
-- Avant chaque merge, mettre la branche à jour avec `origin/master`, lancer `npm run verify` sur le commit final et exiger un résultat vert juste avant le merge. Coller la sortie résumée (commit, base master, résultats et éventuel avertissement Docker) dans la description de la PR.
-- Regrouper les commits et éviter les push à répétition. Ces consignes remplacent les anciennes recommandations de CI automatique et de pushes fréquents.
+- Regrouper les commits et éviter les push à répétition.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

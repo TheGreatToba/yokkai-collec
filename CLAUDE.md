@@ -4,7 +4,7 @@ Deux devs travaillent en parallèle sur ce repo. Détails complets : [docs/COLLA
 
 Règles non négociables :
 
-- Aucune PR mergée sans `npm run verify` vert juste avant le merge, sur la branche à jour avec `origin/master`. Coller la sortie résumée dans la description de la PR, y compris tout avertissement Docker.
+- Aucune PR mergée sans CI GitHub Actions verte sur la branche à jour avec origin/master.
 
 - Lancer npm run format avant tout commit ; ne jamais utiliser --no-verify.
 

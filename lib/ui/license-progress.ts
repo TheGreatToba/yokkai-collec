@@ -2,10 +2,14 @@ import type { Card, CollectedCard } from "@/lib/data/cards";
 
 const CATEGORY_ALBUMS = new Set([
   "ARTIST",
+  "BRAINROT",
   "DISNEY CHANNEL",
   "FILM",
   "INTERNET PERSONALITY",
+  "KDRAMA",
   "KPOP",
+  "MEME",
+  "VOCALOID",
   "WWE"
 ]);
 

@@ -106,6 +106,9 @@ test("filter CLI uses the whole PR diff, includes deleted SQL tests, always enab
 });
 
 test("workflow preserves cancellation, npm cache and all checks; SQL job is conditional and Next cache persisted", () => {
+  assert.match(workflow, /on:\s*\n\s+push:\s*\n\s+branches:\s*\n\s+- master/);
+  assert.match(workflow, /pull_request:\s*\n\s+branches:\s*\n\s+- master/);
+  assert.match(workflow, /workflow_dispatch:/);
   assert.match(
     workflow,
     /concurrency:[\s\S]*?github\.event\.pull_request\.number \|\| github\.ref[\s\S]*?cancel-in-progress: true/

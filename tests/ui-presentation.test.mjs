@@ -1744,6 +1744,15 @@ test("la collection pagine par multiples de 6 pour remplir la grille", () => {
   assert.doesNotMatch(html, /Cartes par page \(non disponible/);
 });
 
+test("le Classeur affiche 28 cartes par page par défaut", () => {
+  const source = readFileSync("components/collection.tsx", "utf8");
+  const pagination = readFileSync("lib/ui/pagination.ts", "utf8");
+
+  assert.match(source, /BINDER_CARD_PAGE_SIZES\[0\]/);
+  assert.match(source, /BINDER_CARD_PAGE_SIZES\.map/);
+  assert.match(pagination, /BINDER_CARD_PAGE_SIZES = \[28, 42, 56\]/);
+});
+
 test("les copies normales et Shiny forment des tuiles distinctes avec badge de quantité", () => {
   const { CollectionView } = load("components/collection.tsx");
   const copies = [

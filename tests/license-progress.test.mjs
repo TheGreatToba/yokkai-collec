@@ -66,13 +66,22 @@ test("les catégories éditoriales deviennent des albums Panini uniques", () => 
   const catalogue = [
     card("film-1", "film-1", "Alien", "FILM"),
     card("film-2", "film-2", "Matrix", "FILM"),
+    card("brainrot-1", "brainrot-1", "Tung Tung Tung Sahur", "BRAINROT"),
+    card("disney-1", "disney-1", "Hannah Montana", "DISNEY CHANNEL"),
+    card("kdrama-1", "kdrama-1", "Vincenzo", "KDRAMA"),
     card("kpop-1", "kpop-1", "BTS", "KPOP"),
+    card("meme-1", "meme-1", "Doge", "MEME"),
+    card("vocaloid-1", "vocaloid-1", "Hatsune Miku", "VOCALOID"),
     card("anime-1", "anime-1", "One Piece")
   ];
 
   assert.equal(paniniAlbumForCard(catalogue[0]), "FILM");
-  assert.equal(paniniAlbumForCard(catalogue[2]), "KPOP");
-  assert.equal(paniniAlbumForCard(catalogue[3]), "One Piece");
+  assert.equal(paniniAlbumForCard(catalogue[2]), "BRAINROT");
+  assert.equal(paniniAlbumForCard(catalogue[3]), "DISNEY CHANNEL");
+  assert.equal(paniniAlbumForCard(catalogue[4]), "KDRAMA");
+  assert.equal(paniniAlbumForCard(catalogue[6]), "MEME");
+  assert.equal(paniniAlbumForCard(catalogue[7]), "VOCALOID");
+  assert.equal(paniniAlbumForCard(catalogue[8]), "One Piece");
   assert.deepEqual(
     Array.from(
       buildLicenseCatalogueTotals(catalogue)
@@ -81,9 +90,14 @@ test("les catégories éditoriales deviennent des albums Panini uniques", () => 
       item => Array.from(item)
     ),
     [
+      ["BRAINROT", 1],
+      ["DISNEY CHANNEL", 1],
       ["FILM", 2],
+      ["KDRAMA", 1],
       ["KPOP", 1],
-      ["One Piece", 1]
+      ["MEME", 1],
+      ["One Piece", 1],
+      ["VOCALOID", 1]
     ]
   );
 });
