@@ -30,14 +30,15 @@ function CardOwnerList({
               <Link href={`/profil/${owner.id}`} title={owner.pseudo}>
                 <span className="yk-catalogue-owner-name">{owner.pseudo}</span>
                 <span className="yk-catalogue-owner-copies">
-                  {owner.copies} ex.
+                  {owner.copies.toLocaleString("en-US")}{" "}
+                  {owner.copies === 1 ? "copy" : "copies"}
                 </span>
               </Link>
             </li>
           ))}
         </ul>
       ) : (
-        <p>Aucun</p>
+        <p>None</p>
       )}
     </div>
   );
@@ -78,7 +79,7 @@ export function CatalogueCardModal({
           setDiscovery({
             cardId,
             error:
-              caught instanceof Error ? caught.message : "Détail indisponible."
+              caught instanceof Error ? caught.message : "Details unavailable."
           });
       }
     );
@@ -107,7 +108,10 @@ export function CatalogueCardModal({
       setDiscovery({
         cardId: selected.id,
         detail,
-        error: caught instanceof Error ? caught.message : "Action impossible."
+        error:
+          caught instanceof Error
+            ? caught.message
+            : "Couldn't complete this action."
       });
     } finally {
       setBusy(false);
@@ -130,10 +134,7 @@ export function CatalogueCardModal({
       setDiscovery({
         cardId: selected.id,
         detail,
-        error:
-          caught instanceof Error
-            ? caught.message
-            : "Possesseurs indisponibles."
+        error: caught instanceof Error ? caught.message : "Owners unavailable."
       });
     }
   }
@@ -145,7 +146,7 @@ export function CatalogueCardModal({
     <Modal
       open={!!selected}
       onClose={onClose}
-      title={selected?.name ?? "Détail de la carte"}
+      title={selected?.name ?? "Card details"}
       className="yk-catalogue-detail-modal"
     >
       {selected && (
@@ -158,25 +159,23 @@ export function CatalogueCardModal({
               {selected.category} · {selected.rarity}
             </p>
             <p className="mt-2 text-sm text-ink-3">
-              {selected.anime ?? "Franchise non renseignée"}
+              {selected.anime ?? "No franchise listed"}
             </p>
-            <p className="mt-7 text-xs text-ink-3">Valeur de marché</p>
+            <p className="mt-7 text-xs text-ink-3">Market value</p>
             {detail?.marketValue != null ? (
               <Karas
                 amount={Math.round(detail.marketValue)}
                 className="mt-2 text-xl"
               />
             ) : (
-              <p className="mt-2 text-sm text-ink-3">
-                Aucune vente enregistrée
-              </p>
+              <p className="mt-2 text-sm text-ink-3">No sales recorded</p>
             )}
             {detail?.activeAuctionId ? (
               <Link
                 className="yk-button mt-5 flex w-full justify-center"
                 href={`/marche/${detail.activeAuctionId}`}
               >
-                Voir l’enchère
+                View auction
               </Link>
             ) : null}
             <Button
@@ -186,8 +185,8 @@ export function CatalogueCardModal({
               onClick={() => void toggle()}
             >
               {detail?.wishlisted
-                ? "♥ Retirer de ma wishlist"
-                : "♡ Ajouter à ma wishlist"}
+                ? "♥ Remove from my wishlist"
+                : "♡ Add to my wishlist"}
             </Button>
             <CardReportButton
               cardId={selected.id}
@@ -201,20 +200,17 @@ export function CatalogueCardModal({
             )}
             <section className="yk-catalogue-owners">
               <h3 className="font-display text-sm">
-                Possesseurs actuels {detail ? `(${detail.ownerCount})` : ""}
+                Current owners {detail ? `(${detail.ownerCount})` : ""}
               </h3>
               {detail?.owners.length ? (
                 <div className="yk-catalogue-owner-columns">
-                  <CardOwnerList title="Amis" owners={friendOwners} />
-                  <CardOwnerList
-                    title="Autres utilisateurs"
-                    owners={otherOwners}
-                  />
+                  <CardOwnerList title="Friends" owners={friendOwners} />
+                  <CardOwnerList title="Other players" owners={otherOwners} />
                 </div>
               ) : detail ? (
-                <p>Aucun possesseur actuellement.</p>
+                <p>No current owners.</p>
               ) : (
-                <p>Chargement…</p>
+                <p>Loading…</p>
               )}
               {detail && detail.owners.length < detail.ownerCount ? (
                 <Button
@@ -222,7 +218,7 @@ export function CatalogueCardModal({
                   className="mt-3 w-full"
                   onClick={() => void moreOwners()}
                 >
-                  Afficher plus
+                  Show more
                 </Button>
               ) : null}
             </section>

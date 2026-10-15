@@ -13,11 +13,11 @@ async function call<T>(name: string, args: Record<string, unknown>): Promise<T> 
   const { data, error } = await createClient().rpc(name, args);
   if (error) {
     const messages: Record<string, string> = {
-      AUTH_REQUIRED: "Connecte-toi pour gérer tes liens.",
-      CARD_NOT_OWNED: "Tu ne possèdes plus cet exemplaire.",
-      CARD_SHARE_DAILY_LIMIT: "Tu as atteint la limite de 10 nouveaux liens par jour UTC.",
+      AUTH_REQUIRED: "Sign in to manage your links.",
+      CARD_NOT_OWNED: "You no longer own this card copy.",
+      CARD_SHARE_DAILY_LIMIT: "You've reached the limit of 10 new links per UTC day.",
     };
-    throw new Error(messages[error.message] ?? "Les liens partagés sont momentanément indisponibles.");
+    throw new Error(messages[error.message] ?? "Shared links are temporarily unavailable.");
   }
   return data as T;
 }
@@ -30,8 +30,8 @@ export const listCardShares = (offset = 0) =>
   call<CardShare[]>("list_card_shares", { p_offset: offset });
 
 export function cardShareUrl(id: string) {
-  if (!/^[0-9a-f]{32}$/.test(id)) throw new Error("Lien de partage invalide.");
+  if (!/^[0-9a-f]{32}$/.test(id)) throw new Error("Invalid share link.");
   const origin = process.env.NEXT_PUBLIC_SITE_URL;
-  if (!origin) throw new Error("L’adresse publique du site est indisponible.");
+  if (!origin) throw new Error("The site's public address is unavailable.");
   return new URL(`/partage/${id}`, origin).href;
 }
