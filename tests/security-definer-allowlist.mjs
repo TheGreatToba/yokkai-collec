@@ -42,6 +42,8 @@ const allowlist = {
   "public.get_friend_collection(uuid)": ["authenticated"], // Collection read enforces friendship and privacy.
   "public.get_friend_panini_album_cards_page(uuid, text, text, text, boolean, integer, integer)":
     ["authenticated"], // Panini card progress enforces the same collection privacy before reading another player.
+  "public.get_friend_panini_album_cards_page(uuid, text, text, text, boolean, integer, integer, text)":
+    ["authenticated"], // Rarity-filtered pages retain collection privacy and expose only the requested owner's progress.
   "public.get_friend_panini_albums_page(uuid, text, text, integer, integer)": [
     "authenticated"
   ], // Panini album progress enforces the same collection privacy before reading another player.

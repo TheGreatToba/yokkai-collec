@@ -234,7 +234,14 @@ export function ProfilePreview() {
       },
       friendAlbumCards: async (
         _id,
-        { license, query = "", category = "", page = 1, pageSize = 28 }
+        {
+          license,
+          query = "",
+          category = "",
+          rarity = "",
+          page = 1,
+          pageSize = 28
+        }
       ) => {
         if (hiddenCollection) throw new Error("Cette collection est privée.");
         const items = collection
@@ -242,6 +249,7 @@ export function ProfilePreview() {
             card =>
               card.anime === license &&
               (!category || card.category === category) &&
+              (!rarity || card.rarity === rarity) &&
               card.name.toLowerCase().includes(query.toLowerCase())
           )
           .map(card => ({ ...card, owned: true }));

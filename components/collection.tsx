@@ -233,6 +233,7 @@ export function CollectionView({
     license: string;
     query?: string;
     category?: string;
+    rarity?: Rarity | "";
     ownedOnly?: boolean;
     page?: number;
     pageSize?: number;
@@ -499,6 +500,7 @@ export function CollectionView({
         license: selectedLicense,
         query,
         category,
+        rarity,
         ownedOnly: hideMissingCards,
         page: activePaniniPage,
         pageSize: paniniPageSize
@@ -531,6 +533,7 @@ export function CollectionView({
     loadPaniniAlbumCards,
     paniniPageSize,
     query,
+    rarity,
     selectedLicense,
     viewMode
   ]);
@@ -837,6 +840,7 @@ export function CollectionView({
     setFolder("");
     setAuctionOnly(false);
     setPage(1);
+    setPaniniPage(1);
   };
   const filters = (
     <>
@@ -875,6 +879,7 @@ export function CollectionView({
           onClick={() => {
             setRarity("");
             setPage(1);
+            setPaniniPage(1);
           }}
         >
           <span className="yk-filter-check" />
@@ -890,6 +895,7 @@ export function CollectionView({
             onClick={() => {
               setRarity(r);
               setPage(1);
+              setPaniniPage(1);
             }}
           >
             <span className="yk-filter-check" />
