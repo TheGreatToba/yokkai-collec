@@ -1713,22 +1713,31 @@ test("Collection, Catalogue et Marché partagent une seule échelle de colonnes"
   }
 });
 
-test("la collection annonce l'évolution de cinq SSR non-Shiny en Shiny", () => {
+test("la collection annonce la finition de fusion correspondant au contrat installé", () => {
+  // Product contract approved by Walid in a separate test-only PR. The marker
+  // selects one strict contract, never an arbitrary choice between both labels.
+  const ssrPlus = existsSync(path.join(root, "lib/ui/card-variant.ts"));
   const source = readFileSync(
     path.join(root, "components/collection.tsx"),
     "utf8"
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/évolution Shiny/i)
+    normalizeWhitespace(
+      ssrPlus ? /Confirm SSR\+ evolution/ : /évolution Shiny/i
+    )
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/Progression Shiny/)
+    normalizeWhitespace(ssrPlus ? /SSR\+ progress/ : /Progression Shiny/)
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/\{evolvableCopies\}\/5 exemplaires/)
+    normalizeWhitespace(
+      ssrPlus
+        ? /\{evolvableCopies\}\/5 copies/
+        : /\{evolvableCopies\}\/5 exemplaires/
+    )
   );
   assert.doesNotMatch(
     normalizeWhitespace(source),
@@ -1736,8 +1745,18 @@ test("la collection annonce l'évolution de cinq SSR non-Shiny en Shiny", () => 
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/Confirmer l’évolution Shiny/)
+    normalizeWhitespace(
+      ssrPlus ? /Confirm SSR\+ evolution/ : /Confirmer l’évolution Shiny/
+    )
   );
+  if (ssrPlus) {
+    assert.match(source, /Evolve to SSR\+/);
+    assert.match(source, /new SSR\+ card/);
+    assert.doesNotMatch(
+      source,
+      /Progression Shiny|Évoluer en Shiny|Confirm UR evolution|Evolve to UR/
+    );
+  }
   assert.match(
     normalizeWhitespace(source),
     normalizeWhitespace(
