@@ -230,6 +230,106 @@
     box-shadow: 0 0 22px rgba(var(--pack-rgb), 0.12);
   }
 }
+/* Fit desktop selection to the available height, not the monitor resolution.
+   Keep natural scrolling for errors, zoomed text and very short viewports. */
+@media (min-width: 701px) and (max-height: 1200px) {
+  .yk-game-main:has(.yk-pack-grid) {
+    padding-top: clamp(12px, 2.5svh, 26px);
+    padding-bottom: clamp(12px, 2.5svh, 26px);
+  }
+  .yk-game-main:has(.yk-pack-grid) .yk-pack-page-heading .yk-title {
+    margin-top: 6px;
+    font-size: clamp(30px, 4.4svh, 44px);
+  }
+  .yk-game-main:has(.yk-pack-grid) .yk-pack-page-heading > p:last-child {
+    max-width: none;
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 20px;
+  }
+  .yk-pack-grid {
+    margin-top: 18px;
+    gap: 22px;
+  }
+  .yk-pack-panel .yk-pack-art-stage {
+    height: clamp(128px, calc(100svh - 610px), 280px);
+  }
+  .yk-pack-panel .yk-pack-image {
+    height: calc(100% - 28px);
+    width: auto;
+    max-width: 190px;
+    margin-top: 0;
+  }
+  .yk-pack-panel .yk-pack-orbit {
+    width: min(240px, calc(100svh - 610px));
+    height: min(240px, calc(100svh - 610px));
+    min-width: 110px;
+    min-height: 110px;
+  }
+  .yk-pack-panel .yk-pack-art-stage::after {
+    width: clamp(120px, 24svh, 210px);
+    height: 24px;
+    bottom: 3px;
+  }
+  .yk-pack-panel .yk-pack-body {
+    padding: 14px 24px 18px;
+  }
+  .yk-pack-panel .yk-pack-title h2 {
+    font-size: 24px;
+    line-height: 1.25;
+  }
+  .yk-pack-panel .yk-pack-body > p {
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+  .yk-pack-panel .yk-pack-status {
+    gap: 8px;
+    margin: 14px 0;
+    padding-top: 12px;
+  }
+  .yk-pack-panel .yk-pack-body > .yk-button {
+    min-height: 44px;
+  }
+  .yk-game-main:has(.yk-pack-grid) + footer {
+    margin-top: 12px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+}
+@media (min-width: 701px) and (max-height: 760px) {
+  .yk-game-main:has(.yk-pack-grid) {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+  .yk-pack-grid {
+    margin-top: 14px;
+  }
+  .yk-pack-panel .yk-pack-art-stage {
+    min-height: 168px;
+  }
+  .yk-pack-panel .yk-pack-body {
+    padding-top: 10px;
+    padding-bottom: 14px;
+  }
+  .yk-pack-panel .yk-pack-status {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .yk-pack-panel .yk-pack-status > div:not(.yk-pack-gauge) {
+    flex-direction: column;
+    gap: 4px;
+  }
+  .yk-pack-panel .yk-pack-status dd {
+    max-width: none;
+    text-align: left;
+  }
+  .yk-pack-panel .yk-pack-gauge {
+    grid-row: 2;
+    grid-column: 1 / -1;
+  }
+  .yk-decision-panel .yk-pack-status {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 @media (max-width: 700px) {
   .yk-pack-grid {
     grid-template-columns: minmax(0, 1fr);

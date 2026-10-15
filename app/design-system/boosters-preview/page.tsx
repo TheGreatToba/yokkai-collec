@@ -9,16 +9,23 @@ export const metadata: Metadata = {
 
 export default function BoostersPreviewPage() {
   return (
-    <>
+    <div className="flex min-h-dvh w-full flex-col">
       <Topbar view="packs" name="Kitsune" karas={4920} notifications={[]} />
-      <main className="mx-auto w-full max-w-6xl px-6 py-10">
-        <p className="eyebrow">Une ouverture. Cinq destins.</p>
-        <h1 className="yk-title mt-3">Tes boosters</h1>
-        <p className="mt-4 max-w-xl text-sm leading-6 text-ink-2">
-          Brise le sceau. Révèle les cartes qui rejoindront ta collection.
-        </p>
+      <main className="yk-game-main mx-auto w-full max-w-6xl flex-1 px-6 py-10">
+        <header className="yk-pack-page-heading">
+          <p className="eyebrow">The summoning room</p>
+          <h1 className="yk-title mt-3">Your next great pull.</h1>
+          <p className="mt-4 max-w-xl text-sm leading-6 text-ink-2">
+            A sealed pack. A world of possibilities. Find the next card you’ll
+            never want to let go.
+          </p>
+        </header>
         <BoostersPreview />
       </main>
-    </>
+      <footer className="mx-auto mt-6 flex w-full max-w-6xl flex-wrap justify-between gap-3 border-t border-veil px-6 py-6 text-xs text-ink-3">
+        <span>Yokkai Collec’ · v0.2</span>
+        <span>Your collection is saved to your account</span>
+      </footer>
+    </div>
   );
 }
