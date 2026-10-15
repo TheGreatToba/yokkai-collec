@@ -1715,7 +1715,9 @@ export function AuctionView({
                 <p className="min-w-0 flex-1 text-sm">
                   {h.mine ? (
                     <strong>You</strong>
-                  ) : !h.name || h.name === "Deleted player" ? (
+                  ) : !h.name ||
+                    h.name === "Joueur supprimé" ||
+                    h.name === "Deleted player" ? (
                     <strong>Deleted player</strong>
                   ) : (
                     <Link
@@ -1734,7 +1736,7 @@ export function AuctionView({
                 </p>
                 {i === 0 && (
                   <StatusPill tone="success">
-                    {auction.finished ? "Gagnant" : "Leading"}
+                    {auction.finished ? "Winner" : "Leading"}
                   </StatusPill>
                 )}
               </li>
