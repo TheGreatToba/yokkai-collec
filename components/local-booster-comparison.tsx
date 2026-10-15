@@ -33,7 +33,7 @@ export function LocalBoosterComparison() {
 
   return (
     <>
-      <header className="border-b border-line px-6 py-4 flex items-center justify-between gap-4">
+      <header className="border-b border-line px-6 py-4 flex flex-wrap items-center justify-between gap-3">
         <Link href="/boosters" aria-label="Booster comparison">
           <Image
             src="/assets/header-logo-gold.png"
@@ -52,39 +52,52 @@ export function LocalBoosterComparison() {
         className="yk-game-main mx-auto w-full max-w-6xl px-6 py-10"
       >
         <div className="yk-pack-page-heading">
-          <p className="eyebrow">Local simulation · real account unchanged</p>
-          <h1 className="yk-title mt-3">Compare SSR / LR drops</h1>
-          <p className="my-4 text-sm text-ink-2">
-            Every demo booster contains the same SSR Levi and LR Luffy. Choose
-            Before or After, then open the Regular Pack. No real booster, card
-            or Karas is consumed or created.
+          <p className="eyebrow">The summoning room</p>
+          <h1 className="yk-title mt-3">Your next great pull.</h1>
+          <p className="mt-4 max-w-xl text-sm leading-6 text-ink-2">
+            A sealed pack. A world of possibilities. Find the next card you’ll
+            never want to let go.
           </p>
-          <div
-            className="mb-6 flex flex-wrap items-center gap-3"
-            aria-label="Animation version"
-          >
-            <button
-              type="button"
-              className={`yk-button ${variant === "before" ? "yk-button-primary" : "yk-button-secondary"}`}
-              aria-pressed={variant === "before"}
-              onClick={() => choose("before")}
-            >
-              Before · production effects
-            </button>
-            <button
-              type="button"
-              className={`yk-button ${variant === "after" ? "yk-button-primary" : "yk-button-secondary"}`}
-              aria-pressed={variant === "after"}
-              onClick={() => choose("after")}
-            >
-              After · new effects
-            </button>
-            <Link className="text-sm text-accent-gold" href="/boosters?live=1">
-              Back to live boosters
-            </Link>
-          </div>
+          <details className="yk-pack-comparison">
+            <summary>
+              Local test · SSR + LR guaranteed · compare animations
+            </summary>
+            <div>
+              <p className="mb-3">
+                Same SSR Levi and LR Luffy in both modes. No real booster, card
+                or Karas is consumed or created.
+              </p>
+              <div
+                className="mb-6 flex flex-wrap items-center gap-3"
+                aria-label="Animation version"
+              >
+                <button
+                  type="button"
+                  className={`yk-button ${variant === "before" ? "yk-button-primary" : "yk-button-secondary"}`}
+                  aria-pressed={variant === "before"}
+                  onClick={() => choose("before")}
+                >
+                  Before · production effects
+                </button>
+                <button
+                  type="button"
+                  className={`yk-button ${variant === "after" ? "yk-button-primary" : "yk-button-secondary"}`}
+                  aria-pressed={variant === "after"}
+                  onClick={() => choose("after")}
+                >
+                  After · new effects
+                </button>
+                <Link
+                  className="text-sm text-accent-gold"
+                  href="/boosters?live=1"
+                >
+                  Back to live boosters
+                </Link>
+              </div>
+            </div>
+          </details>
         </div>
-        <p className="mb-4 text-sm text-accent-gold" role="status">
+        <p className="sr-only" role="status">
           Demo · {variant === "before" ? "Before" : "After"} · Guaranteed SSR +
           LR
         </p>

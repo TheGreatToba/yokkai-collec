@@ -33,3 +33,12 @@ modifiés. De nouveaux tests vérifient les effets natifs et l’absence de lect
 
 Les PR vidéo #260/#261 sont abandonnées. Migrations Supabase : aucune.
 Aucun changement appliqué sur le VPS, aucun déploiement pour cette étape locale.
+
+## Présentation de la sélection de boosters
+
+La feuille `boosters-showcase.css` retravaille uniquement la sélection des packs :
+deux panneaux violet/or, visuels sur socles lumineux, informations compactes et
+boutons alignés. Elle ne cible ni le reveal, ni l’ouverture, ni les modales.
+Sur mobile, les panneaux passent en une colonne ; focus clavier, bouton désactivé
+et mouvement réduit sont conservés. Le comparateur local est dans un panneau
+repliable. Aucun changement de taux, de réserve ou de recharge, aucune migration.
