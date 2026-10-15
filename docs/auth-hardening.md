@@ -99,8 +99,8 @@ Les modèles sont livrés dans public/auth-emails/confirmation.html et public/au
 | GOTRUE_URI_ALLOW_LIST                | https://yokkai-collec.com/auth/confirm,https://yokkai-collec.com/auth/confirm?next=/reinitialiser-mot-de-passe | Ancienne liste conservée hors dépôt             |
 | GOTRUE_MAILER_TEMPLATES_CONFIRMATION | https://yokkai-collec.com/auth-emails/confirmation.html                                                        | Ancienne valeur ; retirer si auparavant absente |
 | GOTRUE_MAILER_TEMPLATES_RECOVERY     | https://yokkai-collec.com/auth-emails/recovery.html                                                            | Ancienne valeur ; retirer si auparavant absente |
-| GOTRUE_MAILER_SUBJECTS_CONFIRMATION  | Confirme ton adresse e-mail — Yokkai Collec’                                                                   | Ancienne valeur ; retirer si auparavant absente |
-| GOTRUE_MAILER_SUBJECTS_RECOVERY      | Réinitialise ton mot de passe — Yokkai Collec’                                                                 | Ancienne valeur ; retirer si auparavant absente |
+| GOTRUE_MAILER_SUBJECTS_CONFIRMATION  | Confirm your email address — Yokkai Collec’                                                                    | Ancienne valeur ; retirer si auparavant absente |
+| GOTRUE_MAILER_SUBJECTS_RECOVERY      | Reset your password — Yokkai Collec’                                                                           | Ancienne valeur ; retirer si auparavant absente |
 
 NEXT_PUBLIC_SITE_URL doit correspondre à l’origine HTTPS canonique. Ne pas changer les secrets SMTP, les clés API ou les clés JWT. Conserver les chemins de vérification API existants ; les nouveaux modèles dirigent vers /auth/confirm avec token_hash et type=signup ou recovery. La route accepte également les anciens liens PKCE, ignore les destinations next externes et retire les tokens de la redirection finale. Le type recovery mène au formulaire de nouveau mot de passe. Un lien consommé et un lien expiré partagent le code otp_expired : l’interface ne prétend pas pouvoir les différencier. Un échec temporaire d’Auth affiche une indisponibilité séparée.
 
