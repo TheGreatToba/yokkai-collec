@@ -165,12 +165,12 @@ export function Karas({
       className={`yk-karas inline-flex items-center gap-2 text-karas tabular-nums ${className}`}
       aria-label={
         amount == null
-          ? "Solde karas indisponible"
-          : `${amount.toLocaleString("fr-FR")} karas`
+          ? "Karas balance unavailable"
+          : `${amount.toLocaleString("en-US")} Karas`
       }
     >
       <span aria-hidden="true" className="yk-karas-gem" />
-      {amount == null ? "—" : amount.toLocaleString("fr-FR")}
+      {amount == null ? "—" : amount.toLocaleString("en-US")}
     </span>
   );
 }
@@ -427,7 +427,7 @@ export function Modal({
           type="button"
           autoFocus
           onClick={onClose}
-          aria-label="Fermer"
+          aria-label="Close"
           className="size-9 shrink-0 rounded-full border border-veil text-ink-2 hover:bg-veil"
         >
           ✕
@@ -534,7 +534,7 @@ export function Tabs({
 
 export function Skeleton({
   className = "",
-  label = "Chargement"
+  label = "Loading"
 }: {
   className?: string;
   label?: string;

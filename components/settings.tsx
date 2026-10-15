@@ -27,12 +27,12 @@ function PasswordChangeForm() {
       )}
       {state.success && (
         <p role="status" className="text-sm text-success">
-          Ton mot de passe a bien été modifié.
+          Your password has been updated.
         </p>
       )}
       <fieldset disabled={pending} className="grid gap-4">
         <label className="block" htmlFor="currentPassword">
-          <span className="yk-field-label">Mot de passe actuel</span>
+          <span className="yk-field-label">Current password</span>
           <input
             id="currentPassword"
             name="currentPassword"
@@ -60,7 +60,7 @@ function PasswordChangeForm() {
         </label>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block" htmlFor="newPassword">
-            <span className="yk-field-label">Nouveau mot de passe</span>
+            <span className="yk-field-label">New password</span>
             <input
               id="newPassword"
               name="password"
@@ -86,9 +86,7 @@ function PasswordChangeForm() {
             )}
           </label>
           <label className="block" htmlFor="confirmPassword">
-            <span className="yk-field-label">
-              Confirmer le nouveau mot de passe
-            </span>
+            <span className="yk-field-label">Confirm new password</span>
             <input
               id="confirmPassword"
               name="confirmPassword"
@@ -119,7 +117,7 @@ function PasswordChangeForm() {
         <AuthTurnstile />
         <div className="flex justify-end">
           <Button type="submit" disabled={pending}>
-            {pending ? "Modification…" : "Changer mon mot de passe"}
+            {pending ? "Updating…" : "Change password"}
           </Button>
         </div>
       </fieldset>
@@ -135,7 +133,7 @@ export function SettingsPanel() {
   useEffect(() => {
     void getProfilePrivacy().then(setIsPublic, reason =>
       setError(
-        reason instanceof Error ? reason.message : "Chargement impossible."
+        reason instanceof Error ? reason.message : "Couldn't load settings."
       )
     );
   }, []);
@@ -145,10 +143,10 @@ export function SettingsPanel() {
     setError("");
     try {
       setIsPublic(await setProfilePrivacy(isPublic));
-      setToast("Confidentialité mise à jour");
+      setToast("Privacy settings updated");
     } catch (reason) {
       setError(
-        reason instanceof Error ? reason.message : "Enregistrement impossible."
+        reason instanceof Error ? reason.message : "Couldn't save settings."
       );
     } finally {
       setBusy(false);
@@ -159,15 +157,15 @@ export function SettingsPanel() {
       <section className="rounded-panel border border-veil bg-surface p-6">
         <div className="flex flex-wrap items-start justify-between gap-6">
           <div className="max-w-2xl">
-            <h2 className="font-display text-xl">Confidentialité du profil</h2>
+            <h2 className="font-display text-xl">Profile privacy</h2>
             <p className="mt-3 text-sm leading-6 text-ink-2">
-              Choisis qui peut voir ta collection et découvrir les cartes que tu
-              possèdes dans le catalogue.
+              Choose who can see your collection and find your cards in the
+              catalog.
             </p>
             <p className="mt-3 text-xs leading-5 text-ink-3">
-              En activant « Profil privé », seuls tes amis voient ta collection.
-              Pour tous les autres, tu disparais de la liste des possesseurs et
-              tes exemplaires ne sont pas comptabilisés.
+              With a private profile, only your friends can see your collection.
+              Other players won&apos;t see you in owner lists, and your copies
+              won&apos;t count toward their totals.
             </p>
           </div>
           <button
@@ -175,8 +173,8 @@ export function SettingsPanel() {
             role="switch"
             aria-label={
               isPublic === false
-                ? "Rendre le profil public"
-                : "Rendre le profil privé"
+                ? "Make profile public"
+                : "Make profile private"
             }
             aria-checked={isPublic === undefined ? false : !isPublic}
             disabled={isPublic === undefined || busy}
@@ -185,10 +183,10 @@ export function SettingsPanel() {
           >
             <span>
               {isPublic === undefined
-                ? "Chargement…"
+                ? "Loading…"
                 : isPublic
-                  ? "Profil public"
-                  : "Profil privé"}
+                  ? "Public profile"
+                  : "Private profile"}
             </span>
             <i aria-hidden="true" />
           </button>
@@ -203,16 +201,16 @@ export function SettingsPanel() {
             disabled={isPublic === undefined || busy}
             onClick={() => void save()}
           >
-            {busy ? "Enregistrement…" : "Enregistrer"}
+            {busy ? "Saving…" : "Save"}
           </Button>
         </div>
         <Toast message={toast} onDismiss={() => setToast("")} />
       </section>
       <section className="rounded-panel border border-veil bg-surface p-6">
         <div className="max-w-2xl">
-          <h2 className="font-display text-xl">Mot de passe</h2>
+          <h2 className="font-display text-xl">Password</h2>
           <p className="mt-3 text-sm leading-6 text-ink-2">
-            Confirme ton mot de passe actuel, puis choisis-en un nouveau.
+            Confirm your current password, then choose a new one.
           </p>
         </div>
         <PasswordChangeForm />

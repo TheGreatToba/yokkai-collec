@@ -17,9 +17,9 @@ export async function reconnectForDeletion(
   try {
     const client = createClient(await cookies());
     const { error } = await client.auth.signOut({ scope: "local" });
-    if (error) return { error: "La déconnexion a échoué. Réessaie." };
+    if (error) return { error: "Couldn't sign out. Please try again." };
   } catch {
-    return { error: "La déconnexion a échoué. Réessaie." };
+    return { error: "Couldn't sign out. Please try again." };
   }
   redirect("/connexion");
 }
@@ -30,7 +30,7 @@ export async function deleteAccountAction(
 ): Promise<DeletionState> {
   const reconnect = {
     error:
-      "Reconnecte-toi puis reviens dans les paramètres : une connexion de moins de cinq minutes est nécessaire.",
+      "Sign in again, then return to settings. You must have signed in within the last five minutes.",
     reconnect: true
   };
   const cookieStore = await cookies();
@@ -57,25 +57,25 @@ export async function deleteAccountAction(
   }
   const pseudo = form.get("pseudo");
   if (typeof pseudo !== "string" || !pseudo || [...pseudo].length > 30)
-    return { error: "Retape exactement ton pseudo pour confirmer." };
+    return { error: "Enter your username exactly to confirm." };
   try {
     const profile = await client.rpc("get_game_info");
     if (profile.error || typeof profile.data?.user?.name !== "string")
       return {
-        error: "Impossible de vérifier ton pseudo. Réessaie plus tard."
+        error: "Couldn't verify your username. Please try again later."
       };
     if (pseudo !== profile.data.user.name)
       return {
-        error: "Le pseudo ne correspond pas. Retape exactement ton pseudo."
+        error: "The username doesn't match. Enter your username exactly."
       };
     await deleteAccount(userId);
   } catch {
     // A partial deletion remains fenced. Never retry destructive calls silently.
     return {
       error:
-        "La suppression n’a pas pu être terminée. Ne répète pas la demande ; contacte l’équipe pour vérifier son état." +
+        "We couldn't finish deleting your account. Don't submit another request. Contact the team to check its status." +
         (process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim()
-          ? ` Contact : ${process.env.NEXT_PUBLIC_CONTACT_EMAIL.trim()}.`
+          ? ` Contact: ${process.env.NEXT_PUBLIC_CONTACT_EMAIL.trim()}.`
           : "")
     };
   }

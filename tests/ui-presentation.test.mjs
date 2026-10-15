@@ -257,11 +257,11 @@ test("route and root layout errors offer retry without exposing internal details
       }
     };
     const html = render(ErrorPage, props);
-    assert.match(html, /Impossible d’afficher cette page/);
-    assert.match(html, /Réessayer/);
+    assert.match(html, /Unable to load this page/);
+    assert.match(html, /Try again/);
     assert.doesNotMatch(html, /PRIVATE_DATABASE_DETAILS/);
     if (relative.includes("global-error")) {
-      assert.match(html, /<html lang="fr"/);
+      assert.match(html, /<html lang="en"/);
       assert.match(html, /<body/);
     }
     const buttons = [];
@@ -645,11 +645,11 @@ test("la carte affiche la franchise dans son cadre sans répéter la catégorie 
   assert.doesNotMatch(withoutFranchise, /yk-card-anime/);
 });
 
-test("un solde absent reste inconnu, un solde connu utilise fr-FR", () => {
+test("un solde absent reste inconnu, un solde connu utilise en-US", () => {
   const { Karas } = load("components/ui/index.tsx");
-  assert.match(render(Karas, {}), /Solde karas indisponible/);
+  assert.match(render(Karas, {}), /Karas balance unavailable/);
   assert.match(render(Karas, {}), /—/);
-  assert.match(render(Karas, { amount: 1240 }), /1[\s\u202f\u00a0]240/);
+  assert.match(render(Karas, { amount: 1240 }), /1,240/);
 });
 
 test("les modales imbriquées libèrent le scroll et la confirmation remplace le détail", () => {
@@ -1513,7 +1513,7 @@ test("l’avatar ouvre un menu profil compact avec résumé et actions", () => {
   );
   assert.match(
     normalizeWhitespace(topbar),
-    normalizeWhitespace(/aria-label="Ouvrir mon compte"/)
+    normalizeWhitespace(/aria-label="Open my account"/)
   );
   assert.match(
     normalizeWhitespace(topbar),
@@ -1525,15 +1525,15 @@ test("l’avatar ouvre un menu profil compact avec résumé et actions", () => {
   );
   assert.match(
     normalizeWhitespace(topbar),
-    normalizeWhitespace(/>Voir mon profil<\/Link>/)
+    normalizeWhitespace(/>View my profile<\/Link>/)
   );
   assert.match(
     normalizeWhitespace(topbar),
-    normalizeWhitespace(/>Paramètres<\/Link>/)
+    normalizeWhitespace(/>Settings<\/Link>/)
   );
   assert.match(
     normalizeWhitespace(topbar),
-    normalizeWhitespace(/>Mes succès<\/Link>/)
+    normalizeWhitespace(/>My achievements<\/Link>/)
   );
   assert.doesNotMatch(
     normalizeWhitespace(topbar),
@@ -1541,7 +1541,7 @@ test("l’avatar ouvre un menu profil compact avec résumé et actions", () => {
   );
   assert.match(
     normalizeWhitespace(topbar),
-    normalizeWhitespace(/toLocaleString\("fr-FR"\).*Karas/)
+    normalizeWhitespace(/toLocaleString\("en-US"\).*Karas/)
   );
   assert.match(
     normalizeWhitespace(topbar),
@@ -1575,7 +1575,7 @@ test("l’avatar ouvre un menu profil compact avec résumé et actions", () => {
   );
   assert.doesNotMatch(
     normalizeWhitespace(topbar),
-    normalizeWhitespace(/>Fermer<\/button>/)
+    normalizeWhitespace(/>Close<\/button>/)
   );
   assert.doesNotMatch(
     normalizeWhitespace(topbar),
@@ -2997,8 +2997,8 @@ test("l’inscription vérifie le pseudo après debounce sans remplacer la valid
     normalizeWhitespace(form),
     normalizeWhitespace(/if \(pseudoRequest\.current !== request\) return/)
   );
-  assert.match(normalizeWhitespace(form), normalizeWhitespace(/Disponible/));
-  assert.match(normalizeWhitespace(form), normalizeWhitespace(/Déjà pris/));
+  assert.match(normalizeWhitespace(form), normalizeWhitespace(/Available/));
+  assert.match(normalizeWhitespace(form), normalizeWhitespace(/Already taken/));
   assert.doesNotMatch(
     normalizeWhitespace(form),
     normalizeWhitespace(/disabled=\{[^}]*pseudoAvailability/)

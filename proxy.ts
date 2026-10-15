@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { updateSession } from "@/utils/supabase/proxy";
 
 const maintenancePage = `<!doctype html>
-<html lang="fr">
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -40,9 +40,9 @@ const maintenancePage = `<!doctype html>
   <body>
     <main>
       <div class="mark" aria-hidden="true">Y</div>
-      <p class="eyebrow">Maintenance en cours</p>
-      <h1>Yokkai Collec' est en maintenance</h1>
-      <p>On prépare une grosse mise à jour. On revient très vite&nbsp;!</p>
+      <p class="eyebrow">Maintenance in progress</p>
+      <h1>Yokkai Collec' is undergoing maintenance</h1>
+      <p>We’re preparing a big update. We’ll be back soon!</p>
     </main>
   </body>
 </html>`;

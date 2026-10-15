@@ -9,16 +9,17 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Yokkai Collec'",
     description:
-      "Ouvrez des packs, collectionnez vos personnages préférés et échangez avec les autres joueurs.",
+      "Open packs, collect your favorite characters, and trade with other players.",
     type: "website",
-    locale: "fr_FR",
+    locale: "en_US",
     url: "/",
     images: [
       {
+        // Walid will supply the English asset at this path.
         url: "/og-home.png",
         width: 1200,
         height: 630,
-        alt: "Yokkai Collec’ — Invoquez. Collectionnez. Complétez."
+        alt: "Yokkai Collec’ — Summon. Collect. Complete."
       }
     ]
   },
@@ -51,13 +52,9 @@ const featuredCards = [
 ];
 
 const steps = [
-  ["01", "Ouvrez", "Recevez régulièrement un pack de cinq cartes."],
-  [
-    "02",
-    "Collectionnez",
-    "Découvrez des personnages venus de tous les univers."
-  ],
-  ["03", "Échangez", "Complétez votre collection avec les autres joueurs."]
+  ["01", "Open", "Get a fresh five-card pack regularly."],
+  ["02", "Collect", "Discover characters from every universe."],
+  ["03", "Trade", "Complete your collection by trading with other players."]
 ];
 
 export default async function Home() {
@@ -69,7 +66,7 @@ export default async function Home() {
         <Link
           href="/"
           className="yk-landing-brand"
-          aria-label="Yokkai Collec’, accueil"
+          aria-label="Yokkai Collec’, home"
         >
           <Image
             className="yk-landing-brand-image"
@@ -80,15 +77,15 @@ export default async function Home() {
             priority
           />
         </Link>
-        <nav aria-label="Navigation d’accueil" className="yk-landing-nav">
-          <a href="#concept">Le concept</a>
+        <nav aria-label="Home navigation" className="yk-landing-nav">
+          <a href="#concept">How it works</a>
           {user ? (
             <Link href="/boosters" className="yk-landing-login">
-              Entrer dans le jeu
+              Play now
             </Link>
           ) : (
             <Link href="/connexion" className="yk-landing-login">
-              Connexion
+              Sign in
             </Link>
           )}
         </nav>
@@ -96,24 +93,24 @@ export default async function Home() {
       <main id="main-content">
         <section className="yk-landing-hero">
           <div className="yk-landing-copy">
-            <p className="eyebrow">Votre collection commence ici</p>
+            <p className="eyebrow">Your collection starts here</p>
             <h1>
-              Invoquez.
+              Summon.
               <br />
-              Collectionnez.
+              Collect.
               <br />
-              <em>Complétez.</em>
+              <em>Complete.</em>
             </h1>
             <p className="yk-landing-lead">
-              Ouvrez des packs, révélez des personnages iconiques et bâtissez
-              une collection qui ne ressemble qu’à vous.
+              Open packs, reveal iconic characters, and build a collection
+              that&apos;s yours alone.
             </p>
             <div className="yk-landing-actions">
               <Link
                 href={primaryHref}
                 className="yk-button yk-button-primary yk-landing-cta"
               >
-                {user ? "Ouvrir mon pack" : "Commencer l’aventure"}
+                {user ? "Open my pack" : "Start collecting"}
                 <span aria-hidden="true">✦</span>
               </Link>
               {!user && (
@@ -121,29 +118,26 @@ export default async function Home() {
                   href="/connexion"
                   className="yk-button yk-button-secondary"
                 >
-                  J’ai déjà un compte
+                  I already have an account
                 </Link>
               )}
             </div>
-            <div
-              className="yk-landing-proof"
-              aria-label="Fonctionnalités principales"
-            >
+            <div className="yk-landing-proof" aria-label="Key features">
               <span>
-                <b>5</b> cartes par pack
+                <b>5</b> cards per pack
               </span>
               <span>
-                <b>5</b> raretés
+                <b>5</b> rarities
               </span>
               <span>
-                <b>∞</b> collections possibles
+                <b>∞</b> possible collections
               </span>
             </div>
           </div>
           <div
             id="collection"
             className="yk-landing-cards"
-            aria-label="Aperçu des cartes à collectionner"
+            aria-label="Collectible card preview"
           >
             <div className="yk-landing-aura" />
             {featuredCards.map((card, index) => (
@@ -175,8 +169,8 @@ export default async function Home() {
         >
           <div className="yk-landing-section-heading">
             <div>
-              <p className="eyebrow">Le rituel</p>
-              <h2 id="concept-title">Une collection vivante.</h2>
+              <p className="eyebrow">The ritual</p>
+              <h2 id="concept-title">A collection that keeps growing.</h2>
             </div>
           </div>
           <div className="yk-landing-steps">
@@ -190,19 +184,19 @@ export default async function Home() {
           </div>
         </section>
         <section className="yk-landing-final">
-          <p className="eyebrow">Prêt à tenter votre chance ?</p>
-          <h2>Votre prochain personnage préféré vous attend.</h2>
+          <p className="eyebrow">Ready to try your luck?</p>
+          <h2>Your next favorite character is waiting.</h2>
           <Link
             href={primaryHref}
             className="yk-button yk-button-primary yk-landing-cta"
           >
-            {user ? "Voir mes boosters" : "Créer ma collection"}
+            {user ? "View my packs" : "Start my collection"}
           </Link>
         </section>
       </main>
       <footer className="yk-landing-footer">
         <span>Yokkai Collec’</span>
-        <span>À chaque carte, une découverte.</span>
+        <span>A new discovery in every card.</span>
         {process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() && (
           <a href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL.trim()}`}>
             {process.env.NEXT_PUBLIC_CONTACT_EMAIL.trim()}

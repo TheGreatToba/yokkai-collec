@@ -158,7 +158,7 @@ test("export consumes only after HTTP completion and releases generation failure
   );
   assert.match(
     res.headers.get("Content-Disposition"),
-    /mes-donnees-\d{4}-\d{2}-\d{2}\.json/
+    /my-data-\d{4}-\d{2}-\d{2}\.json/
   );
   assert.ok(!res.headers.get("Content-Disposition").includes("player-a"));
   await h.callbacks[0]();

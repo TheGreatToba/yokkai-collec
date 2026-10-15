@@ -5,7 +5,7 @@ import { PasswordUpdateForm } from "@/components/password-reset-forms";
 import "@/styles/auth.css";
 
 export const metadata: Metadata = {
-  title: "Nouveau mot de passe · Yokkai Collec’"
+  title: "New password · Yokkai Collec’"
 };
 export const dynamic = "force-dynamic";
 
@@ -17,7 +17,7 @@ export default async function ResetPasswordPage() {
         <Link
           href="/"
           className="yk-auth-brand"
-          aria-label="Yokkai Collec’, accueil"
+          aria-label="Yokkai Collec’, home"
         >
           <span className="yk-auth-logo">Y</span>
           <span>
@@ -27,33 +27,32 @@ export default async function ResetPasswordPage() {
           </span>
         </Link>
         <Link href="/connexion" className="yk-auth-return">
-          <span aria-hidden="true">←</span> Connexion
+          <span aria-hidden="true">←</span> Sign in
         </Link>
       </header>
       <main className="yk-auth-main">
         <section className="yk-auth-panel">
-          <p className="eyebrow">Protège ta collection</p>
-          <h1 className="yk-auth-title">Choisis un nouveau mot de passe</h1>
+          <p className="eyebrow">Keep your collection safe</p>
+          <h1 className="yk-auth-title">Choose a new password</h1>
           <p className="yk-auth-intro">
-            Utilise un mot de passe unique que tu n’emploies sur aucun autre
-            site.
+            Use a unique password that you don&apos;t use on any other site.
           </p>
           {user ? (
             <PasswordUpdateForm />
           ) : (
             <div className="yk-auth-success">
               <p role="alert" className="auth-error">
-                Ce lien de réinitialisation est invalide ou a expiré.
+                This password reset link is invalid or has expired.
               </p>
               <Link href="/mot-de-passe-oublie" className="yk-auth-link">
-                Demander un nouveau lien →
+                Request a new link →
               </Link>
             </div>
           )}
         </section>
       </main>
       <footer className="yk-auth-footer">
-        Yokkai Collec’ · À chaque carte, une découverte.
+        Yokkai Collec’ · A new discovery in every card.
       </footer>
     </div>
   );

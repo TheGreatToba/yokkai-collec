@@ -192,7 +192,7 @@ export async function signUp(
     );
     if (pseudoAvailable === false) {
       return {
-        fields: { pseudo: "Ce pseudo est déjà pris, essaie-en un autre." },
+        fields: { pseudo: "That username is already taken. Try another one." },
         values
       };
     }
@@ -215,7 +215,9 @@ export async function signUp(
         );
         if (availableAfterFailure === false) {
           return {
-            fields: { pseudo: "Ce pseudo est déjà pris, essaie-en un autre." },
+            fields: {
+              pseudo: "That username is already taken. Try another one."
+            },
             values
           };
         }
@@ -309,7 +311,7 @@ export async function updateRecoveredPassword(
       error: sessionError
     } = await supabase.auth.getUser();
     if (sessionError || !user) {
-      return { error: "Ce lien de réinitialisation est invalide ou a expiré." };
+      return { error: "This password reset link is invalid or has expired." };
     }
     const { error } = await supabase.auth.updateUser({
       password: input.password
@@ -342,7 +344,7 @@ export async function changePassword(
     } = await supabase.auth.getUser();
     if (sessionError || !user?.email)
       return {
-        error: "Votre session a expiré. Reconnectez-vous puis réessayez."
+        error: "Your session has expired. Sign in again and retry."
       };
 
     const verification = await supabase.auth.signInWithPassword({
@@ -352,7 +354,7 @@ export async function changePassword(
     });
     if (verification.error?.code === "invalid_credentials") {
       return {
-        fields: { currentPassword: "Le mot de passe actuel est incorrect." }
+        fields: { currentPassword: "Incorrect current password." }
       };
     }
     if (verification.error)
@@ -377,9 +379,9 @@ export async function signOut(): Promise<AuthState> {
     const supabase = createClient(await cookies());
     await supabase.rpc("mark_offline");
     const { error } = await supabase.auth.signOut({ scope: "local" });
-    if (error) return { error: "La déconnexion a échoué. Réessayez." };
+    if (error) return { error: "Couldn't sign out. Please try again." };
   } catch {
-    return { error: "La déconnexion a échoué. Réessayez." };
+    return { error: "Couldn't sign out. Please try again." };
   }
   revalidatePath("/", "layout");
   redirect("/connexion");
