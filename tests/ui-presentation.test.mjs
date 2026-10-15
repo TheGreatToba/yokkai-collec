@@ -1757,8 +1757,14 @@ test("la collection annonce la récompense de fusion correspondant à la migrati
     )
   );
   if (urEvolution) {
-    assert.match(normalizeWhitespace(source), /Evolve to UR/);
-    assert.match(normalizeWhitespace(source), /new non-shiny UR/);
+    assert.match(
+      normalizeWhitespace(source),
+      normalizeWhitespace(/Evolve to UR/)
+    );
+    assert.match(
+      normalizeWhitespace(source),
+      normalizeWhitespace(/new non-shiny UR/)
+    );
     assert.doesNotMatch(
       source,
       /Progression Shiny|Évoluer en Shiny|Confirmer l’évolution Shiny/
