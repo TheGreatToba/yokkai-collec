@@ -9,6 +9,7 @@ import "../styles/community.css";
 import "../styles/profile.css";
 import "../styles/collection.css";
 import "../styles/boosters.css";
+import "../styles/boosters-showcase.css";
 import "../styles/market.css";
 
 const cinzel = Cinzel({
