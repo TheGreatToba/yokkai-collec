@@ -106,7 +106,7 @@ function ProfilePreview() {
             <Avatar name="Kitsune" size={80} />
             <div>
               <strong>Photo de profil</strong>
-              <p>JPG, PNG, WebP ou GIF · 2 Mo maximum</p>
+              <p>JPG, PNG, WebP or GIF · Up to 4 MB</p>
               <Button variant="secondary" className="mt-3">
                 Changer la photo
               </Button>

@@ -488,6 +488,7 @@ function Editor({
           />
         </label>
       </div>
+      <p className="text-xs text-ink-3">JPG, PNG, WebP or GIF · Up to 4 MB.</p>
       <label className="block text-sm text-ink-2">
         Bio
         <textarea
@@ -504,9 +505,8 @@ function Editor({
       <section className="yk-profile-banner-editor">
         <h3 className="font-display text-lg">Bannière personnalisée</h3>
         <p className="yk-profile-muted">
-          Importe une image depuis ton ordinateur ou ton téléphone. JPG, PNG,
-          WebP ou GIF, 2 Mo maximum. L’image est centrée et recadrée pour la
-          bannière.
+          Upload an image from your computer or phone. JPG, PNG, WebP or GIF, up
+          to 4 MB. The image is centered and cropped to fit your banner.
         </p>
         {bannerUrl && (
           <img
