@@ -1,6 +1,6 @@
 # Succès : textes anglais
 
-Migration : `20261015190000_english_achievement_texts.sql`. **Non appliquée au VPS.** Walid a autorisé la correction et l’application après CI verte ; l’application reste à effectuer.
+Migration : `20261015190000_english_achievement_texts.sql`. **Appliquée au VPS auto-hébergé le 15/10/2026**, après autorisation de Walid et CI GitHub verte sur `5ba545ca`. Sauvegarde validée, MD5 local/VPS identique (`dd8191aea7e81265d46afb634d3d6674`), registre vérifié puis mis à jour dans la même transaction.
 
 Les onze définitions existantes de `public.achievements` reçoivent uniquement un nouveau `titre` et une nouvelle `description`. IDs, conditions, catégories et récompenses restent identiques. Les tables joueurs, notifications et catalogue ne sont pas modifiées ; les notifications affichent le titre de la définition par jointure existante. Aucune fonction SQL ni route ne change. Les nouvelles fonctions ou les futurs succès UR relèvent des PR d'Abdou, hors périmètre ici.
 
@@ -43,6 +43,8 @@ Lecture des définitions et fonctions réellement actives sur le VPS le 15/10/20
 Les récompenses, seuils et fonctions restent strictement inchangés. `complete_achievements` compare la progression au seuil et mémorise le déblocage ; la traduction ne recalcule aucune progression. Le retour arrière ci-dessous restaure le texte effectivement relevé sur le VPS, y compris l’ancien libellé SSR → LR ; cette restauration n’est pas une validation de sa justesse.
 
 ## Validation
+
+Contrôles VPS après application : 11 succès et mêmes IDs, 22 textes anglais exacts, conditions et récompenses identiques. Les 149 fonctions publiques et les empreintes des cinq tables joueurs contrôlées restent inchangées dans la transaction d’application. La seconde application en transaction met à jour zéro ligne puis termine par `ROLLBACK` ; l’appel sans authentification à `get_achievements` est refusé avec `AUTH_REQUIRED`.
 
 Le test de migration utilise une base jetable en CI GitHub : conservation des conditions et récompenses, des lignes joueurs et notifications, réapplication idempotente, puis retour arrière. Aucun test existant de règle produit n'est affaibli.
 
