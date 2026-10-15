@@ -310,6 +310,7 @@ export function CollectionView({
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list" | "panini">("grid");
   const [selectedLicense, setSelectedLicense] = useState<string | null>(null);
+  const [albumSearchBeforeOpen, setAlbumSearchBeforeOpen] = useState("");
   const [paniniAlbumPage, setPaniniAlbumPage] = useState(1);
   const [paniniPage, setPaniniPage] = useState(1);
   const [paniniPageSize, setPaniniPageSize] = useState<number>(
@@ -1330,7 +1331,7 @@ export function CollectionView({
                           className="yk-panini-back"
                           onClick={() => {
                             setSelectedLicense(null);
-                            setQuery("");
+                            setQuery(albumSearchBeforeOpen);
                             setPaniniPage(1);
                           }}
                         >
@@ -1578,6 +1579,7 @@ export function CollectionView({
                                 type="button"
                                 className="yk-panini-album-open"
                                 onClick={() => {
+                                  setAlbumSearchBeforeOpen(query);
                                   setSelectedLicense(item.license);
                                   setQuery("");
                                   setPaniniPage(1);
