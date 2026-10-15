@@ -452,6 +452,38 @@ main:has(.yk-profile-hub) {
 .yk-profile-identity .yk-profile-banner-shade {
   background: linear-gradient(0deg, var(--color-surface), transparent 65%);
 }
+.yk-profile-banner.has-image::after {
+  content: none;
+}
+.yk-profile-banner.is-character > .yk-profile-banner-backdrop {
+  inset: -16px;
+  width: calc(100% + 32px);
+  max-width: none;
+  height: calc(100% + 32px);
+  object-fit: cover;
+  object-position: center;
+  filter: blur(16px) brightness(0.45) saturate(0.8);
+}
+.yk-profile-banner.is-character > .yk-profile-banner-art {
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  filter: none;
+}
+.yk-profile-banner.is-character > .yk-profile-banner-shade {
+  background: linear-gradient(
+    0deg,
+    color-mix(in srgb, var(--color-surface) 35%, transparent),
+    transparent 30%
+  );
+}
+.yk-profile-banner-editor-preview .yk-profile-banner {
+  height: 190px;
+  border-radius: 12px;
+}
 .yk-profile-identity-content {
   padding: 0 24px 24px;
 }

@@ -19,6 +19,7 @@ import { PlayerModeration } from "@/components/player-moderation";
 import { ProfileLicensePicker } from "@/components/profile-license-picker";
 import { ProfileWall } from "@/components/profile-wall";
 import { ProfileSales } from "@/components/profile-sales";
+import { ProfileBanner } from "@/components/profile-banner";
 import {
   CatalogueCardModal,
   type CatalogueCardAdapter
@@ -547,6 +548,11 @@ function Editor({
         <p className="mt-2 text-xs text-ink-3">
           Ou choisis un personnage du catalogue à la place de l’image importée.
         </p>
+        {!bannerUrl && bannerCard && (
+          <div className="yk-profile-banner-editor-preview mt-4">
+            <ProfileBanner characterImage={bannerCard.image} />
+          </div>
+        )}
         {bannerCard && (
           <div className="yk-banner-choice mt-4">
             <div>
@@ -1199,9 +1205,8 @@ export function ProfileExperience({
         a.localeCompare(b, "fr")
       )
     : [];
-  const bannerImage =
-    (savedBannerUrl === undefined ? details?.bannerUrl : savedBannerUrl) ||
-    profile.bannerCard?.image;
+  const uploadedBannerUrl =
+    savedBannerUrl === undefined ? details?.bannerUrl : savedBannerUrl;
   return (
     <>
       <div className="yk-profile-hub" data-profile-tab={tab}>
@@ -1473,21 +1478,10 @@ export function ProfileExperience({
           </div>
         </section>
         <aside className="yk-profile-identity">
-          <div
-            className={`yk-profile-banner ${bannerImage ? "has-image" : ""}`}
-          >
-            {bannerImage && (
-              <>
-                <img
-                  src={bannerImage}
-                  alt=""
-                  aria-hidden="true"
-                  decoding="async"
-                />
-                <span className="yk-profile-banner-shade" />
-              </>
-            )}
-          </div>
+          <ProfileBanner
+            uploadedUrl={uploadedBannerUrl}
+            characterImage={profile.bannerCard?.image}
+          />
           <div className="yk-profile-identity-content">
             <div className="yk-profile-avatar">
               <Avatar
