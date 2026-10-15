@@ -17,3 +17,15 @@ ou carte garantie n’est incluse. Les travaux d’animations restent sur
 `ad/native-drop-effects` et ne sont pas à merger avec cette PR.
 
 Migrations Supabase : aucune. Aucun changement de base ou de VPS nécessaire.
+
+## Hauteur disponible
+
+Jusqu’à 1 200 px de hauteur et au-dessus de 700 px de largeur, la sélection devient
+plus compacte : marges, titre, visuels et espacement des informations s’adaptent
+à la hauteur `svh`. Les boutons restent hauts d’au moins 44 px. Le pied de page
+est également plus compact. Aucun contenu n’est masqué et aucun défilement n’est
+bloqué : les erreurs et les très forts zooms peuvent toujours agrandir la page.
+Sur grand écran, le design initial est conservé ; sur mobile, une colonne avec
+défilement normal. Le script `browser-proof-boosters-viewport.mjs` mesure les
+deux panneaux, les boutons et le pied de page sur les tailles desktop courantes,
+en 4K et sur mobile, avec la structure réelle reproduite dans l’aperçu existant.
