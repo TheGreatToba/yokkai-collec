@@ -49,7 +49,7 @@ export function YokaiCard({
       ? 8
       : rarity === "LR"
         ? 4
-        : rarity === "SSR"
+        : rarity === "SSR" || rarity === "UR"
           ? 3
           : 0;
   const artProps = {

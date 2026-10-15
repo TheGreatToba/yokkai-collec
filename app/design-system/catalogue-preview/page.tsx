@@ -14,6 +14,7 @@ const rarityText: Record<Rarity, string> = {
   R: "text-rarity-r",
   SR: "text-rarity-sr",
   SSR: "text-rarity-ssr",
+  UR: "text-rarity-ur",
   LR: "text-rarity-lr"
 };
 const cards: Card[] = Array.from({ length: 24 }, (_, index) => ({

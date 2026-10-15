@@ -49,13 +49,15 @@ const rarityOrder: Record<Rarity, number> = {
   R: 1,
   SR: 2,
   SSR: 3,
-  LR: 4
+  UR: 4,
+  LR: 5
 };
 const rarityText: Record<Rarity, string> = {
   C: "text-rarity-c",
   R: "text-rarity-r",
   SR: "text-rarity-sr",
   SSR: "text-rarity-ssr",
+  UR: "text-rarity-ur",
   LR: "text-rarity-lr"
 };
 function CardPicker({
@@ -129,7 +131,7 @@ function CardPicker({
           onChange={event => setRarity(event.target.value as "" | Rarity)}
         >
           <option value="">All rarities</option>
-          {(["LR", "SSR", "SR", "R", "C"] as Rarity[]).map(value => (
+          {(["LR", "UR", "SSR", "SR", "R", "C"] as Rarity[]).map(value => (
             <option key={value} value={value}>
               {value}
             </option>

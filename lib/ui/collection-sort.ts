@@ -12,7 +12,14 @@ export const isCollectionSort = (value: unknown): value is CollectionSort =>
   COLLECTION_SORTS.some(sort => sort.value === value);
 
 type Compare = (a: CollectedCard, b: CollectedCard) => number;
-const rarityRank: Record<Rarity, number> = { LR: 0, SSR: 1, SR: 2, R: 3, C: 4 };
+const rarityRank: Record<Rarity, number> = {
+  LR: 0,
+  UR: 1,
+  SSR: 2,
+  SR: 3,
+  R: 4,
+  C: 5
+};
 const byRarity: Compare = (a, b) =>
   rarityRank[a.rarity] - rarityRank[b.rarity] ||
   Number(b.shiny) - Number(a.shiny);

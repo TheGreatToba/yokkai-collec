@@ -112,9 +112,14 @@ export function CollectionPreviewClient({
         const consumed = new Set(instanceIds);
         const evolved = {
           ...source,
-          instanceId: `${source.instanceId}-shiny`,
-          shiny: true,
-          isEvolved: true
+          instanceId: `${source.instanceId}-ur`,
+          rarity: "UR" as const,
+          shiny: false,
+          isEvolved: true,
+          isFirstOwner: false,
+          customImageUrl: null,
+          image: source.catalogueImage,
+          folderId: null
         };
         setCards(current => [
           evolved,

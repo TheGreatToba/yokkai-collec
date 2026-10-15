@@ -52,12 +52,13 @@ export type CollectionPresentation = {
   marketValue?: number | null;
   destructionValue?: number;
 };
-const rarityOrder: Rarity[] = ["LR", "SSR", "SR", "R", "C"];
+const rarityOrder: Rarity[] = ["LR", "UR", "SSR", "SR", "R", "C"];
 const rarityText = {
   C: "text-rarity-c",
   R: "text-rarity-r",
   SR: "text-rarity-sr",
   SSR: "text-rarity-ssr",
+  UR: "text-rarity-ur",
   LR: "text-rarity-lr"
 };
 // Karas credited by a single destruction, as already announced in the confirmation modal.
@@ -66,6 +67,7 @@ const DESTRUCTION_KARAS: Record<Rarity, number> = {
   R: 2,
   SR: 3,
   SSR: 4,
+  UR: 4,
   LR: 5
 };
 const LOCKED_FOLDER = "__locked__";
@@ -2074,13 +2076,13 @@ export function CollectionView({
                     {selected.rarity === "SSR" && !selected.shiny && (
                       <div className="yk-detail-evolve">
                         <div className="yk-detail-progress-copy">
-                          <strong>Progression Shiny</strong>
-                          <span>{evolvableCopies}/5 exemplaires</span>
+                          <strong>UR progress</strong>
+                          <span>{evolvableCopies}/5 copies</span>
                         </div>
                         <div
                           className="yk-detail-progress"
                           role="progressbar"
-                          aria-label="Progression vers l’évolution Shiny"
+                          aria-label="UR evolution progress"
                           aria-valuemin={0}
                           aria-valuemax={5}
                           aria-valuenow={Math.min(evolvableCopies, 5)}
@@ -2108,7 +2110,7 @@ export function CollectionView({
                             setEvolveConfirm(true);
                           }}
                         >
-                          Évoluer en Shiny
+                          Evolve to UR
                         </Button>
                       </div>
                     )}
@@ -2213,7 +2215,7 @@ export function CollectionView({
             setEvolutionError("");
           }
         }}
-        title="Confirmer l’évolution Shiny"
+        title="Confirm UR evolution"
       >
         {selected && (
           <>
@@ -2254,8 +2256,8 @@ export function CollectionView({
               })}
             </ul>
             <p className="mt-4 text-xs leading-5 text-ink-3">
-              L’évolution créée sera une nouvelle SSR Shiny, sans dossier et
-              avec l’image d’origine.
+              The result will be a new non-shiny UR with the original image and
+              no folder. The five selected SSR copies will be consumed.
             </p>
             {evolutionError && (
               <p role="alert" className="mt-4 text-sm text-danger">

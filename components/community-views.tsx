@@ -95,12 +95,13 @@ function Unavailable({ children }: { children: ReactNode }) {
   );
 }
 
-const catalogueRarities: Rarity[] = ["LR", "SSR", "SR", "R", "C"];
+const catalogueRarities: Rarity[] = ["LR", "UR", "SSR", "SR", "R", "C"];
 const catalogueRarityText: Record<Rarity, string> = {
   C: "text-rarity-c",
   R: "text-rarity-r",
   SR: "text-rarity-sr",
   SSR: "text-rarity-ssr",
+  UR: "text-rarity-ur",
   LR: "text-rarity-lr"
 };
 function CatalogueFilterSection({
@@ -2102,10 +2103,11 @@ export function TradesView() {
 type WishlistSort = "recent" | "name" | "rarity";
 const wishlistRarityRank: Record<Rarity, number> = {
   LR: 0,
-  SSR: 1,
-  SR: 2,
-  R: 3,
-  C: 4
+  UR: 1,
+  SSR: 2,
+  SR: 3,
+  R: 4,
+  C: 5
 };
 export function WishlistView({
   previewCards,

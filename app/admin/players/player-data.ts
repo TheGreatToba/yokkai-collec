@@ -29,7 +29,8 @@ export function playerDetailFromRpc(
             name: String(item.name),
             category: String(item.category),
             franchise: String(item.franchise ?? ""),
-            rarity: String(item.rarity) as "C" | "R" | "SR" | "SSR" | "LR",
+            rarity: String(item.rarity) as
+              "C" | "R" | "SR" | "SSR" | "UR" | "LR",
             imageUrl: String(item.imageUrl),
             catalogueImage: String(item.catalogueImage),
             customImageUrl:

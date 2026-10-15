@@ -80,6 +80,25 @@
   --card-sweep: yk-sweep 3.4s ease-in-out infinite;
   --card-spark: #FFD0E6;
 }
+.yk-rarity-UR {
+  --card-frame: linear-gradient(160deg,#D8FFF9,#3FE0D0 35%,#117D89 70%,#A7FFF1);
+  --card-inset: 2.5px;
+  --card-bg: radial-gradient(120% 75% at 50% 35%, #16444D 0%, #091B24 62%, #04000B 100%);
+  --card-ring: rgba(63,224,208,.4);
+  --card-line: transparent;
+  --card-badge: #3FE0D0;
+  --card-badge-ink: #04000B;
+  --card-badge-border: #A7FFF1;
+  --card-number: var(--color-ink-2);
+  --card-foil: linear-gradient(110deg, transparent 38%, rgba(167,255,241,.35) 48%, rgba(255,255,255,.55) 50%, rgba(167,255,241,.35) 52%, transparent 62%);
+  --card-foil-size: 300% 100%;
+  --card-glow: 0 0 0 1px rgba(63,224,208,.45),0 10px 30px rgba(63,224,208,.4);
+  --card-glow-color: rgba(63,224,208,.4);
+  --card-pulse: yk-pulse 2.8s ease-in-out infinite;
+  --card-spin: none;
+  --card-sweep: yk-sweep 3.6s ease-in-out infinite;
+  --card-spark: #D8FFF9;
+}
 .yk-rarity-LR {
   --card-frame: conic-gradient(from 0deg, #3A2A08, #F6DC8E, #9A7420, #1A1204, #E8C26A, #FFF3C4, #7A5A18, #3A2A08);
   --card-inset: 3px;

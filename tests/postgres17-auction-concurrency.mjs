@@ -595,3 +595,55 @@ try {
 console.log(
   "Export: concurrent reservations refuse the second caller; one statement preserves the snapshot; split-read counterproof mixes versions"
 );
+
+// UR evolution: a retry with the same five copies must wait, then fail without
+// minting a second UR. Reverse input order also exercises deterministic row locks.
+const urOwner = "86000000-0000-4000-8000-000000000099";
+await query(`insert into auth.users(id,raw_user_meta_data) values ('${urOwner}','{"pseudo":"UrConcurrency"}');
+  insert into public.cards(id,source_id,nom,categorie,franchise,rarete_base,image_url,source)
+    values (md5('ur-concurrency')::uuid,'ur-concurrency','UR concurrency','ANIME/MANGA','UR concurrency','SSR','https://example.test/ur.png','test');
+  insert into public.user_cards(user_id,card_id,rarity)
+    select '${urOwner}',md5('ur-concurrency')::uuid,'SSR' from generate_series(1,5);`);
+const urIds = JSON.parse(
+  await query(
+    `select json_agg(id order by id) from public.user_cards where user_id='${urOwner}';`
+  )
+);
+const urArray = ids => `array[${ids.map(id => `'${id}'`).join(",")}]::uuid[]`;
+const firstEvolution =
+  session(`begin; set local statement_timeout='15s'; set local role authenticated;
+  set local request.jwt.claim.sub='${urOwner}';
+  select public.evolve_ssr_card(${urArray(urIds)}); select 'UR_LOCKED';`);
+await until(
+  () => firstEvolution.output().includes("UR_LOCKED"),
+  "first UR evolution holds its copy locks"
+);
+const duplicateEvolution =
+  session(`set statement_timeout='15s'; set application_name='ci-ur-duplicate';
+  set role authenticated; set request.jwt.claim.sub='${urOwner}';
+  select public.evolve_ssr_card(${urArray([...urIds].reverse())});`);
+duplicateEvolution.child.stdin.end();
+const duplicateOutcome = Promise.allSettled([duplicateEvolution.done]);
+await until(
+  async () =>
+    (await query(
+      "select count(*) from pg_stat_activity where application_name='ci-ur-duplicate' and wait_event_type='Lock';"
+    )) === "1",
+  "duplicate evolution waits for the first transaction"
+);
+firstEvolution.child.stdin.end("commit;\n");
+await firstEvolution.done;
+const duplicate = (await duplicateOutcome)[0];
+assert.equal(duplicate.status, "rejected");
+assert.match(String(duplicate.reason), /SSR_CARD_NOT_OWNED/);
+assert.deepEqual(
+  JSON.parse(
+    await query(
+      `select json_build_object('copies',count(*),'ur',count(*) filter(where rarity='UR' and is_evolved and not is_shiny)) from public.user_cards where user_id='${urOwner}';`
+    )
+  ),
+  { copies: 1, ur: 1 }
+);
+console.log(
+  "UR: concurrent duplicate evolution waits, consumes five SSR once and creates exactly one non-shiny UR"
+);

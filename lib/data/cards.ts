@@ -3,7 +3,7 @@ import { createClient } from "@/utils/supabase/client";
 import { cardSearchTerms } from "@/lib/ui/card-search";
 import { createPlayerSnapshotCache, PLAYER_SNAPSHOT_TTL, publishPlayerSnapshotInvalidation, subscribePlayerSnapshotInvalidation, type PlayerSnapshotScope } from "@/lib/data/player-state";
 
-export type Rarity = "C" | "R" | "SR" | "SSR" | "LR";
+export type Rarity = "C" | "R" | "SR" | "SSR" | "UR" | "LR";
 export type Category = string;
 export type Card = { id: string; name: string; category: Category; anime?: string; liveFranchise?: boolean; rarity: Rarity; image: string; wishlisted?: boolean };
 export type CataloguePage = { cards: Card[]; total: number };
@@ -34,9 +34,9 @@ type GameInfo = {
   dropRates: { rarity: Rarity; percent: number }[]; decisionDropRates?: { rarity: Rarity; percent: number }[]; shinyRate: number; karasBalance: number;
 };
 type CardRow = { id: string; nom: string; categorie: string; franchise?: string | null; rarete_base: Rarity; image_url: string };
-type OwnedRow = { id: string; date_obtention: string; is_shiny: boolean; is_evolved: boolean; is_first_owner: boolean; is_locked: boolean; folder_id: string | null; custom_image_url: string | null; cards: CardRow };
+type OwnedRow = { id: string; date_obtention: string; rarity: Rarity; is_shiny: boolean; is_evolved: boolean; is_first_owner: boolean; is_locked: boolean; folder_id: string | null; custom_image_url: string | null; cards: CardRow };
 const cardFields = "id,nom,categorie,franchise,rarete_base,image_url";
-const rank: Record<Rarity, number> = { C: 0, R: 1, SR: 2, SSR: 3, LR: 4 };
+const rank: Record<Rarity, number> = { C: 0, R: 1, SR: 2, SSR: 3, UR: 4, LR: 5 };
 const PAGE_SIZE = 500;
 const FRANCHISE_BATCH = 200;
 
@@ -47,7 +47,9 @@ function failure(error: { message?: string; code?: string }) {
     PACK_NOT_READY: "Aucun pack disponible pour le moment.",
     CATALOGUE_INCOMPLETE: "Le catalogue n’est pas encore prêt. Réessayez plus tard.",
     SSR_CARD_NOT_OWNED: "Cet exemplaire SSR n’est plus dans votre collection.",
-    NOT_ENOUGH_SSR_COPIES: "Il faut trois exemplaires SSR identiques pour effectuer cette évolution.",
+    NOT_ENOUGH_SSR_COPIES: "You need five identical non-shiny SSR copies to evolve to UR.",
+    FIVE_DISTINCT_SSR_COPIES_REQUIRED: "Select exactly five different SSR copies.",
+    INVALID_SSR_COPIES: "Select five identical non-shiny SSR copies from your collection.",
     DECISION_PACK_NOT_READY: "Le Decision Pack quotidien n’est pas encore disponible.",
     DECISION_CHOICE_UNAVAILABLE: "Cette carte du Decision Pack n’est plus disponible.",
     DECISION_LAST_CHOICE: "La dernière carte doit être conservée.",
@@ -325,7 +327,7 @@ export async function getUserCollection(): Promise<CollectedCard[]> {
     const checkpoint = collectionPages.get(id) ?? { rows: [] };
     collectionPages.set(id, checkpoint);
     const rows = await resumePages(checkpoint, PAGE_SIZE, async cursor => {
-      let query = db().from("user_cards").select(`id,date_obtention,is_shiny,is_evolved,is_first_owner,is_locked,folder_id,custom_image_url,cards!inner(${cardFields})`)
+      let query = db().from("user_cards").select(`id,date_obtention,rarity,is_shiny,is_evolved,is_first_owner,is_locked,folder_id,custom_image_url,cards!inner(${cardFields})`)
         .eq("user_id", id).order("id").limit(PAGE_SIZE);
       if (cursor) query = query.gt("id", cursor);
       const { data, error } = await readRequest(signal => query.abortSignal(signal));
@@ -333,7 +335,7 @@ export async function getUserCollection(): Promise<CollectedCard[]> {
       return (data ?? []) as unknown as OwnedRow[];
     });
     if (collectionPages.get(id) === checkpoint) collectionPages.delete(id);
-    const cards = rows.map(row => ({ ...cardFromRow(row.cards), image: row.custom_image_url || row.cards.image_url,
+    const cards = rows.map(row => ({ ...cardFromRow(row.cards), rarity: row.rarity === "UR" ? row.rarity : row.cards.rarete_base, image: row.custom_image_url || row.cards.image_url,
       catalogueImage: row.cards.image_url, customImageUrl: row.custom_image_url, instanceId: row.id,
       obtainedAt: row.date_obtention, shiny: row.is_shiny, isEvolved: row.is_evolved,
       isFirstOwner: row.is_first_owner, locked: row.is_locked, folderId: row.folder_id }));
@@ -399,6 +401,10 @@ export async function openBooster(): Promise<CollectedCard[]> {
 export async function evolveSsrCard(instanceIds: string[]): Promise<CollectedCard> {
   const id = await playerId();
   try {
+    // During a staged rollout, never consume copies using the legacy Shiny RPC.
+    if (!(await getGameInfo()).rarities.includes("UR")) {
+      throw new Error("UR evolution is not available yet. Please try again later.");
+    }
     const { data, error } = await db().rpc("evolve_ssr_card", { p_card_instance_ids: instanceIds });
     if (error) throw failure(error);
     await assertPlayer(id);

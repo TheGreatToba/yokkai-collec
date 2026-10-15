@@ -32,7 +32,7 @@ export type AdminPlayerCard = {
   name: string;
   category: string;
   franchise: string;
-  rarity: "C" | "R" | "SR" | "SSR" | "LR";
+  rarity: "C" | "R" | "SR" | "SSR" | "UR" | "LR";
   imageUrl: string;
   catalogueImage: string;
   customImageUrl: string | null;

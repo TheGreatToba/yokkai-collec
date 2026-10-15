@@ -30,6 +30,7 @@ const config = {
         "rarity-r": "var(--rarity-r)",
         "rarity-sr": "var(--rarity-sr)",
         "rarity-ssr": "#FF5FA8",
+        "rarity-ur": "#3FE0D0",
         "rarity-lr": "#E8C26A"
       },
       borderRadius: {

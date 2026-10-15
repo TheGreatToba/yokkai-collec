@@ -12,7 +12,7 @@ export type SharedCard = {
   pseudo?: string;
 };
 
-const rarities = new Set<Rarity>(["C", "R", "SR", "SSR", "LR"]);
+const rarities = new Set<Rarity>(["C", "R", "SR", "SSR", "UR", "LR"]);
 let client: ReturnType<typeof createClient> | undefined;
 
 export const isShareId = (value: string) => /^[0-9a-f]{32}$/.test(value);
