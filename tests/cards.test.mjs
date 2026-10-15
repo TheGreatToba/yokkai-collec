@@ -395,7 +395,7 @@ test("cache court, expiration et aucune réutilisation entre comptes", async () 
   setUser("bob");
   assert.equal((await api.getUserCollection())[0].instanceId, "000002");
   setUser(null);
-  await assert.rejects(api.getUserCollection(), /Connectez-vous/);
+  await assert.rejects(api.getUserCollection(), /Sign in/);
 });
 
 test("infos réelles, nouveaux taux et copies défensives", async () => {
@@ -418,7 +418,7 @@ test("infos réelles, nouveaux taux et copies défensives", async () => {
 test("une réponse en vol est rejetée si le compte change pendant la requête", async () => {
   const { api, setUser, duringRpc } = setup();
   duringRpc(() => setUser("bob"));
-  await assert.rejects(api.getGameInfo(), /Connectez-vous/);
+  await assert.rejects(api.getGameInfo(), /Sign in/);
   duringRpc(undefined);
   assert.equal((await api.getGameInfo()).user.id, "bob");
 });
@@ -489,17 +489,17 @@ test("destruction groupée : un seul RPC supprime tout le lot et invalide les ca
 test("erreurs DB explicites, requêtes réessayables et aucune relance automatique d'ouverture", async () => {
   const { api, calls, rpcError, queryError } = setup();
   for (const [message, expected] of [
-    ["PACK_NOT_READY", /Aucun pack/],
-    ["PROFILE_MISSING", /profil/],
-    ["CATALOGUE_INCOMPLETE", /catalogue/],
-    ["secret internals", /Impossible/]
+    ["PACK_NOT_READY", /No packs/],
+    ["PROFILE_MISSING", /profile/],
+    ["CATALOGUE_INCOMPLETE", /catalog/],
+    ["secret internals", /Couldn't/]
   ]) {
     rpcError({ message });
     await assert.rejects(api.openBooster(), expected);
   }
   assert.equal(calls.length, 4);
   queryError({ message: "offline" });
-  await assert.rejects(api.getUserCollection(), /Impossible/);
+  await assert.rejects(api.getUserCollection(), /Couldn't/);
   queryError(null);
   assert.equal((await api.getUserCollection()).length, 0);
 });
@@ -509,18 +509,18 @@ test("une carte aux enchères affiche une erreur métier lors de sa destruction"
   rpcError({ message: "CARD_FROZEN", code: "P0001" });
   await assert.rejects(
     api.discardPackCard("000001", "regular"),
-    /Cette carte est placée aux enchères, elle ne peut pas être détruite\./
+    /This card is listed in an auction and can't be destroyed\./
   );
 });
 
-test("une URL Imgur refusée affiche un message français sans mojibake", async () => {
+test("une URL Imgur refusée affiche un message anglais sans mojibake", async () => {
   const { api, rpcError } = setup();
   rpcError({ message: "INVALID_IMGUR_URL", code: "P0001" });
   await assert.rejects(
     api.setCardCustomImage("000001", "https://example.test/image.png"),
     {
       message:
-        "Saisissez un lien Imgur valide commençant par https://i.imgur.com/ ou https://imgur.com/."
+        "Enter a valid Imgur link starting with https://i.imgur.com/ or https://imgur.com/."
     }
   );
 });
@@ -549,4 +549,25 @@ test("initial decision status does not wait for card details; regular opening ke
     calls.map(call => call.rpc),
     ["get_decision_pack_status"]
   );
+});
+
+test("unknown SQL errors and authorization failures stay safe and English", async () => {
+  const { api, rpcError } = setup();
+  for (const [error, expected] of [
+    [
+      { message: "private SQL schema details" },
+      "Couldn't reach game data. Please try again in a moment."
+    ],
+    [
+      { message: "private SQL schema details", code: "42501" },
+      "Your data is temporarily unavailable. Refresh the page or sign in again."
+    ],
+    [
+      { message: "private SQL schema details", code: "PGRST301" },
+      "Sign in to view your collection and packs."
+    ]
+  ]) {
+    rpcError(error);
+    await assert.rejects(api.openBooster(), { message: expected });
+  }
 });

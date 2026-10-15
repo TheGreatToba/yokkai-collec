@@ -36,7 +36,7 @@ test("a hung request aborts, rejects and can be retried", async () => {
       signal = value;
       return new Promise(() => {});
     }, 10),
-    /15 secondes/
+    /15 seconds/
   );
   assert.equal(signal.aborted, true);
   assert.equal(await reads.readRequest(async () => 42, 10), 42);

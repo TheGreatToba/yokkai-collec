@@ -159,6 +159,6 @@ test("trade batching keeps gateway batches bounded and handles empty lots and re
   assert.deepEqual((await setup([]).api.listTradeOffers()).length, 0);
   await assert.rejects(
     setup(offers, { failCards: true }).api.listTradeOffers(),
-    /inaccessibles/
+    /Your data is temporarily unavailable/
   );
 });
