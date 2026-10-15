@@ -60,6 +60,7 @@ test("mobile and reduced motion remain supported without changing the server res
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(css, /animation: none !important/);
   assert.match(css, /transition: none !important/);
+  assert.match(css, /contain: paint/);
   assert.match(
     reveal,
     /isLR \? 4400 : isSSR \? 3200 : current\.rarity === "SR" \? 520 : 0/

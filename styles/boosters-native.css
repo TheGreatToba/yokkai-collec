@@ -10,6 +10,7 @@
   min-height: 100dvh;
   justify-content: center;
   overflow: hidden;
+  contain: paint;
   padding: 70px 20px 50px;
   background: radial-gradient(ellipse at center, #151125, #070910 65%);
 }

@@ -223,6 +223,16 @@ try {
   });
   await choose("SSR");
   await delay(2200);
+  await capture("mobile-layout");
+  if (
+    !(await evaluate("document.documentElement.scrollWidth<=window.innerWidth"))
+  ) {
+    console.log(
+      await evaluate(
+        "Array.from(document.querySelectorAll('body *')).filter(e=>e.getBoundingClientRect().right>innerWidth+1 && getComputedStyle(e).position!=='fixed').slice(0,12).map(e=>({tag:e.tagName,class:e.className,right:e.getBoundingClientRect().right,text:e.textContent?.slice(0,80)}))"
+      )
+    );
+  }
   assert.equal(
     await evaluate("document.documentElement.scrollWidth<=window.innerWidth"),
     true
