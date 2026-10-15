@@ -505,8 +505,9 @@ function Editor({
       <section className="yk-profile-banner-editor">
         <h3 className="font-display text-lg">Bannière personnalisée</h3>
         <p className="yk-profile-muted">
-          Upload an image from your computer or phone. JPG, PNG, WebP or GIF, up
-          to 4 MB. The image is centered and cropped to fit your banner.
+          Upload an image from your computer or phone. JPG, PNG, WebP or GIF,
+          <strong>up to 4 MB</strong>. The image is centered and cropped to fit
+          your banner.
         </p>
         {bannerUrl && (
           <img
