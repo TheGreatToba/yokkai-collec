@@ -106,6 +106,84 @@ class SafetyContract(unittest.TestCase):
                 self.assertEqual(run.call_args.args[0][-2:], ["pg_restore", "--file=/dev/null"])
                 self.assertNotIn("--dbname", run.call_args.args[0])
 
+    def test_targeted_container_guard_ignores_noncritical_and_no_probe(self):
+        rows = self.critical_rows()
+        rows += [self.row("sentinel", health="starting"),
+                 self.row("init", running=False, status="exited", exit_code=0),
+                 self.row("old-task", running=False, status="exited", exit_code=1)]
+        self.assertEqual(cleanup.check_containers(rows), "current")
+
+    @staticmethod
+    def row(name, running=True, status="running", health=None, exit_code=0, image="utility:test"):
+        state = dict(Running=running, Status=status, Paused=False, Restarting=False, ExitCode=exit_code)
+        if health:
+            state["Health"] = dict(Status=health)
+        return dict(Name="/" + name, Image="current" if image.startswith(cleanup.APP) else "other",
+                    State=state, Config=dict(Image=image, Labels={}))
+
+    def critical_rows(self):
+        return [self.row(name) for name in cleanup.CRITICAL_NAMES] + [
+            self.row("application", image=cleanup.APP + ":current")]
+
+    def test_critical_stopped_is_named_and_fatal_even_exit_zero(self):
+        rows = self.critical_rows()
+        rows[0]["State"].update(Running=False, Status="exited", ExitCode=0)
+        with self.assertRaises(cleanup.GuardBlocked) as caught:
+            cleanup.check_containers(rows)
+        self.assertFalse(caught.exception.retryable)
+        self.assertEqual(caught.exception.details[0]["name"], rows[0]["Name"].lstrip("/"))
+        self.assertEqual(caught.exception.details[0]["state"], "exited")
+
+    def test_critical_starting_and_build_are_retryable(self):
+        for change in ("starting", "helper"):
+            rows = self.critical_rows()
+            if change == "starting":
+                rows[0]["State"]["Health"] = dict(Status="starting")
+            else:
+                rows.append(self.row("helper", image="ghcr.io/coollabsio/coolify-helper:1"))
+            with self.assertRaises(cleanup.GuardBlocked) as caught:
+                cleanup.check_containers(rows)
+            self.assertTrue(caught.exception.retryable)
+
+    def test_application_created_retries_and_running_unhealthy_probe_is_not_a_global_stop(self):
+        rows = self.critical_rows()
+        rows[-1]["State"].update(Running=False, Status="created")
+        with self.assertRaises(cleanup.GuardBlocked) as caught:
+            cleanup.check_containers(rows)
+        self.assertTrue(caught.exception.retryable)
+        rows[-1]["State"].update(Running=True, Status="running", Health=dict(Status="unhealthy"))
+        self.assertEqual(cleanup.check_containers(rows), "current")
+
+    def test_transient_guard_retries_three_times_at_sixty_seconds(self):
+        error = cleanup.GuardBlocked("build", [dict(name="builder", state="busy")], True)
+        with patch.object(cleanup, "preflight_once", side_effect=[error, error, error, ([], "current")]) as check, \
+                patch.object(cleanup.time, "sleep") as sleep:
+            self.assertEqual(cleanup.preflight(), ([], "current"))
+            self.assertEqual(check.call_count, 4)
+            self.assertEqual([call.args for call in sleep.call_args_list], [(60,), (60,), (60,)])
+        with patch.object(cleanup, "preflight_once", side_effect=error), patch.object(cleanup.time, "sleep"):
+            with self.assertRaises(cleanup.GuardBlocked):
+                cleanup.preflight()
+
+    def test_two_stops_alert_once_then_success_resets(self):
+        import tempfile
+        import json
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "runs.json"
+            def save(data, path=None):
+                path.write_text(json.dumps(data), encoding="utf-8")
+            error = cleanup.GuardBlocked("critical down", [dict(name="database", state="exited")], False)
+            with patch.object(cleanup, "RUNS", target), patch.object(cleanup, "save_state", side_effect=save), \
+                    patch.object(cleanup, "discord_alert") as alert:
+                cleanup.record_result(error)
+                alert.assert_not_called()
+                cleanup.record_result(error)
+                alert.assert_called_once()
+                cleanup.record_result(error)
+                alert.assert_called_once()
+                cleanup.record_result()
+                self.assertEqual(json.loads(target.read_text())["consecutive_stops"], 0)
+
     def test_no_volume_or_global_prune_command_is_generated(self):
         text = Path(__file__).with_name("storage_maintenance.py").read_text()
         self.assertNotIn('"volume", "prune"', text)

@@ -22,14 +22,15 @@ if systemctl is-active --quiet "$service.service"; then
   exit 1
 fi
 case "$mode" in
-  prepare)
+  prepare|upgrade)
+    [[ -f /var/lib/yokkai-storage-maintenance/state.json ]] || exit 1
     install -d -m 700 /var/lib/yokkai-storage-maintenance
     install -d -m 755 /opt/yokkai-ops /etc/default
     printf '%s\n' 'CLEANUP_MODE=--dry-run' > /etc/default/$service
     chmod 600 /etc/default/$service
     ln -sfn "$release" /opt/yokkai-ops/current
     install -m 755 "$release/ops/$service" /usr/local/sbin/$service
-    for unit in "$service.service" "$service.timer" "$service-events.service"; do
+    for unit in "$service.service" "$service-events.service"; do
       install -m 644 "$release/ops/$unit" /etc/systemd/system/
     done
     systemctl daemon-reload
@@ -37,6 +38,7 @@ case "$mode" in
     echo "Installed in dry-run mode; timer activation awaits successful manual apply"
     ;;
   activate)
+    /usr/local/sbin/yokkai-storage-maintenance --check-alert
     python3 - <<'PY'
 import json
 state = json.load(open('/var/lib/yokkai-storage-maintenance/state.json'))
@@ -44,9 +46,11 @@ assert state.get('activated') and not state.get('paused') and not state.get('in_
 PY
     printf '%s\n' 'CLEANUP_MODE=--apply' > /etc/default/$service
     chmod 600 /etc/default/$service
+    install -m 644 "$release/ops/$service.timer" /etc/systemd/system/
+    systemctl daemon-reload
     systemctl enable "$service.timer" "$service-events.service"
     systemctl restart "$service.timer"
-    systemctl start "$service-events.service"
+    systemctl restart "$service-events.service"
     echo "Existing timer extended; deployment events enabled"
     ;;
   rollback)
@@ -60,5 +64,5 @@ PY
     systemctl restart "$service.timer"
     echo "Original script and night timer restored; data deletions are not reversible"
     ;;
-  *) echo "Use prepare ROLLBACK_IMAGE, activate, or rollback" >&2; exit 1 ;;
+  *) echo "Use prepare ROLLBACK_IMAGE, upgrade, activate, or rollback" >&2; exit 1 ;;
 esac

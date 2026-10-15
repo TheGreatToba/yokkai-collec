@@ -14,10 +14,12 @@ const reasons: { value: CardReportReason; label: string }[] = [
 export function CardReportButton({
   cardId,
   cardName,
+  sendReport = reportCard,
   className = ""
 }: {
   cardId: string;
   cardName: string;
+  sendReport?: typeof reportCard;
   className?: string;
 }) {
   const [mounted, setMounted] = useState(false);
@@ -44,7 +46,7 @@ export function CardReportButton({
     setBusy(true);
     setError("");
     try {
-      await reportCard(cardId, reason);
+      await sendReport(cardId, reason);
       setSent(true);
     } catch (cause) {
       setError(

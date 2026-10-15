@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """One fail-closed cleaner. Dry-run by default; no Docker volume operations."""
 import argparse
+import base64
 import contextlib
 import datetime as dt
 import hashlib
@@ -23,6 +24,10 @@ BACKUPS = Path("/data/coolify/backups/databases/root-team-0/supabase-yokkai-supa
 STATE = Path("/var/lib/yokkai-storage-maintenance/state.json")
 LOCK = "/run/yokkai-storage-maintenance.lock"
 DAY = 86400
+RUNS = STATE.with_name("runs.json")
+CRITICAL_NAMES = (DB, "coolify-proxy", *(f"supabase-{role}-{DB.removeprefix('supabase-db-')}"
+                   for role in ("envoy", "auth", "rest")))
+
 QUEUE_PHP = r"""<?php
 require '/var/www/html/vendor/autoload.php';
 $app = require '/var/www/html/bootstrap/app.php';
@@ -40,6 +45,17 @@ try {
 
 class Unsafe(RuntimeError):
     pass
+
+
+class Busy(Unsafe):
+    pass
+
+
+class GuardBlocked(Unsafe):
+    def __init__(self, reason, details, retryable=False):
+        super().__init__(reason)
+        self.details = details
+        self.retryable = retryable
 
 
 def log(event, **data):
@@ -138,7 +154,9 @@ def backup_decisions(records, now):
 
 def require_idle_queue(rows):
     if not isinstance(rows, list) or rows:
-        raise Unsafe("Coolify deployment queue is not empty or cannot be determined")
+        raise GuardBlocked("Coolify deployment queue is not empty or cannot be determined",
+                           [dict(name="coolify", state="deployment-pending", queue=rows)],
+                           retryable=isinstance(rows, list) and bool(rows))
 
 
 def containers():
@@ -154,29 +172,74 @@ def is_build(container):
             and labels.get("yokkai.cleanup.role") == "app-build")
 
 
-def preflight(expected_current=None):
-    require_idle_queue(json.loads(run(["docker", "exec", "-i", "coolify", "php"],
-                                     QUEUE_PHP.encode())))
-    rows = containers()
-    active = []
-    for row in rows:
-        state, image = row["State"], row["Config"]["Image"]
-        if re.search(r"(^|/)coollabsio/coolify-helper[:@]", image) and state["Running"]:
-            raise Unsafe("a deployment helper is running")
-        if not state["Running"] and is_build(row):
-            continue
-        if (not state["Running"] or state.get("Paused")
-                or state.get("Health", {}).get("Status", "healthy") != "healthy"):
-            raise Unsafe("a container is stopped, paused, unhealthy or still starting")
-        if image.startswith(APP + ":"):
-            active.append(row)
+def container_status(row):
+    state = row["State"]
+    return dict(name=row["Name"].lstrip("/"), state=state["Status"],
+                running=state["Running"], paused=state.get("Paused", False),
+                health=state.get("Health", {}).get("Status", "none"), exit_code=state.get("ExitCode"))
+
+
+def check_containers(rows):
+    helpers = [row for row in rows if row["State"]["Running"] and
+               re.search(r"(^|/)coollabsio/coolify-helper[:@]", row["Config"]["Image"])]
+    if helpers:
+        raise GuardBlocked("deployment helper active", [container_status(row) for row in helpers], True)
+    apps = [row for row in rows if row["Config"]["Image"].startswith(APP + ":") and not is_build(row)]
+    active = [row for row in apps if row["State"]["Running"]]
     if len(active) != 1:
-        raise Unsafe("cannot identify exactly one current application container")
-    current = active[0]["Image"]
+        raise GuardBlocked("cannot identify one running application", [container_status(row) for row in apps]
+                           or [dict(name="application", state="missing")],
+                           len(active) > 1 or any(row["State"]["Status"] in ("created", "restarting")
+                           or row["State"].get("Health", {}).get("Status") == "starting" for row in apps))
+    critical = [active[0]]
+    for name in CRITICAL_NAMES:
+        matches = [row for row in rows if row["Name"].lstrip("/") == name]
+        if len(matches) != 1:
+            raise GuardBlocked("critical container missing", [dict(name=name, state="missing")])
+        critical.extend(matches)
+    bad, transient = [], []
+    for row in critical:
+        state = row["State"]
+        status = container_status(row)
+        if state.get("Restarting") or state["Status"] in ("created", "restarting") or status["health"] == "starting":
+            transient.append(status)
+        elif not state["Running"] or state.get("Paused"):
+            bad.append(status)
+    if bad:
+        raise GuardBlocked("critical container not running", bad + transient)
+    if transient:
+        raise GuardBlocked("critical container starting", transient, True)
+    return active[0]["Image"]
+
+
+def preflight_once(expected_current=None):
+    require_idle_queue(json.loads(run(["docker", "exec", "-i", "coolify", "php"], QUEUE_PHP.encode())))
+    rows = containers()
+    current = check_containers(rows)
+    cache = json.loads(run(["docker", "exec", BUILDER, "buildctl", "du", "--format", "{{json .}}"] )) or []
+    active_refs = [record["id"] for record in cache if record["inUse"]]
+    if active_refs:
+        raise GuardBlocked("BuildKit build active", [dict(name=BUILDER, state="building", records=active_refs)], True)
     if expected_current and current != expected_current:
-        raise Unsafe("application image changed during maintenance")
-    run(["docker", "exec", DB, "pg_isready", "-U", "postgres", "-d", "postgres"])
+        raise GuardBlocked("application image changed during maintenance",
+                           [container_status(row) for row in rows if row["Image"] == current])
+    try:
+        run(["docker", "exec", DB, "pg_isready", "-U", "postgres", "-d", "postgres"])
+    except Unsafe as error:
+        raise GuardBlocked("PostgreSQL is not accepting connections",
+                           [dict(name=DB, state="not-ready")]) from error
     return rows, current
+
+
+def preflight(expected_current=None):
+    for attempt in range(4):
+        try:
+            return preflight_once(expected_current)
+        except GuardBlocked as error:
+            if not error.retryable or attempt == 3:
+                raise
+            log("RETRY", reason=str(error), containers=error.details, retry=attempt + 1, delay_seconds=60)
+            time.sleep(60)
 
 
 def health(rows=None, current=None):
@@ -213,16 +276,17 @@ def images():
     return json.loads(run(["docker", "image", "inspect", *ids]))
 
 
-def save_state(state):
-    STATE.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-    fd, name = tempfile.mkstemp(prefix=".state-", dir=STATE.parent)
+def save_state(state, path=None):
+    path = STATE if path is None else path
+    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    fd, name = tempfile.mkstemp(prefix=".state-", dir=path.parent)
     try:
         with os.fdopen(fd, "w") as handle:
             json.dump(state, handle)
             handle.flush()
             os.fsync(handle.fileno())
-        os.replace(name, STATE)
-        directory = os.open(STATE.parent, os.O_RDONLY | os.O_DIRECTORY)
+        os.replace(name, path)
+        directory = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY)
         try:
             os.fsync(directory)
         finally:
@@ -245,7 +309,7 @@ def load_state():
 def cache_inventory():
     text = run(["docker", "exec", BUILDER, "buildctl", "du", "--format", "{{json .}}"])
     records = []
-    for record in json.loads(text):
+    for record in json.loads(text) or []:
         if record.get("inUse") is False:
             identifier = record.get("id", "")
             if not re.fullmatch(r"[a-z0-9]{20,}", identifier):
@@ -311,7 +375,7 @@ def locked():
         try:
             fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError as error:
-            raise Unsafe("another cleanup holds the common lock") from error
+            raise Busy("another cleanup holds the common lock") from error
         yield
 
 
@@ -444,6 +508,52 @@ def watch():
         process.wait(timeout=10)
 
 
+ALERT_PHP = r"""<?php
+require '/var/www/html/vendor/autoload.php';
+$app=require '/var/www/html/bootstrap/app.php';
+$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+$application=App\Models\Application::where('uuid', __APP_UUID__)->firstOrFail();
+$team=$application->team();
+if (!$team) { exit(2); }
+$settings=$team->discordNotificationSettings;
+if (!$settings || !$settings->isEnabled() || !$settings->discord_webhook_url) { exit(2); }
+"""
+
+
+def discord_alert(message=None):
+    source = ALERT_PHP.replace("__APP_UUID__", json.dumps(APP))
+    if message is not None:
+        encoded = base64.b64encode(message.encode()).decode()
+        source += "\n$message=base64_decode('" + encoded + "');\n"
+        source += r"""$response=Illuminate\Support\Facades\Http::timeout(15)->post(
+$settings->discord_webhook_url, ['content'=>$message, 'allowed_mentions'=>['parse'=>[]]]);
+if (!$response->successful()) { exit(3); }
+"""
+    run(["docker", "exec", "-i", "coolify", "php"], source.encode(), timeout=30)
+
+
+def record_result(error=None):
+    state = json.loads(RUNS.read_text()) if RUNS.exists() else {}
+    if error is None:
+        save_state(dict(consecutive_stops=0, alert_sent=False), path=RUNS)
+        return
+    details = getattr(error, "details", [])
+    count = state.get("consecutive_stops", 0) + 1
+    names = sorted(set(state.get("names", [])) | {item["name"] for item in details})
+    state.update(consecutive_stops=count, names=names, reason=str(error), alert_sent=state.get("alert_sent", False))
+    save_state(state, path=RUNS)
+    if count >= 2 and not state["alert_sent"]:
+        try:
+            discord_alert("Yokkai storage maintenance: " + str(count) + " consecutive STOPs. Containers: "
+                          + (", ".join(names) or "none identified") + ". Reason: " + str(error))
+            state["alert_sent"] = True
+            save_state(state, path=RUNS)
+            log("discord-alert-sent", consecutive_stops=count, containers=names)
+        except Exception:
+            log("discord-alert-failed", consecutive_stops=count, containers=names,
+                reason="Discord unavailable or not configured in Coolify; next STOP will retry")
+
+
 def main():
     parser = argparse.ArgumentParser()
     mode = parser.add_mutually_exclusive_group()
@@ -451,6 +561,7 @@ def main():
     mode.add_argument("--dry-run", action="store_true")
     mode.add_argument("--watch", action="store_true")
     mode.add_argument("--initialize-state", action="store_true")
+    mode.add_argument("--check-alert", action="store_true")
     parser.add_argument("--rollback-image")
     parser.add_argument("--expect-plan")
     args = parser.parse_args()
@@ -458,6 +569,10 @@ def main():
         raise Unsafe("run as root through the authorized installation")
     if args.watch:
         return watch()
+    if args.check_alert:
+        discord_alert()
+        log("discord-ready")
+        return
     with locked():
         if args.initialize_state:
             if STATE.exists():
@@ -481,12 +596,22 @@ def main():
                 save_state(dict(load_state(), paused=True))
                 raise
         metrics("after")
+        record_result()
         log("completed", mode="apply" if args.apply else "dry-run", plan=plan["hash"])
 
 
 if __name__ == "__main__":
     try:
         main()
+    except Busy as error:
+        log("SKIP", reason=str(error), containers=[])
     except Exception as error:
-        log("STOP", reason=str(error) if isinstance(error, Unsafe) else type(error).__name__)
+        log("STOP", reason=str(error) if isinstance(error, Unsafe) else type(error).__name__,
+            containers=getattr(error, "details", []))
+        if "--watch" not in sys.argv and "--check-alert" not in sys.argv:
+            try:
+                with locked():
+                    record_result(error if isinstance(error, Unsafe) else Unsafe(type(error).__name__))
+            except Exception:
+                log("stop-counter-error", reason="could not persist STOP counter or acquire lock")
         sys.exit(1)

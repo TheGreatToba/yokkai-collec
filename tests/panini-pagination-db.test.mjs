@@ -199,7 +199,7 @@ test("un ami voit les albums Panini du propriétaire sans confondre les possessi
     )
   ).rows[0].value;
   assert.deepEqual(albums.items, [
-    { license: "Album Ami", total: 2, owned: 1, percent: 50 }
+    { license: "Album Ami", total: 2, owned: 1, percent: 50, favorite: false }
   ]);
 
   const crossedAlbum = (
@@ -209,7 +209,13 @@ test("un ami voit les albums Panini du propriétaire sans confondre les possessi
     )
   ).rows[0].value;
   assert.deepEqual(crossedAlbum.items, [
-    { license: "Album croise ami", total: 1, owned: 1, percent: 100 }
+    {
+      license: "Album croise ami",
+      total: 1,
+      owned: 1,
+      percent: 100,
+      favorite: false
+    }
   ]);
 
   const cards = (

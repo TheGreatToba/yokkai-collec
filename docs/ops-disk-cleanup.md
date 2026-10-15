@@ -199,3 +199,70 @@ rafales de moins de deux heures prioritaires sur le plafond d’images. Recomman
 120–160 Gio pour une marge durable ; agrandissement OVH réservé à Walid.
 Le suivi à 24 h reste exclusivement en lecture seule : espace, suppressions/refus,
 santé et incidents. Il ne doit jamais relancer automatiquement cette activation bloquée.
+
+## Révision du garde-fou — reprise du 15 octobre
+
+Cette révision remplace le contrôle global de santé décrit plus haut. Installation
+et activation de cette révision encore en attente de revue/CI et des réglages que
+Walid réalise dans l’interface. Le nettoyage natif doit être désactivé, pas le timer
+existant d’Abdou. Le canal Discord de l’équipe propriétaire doit être configuré.
+
+Garde ciblé : application active, PostgreSQL, envoy, proxy public, auth et REST
+obligatoirement en cours d’exécution. Une ancienne application arrêtée ne bloque
+pas si une courante unique existe ; son image reste protégée par sa référence.
+Les conteneurs non critiques arrêtés, les tâches terminées (y compris exited 0),
+leurs sondes transitoires et l’absence de sonde ne bloquent pas. Une sonde unhealthy
+seule ne suffit pas à bloquer un conteneur running ; HTTP public/interne et
+pg_isready restent obligatoires. Un critique arrêté, absent ou en pause bloque.
+
+Queue Coolify non vide, helper running ou références BuildKit `inUse` : attente.
+Le conteneur BuildKit simplement running n’est pas un build actif. Démarrage d’un
+critique : attente aussi. Premier essai plus trois retries de 60 secondes, puis
+STOP avec noms, états, santé, exit code et références de build concernés. Aucun
+retrait pendant ces attentes. Une file illisible ne devient jamais une file vide.
+
+Le verrou occupé produit SKIP, pas STOP ; aucun second nettoyeur ne s’exécute.
+Après deux exécutions finies en STOP : alerte Discord avec noms et raison, via le
+webhook déjà stocké dans Coolify, lu et utilisé exclusivement dans son conteneur.
+Ni URL, ni clé n’est transmise à l’hôte ou au dépôt. Une alerte par série d’échecs,
+nouvelle tentative au prochain STOP si envoi impossible ; succès réarme le compteur.
+L’absence de canal produit un journal explicite et interdit l’activation complète.
+Le compteur durable reste privé dans `runs.json`, à côté de l’état de rollback.
+
+`upgrade` conserve cet état et installe en dry-run ; le timer n’est rechargé qu’à
+l’activation après apply réussie. L’activation redémarre le watcher pour charger
+le nouveau code. Toutes les règles de suppression, d’âge, de backup et de pin
+restent inchangées. Aucune réinitialisation artificielle de rollback.
+
+### Inventaire avant correction
+
+Le relevé contient 23 conteneurs, tous running et aucun paused/exited. Le conteneur
+supplémentaire `4nxumgfhmmjzcpmgy2hxbkes` avait disparu au contrôle suivant.
+BuildKit avait alors des références `inUse` : un build réel était en cours.
+Aucun conteneur normalement arrêté n’a été observé dans ce relevé.
+
+| Nom                                              | État                               | Santé      |
+| ------------------------------------------------ | ---------------------------------- | ---------- |
+| coolify-sentinel                                 | running                            | healthy    |
+| 4nxumgfhmmjzcpmgy2hxbkes                         | running au relevé, disparu ensuite | sans sonde |
+| lbugcql3gc8ijtbv7qqy70do-001410284090            | running                            | sans sonde |
+| supabase-envoy-gawq4yyxiise96wens0dt1ex          | running                            | healthy    |
+| supabase-edge-functions-gawq4yyxiise96wens0dt1ex | running                            | healthy    |
+| supabase-storage-gawq4yyxiise96wens0dt1ex        | running                            | healthy    |
+| supabase-studio-gawq4yyxiise96wens0dt1ex         | running                            | healthy    |
+| supabase-supavisor-gawq4yyxiise96wens0dt1ex      | running                            | healthy    |
+| supabase-meta-gawq4yyxiise96wens0dt1ex           | running                            | healthy    |
+| realtime-dev-gawq4yyxiise96wens0dt1ex            | running                            | healthy    |
+| supabase-auth-gawq4yyxiise96wens0dt1ex           | running                            | healthy    |
+| supabase-rest-gawq4yyxiise96wens0dt1ex           | running                            | sans sonde |
+| supabase-analytics-gawq4yyxiise96wens0dt1ex      | running                            | healthy    |
+| supabase-db-gawq4yyxiise96wens0dt1ex             | running                            | healthy    |
+| supabase-vector-gawq4yyxiise96wens0dt1ex         | running                            | healthy    |
+| supabase-rustfs-gawq4yyxiise96wens0dt1ex         | running                            | healthy    |
+| imgproxy-gawq4yyxiise96wens0dt1ex                | running                            | healthy    |
+| buildx_buildkit_coolify-railpack0                | running                            | sans sonde |
+| coolify-proxy                                    | running                            | healthy    |
+| coolify                                          | running                            | healthy    |
+| coolify-db                                       | running                            | healthy    |
+| coolify-redis                                    | running                            | healthy    |
+| coolify-realtime                                 | running                            | healthy    |
