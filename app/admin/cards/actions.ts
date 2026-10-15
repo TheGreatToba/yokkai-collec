@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { requireAdminAction } from "@/lib/auth/admin";
 import { createClient } from "@/utils/supabase/server";
+import { MAX_BULK_DELETE_CARDS, type BulkDeletePreview } from "./bulk-delete";
 import {
   downloadImage,
   deriveSourceId,
@@ -416,5 +417,89 @@ export async function deleteCardAction(
     return initialFailure(
       error instanceof Error ? error.message : "Suppression impossible."
     );
+  }
+}
+
+const BULK_ERRORS: Record<string, string> = {
+  ADMIN_REQUIRED: "Accès administrateur requis.",
+  NO_CARDS_SELECTED: "Aucune carte sélectionnée.",
+  BULK_LIMIT_EXCEEDED: `Maximum ${MAX_BULK_DELETE_CARDS} cartes par suppression groupée.`,
+  CARD_NOT_FOUND:
+    "Certaines cartes n’existent plus. Rien n’a été supprimé ; recharge la page."
+};
+
+function bulkCardIds(ids: unknown) {
+  if (!Array.isArray(ids) || !ids.length)
+    throw new Error(BULK_ERRORS.NO_CARDS_SELECTED);
+  const unique = [...new Set(ids.map(String))];
+  if (unique.length > MAX_BULK_DELETE_CARDS)
+    throw new Error(BULK_ERRORS.BULK_LIMIT_EXCEEDED);
+  if (unique.some(id => !/^[0-9a-f-]{36}$/i.test(id)))
+    throw new Error("Identifiant de carte invalide.");
+  return unique;
+}
+
+function bulkFailure(error: unknown): AdminActionState {
+  const { message = "", details } = (error ?? {}) as {
+    message?: string;
+    details?: string;
+  };
+  return initialFailure(
+    BULK_ERRORS[message] ?? (message || "Suppression groupée impossible."),
+    message === "CARD_NOT_FOUND" && details
+      ? details.split(",").map(id => `Carte introuvable : ${id}`)
+      : undefined
+  );
+}
+
+export async function previewDeleteCardsAction(
+  ids: string[]
+): Promise<AdminActionState & { preview?: BulkDeletePreview }> {
+  try {
+    await requireAdminAction();
+    const client = createClient(await cookies());
+    const { data, error } = await client.rpc("admin_preview_delete_cards", {
+      p_card_ids: bulkCardIds(ids)
+    });
+    if (error) throw error;
+    return { ok: true, message: "", preview: data as BulkDeletePreview };
+  } catch (error) {
+    return bulkFailure(error);
+  }
+}
+
+export async function deleteCardsAction(
+  ids: string[],
+  confirmation: string
+): Promise<AdminActionState> {
+  try {
+    await requireAdminAction();
+    const cardIds = bulkCardIds(ids);
+    if (confirmation.trim() !== String(cardIds.length))
+      throw new Error(
+        `Saisis exactement ${cardIds.length} pour confirmer la suppression.`
+      );
+    const client = createClient(await cookies());
+    const { data, error } = await client.rpc("admin_delete_cards", {
+      p_card_ids: cardIds
+    });
+    if (error) throw error;
+    const result = data as {
+      cardsDeleted?: number;
+      ownedCopiesRemoved?: number;
+      auctionsCancelled?: number;
+      pendingTradesDeclined?: number;
+    } | null;
+    revalidatePath("/admin/cards");
+    return {
+      ok: true,
+      message:
+        `${Number(result?.cardsDeleted ?? 0)} carte(s) supprimée(s) avec ` +
+        `${Number(result?.ownedCopiesRemoved ?? 0)} copie(s), ` +
+        `${Number(result?.auctionsCancelled ?? 0)} enchère(s) et ` +
+        `${Number(result?.pendingTradesDeclined ?? 0)} échange(s) en attente.`
+    };
+  } catch (error) {
+    return bulkFailure(error);
   }
 }

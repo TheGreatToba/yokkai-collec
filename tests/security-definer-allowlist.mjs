@@ -12,6 +12,8 @@ const allowlist = {
   ], // Admin-only catalogue report dashboard.
   "public.admin_card_reference_counts(uuid)": ["authenticated"], // Admin RPC checks administrator status before reading references.
   "public.admin_delete_card(uuid)": ["authenticated"], // Admin-only atomic catalogue deletion cleans owned copies and related activity.
+  "public.admin_delete_cards(uuid[])": ["authenticated"], // Admin-only atomic bulk deletion; same internal helper as admin_delete_card.
+  "public.admin_preview_delete_cards(uuid[])": ["authenticated"], // Admin-only read-only impact preview before bulk deletion.
   "public.admin_list_reports(text, integer, integer)": ["authenticated"], // Moderation RPC checks administrator status.
   "public.admin_set_report_status(uuid, text)": ["authenticated"], // Moderation update checks administrator status.
   "public.admin_set_card_report_status(uuid, text)": ["authenticated"], // Card moderation update checks administrator status.

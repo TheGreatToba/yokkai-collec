@@ -1,14 +1,17 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useTransition } from "react";
 import { Button, Modal } from "@/components/ui";
 import {
   createCardAction,
   deleteCardAction,
+  deleteCardsAction,
+  previewDeleteCardsAction,
   importCardsAction,
   updateCardAction,
   type AdminActionState
 } from "./actions";
+import { MAX_BULK_DELETE_CARDS, type BulkDeletePreview } from "./bulk-delete";
 
 type Card = {
   id: string;
@@ -333,6 +336,109 @@ function CardRow({ card, categories }: { card: Card; categories: string[] }) {
   );
 }
 
+function BulkDeleteDialog({
+  ids,
+  preview,
+  onClose,
+  onDeleted
+}: {
+  ids: string[];
+  preview: BulkDeletePreview;
+  onClose: () => void;
+  onDeleted: () => void;
+}) {
+  const [state, setState] = useState<AdminActionState>(initialState);
+  const [confirmation, setConfirmation] = useState("");
+  const [pending, startTransition] = useTransition();
+  const deleted = state.ok;
+  const impact: [string, number][] = [
+    ["Cartes", preview.cards],
+    ["Exemplaires détenus par des joueurs", preview.ownedCopies],
+    ["Enchères actives (annulées, mise remboursée)", preview.activeAuctions],
+    ["Échanges en attente (déclinés)", preview.pendingTrades],
+    ["Liens de partage", preview.cardShares],
+    ["Entrées de wishlist", preview.wishlists]
+  ];
+  return (
+    <Modal
+      open
+      onClose={() => {
+        if (!pending) (deleted ? onDeleted : onClose)();
+      }}
+      title={`Supprimer ${ids.length} carte(s) ?`}
+    >
+      {deleted ? null : (
+        <>
+          <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-sm text-ink-2">
+            {impact.map(([label, count]) => (
+              <div className="contents" key={label}>
+                <dt>{label}</dt>
+                <dd className="text-right font-bold text-ink">{count}</dd>
+              </div>
+            ))}
+          </dl>
+          {preview.multiFranchiseCards.length ? (
+            <details className="mt-3 text-sm text-ink-2">
+              <summary className="cursor-pointer">
+                {preview.multiFranchiseCards.length} carte(s) appartiennent
+                aussi à une autre licence
+              </summary>
+              <ul className="mt-2 max-h-40 list-disc overflow-y-auto pl-5">
+                {preview.multiFranchiseCards.map(card => (
+                  <li key={card.id}>
+                    {card.name} — {card.franchises.join(" · ")}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          ) : null}
+          <p className="mt-3 text-sm text-danger-ink">
+            Action irréversible, appliquée en une seule transaction : si une
+            carte pose problème, rien n’est supprimé.
+          </p>
+          <label className="mt-4 grid gap-1 text-sm text-ink-2">
+            Saisis {ids.length} pour confirmer
+            <input
+              autoComplete="off"
+              className="rounded-lg border border-white/15 bg-slate-950 p-2 text-white"
+              inputMode="numeric"
+              onChange={event => setConfirmation(event.target.value)}
+              value={confirmation}
+            />
+          </label>
+        </>
+      )}
+      <div aria-live="polite" className="mt-3">
+        <Feedback state={state} />
+      </div>
+      <div className="mt-6 flex justify-end gap-3">
+        {deleted ? (
+          <Button variant="secondary" onClick={onDeleted}>
+            Fermer
+          </Button>
+        ) : (
+          <>
+            <Button variant="secondary" disabled={pending} onClick={onClose}>
+              Annuler
+            </Button>
+            <Button
+              variant="danger"
+              disabled={pending || confirmation.trim() !== String(ids.length)}
+              onClick={() =>
+                startTransition(async () =>
+                  setState(await deleteCardsAction(ids, confirmation))
+                )
+              }
+            >
+              {pending ? "Suppression…" : `Supprimer ${ids.length} carte(s)`}
+            </Button>
+          </>
+        )}
+      </div>
+    </Modal>
+  );
+}
+
 const ADMIN_CARDS_PER_PAGE = 20;
 
 export function AdminCardManager({
@@ -354,12 +460,48 @@ export function AdminCardManager({
   );
   const [cardsPage, setCardsPage] = useState(1);
   const [editingCardId, setEditingCardId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  const [bulkPreview, setBulkPreview] = useState<{
+    ids: string[];
+    preview: BulkDeletePreview;
+  } | null>(null);
+  const [bulkError, setBulkError] = useState<AdminActionState>(initialState);
+  const [previewing, startPreview] = useTransition();
+  // Only ids still present in the current results can ever be sent.
+  const selectedIds = cards
+    .filter(card => selected.has(card.id))
+    .map(card => card.id);
   const pageCount = Math.max(1, Math.ceil(cards.length / ADMIN_CARDS_PER_PAGE));
   const safePage = Math.min(cardsPage, pageCount);
   const visibleCards = cards.slice(
     (safePage - 1) * ADMIN_CARDS_PER_PAGE,
     safePage * ADMIN_CARDS_PER_PAGE
   );
+
+  const pageSelected = visibleCards.filter(card => selected.has(card.id));
+  const allPageSelected =
+    visibleCards.length > 0 && pageSelected.length === visibleCards.length;
+
+  function setSelection(ids: string[], checked: boolean) {
+    setBulkError(initialState);
+    setSelected(current => {
+      const next = new Set(current);
+      for (const id of ids) {
+        if (checked) next.add(id);
+        else next.delete(id);
+      }
+      return next;
+    });
+  }
+
+  function openBulkDelete() {
+    const ids = selectedIds;
+    startPreview(async () => {
+      const result = await previewDeleteCardsAction(ids);
+      setBulkError(result);
+      if (result.preview) setBulkPreview({ ids, preview: result.preview });
+    });
+  }
 
   function goToPage(page: number) {
     setEditingCardId(null);
@@ -457,6 +599,43 @@ export function AdminCardManager({
             {cards.length} affichée(s)
           </span>
         </div>
+        {visibleCards.length ? (
+          <div className="flex flex-wrap items-center gap-3 text-sm">
+            <label className="flex min-h-11 items-center gap-2 text-slate-300">
+              <input
+                checked={allPageSelected}
+                className="size-5"
+                onChange={event =>
+                  setSelection(
+                    visibleCards.map(card => card.id),
+                    event.target.checked
+                  )
+                }
+                ref={input => {
+                  if (input)
+                    input.indeterminate =
+                      pageSelected.length > 0 && !allPageSelected;
+                }}
+                type="checkbox"
+              />
+              Tout sélectionner sur cette page
+            </label>
+            {searchQuery && cards.length > visibleCards.length ? (
+              <button
+                className="rounded-lg border border-white/15 px-3 py-2 text-slate-200 transition hover:bg-white/5"
+                onClick={() =>
+                  setSelection(
+                    cards.map(card => card.id),
+                    true
+                  )
+                }
+                type="button"
+              >
+                Sélectionner les {cards.length} cartes de ce filtre
+              </button>
+            ) : null}
+          </div>
+        ) : null}
         {searchQuery && cards.length === 0 ? (
           <p className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 text-slate-300">
             Aucune carte trouvée avec ce nom ou cette licence.
@@ -479,6 +658,15 @@ export function AdminCardManager({
               className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-white/10 bg-slate-900/70 px-4 py-3"
               key={card.id}
             >
+              <input
+                aria-label={`Sélectionner ${card.nom}`}
+                checked={selected.has(card.id)}
+                className="size-5 shrink-0"
+                onChange={event =>
+                  setSelection([card.id], event.target.checked)
+                }
+                type="checkbox"
+              />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold text-white">{card.nom}</p>
                 <p className="truncate text-xs text-slate-400">
@@ -526,6 +714,51 @@ export function AdminCardManager({
           </nav>
         ) : null}
       </section>
+      {selectedIds.length ? (
+        <div
+          aria-label="Actions sur la sélection"
+          className="sticky bottom-4 z-10 space-y-3 rounded-2xl border border-red-400/30 bg-slate-950/95 p-4 shadow-xl"
+          role="region"
+        >
+          <div className="flex flex-wrap items-center gap-3">
+            <p aria-live="polite" className="flex-1 text-sm font-semibold">
+              {selectedIds.length} carte(s) sélectionnée(s)
+              {selectedIds.length > MAX_BULK_DELETE_CARDS
+                ? ` — maximum ${MAX_BULK_DELETE_CARDS} par suppression`
+                : ""}
+            </p>
+            <button
+              className="rounded-lg border border-white/15 px-3 py-2 text-sm"
+              onClick={() => setSelected(new Set())}
+              type="button"
+            >
+              Tout désélectionner
+            </button>
+            <button
+              className="rounded-lg border border-red-400/40 px-3 py-2 text-sm font-semibold text-red-200 disabled:opacity-40"
+              disabled={
+                previewing || selectedIds.length > MAX_BULK_DELETE_CARDS
+              }
+              onClick={openBulkDelete}
+              type="button"
+            >
+              {previewing ? "Calcul de l’impact…" : "Supprimer"}
+            </button>
+          </div>
+          <Feedback state={bulkError} />
+        </div>
+      ) : null}
+      {bulkPreview ? (
+        <BulkDeleteDialog
+          ids={bulkPreview.ids}
+          onClose={() => setBulkPreview(null)}
+          onDeleted={() => {
+            setBulkPreview(null);
+            setSelected(new Set());
+          }}
+          preview={bulkPreview.preview}
+        />
+      ) : null}
     </div>
   );
 }

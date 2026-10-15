@@ -946,3 +946,45 @@ test("la migration supprime uniquement Devil May Cry de la categorie ANIME/MANGA
     /delete from public\.cards\s+where id = any\(target_card_ids\)/
   );
 });
+
+test("la suppression groupée est réservée aux admins, plafonnée et réutilise la RPC individuelle", async () => {
+  const actions = await read("app/admin/cards/actions.ts");
+  const shared = await read("app/admin/cards/bulk-delete.ts");
+  const migration = await read(
+    "supabase/migrations/20261015000004_admin_bulk_delete_cards.sql"
+  );
+  for (const name of ["previewDeleteCardsAction", "deleteCardsAction"]) {
+    const body = actions.slice(actions.indexOf(`function ${name}`));
+    assert.ok(
+      body.indexOf("requireAdminAction()") < body.indexOf(".rpc("),
+      `${name} doit vérifier l’admin avant la RPC`
+    );
+  }
+  const deletion = actions.slice(actions.indexOf("function deleteCardsAction"));
+  assert.match(
+    deletion,
+    /confirmation\.trim\(\) !== String\(cardIds\.length\)/
+  );
+  assert.match(deletion, /rpc\("admin_delete_cards"/);
+
+  const limit = Number(shared.match(/MAX_BULK_DELETE_CARDS = (\d+)/)?.[1]);
+  assert.equal(
+    Number(migration.match(/max_cards constant integer := (\d+)/)?.[1]),
+    limit
+  );
+  assert.equal(limit, 500);
+  // Single and bulk deletions share one implementation.
+  assert.equal(
+    migration.match(/public\.admin_delete_card_core\((p_card_id|target_id)\)/g)
+      ?.length,
+    2
+  );
+  assert.match(
+    migration,
+    /revoke all on function public\.admin_delete_card_core\(uuid\)\nfrom public, anon, authenticated;/
+  );
+  assert.doesNotMatch(
+    migration,
+    /grant execute on function public\.admin_delete_card_core/
+  );
+});
