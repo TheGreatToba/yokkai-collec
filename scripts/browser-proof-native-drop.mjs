@@ -117,8 +117,58 @@ try {
   await send("Page.navigate", {
     url: "http://localhost:3000/design-system/card-drop-preview"
   });
-  await until("!!document.querySelector('.yk-deck-button')");
+  await until(
+    "Array.from(document.querySelectorAll('button')).some(b=>b.textContent.trim()==='Open demo pack')"
+  );
   await delay(1200);
+  await evaluate(
+    "Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim()==='Open demo pack').click()"
+  );
+  await until("!!document.querySelector('.yk-deck-button')");
+  const packCards = [
+    ["SR", "Satoru Gojo"],
+    ["SSR", "Levi Ackerman"],
+    ["LR", "Monkey D. Luffy"]
+  ];
+  for (let index = 0; index < packCards.length; index++) {
+    const [rarity, name] = packCards[index];
+    await evaluate("document.querySelector('.yk-deck-button').click()");
+    await until(
+      `!!document.querySelector('.yk-reveal-${rarity.toLowerCase()} .yk-card')`
+    );
+    assert.equal(
+      await evaluate(
+        `document.querySelector('.yk-reveal-${rarity.toLowerCase()} .yk-card-name').textContent`
+      ),
+      name
+    );
+    if (rarity === "LR") {
+      await until("!!document.querySelector('dialog[open]')");
+      await evaluate(
+        "document.querySelector('dialog[open] button[aria-label=Close]').click()"
+      );
+    }
+    await until(
+      `document.querySelectorAll('.yk-reveal-slot.yk-filled').length===${index + 1}`
+    );
+  }
+  await until("!!document.querySelector('.yk-reveal-summary')");
+  assert.equal(
+    await evaluate(
+      "document.querySelectorAll('.yk-reveal-slot.yk-filled').length"
+    ),
+    3
+  );
+  await evaluate(
+    "Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim()==='Replay demo pack').click()"
+  );
+  await until("!!document.querySelector('.yk-deck-button')");
+  assert.equal(
+    await evaluate(
+      "document.querySelectorAll('.yk-reveal-slot.yk-filled').length"
+    ),
+    0
+  );
   await mkdir(new URL("../artifacts/native-drop/", import.meta.url), {
     recursive: true
   });
@@ -195,7 +245,7 @@ try {
   assert.deepEqual(requests, []);
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: native SR violet / SSR pink / LR gold, actual Gojo artwork, real 3D flip, mobile, reduced motion, no video/media/RPC."
+    "PASS: SR/SSR/LR demo pack + replay; native effects, real artwork, 3D flip, mobile, reduced motion, no video/media/RPC."
   );
 } finally {
   socket?.close();

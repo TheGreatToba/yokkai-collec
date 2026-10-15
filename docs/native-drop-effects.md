@@ -18,6 +18,10 @@ Les durées et le moteur de dépôt restent inchangés (SR 520 ms, SSR 3,2 s, LR
 Le mouvement réduit coupe les animations. L’aperçu utilise un vrai visuel de
 personnage local : `/design-system/card-drop-preview` (aucune RPC).
 
+L’aperçu propose aussi un pack complet garanti SR + SSR + LR, avec trois
+personnages différents (Gojo, Levi, Luffy), ouverture et rejeu en mémoire.
+Aucun booster, carte ou Karas réel n’est consommé ou créé.
+
 Les tests existants, y compris le fingerprint du markup du reveal, ne sont pas
 modifiés. De nouveaux tests vérifient les effets natifs et l’absence de lecteur.
 

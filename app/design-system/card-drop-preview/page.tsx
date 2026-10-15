@@ -8,9 +8,9 @@ export default function Page() {
       </p>
       <h1 className="yk-title mt-3">Native card drop animations</h1>
       <p className="mt-4 text-ink-2">
-        Select a rarity, then click the pack. The actual drawn card flips in 3D:
-        violet sparkles for SR, pink ribbons for SSR and golden rays for LR. No
-        video player.
+        Open the demo pack to reveal one SR, one SSR and one LR in sequence.
+        Violet sparkles, pink ribbons and golden rays are native CSS effects.
+        You can also test each rarity separately.
       </p>
       <NativeCardDropPreview />
     </main>
