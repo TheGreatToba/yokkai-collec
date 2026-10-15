@@ -22,4 +22,6 @@ pas dans Supabase. Elle couvre les formats portrait, paysage et carré à 390,
 768, 1024, 1920 et 3840 pixels, l'aperçu dans l'éditeur, l'import et le retrait
 d'une bannière. Les captures sont générées dans `artifacts/profile-banner-fit/`.
 
-Les tests existants ne sont pas modifiés.
+Les assertions des tests existants ne sont pas modifiées. Le chargeur de test
+de confidentialité charge le véritable composant `ProfileBanner` nouvellement
+extrait, sans remplacer son rendu par un mock.
