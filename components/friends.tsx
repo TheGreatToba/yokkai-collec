@@ -33,11 +33,11 @@ const liveFriendActions: FriendActionAdapter = {
 };
 
 const statusLabel: Record<FriendshipStatus, string> = {
-  none: "Ajouter en ami",
-  incoming: "Demande reçue",
-  outgoing: "Demande envoyée",
-  accepted: "Déjà ami",
-  self: "Votre profil"
+  none: "Add friend",
+  incoming: "Request received",
+  outgoing: "Request sent",
+  accepted: "Already friends",
+  self: "Your profile"
 };
 
 export function FriendAction({
@@ -67,7 +67,9 @@ export function FriendAction({
       setState("outgoing");
       onChanged?.();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Action impossible.");
+      setError(
+        e instanceof Error ? e.message : "Couldn't complete this action."
+      );
     } finally {
       setBusy(false);
     }
@@ -79,13 +81,15 @@ export function FriendAction({
       const friendships = await adapter.friendships();
       const request = friendships.incoming.find(person => person.id === userId);
       if (!request?.requestId)
-        throw new Error("Cette demande n’est plus disponible.");
+        throw new Error("This request is no longer available.");
       await adapter.respond(request.requestId, accept);
       setState(accept ? "accepted" : "none");
       setConfirmRefusal(false);
       onChanged?.();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Action impossible.");
+      setError(
+        e instanceof Error ? e.message : "Couldn't complete this action."
+      );
     } finally {
       setBusy(false);
     }
@@ -99,7 +103,9 @@ export function FriendAction({
       onUnblocked?.();
       onChanged?.();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Action impossible.");
+      setError(
+        e instanceof Error ? e.message : "Couldn't complete this action."
+      );
     } finally {
       setBusy(false);
     }
@@ -112,25 +118,25 @@ export function FriendAction({
           disabled={busy}
           onClick={() => void unblock()}
         >
-          Débloquer
+          Unblock
         </Button>
       )}
       {!blockedByMe && state === "none" && (
         <Button variant="secondary" disabled={busy} onClick={() => void send()}>
-          <span aria-hidden="true">＋</span> Ajouter en ami
+          <span aria-hidden="true">＋</span> Add friend
         </Button>
       )}
       {!blockedByMe && state === "incoming" && (
         <div className="yk-friend-action-buttons">
           <Button disabled={busy} onClick={() => void respond(true)}>
-            Accepter
+            Accept
           </Button>
           <Button
             variant="secondary"
             disabled={busy}
             onClick={() => setConfirmRefusal(true)}
           >
-            Refuser
+            Decline
           </Button>
         </div>
       )}
@@ -148,23 +154,23 @@ export function FriendAction({
       <Modal
         open={confirmRefusal}
         onClose={() => setConfirmRefusal(false)}
-        title="Refuser cette demande ?"
+        title="Decline this request?"
         className="max-w-md"
       >
         <p className="text-sm leading-6 text-ink-2">
-          La demande disparaîtra de votre liste. Cette personne pourra vous en
-          envoyer une nouvelle plus tard.
+          The request will be removed from your list. This player can send you
+          another one later.
         </p>
         <div className="mt-6 flex justify-end gap-3">
           <Button variant="secondary" onClick={() => setConfirmRefusal(false)}>
-            Annuler
+            Cancel
           </Button>
           <Button
             variant="danger"
             disabled={busy}
             onClick={() => void respond(false)}
           >
-            {busy ? "Refus…" : "Refuser"}
+            {busy ? "Refus…" : "Decline"}
           </Button>
         </div>
       </Modal>
@@ -176,17 +182,20 @@ export function friendPresenceLabel(
   person: Pick<FriendUser, "isOnline" | "lastSeenAt">,
   now = Date.now()
 ) {
-  if (person.isOnline) return "En ligne";
-  if (!person.lastSeenAt) return "Jamais vu en ligne";
+  if (person.isOnline) return "Online";
+  if (!person.lastSeenAt) return "Not seen online yet";
   const elapsed = Math.max(0, now - new Date(person.lastSeenAt).getTime());
   const minutes = Math.floor(elapsed / 60_000);
-  if (minutes < 1) return "Vu à l’instant";
-  if (minutes < 60) return `Vu il y a ${minutes} min`;
+  if (minutes < 1) return "Seen just now";
+  if (minutes < 60)
+    return `Last seen ${minutes.toLocaleString("en-US")} ${minutes === 1 ? "minute" : "minutes"} ago`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `Vu il y a ${hours} h`;
+  if (hours < 24)
+    return `Last seen ${hours.toLocaleString("en-US")} ${hours === 1 ? "hour" : "hours"} ago`;
   const days = Math.floor(hours / 24);
-  if (days < 7) return `Vu il y a ${days} j`;
-  return `Vu le ${new Intl.DateTimeFormat("fr-FR", { dateStyle: "short", timeStyle: "short" }).format(new Date(person.lastSeenAt))}`;
+  if (days < 7)
+    return `Last seen ${days.toLocaleString("en-US")} ${days === 1 ? "day" : "days"} ago`;
+  return `Last seen ${new Intl.DateTimeFormat("en-US", { dateStyle: "short", timeStyle: "short" }).format(new Date(person.lastSeenAt))}`;
 }
 
 function Person({
@@ -212,7 +221,7 @@ function Person({
             showPresence && person.isOnline ? "yk-presence-online" : undefined
           }
         >
-          {showPresence ? friendPresenceLabel(person) : "Voir le profil"}
+          {showPresence ? friendPresenceLabel(person) : "View profile"}
         </small>
       </Link>
       {actions}
@@ -222,20 +231,20 @@ function Person({
 type FriendsTab = "friends" | "incoming" | "outgoing" | "blocked";
 const emptyCopy: Record<FriendsTab, { title: string; text: string }> = {
   blocked: {
-    title: "Aucun joueur bloqué",
-    text: "Les joueurs que tu bloques apparaîtront ici."
+    title: "No blocked players",
+    text: "Players you block will appear here."
   },
   friends: {
-    title: "Votre cercle est encore vide",
-    text: "Recherchez un pseudo pour inviter votre premier ami."
+    title: "Your circle is still empty",
+    text: "Search for a username to invite your first friend."
   },
   incoming: {
-    title: "Aucune demande reçue",
-    text: "Les nouvelles invitations apparaîtront ici."
+    title: "No incoming requests",
+    text: "New invitations will appear here."
   },
   outgoing: {
-    title: "Aucune demande envoyée",
-    text: "Vos invitations en attente apparaîtront ici."
+    title: "No sent requests",
+    text: "Your pending invitations will appear here."
   }
 };
 
@@ -276,7 +285,7 @@ export function FriendsPanel({
       },
       e => {
         if (active)
-          setError(e instanceof Error ? e.message : "Chargement impossible.");
+          setError(e instanceof Error ? e.message : "Couldn't load friends.");
       }
     );
     return () => {
@@ -290,14 +299,16 @@ export function FriendsPanel({
       setBlocked(current => current.filter(person => person.id !== id));
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Action impossible.");
+      setError(
+        e instanceof Error ? e.message : "Couldn't complete this action."
+      );
     }
   }
   async function load() {
     try {
       setData(await adapter.friendships());
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Chargement impossible.");
+      setError(e instanceof Error ? e.message : "Couldn't load friends.");
     }
   }
   useEffect(() => {
@@ -311,7 +322,7 @@ export function FriendsPanel({
         if (active) setData(value);
       } catch (e) {
         if (active)
-          setError(e instanceof Error ? e.message : "Chargement impossible.");
+          setError(e instanceof Error ? e.message : "Couldn't load friends.");
       } finally {
         loading = false;
       }
@@ -342,9 +353,7 @@ export function FriendsPanel({
           },
           e => {
             if (active)
-              setError(
-                e instanceof Error ? e.message : "Recherche impossible."
-              );
+              setError(e instanceof Error ? e.message : "Couldn't search.");
           }
         )
         .finally(() => {
@@ -363,7 +372,9 @@ export function FriendsPanel({
       setRefusal(undefined);
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Action impossible.");
+      setError(
+        e instanceof Error ? e.message : "Couldn't complete this action."
+      );
     }
   }
   async function remove() {
@@ -375,7 +386,7 @@ export function FriendsPanel({
       setRemoval(undefined);
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Suppression impossible.");
+      setError(e instanceof Error ? e.message : "Couldn't remove this friend.");
     } finally {
       setRemoving(false);
     }
@@ -391,30 +402,30 @@ export function FriendsPanel({
     <div className="yk-social-stack">
       <section className="yk-social-search">
         <div>
-          <p className="eyebrow">Trouver un joueur</p>
-          <h2 className="yk-section-title mt-2">Agrandir votre cercle</h2>
+          <p className="eyebrow">Find a player</p>
+          <h2 className="yk-section-title mt-2">Grow your circle</h2>
         </div>
         <label className="yk-social-search-field">
           <span aria-hidden="true">⌕</span>
           <input
-            aria-label="Rechercher un joueur par pseudo"
+            aria-label="Search players by username"
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Rechercher un pseudo…"
+            placeholder="Search usernames…"
           />
         </label>
         {query.trim().length > 0 && query.trim().length < 2 && (
-          <p className="yk-search-hint">Saisissez au moins deux caractères.</p>
+          <p className="yk-search-hint">Enter at least two characters.</p>
         )}
         {searching && (
           <p className="yk-search-hint" role="status">
-            Recherche…
+            Searching…
           </p>
         )}
         {query.trim().length >= 2 && !searching && !results.length && (
           <div className="yk-social-empty is-compact">
-            <strong>Aucun joueur trouvé</strong>
-            <span>Essayez un autre pseudo.</span>
+            <strong>No players found</strong>
+            <span>Try another username.</span>
           </div>
         )}
         {!!results.length && (
@@ -449,20 +460,26 @@ export function FriendsPanel({
       </section>
       <section className="yk-social-panel">
         <Tabs
-          label="Relations"
+          label="Relationships"
           value={tab}
           onChange={value => setTab(value as FriendsTab)}
           items={[
-            { id: "friends", label: `Mes amis · ${lists.friends.length}` },
+            {
+              id: "friends",
+              label: `My friends · ${lists.friends.length.toLocaleString("en-US")}`
+            },
             {
               id: "incoming",
-              label: `Demandes reçues · ${lists.incoming.length}`
+              label: `Received requests · ${lists.incoming.length.toLocaleString("en-US")}`
             },
             {
               id: "outgoing",
-              label: `Demandes envoyées · ${lists.outgoing.length}`
+              label: `Sent requests · ${lists.outgoing.length.toLocaleString("en-US")}`
             },
-            { id: "blocked", label: `Bloqués · ${blocked.length}` }
+            {
+              id: "blocked",
+              label: `Blocked · ${blocked.length.toLocaleString("en-US")}`
+            }
           ]}
         />
         {current.length ? (
@@ -478,28 +495,28 @@ export function FriendsPanel({
                       variant="secondary"
                       onClick={() => void unblock(person.id)}
                     >
-                      Débloquer
+                      Unblock
                     </Button>
                   ) : tab === "incoming" ? (
                     <div className="yk-friend-action-buttons">
                       <Button
                         onClick={() => void respond(person.requestId!, true)}
                       >
-                        Accepter
+                        Accept
                       </Button>
                       <Button
                         variant="secondary"
                         onClick={() => setRefusal(person)}
                       >
-                        Refuser
+                        Decline
                       </Button>
                     </div>
                   ) : tab === "friends" ? (
                     <Button variant="danger" onClick={() => setRemoval(person)}>
-                      Supprimer
+                      Remove
                     </Button>
                   ) : (
-                    <StatusPill tone="gold">En attente</StatusPill>
+                    <StatusPill tone="gold">Pending</StatusPill>
                   )
                 }
               />
@@ -523,16 +540,17 @@ export function FriendsPanel({
       <Modal
         open={!!refusal}
         onClose={() => setRefusal(undefined)}
-        title="Refuser cette demande ?"
+        title="Decline this request?"
         className="max-w-md"
       >
         <p className="text-sm leading-6 text-ink-2">
-          La demande de <strong className="text-ink">{refusal?.pseudo}</strong>{" "}
-          sera supprimée.
+          The request from{" "}
+          <strong className="text-ink">{refusal?.pseudo}</strong> will be
+          removed.
         </p>
         <div className="mt-6 flex justify-end gap-3">
           <Button variant="secondary" onClick={() => setRefusal(undefined)}>
-            Annuler
+            Cancel
           </Button>
           <Button
             variant="danger"
@@ -540,7 +558,7 @@ export function FriendsPanel({
               refusal?.requestId && void respond(refusal.requestId, false)
             }
           >
-            Refuser
+            Decline
           </Button>
         </div>
       </Modal>
@@ -549,13 +567,12 @@ export function FriendsPanel({
         onClose={() => {
           if (!removing) setRemoval(undefined);
         }}
-        title="Supprimer cet ami ?"
+        title="Remove this friend?"
         className="max-w-md"
       >
         <p className="text-sm leading-6 text-ink-2">
-          <strong className="text-ink">{removal?.pseudo}</strong> sera retiré de
-          votre liste d’amis. Vous pourrez lui envoyer une nouvelle demande plus
-          tard.
+          <strong className="text-ink">{removal?.pseudo}</strong> will be
+          removed from your friends list. You can send them a new request later.
         </p>
         <div className="mt-6 flex justify-end gap-3">
           <Button
@@ -563,14 +580,14 @@ export function FriendsPanel({
             disabled={removing}
             onClick={() => setRemoval(undefined)}
           >
-            Annuler
+            Cancel
           </Button>
           <Button
             variant="danger"
             disabled={removing}
             onClick={() => void remove()}
           >
-            {removing ? "Suppression…" : "Supprimer"}
+            {removing ? "Suppression…" : "Remove"}
           </Button>
         </div>
       </Modal>

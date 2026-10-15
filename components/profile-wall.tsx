@@ -74,7 +74,7 @@ export function ProfileWall({
           if (current) {
             setPosts([]);
             setCursor(null);
-            setError("Impossible de charger le mur. Réessaie dans un instant.");
+            setError("Couldn't load the wall. Please try again in a moment.");
           }
         }
       )
@@ -108,7 +108,7 @@ export function ProfileWall({
         next.size > 6 * 1024 * 1024 ||
         !next.size)
     ) {
-      setError("JPG, PNG, WebP ou GIF, 6 Mo maximum.");
+      setError("JPG, PNG, WebP, or GIF, up to 6 MB.");
       return;
     }
     setFile(next);
@@ -148,12 +148,12 @@ export function ProfileWall({
       setFile(null);
       setPreview("");
       setGif("");
-      setToast("Publication ajoutée à ton mur");
+      setToast("Post added to your wall");
     } catch (reason) {
       setError(
         reason instanceof Error
           ? reason.message
-          : "Impossible de publier. Ton brouillon est conservé."
+          : "Couldn't publish your post. Your draft has been kept."
       );
     } finally {
       lock.current = false;
@@ -170,12 +170,10 @@ export function ProfileWall({
       setPosts(current => current.filter(post => post.id !== removing.id));
       setRemoving(null);
       if (path) await discard(path);
-      setToast("Publication supprimée");
+      setToast("Post deleted");
     } catch (reason) {
       setError(
-        reason instanceof Error
-          ? reason.message
-          : "Impossible de supprimer la publication."
+        reason instanceof Error ? reason.message : "Couldn't delete this post."
       );
     } finally {
       lock.current = false;
@@ -197,7 +195,9 @@ export function ProfileWall({
     } catch {
       setPosts([]);
       setCursor(null);
-      setError("Le mur est indisponible ou son accès a changé. Réessaie.");
+      setError(
+        "The wall is unavailable or its access has changed. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -205,19 +205,19 @@ export function ProfileWall({
   if (!canRead)
     return (
       <section className="yk-profile-surface yk-wall-private">
-        <h2>Ce mur est privé</h2>
-        <p>Seuls ses amis peuvent voir les publications.</p>
+        <h2>This wall is private</h2>
+        <p>Only their friends can see these posts.</p>
       </section>
     );
   return (
     <section className="yk-profile-wall">
       <div className="yk-profile-section-heading">
         <div>
-          <p className="eyebrow">Ses publications</p>
-          <h2>Le mur de {pseudo}</h2>
+          <p className="eyebrow">Their posts</p>
+          <h2>Wall of {pseudo}</h2>
         </div>
         <span className="yk-wall-audience">
-          {isPublic ? "Public · Tous les joueurs" : "Privé · Toi et tes amis"}
+          {isPublic ? "Public · All players" : "Private · You and your friends"}
         </span>
       </div>
       {isMe && (
@@ -233,7 +233,7 @@ export function ProfileWall({
             <strong>{pseudo}</strong>
           </div>
           <label htmlFor="wall-text" className="sr-only">
-            Ta publication
+            Your post
           </label>
           <textarea
             id="wall-text"
@@ -241,7 +241,7 @@ export function ProfileWall({
             value={text}
             maxLength={3000}
             disabled={busy}
-            placeholder="Une découverte, une nouvelle carte, une pensée… raconte ce que tu veux."
+            placeholder="A discovery, a new card, a thought… share what's on your mind."
             onChange={event => {
               setText(event.target.value);
               requestId.current = null;
@@ -249,13 +249,13 @@ export function ProfileWall({
           />
           {(preview || gif) && (
             <div className="yk-wall-attachment">
-              <img src={preview || gif} alt="Aperçu de la pièce jointe" />
+              <img src={preview || gif} alt="Attachment preview" />
               <Button
                 variant="secondary"
                 disabled={busy}
                 onClick={() => changeAttachment(null)}
               >
-                Retirer la pièce jointe
+                Remove attachment
               </Button>
             </div>
           )}
@@ -266,13 +266,13 @@ export function ProfileWall({
                 disabled={busy}
                 onClick={() => fileInput.current?.click()}
               >
-                Ajouter une image
+                Add image
               </Button>
               <input
                 ref={fileInput}
                 type="file"
                 accept="image/jpeg,image/png,image/webp,image/gif"
-                aria-label="Image pour le mur"
+                aria-label="Wall image"
                 hidden
                 disabled={busy}
                 onChange={event =>
@@ -289,12 +289,12 @@ export function ProfileWall({
               type="submit"
               disabled={busy || (!text.trim() && !file && !gif)}
             >
-              {busy ? "Publication…" : "Publier"}
+              {busy ? "Publishing…" : "Publish"}
             </Button>
           </div>
           <p className="yk-profile-muted">
-            Une image ou un GIF par publication · 6 Mo maximum. La visibilité
-            suit celle de ton profil.
+            One image or GIF per post · Up to 6 MB. Visibility follows your
+            profile settings.
           </p>
         </form>
       )}
@@ -306,13 +306,13 @@ export function ProfileWall({
             disabled={loading}
             onClick={() => setRetry(current => current + 1)}
           >
-            Recharger le mur
+            Reload wall
           </Button>
         </div>
       )}
       {cleanup.length > 0 && (
         <div role="status" className="yk-profile-notice">
-          <p>Un fichier inutilisé attend son nettoyage.</p>
+          <p>An unused file is waiting to be removed.</p>
           <Button
             variant="secondary"
             onClick={() => {
@@ -321,22 +321,20 @@ export function ProfileWall({
               paths.forEach(path => void discard(path));
             }}
           >
-            Réessayer le nettoyage
+            Retry cleanup
           </Button>
         </div>
       )}
       {loading && !posts.length && (
         <p className="yk-profile-empty" role="status">
-          Chargement du mur…
+          Loading wall…
         </p>
       )}
       {!loading && !error && !posts.length && (
         <div className="yk-profile-surface yk-wall-empty">
-          <h3>Le mur attend sa première histoire</h3>
+          <h3>Your wall is waiting for its first story</h3>
           <p>
-            {isMe
-              ? "Partage ce qui te plaît avec tes visiteurs."
-              : "Aucune publication pour le moment."}
+            {isMe ? "Share what you love with your visitors." : "No posts yet."}
           </p>
         </div>
       )}
@@ -357,7 +355,7 @@ export function ProfileWall({
                 <div>
                   <strong>{pseudo}</strong>
                   <time dateTime={post.createdAt}>
-                    {new Date(post.createdAt).toLocaleString("fr-FR", {
+                    {new Date(post.createdAt).toLocaleString("en-US", {
                       dateStyle: "medium",
                       timeStyle: "short"
                     })}
@@ -367,11 +365,11 @@ export function ProfileWall({
               {isMe && (
                 <Button
                   variant="secondary"
-                  aria-label="Supprimer cette publication"
+                  aria-label="Delete this post"
                   disabled={busy}
                   onClick={() => setRemoving(post)}
                 >
-                  Supprimer
+                  Remove
                 </Button>
               )}
             </header>
@@ -386,8 +384,8 @@ export function ProfileWall({
                 }
                 alt={
                   post.gifUrl
-                    ? "GIF publié sur le mur"
-                    : "Image publiée sur le mur"
+                    ? "GIF posted on the wall"
+                    : "Image posted on the wall"
                 }
                 loading="lazy"
                 decoding="async"
@@ -402,7 +400,7 @@ export function ProfileWall({
           disabled={loading}
           onClick={() => void more()}
         >
-          {loading ? "Chargement…" : "Voir les publications précédentes"}
+          {loading ? "Loading…" : "See older posts"}
         </Button>
       )}
       <Modal
@@ -410,9 +408,9 @@ export function ProfileWall({
         onClose={() => {
           if (!busy) setRemoving(null);
         }}
-        title="Supprimer cette publication ?"
+        title="Delete this post?"
       >
-        <p>Elle sera retirée de ton mur. Cette action est définitive.</p>
+        <p>It will be removed from your wall. This can&apos;t be undone.</p>
         {error && (
           <p role="alert" className="yk-profile-notice">
             {error}
@@ -424,14 +422,14 @@ export function ProfileWall({
             disabled={busy}
             onClick={() => setRemoving(null)}
           >
-            Annuler
+            Cancel
           </Button>
           <Button
             variant="danger"
             disabled={busy}
             onClick={() => void remove()}
           >
-            Supprimer la publication
+            Delete post
           </Button>
         </div>
       </Modal>

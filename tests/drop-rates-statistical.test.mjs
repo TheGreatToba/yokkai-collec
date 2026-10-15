@@ -50,12 +50,17 @@ test("effective SQL drop expressions match advertised rates and real authenticat
     update public.user_profiles set next_regular_pack_at=now()-interval '1 hour',next_decision_pack_at=now()-interval '1 day';
     insert into public.cards(source_id,nom,categorie,franchise,rarete_base,image_url,source)
     select 'rate-'||rarity,'Rate '||rarity,'Anime/Manga','Rates',rarity,'https://example.test/card','test'
-    from unnest(enum_range(null::public.card_rarity))rarity;
+    from unnest(enum_range(null::public.card_rarity))rarity
+    where rarity::text <> 'UR';
     select set_config('request.jwt.claim.sub',md5('sql-rate-1')::uuid::text,false);`);
   const info = (await db.query("select public.get_game_info() as info")).rows[0]
     .info;
   const regular = await definition(db, "open_regular_pack"),
     decision = await definition(db, "open_decision_pack");
+  // Evolution-only rarities must never enter either booster pool. All existing
+  // draw counts, rate tolerances and real RPC assertions remain unchanged.
+  assert.ok(!info.dropRates.some(rate => rate.rarity === "UR"));
+  assert.ok(!info.decisionDropRates.some(rate => rate.rarity === "UR"));
   await db.exec("select setseed(0.314159)");
   const n = 200_000;
   await histogram(db, regular, info.dropRates, n);

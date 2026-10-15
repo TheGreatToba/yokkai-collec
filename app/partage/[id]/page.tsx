@@ -29,14 +29,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const card = await getSharedCard(id);
   if (!card) notFound();
-  const owner = card.pseudo ? ` par ${card.pseudo}` : "";
-  const description = `${card.cardName}, carte ${card.rarity}${card.shiny ? " Shiny" : ""} de ${card.franchise}, partagée${owner} sur Yokkai Collec'.`;
+  const owner = card.pseudo ? ` by ${card.pseudo}` : "";
+  const description = `${card.cardName}, a ${card.rarity}${card.shiny ? " Shiny" : ""} card from ${card.franchise}, shared${owner} on Yokkai Collec'.`;
   const image = `${siteOrigin()}/partage/${id}/image/og`;
   return {
     title: `${card.cardName} · Yokkai Collec'`,
     description,
     robots: { index: false, follow: false },
     openGraph: {
+      locale: "en_US",
       title: `${card.cardName} · Yokkai Collec'`,
       description,
       images: [{ url: image, width: 1200, height: 630, alt: card.cardName }]
@@ -57,13 +58,13 @@ export default async function SharedCardPage({ params }: Props) {
   return (
     <main className="flex min-h-screen items-center justify-center bg-void px-5 py-12 text-ink-1">
       <article className="w-full max-w-xl rounded-panel border border-veil bg-surface p-6 text-center shadow-2xl sm:p-10">
-        <p className="eyebrow">Carte partagée</p>
+        <p className="eyebrow">Shared card</p>
         <div className="mx-auto mt-6 aspect-[4/5] max-w-sm overflow-hidden rounded-card border border-veil bg-elevated">
           {isShareImageUrl(card.catalogueImageUrl) ? (
             <img
               className="h-full w-full object-cover"
               src={card.catalogueImageUrl}
-              alt={`Illustration de ${card.cardName}`}
+              alt={`Artwork of ${card.cardName}`}
             />
           ) : (
             <div className="flex h-full items-center justify-center p-6 text-ink-2">
@@ -78,13 +79,13 @@ export default async function SharedCardPage({ params }: Props) {
           {card.shiny ? " · Shiny" : ""}
         </p>
         {card.pseudo ? (
-          <p className="mt-4 text-sm text-ink-3">Partagée par {card.pseudo}</p>
+          <p className="mt-4 text-sm text-ink-3">Shared by {card.pseudo}</p>
         ) : null}
         <Link
           className="yk-button yk-button-primary mt-8 inline-flex"
           href="/inscription"
         >
-          Rejoindre Yokkai Collec&apos;
+          Join Yokkai Collec&apos;
         </Link>
       </article>
     </main>

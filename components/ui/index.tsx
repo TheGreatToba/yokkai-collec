@@ -295,7 +295,7 @@ export function Avatar({
   online?: boolean;
   size?: number;
 }) {
-  const displayName = name || "Joueur supprimé";
+  const displayName = name || "Deleted player";
   return (
     <span
       className="relative inline-flex shrink-0 items-center justify-center rounded-full border border-accent-gold/40 bg-veil font-display font-semibold text-accent-gold"
@@ -314,12 +314,12 @@ export function Avatar({
         />
       ) : (
         <span aria-label={displayName}>
-          {displayName.slice(0, 1).toLocaleUpperCase("fr-FR") || "?"}
+          {displayName.slice(0, 1).toLocaleUpperCase("en-US") || "?"}
         </span>
       )}
       {online !== undefined && (
         <span
-          aria-label={online ? "En ligne" : "Hors ligne"}
+          aria-label={online ? "Online" : "Offline"}
           className={`absolute right-0 bottom-0 size-2.5 rounded-full border-2 border-night ${online ? "bg-success" : "bg-ink-3"}`}
         />
       )}

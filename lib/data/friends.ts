@@ -12,17 +12,17 @@ type SupabaseFailure={message?:string;code?:string;details?:string;hint?:string;
 class FriendsError extends Error { constructor(message:string,readonly reason?:string){super(message);this.name="FriendsError";} }
 
 const businessMessages:Record<string,string>={
-  ACTION_UNAVAILABLE:"Impossible d’envoyer cette demande.",
-  CANNOT_FRIEND_SELF:"Vous ne pouvez pas vous ajouter vous-même.",
-  PROFILE_NOT_FOUND:"Ce profil est introuvable.",
-  FRIEND_REQUEST_NOT_FOUND:"Cette demande n’est plus disponible.",
-  FRIENDSHIP_NOT_FOUND:"Cette relation d’amitié n’est plus disponible.",
-  FRIENDSHIP_EXISTS:"Une relation ou une demande existe déjà avec ce joueur.",
+  ACTION_UNAVAILABLE:"Couldn't send this request.",
+  CANNOT_FRIEND_SELF:"You can't add yourself as a friend.",
+  PROFILE_NOT_FOUND:"This profile couldn't be found.",
+  FRIEND_REQUEST_NOT_FOUND:"This request is no longer available.",
+  FRIENDSHIP_NOT_FOUND:"This friendship is no longer available.",
+  FRIENDSHIP_EXISTS:"You're already friends or have a pending request with this player.",
 };
 
 function details(error:unknown):SupabaseFailure{
   if(error&&typeof error==="object")return error as SupabaseFailure;
-  return {message:typeof error==="string"?error:"Erreur inconnue"};
+  return {message:typeof error==="string"?error:"Unknown error"};
 }
 
 function logFailure(rpc:string,error:unknown){
@@ -35,10 +35,10 @@ function friendlyFailure(error:unknown){
   const failure=details(error);const status=Number(failure.status??failure.statusCode);const message=failure.message??"";
   if(message in businessMessages)return new FriendsError(businessMessages[message],message);
   if(status===401||status===403||failure.code==="PGRST301"||failure.code==="42501"||/unauthori[sz]ed|forbidden|permission denied|row-level security/i.test(message))
-    return new FriendsError("Vous n’êtes pas autorisé à effectuer cette action. Reconnectez-vous puis réessayez.","AUTHORIZATION");
+    return new FriendsError("You don't have permission to do this. Sign in again and retry.","AUTHORIZATION");
   if(error instanceof TypeError||/failed to fetch|fetch failed|networkerror|network request failed|load failed/i.test(message))
-    return new FriendsError("Impossible de joindre le serveur. Vérifiez votre connexion puis réessayez.","NETWORK");
-  return new FriendsError("Le service des amis est momentanément indisponible. Réessayez dans un instant.",failure.code);
+    return new FriendsError("Couldn't reach the server. Check your connection and try again.","NETWORK");
+  return new FriendsError("Friends are temporarily unavailable. Please try again in a moment.",failure.code);
 }
 
 async function call<T>(name:string,args?:Record<string,unknown>,paged=false):Promise<T>{
@@ -68,9 +68,9 @@ export async function sendFriendRequest(id:string){
     if(!(error instanceof FriendsError)||error.reason!=="FRIENDSHIP_EXISTS")throw error;
     try{
       const current=await getFriendships();
-      if(current.friends.some(friend=>friend.id===id))throw new FriendsError("Vous êtes déjà amis avec ce joueur.","ALREADY_FRIENDS");
-      if(current.outgoing.some(friend=>friend.id===id))throw new FriendsError("Une demande d’ami a déjà été envoyée à ce joueur.","REQUEST_ALREADY_SENT");
-      if(current.incoming.some(friend=>friend.id===id))throw new FriendsError("Ce joueur vous a déjà envoyé une demande d’ami.","REQUEST_ALREADY_RECEIVED");
+      if(current.friends.some(friend=>friend.id===id))throw new FriendsError("You're already friends with this player.","ALREADY_FRIENDS");
+      if(current.outgoing.some(friend=>friend.id===id))throw new FriendsError("You've already sent this player a friend request.","REQUEST_ALREADY_SENT");
+      if(current.incoming.some(friend=>friend.id===id))throw new FriendsError("This player has already sent you a friend request.","REQUEST_ALREADY_RECEIVED");
     }catch(lookupError){if(lookupError instanceof FriendsError&&lookupError.reason!=="FRIENDSHIP_EXISTS")throw lookupError;}
     throw error;
   }

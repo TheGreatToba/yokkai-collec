@@ -12,18 +12,18 @@ export type ModerationAdapter = {
 };
 const db = createClient;
 const errors: Record<string, string> = {
-  REPORT_DUPLICATE: "Tu as déjà signalé ce joueur dans ce contexte.",
-  REPORT_LIMIT: "Tu as atteint la limite de 10 signalements pour aujourd’hui.",
-  REPORT_INVALID: "Impossible de transmettre ce signalement.",
+  REPORT_DUPLICATE: "You've already reported this player in this context.",
+  REPORT_LIMIT: "You've reached the daily limit of 10 reports.",
+  REPORT_INVALID: "Couldn't submit this report.",
 };
 async function call<T>(name: string, args?: Record<string, unknown>): Promise<T> {
   try {
     const { data, error } = await db().rpc(name, args);
-    if (error) throw new Error(errors[error.message] ?? "Impossible d’effectuer cette action.");
+    if (error) throw new Error(errors[error.message] ?? "Couldn't complete this action.");
     return data as T;
   } catch (error) {
     if (error instanceof Error && Object.values(errors).includes(error.message)) throw error;
-    throw new Error("Impossible d’effectuer cette action.");
+    throw new Error("Couldn't complete this action.");
   }
 }
 function changed(id: string, blocked: boolean) {

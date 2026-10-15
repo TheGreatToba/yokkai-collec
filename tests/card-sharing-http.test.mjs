@@ -150,7 +150,7 @@ test("la page et ses métadonnées restent strictement publiques", () => {
     new URL("../app/partage/[id]/page.tsx", import.meta.url),
     "utf8"
   );
-  assert.match(page, /Rejoindre Yokkai Collec/);
+  assert.match(page, /Join Yokkai Collec/);
   assert.match(page, /href="\/inscription"/);
   assert.match(page, /robots:\s*\{\s*index:\s*false,\s*follow:\s*false/);
   assert.match(page, /summary_large_image/);

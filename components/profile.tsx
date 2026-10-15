@@ -751,7 +751,7 @@ function FriendWishlist({
   const categories = useMemo(
     () =>
       [...new Set(cards.map(card => card.category))].sort((a, b) =>
-        a.localeCompare(b, "fr")
+        a.localeCompare(b, "en-US")
       ),
     [cards]
   );
@@ -770,7 +770,7 @@ function FriendWishlist({
     <div className="yk-friend-wishlist-layout">
       <aside
         className="yk-collection-sidebar yk-friend-wishlist-filters"
-        aria-label="Filtres de la wishlist"
+        aria-label="Wishlist filters"
       >
         <div className="yk-filter-search">
           <svg
@@ -786,17 +786,17 @@ function FriendWishlist({
             <path d="m20 20-4-4" />
           </svg>
           <label className="sr-only" htmlFor="friend-wishlist-query">
-            Rechercher dans la wishlist
+            Search wishlist
           </label>
           <input
             id="friend-wishlist-query"
             type="search"
             value={query}
             onChange={event => setQuery(event.target.value)}
-            placeholder="Rechercher…"
+            placeholder="Search…"
           />
         </div>
-        <WishlistFilterSection title="Rareté">
+        <WishlistFilterSection title="Rarity">
           <button
             type="button"
             className="yk-filter-option"
@@ -804,7 +804,7 @@ function FriendWishlist({
             onClick={() => setRarity("")}
           >
             <span className="yk-filter-check" />
-            <span>Toutes</span>
+            <span>All</span>
           </button>
           {wishlistRarities.map(item => (
             <button
@@ -820,7 +820,7 @@ function FriendWishlist({
             </button>
           ))}
         </WishlistFilterSection>
-        <WishlistFilterSection title="Catégorie">
+        <WishlistFilterSection title="Category">
           <button
             type="button"
             className="yk-filter-option"
@@ -828,7 +828,7 @@ function FriendWishlist({
             onClick={() => setCategory("")}
           >
             <span className="yk-filter-check" />
-            <span>Toutes les catégories</span>
+            <span>All categories</span>
           </button>
           {categories.map(item => (
             <button
@@ -853,17 +853,17 @@ function FriendWishlist({
             setCategory("");
           }}
         >
-          Réinitialiser les filtres
+          Reset filters
         </button>
       </aside>
       <section
         className="yk-friend-wishlist-results"
-        aria-label="Cartes de la wishlist"
+        aria-label="Wishlist cards"
       >
         <p role="status" className="yk-friend-wishlist-count">
-          {shown.length.toLocaleString("fr-FR")} carte
-          {shown.length > 1 ? "s" : ""}
-          {filtered ? " trouvée(s)" : ""}
+          {shown.length.toLocaleString("en-US")}{" "}
+          {shown.length === 1 ? "card" : "cards"}
+          {filtered ? " found" : ""}
         </p>
         {shown.length ? (
           <div className="yk-card-grid yk-wishlist-grid">
@@ -873,7 +873,7 @@ function FriendWishlist({
                 key={card.id}
                 onClick={openCard(card)}
                 aria-haspopup="dialog"
-                aria-label={`Voir ${card.name} dans le catalogue`}
+                aria-label={`View ${card.name} in the catalog`}
               >
                 <CardShell>
                   <YokaiCard
@@ -887,7 +887,7 @@ function FriendWishlist({
           </div>
         ) : (
           <div className="yk-empty-state">
-            <p>Aucune carte ne correspond à cette recherche.</p>
+            <p>No cards match this search.</p>
           </div>
         )}
       </section>
@@ -1209,9 +1209,9 @@ export function ProfileExperience({
           <nav className="yk-profile-tabs" aria-label="Sections du profil">
             {[
               ["tableau", "Tableau"],
-              ["wall", "Mur"],
+              ["wall", "Wall"],
               ["activity", "Activité"],
-              ...(profile.friendsVisible ? [["friends", "Amis"]] : [])
+              ...(profile.friendsVisible ? [["friends", "Friends"]] : [])
             ].map(([key, label]) => (
               <button
                 key={key}
@@ -1221,7 +1221,7 @@ export function ProfileExperience({
                 className={tab === key ? "is-active" : ""}
               >
                 {key === "friends" ? (
-                  <p className="yk-profile-tab-label">Amis</p>
+                  <p className="yk-profile-tab-label">Friends</p>
                 ) : (
                   label
                 )}
@@ -1404,8 +1404,8 @@ export function ProfileExperience({
             <div hidden={tab !== "friends"} className="yk-profile-panel">
               <div className="yk-profile-section-heading">
                 <div>
-                  <p className="eyebrow">Sa communauté</p>
-                  <h3>Amis</h3>
+                  <p className="eyebrow">Their community</p>
+                  <h3>Friends</h3>
                 </div>
                 {!isMe && (
                   <button
@@ -1414,7 +1414,7 @@ export function ProfileExperience({
                     aria-pressed={mutualOnly}
                     onClick={() => setMutualOnly(!mutualOnly)}
                   >
-                    Amis en commun · {details?.mutualFriends.length ?? 0}
+                    Mutual friends · {details?.mutualFriends.length ?? 0}
                   </button>
                 )}
               </div>
@@ -1436,7 +1436,7 @@ export function ProfileExperience({
                             <strong>{friend.pseudo}</strong>
                             {details?.mutualFriends.some(
                               common => common.id === friend.id
-                            ) && <small>Ami en commun</small>}
+                            ) && <small>Mutual friend</small>}
                           </span>
                           <span
                             className="yk-profile-friend-arrow"
@@ -1452,8 +1452,8 @@ export function ProfileExperience({
               ) : (
                 <p className="yk-profile-empty">
                   {mutualOnly
-                    ? "Vous n’avez pas d’amis en commun."
-                    : "Aucun ami à afficher."}
+                    ? "You don't have any mutual friends."
+                    : "No friends to show."}
                 </p>
               )}
             </div>
@@ -1584,13 +1584,15 @@ export function ProfileExperience({
                 disabled={!profile.canViewCollection}
                 data-profile-wishlist
                 aria-haspopup="dialog"
-                aria-label={`Voir les ${wishlist.length} cartes de la wishlist de ${profile.pseudo}`}
+                aria-label={`View ${profile.pseudo}’s wishlist (${wishlist.length.toLocaleString("en-US")} ${wishlist.length === 1 ? "card" : "cards"})`}
               >
                 <p>Wishlist</p>
                 <strong>
-                  {profile.canViewCollection ? wishlist.length : "Privée"}
+                  {profile.canViewCollection
+                    ? wishlist.length.toLocaleString("en-US")
+                    : "Private"}
                 </strong>
-                {profile.canViewCollection && <span>Voir la wishlist →</span>}
+                {profile.canViewCollection && <span>View wishlist →</span>}
               </button>
               <div>
                 <p>Likes</p>
@@ -1697,7 +1699,7 @@ export function ProfileExperience({
           setWishlistCard(null);
           setWishlistOpen(false);
         }}
-        title={`Wishlist de ${profile.pseudo}`}
+        title={`${profile.pseudo}’s wishlist`}
         className="yk-friend-collection-modal"
       >
         {wishlist.length ? (
@@ -1711,7 +1713,7 @@ export function ProfileExperience({
           />
         ) : (
           <div className="yk-empty-state">
-            <p>Aucune carte souhaitée pour le moment.</p>
+            <p>No cards on this wishlist yet.</p>
           </div>
         )}
       </Modal>

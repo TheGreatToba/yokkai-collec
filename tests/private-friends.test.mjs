@@ -156,9 +156,9 @@ function renderProfile(profile) {
 test("profil rendu : propriétaire sans ami voit 0, visiteurs sans tuile ni colonne", () => {
   for (const friends of [undefined, null, []]) {
     const html = renderProfile({ ...base, friends, friendsVisible: true });
-    assert.match(html, />Amis<\/p>/);
+    assert.match(html, />Friends<\/p>/);
     assert.match(html, />0<\/p>/);
-    assert.match(html, />Amis<\/h3>/);
+    assert.match(html, />Friends<\/h3>/);
   }
   const own = renderProfile({
     ...base,
@@ -176,23 +176,23 @@ test("profil rendu : propriétaire sans ami voit 0, visiteurs sans tuile ni colo
       });
       assert.doesNotMatch(
         html,
-        />Amis<\/(?:p|h3)>|\/profil\/Bob|yk-profile-columns/
+        />Friends<\/(?:p|h3)>|\/profil\/Bob|yk-profile-columns/
       );
       assert.match(html, /Voir la collection/);
     }
 });
 test("les quatre états du bouton d'amitié restent disponibles", () => {
   for (const [status, label] of [
-    ["none", "Ajouter en ami"],
-    ["outgoing", "Demande envoyée"],
-    ["incoming", "Accepter"],
-    ["accepted", "Déjà ami"]
+    ["none", "Add friend"],
+    ["outgoing", "Request sent"],
+    ["incoming", "Accept"],
+    ["accepted", "Already friends"]
   ]) {
     const html = renderToStaticMarkup(
       h(friendsModule.FriendAction, { userId: "bob", status })
     );
     assert.ok(html.includes(label));
-    if (status === "incoming") assert.ok(html.includes("Refuser"));
+    if (status === "incoming") assert.ok(html.includes("Decline"));
   }
 });
 test("aperçu social historique : le visiteur reste masqué sans flag public explicite", () => {
@@ -217,10 +217,10 @@ test("FriendAction : bloqué par moi prévaut sur tous les états reçus du prof
         blockedByMe: true
       })
     );
-    assert.match(html, /Débloquer/);
+    assert.match(html, /Unblock/);
     assert.doesNotMatch(
       html,
-      /Ajouter en ami|Accepter|Refuser|Déjà ami|Demande envoyée/
+      /Add friend|Accept|Decline|Already friends|Request sent/
     );
   }
 });
