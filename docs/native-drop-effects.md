@@ -22,6 +22,12 @@ L’aperçu propose aussi un pack complet garanti SR + SSR + LR, avec trois
 personnages différents (Gojo, Levi, Luffy), ouverture et rejeu en mémoire.
 Aucun booster, carte ou Karas réel n’est consommé ou créé.
 
+En développement, `/boosters` propose également un comparateur Before / After
+sur le vrai écran d’ouverture, avec un pack SSR Levi + LR Luffy garanti.
+Before désactive uniquement les surcharges natives et retrouve la CSS de prod.
+`/boosters?live=1` conserve le jeu réel. En production, le comparateur n’est jamais
+rendu : authentification et Game restent obligatoires, quels que soient les paramètres.
+
 Les tests existants, y compris le fingerprint du markup du reveal, ne sont pas
 modifiés. De nouveaux tests vérifient les effets natifs et l’absence de lecteur.
 
