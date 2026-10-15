@@ -3,6 +3,7 @@ import { createClient } from "@/utils/supabase/client";
 import { withLiveCardFranchises, type Card, type CollectedCard, type PaniniAlbumCardPage, type PaniniAlbumPage, type Rarity } from "@/lib/data/cards";
 import type { FriendUser, FriendshipStatus } from "@/lib/data/friends";
 import { publishPlayerSnapshotInvalidation } from "@/lib/data/player-state";
+import type { BannerFrame } from "@/lib/ui/banner-frame";
 
 export type Profile = {id:string;pseudo:string;avatarUrl:string|null;bio:string;bannerCard:Card|null;friendshipStatus:FriendshipStatus;isPublic:boolean;canViewCollection:boolean;featuredCards:CollectedCard[];friends:(FriendUser&{avatarUrl?:string|null})[];friendsVisible:boolean;cardCount:number|null;distinctCardCount:number|null};
 export type ProfileInterests = { anime: string[]; games: string[]; kpop: string[]; other: string[] };
@@ -25,6 +26,7 @@ export type ProfileDetails = {
   widgets: ProfileWidget[];
   widgetCategories: string[];
   bannerUrl: string | null;
+  bannerFrame?: BannerFrame | null;
   boostersOpened: number | null;
   lrCount: number | null;
   ssrCount: number | null;
@@ -60,10 +62,12 @@ export async function getProfileWidgetLicenses({category,query="",page=1}: {cate
   const result = data as ProfileLicensePage | null;
   return {items:result?.items??[],total:result?.total??0};
 }
-export async function saveProfileAppearance(bio: string, avatarUrl: string | null, featuredIds: string[], bannerCardId: string | null, bannerUrl: string | null): Promise<Profile & {bannerUrl: string | null}> {
-  const {data,error} = await db().rpc("update_profile_appearance", {p_bio:bio,p_avatar_url:avatarUrl,p_featured_card_ids:featuredIds,p_banner_card_id:bannerCardId,p_banner_url:bannerUrl});
+export async function saveProfileAppearance(bio: string, avatarUrl: string | null, featuredIds: string[], bannerCardId: string | null, bannerUrl: string | null, bannerFrame?: BannerFrame | null): Promise<Profile & {bannerUrl: string | null; bannerFrame?: BannerFrame | null}> {
+  const {data,error} = await db().rpc(bannerFrame === undefined ? "update_profile_appearance" : "update_profile_appearance_framed", {p_bio:bio,p_avatar_url:avatarUrl,p_featured_card_ids:featuredIds,p_banner_card_id:bannerCardId,p_banner_url:bannerUrl,...(bannerFrame === undefined ? {} : {p_banner_frame:bannerFrame})});
+  if (error?.code === "PGRST202" && bannerFrame !== undefined) throw new Error("Banner framing is not available yet. Please try again after the update.");
+  if (error?.message === "BANNER_FRAME_INVALID") throw new Error("This banner crop is invalid. Adjust the image and try again.");
   if (error) throw error.message === "BANNER_URL_INVALID" ? new Error("This banner is not allowed. Upload an image from your device.") : fail(error);
-  const profile = await hydrateProfile(data as Profile & {bannerUrl: string | null});
+  const profile = await hydrateProfile(data as Profile & {bannerUrl: string | null; bannerFrame?: BannerFrame | null});
   publishPlayerSnapshotInvalidation(["profile"]);
   return profile as Profile & {bannerUrl: string | null};
 }

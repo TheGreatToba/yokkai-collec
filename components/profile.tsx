@@ -19,6 +19,9 @@ import { PlayerModeration } from "@/components/player-moderation";
 import { ProfileLicensePicker } from "@/components/profile-license-picker";
 import { ProfileWall } from "@/components/profile-wall";
 import { ProfileSales } from "@/components/profile-sales";
+import { BannerCrop } from "@/components/banner-crop";
+import { BannerImage } from "@/components/banner-image";
+import type { BannerFrame } from "@/lib/ui/banner-frame";
 import {
   CatalogueCardModal,
   type CatalogueCardAdapter
@@ -47,6 +50,7 @@ import {
   saveProfileWidgets,
   uploadBanner,
   uploadAvatar,
+  PROFILE_IMAGE_MAX_BYTES,
   type ProfileDetails,
   type ProfileEngagement,
   type ProfileWidget,
@@ -346,6 +350,8 @@ function Editor({
   profile,
   collection,
   initialBannerUrl,
+  initialBannerFrame,
+  framingAvailable,
   adapter,
   onSaved,
   onClose
@@ -353,13 +359,31 @@ function Editor({
   profile: Profile;
   collection: CollectedCard[];
   initialBannerUrl: string | null;
+  initialBannerFrame: BannerFrame | null;
+  framingAvailable: boolean;
   adapter: ProfileAdapter;
-  onSaved: (p: Profile & { bannerUrl: string | null }) => void;
+  onSaved: (
+    p: Profile & { bannerUrl: string | null; bannerFrame?: BannerFrame | null }
+  ) => void;
   onClose: () => void;
 }) {
   const [bio, setBio] = useState(profile.bio);
   const [avatar, setAvatar] = useState(profile.avatarUrl);
   const [bannerUrl, setBannerUrl] = useState(initialBannerUrl);
+  const [bannerFrame, setBannerFrame] = useState(initialBannerFrame);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [crop, setCrop] = useState<{
+    src: string;
+    frame: BannerFrame | null;
+    card: Card | null;
+    file: File | null;
+    uploaded: boolean;
+  } | null>(null);
+  const bannerPreviews = useRef<string[]>([]);
+  useEffect(
+    () => () => bannerPreviews.current.forEach(url => URL.revokeObjectURL(url)),
+    []
+  );
   const [selected, setSelected] = useState(
     () => new Set(profile.featuredCards.map(c => c.instanceId))
   );
@@ -397,7 +421,8 @@ function Editor({
     [unique, featuredQuery, selected]
   );
   useEffect(() => {
-    if (bannerQuery.trim().length < 2 || bannerCard) return;
+    if (bannerQuery.trim().length < 2 || bannerQuery === bannerCard?.name)
+      return;
     let active = true;
     const timer = window.setTimeout(
       () =>
@@ -436,34 +461,45 @@ function Editor({
       setBusy(false);
     }
   }
-  async function banner(file?: File) {
+  function banner(file?: File) {
     if (!file || busy) return;
-    setBusy(true);
     setError("");
-    try {
-      setBannerUrl(
-        await (adapter.uploadBanner ?? uploadBanner)(file, profile.id)
-      );
-      setBannerCard(null);
-      setBannerQuery("");
-      setBannerResults([]);
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Envoi impossible.");
-    } finally {
-      setBusy(false);
+    if (file.size > PROFILE_IMAGE_MAX_BYTES) {
+      setError("Your banner must be 4 MB or smaller.");
+      return;
     }
+    if (
+      !["image/jpeg", "image/png", "image/webp", "image/gif"].includes(
+        file.type
+      )
+    ) {
+      setError("Use a JPG, PNG, WebP or GIF image.");
+      return;
+    }
+    const src = URL.createObjectURL(file);
+    bannerPreviews.current.push(src);
+    setCrop({ src, frame: null, card: null, file, uploaded: true });
   }
   async function submit() {
     if (busy) return;
     setBusy(true);
     setError("");
     try {
+      if (bannerFrame && !framingAvailable) {
+        throw new Error(
+          "Banner framing is not available yet. Please try again after the update."
+        );
+      }
+      const savedUrl = bannerFile
+        ? await (adapter.uploadBanner ?? uploadBanner)(bannerFile, profile.id)
+        : bannerUrl;
       const updated = await (adapter.saveAppearance ?? saveProfileAppearance)(
         bio,
         avatar,
         [...selected],
         bannerCard?.id ?? null,
-        bannerUrl
+        savedUrl,
+        bannerFrame ?? undefined
       );
       onSaved(updated);
       onClose();
@@ -506,15 +542,23 @@ function Editor({
         <h3 className="font-display text-lg">Bannière personnalisée</h3>
         <p className="yk-profile-muted">
           Upload an image from your computer or phone. JPG, PNG, WebP or GIF,
-          <strong>up to 4 MB</strong>. The image is centered and cropped to fit
-          your banner.
+          <strong>up to 4 MB</strong>. Choose the position and zoom before
+          saving.
         </p>
-        {bannerUrl && (
+        {bannerUrl && !bannerFrame && (
           <img
             className="yk-profile-banner-preview"
             src={bannerUrl}
             alt="Aperçu de la bannière"
           />
+        )}
+        {(bannerUrl || bannerCard?.image) && bannerFrame && (
+          <div className="yk-banner-framed-preview">
+            <BannerImage
+              src={(bannerUrl || bannerCard?.image)!}
+              frame={bannerFrame}
+            />
+          </div>
         )}
         <div className="yk-profile-widget-tools">
           <label className="yk-button yk-button-secondary cursor-pointer">
@@ -535,9 +579,30 @@ function Editor({
             <Button
               variant="secondary"
               disabled={busy}
-              onClick={() => setBannerUrl(null)}
+              onClick={() => {
+                setBannerUrl(null);
+                setBannerFile(null);
+                setBannerFrame(null);
+              }}
             >
               Retirer la bannière
+            </Button>
+          )}
+          {(bannerUrl || bannerCard?.image) && (
+            <Button
+              variant="secondary"
+              disabled={busy}
+              onClick={() =>
+                setCrop({
+                  src: (bannerUrl || bannerCard?.image)!,
+                  frame: bannerFrame,
+                  card: bannerCard,
+                  file: bannerFile,
+                  uploaded: !!bannerUrl
+                })
+              }
+            >
+              Adjust banner
             </Button>
           )}
         </div>
@@ -558,6 +623,7 @@ function Editor({
               variant="secondary"
               onClick={() => {
                 setBannerCard(null);
+                setBannerFrame(null);
                 setBannerQuery("");
                 setBannerResults([]);
               }}
@@ -576,21 +642,23 @@ function Editor({
               setBannerQuery(value);
               setBannerResults([]);
               setError("");
-              if (value !== bannerCard?.name) setBannerCard(null);
             }}
             placeholder="Nom du personnage ou de la série…"
           />
-          {bannerResults.length > 0 && !bannerCard && (
+          {bannerResults.length > 0 && (
             <ul className="yk-banner-results">
               {bannerResults.map(card => (
                 <li key={card.id}>
                   <button
                     type="button"
                     onClick={() => {
-                      setBannerCard(card);
-                      setBannerUrl(null);
-                      setBannerQuery(card.name);
-                      setBannerResults([]);
+                      setCrop({
+                        src: card.image,
+                        frame: null,
+                        card,
+                        file: null,
+                        uploaded: false
+                      });
                     }}
                   >
                     <img
@@ -667,6 +735,23 @@ function Editor({
           {busy ? "Enregistrement…" : "Enregistrer"}
         </Button>
       </div>
+      {crop && (
+        <BannerCrop
+          key={crop.src}
+          src={crop.src}
+          initial={crop.frame}
+          onCancel={() => setCrop(null)}
+          onApply={frame => {
+            setBannerUrl(crop.uploaded ? crop.src : null);
+            setBannerFile(crop.uploaded ? crop.file : null);
+            setBannerCard(crop.uploaded ? null : crop.card);
+            setBannerFrame(frame);
+            setBannerQuery(crop.card?.name ?? "");
+            setBannerResults([]);
+            setCrop(null);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -1039,6 +1124,9 @@ export function ProfileExperience({
   const [savedBannerUrl, setSavedBannerUrl] = useState<
     string | null | undefined
   >();
+  const [savedBannerFrame, setSavedBannerFrame] = useState<
+    BannerFrame | null | undefined
+  >();
   const profileId = profile?.id;
   const profileBlocked = blocked.some(player => player.id === profileId);
   useEffect(() => {
@@ -1202,6 +1290,8 @@ export function ProfileExperience({
   const bannerImage =
     (savedBannerUrl === undefined ? details?.bannerUrl : savedBannerUrl) ||
     profile.bannerCard?.image;
+  const bannerFrame =
+    savedBannerFrame === undefined ? details?.bannerFrame : savedBannerFrame;
   return (
     <>
       <div className="yk-profile-hub" data-profile-tab={tab}>
@@ -1474,16 +1564,20 @@ export function ProfileExperience({
         </section>
         <aside className="yk-profile-identity">
           <div
-            className={`yk-profile-banner ${bannerImage ? "has-image" : ""}`}
+            className={`yk-profile-banner ${bannerImage ? "has-image" : ""} ${bannerFrame ? "has-frame" : ""}`}
           >
             {bannerImage && (
               <>
-                <img
-                  src={bannerImage}
-                  alt=""
-                  aria-hidden="true"
-                  decoding="async"
-                />
+                {bannerFrame ? (
+                  <BannerImage src={bannerImage} frame={bannerFrame} />
+                ) : (
+                  <img
+                    src={bannerImage}
+                    alt=""
+                    aria-hidden="true"
+                    decoding="async"
+                  />
+                )}
                 <span className="yk-profile-banner-shade" />
               </>
             )}
@@ -1740,11 +1834,16 @@ export function ProfileExperience({
                 ? details?.bannerUrl
                 : savedBannerUrl) ?? null
             }
+            initialBannerFrame={bannerFrame ?? null}
+            framingAvailable={
+              !!adapter.saveAppearance || details.bannerFrame !== undefined
+            }
             adapter={adapter}
             onClose={() => setEditing(false)}
             onSaved={p => {
               setProfile(p);
               setSavedBannerUrl(p.bannerUrl);
+              setSavedBannerFrame(p.bannerFrame ?? null);
               setToast("Profil mis à jour");
             }}
           />

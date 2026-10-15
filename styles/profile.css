@@ -295,6 +295,124 @@ main:has(.yk-profile-hub) {
   object-fit: cover;
   border-radius: 12px;
 }
+.yk-modal.yk-banner-crop-modal {
+  width: min(760px, calc(100vw - 24px));
+}
+.yk-banner-crop-mat {
+  padding: clamp(28px, 8vw, 70px) 0;
+  margin-top: 20px;
+  border-radius: 12px;
+  background: var(--color-night);
+}
+.yk-banner-crop-stage,
+.yk-banner-framed-preview {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2.3;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--color-night);
+}
+.yk-banner-framed-preview {
+  border: 1px solid var(--color-veil);
+  border-radius: 12px;
+}
+.yk-banner-crop-stage {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  border: 2px solid var(--color-ink-1, #f1eef9);
+}
+.yk-banner-crop-stage:active {
+  cursor: grabbing;
+}
+.yk-banner-crop-stage:focus-visible {
+  outline: 3px solid var(--color-accent-gold);
+  outline-offset: 4px;
+}
+.yk-banner-crop-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      90deg,
+      transparent calc(33.333% - 0.5px),
+      #ffffff50 33.333%,
+      transparent calc(33.333% + 0.5px),
+      transparent calc(66.666% - 0.5px),
+      #ffffff50 66.666%,
+      transparent calc(66.666% + 0.5px)
+    ),
+    linear-gradient(
+      0deg,
+      transparent calc(33.333% - 0.5px),
+      #ffffff50 33.333%,
+      transparent calc(33.333% + 0.5px),
+      transparent calc(66.666% - 0.5px),
+      #ffffff50 66.666%,
+      transparent calc(66.666% + 0.5px)
+    );
+}
+.yk-banner-crop-state {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  padding: 20px;
+  text-align: center;
+}
+.yk-banner-crop-zoom {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+}
+.yk-banner-crop-zoom > span {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+.yk-banner-crop-zoom input {
+  width: 100%;
+  min-height: 44px;
+  accent-color: var(--color-accent-gold);
+}
+.yk-banner-crop-tools,
+.yk-banner-crop-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+.yk-banner-crop-actions {
+  justify-content: flex-end;
+  padding-top: 18px;
+  border-top: 1px solid var(--color-veil);
+}
+.yk-banner-crop-stage > .yk-banner-framed-image,
+.yk-banner-framed-preview > .yk-banner-framed-image,
+.yk-profile-identity .yk-profile-banner.has-frame > .yk-banner-framed-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  transform-origin: center;
+  filter: none;
+  pointer-events: none;
+}
+.yk-profile-identity .yk-profile-banner.has-frame {
+  height: auto;
+  aspect-ratio: 2.3;
+}
+.yk-profile-identity .yk-profile-banner.has-image::after {
+  content: none;
+}
+.yk-profile-identity .yk-profile-banner.has-frame .yk-profile-banner-shade {
+  display: none;
+}
 .yk-profile-tabs {
   display: flex;
   gap: 22px;
