@@ -32,11 +32,11 @@ test("current profile has one private-aware wishlist entry point and no view rec
     /<button[\s\S]*?onClick=\{\(\) => setWishlistOpen\(true\)\}[\s\S]*?disabled=\{!profile.canViewCollection\}[\s\S]*?data-profile-wishlist[\s\S]*?aria-haspopup="dialog"/
   );
   assert.match(source, /open=\{wishlistOpen && profile.canViewCollection\}/);
-  assert.match(source, /title=\{`Wishlist de \$\{profile.pseudo\}`\}/);
+  assert.match(source, /title=\{`\$\{profile.pseudo\}’s wishlist`\}/);
   assert.match(source, /<FriendWishlist\s+cards=\{wishlist\}/);
   assert.match(
     source,
-    /profile.canViewCollection \? wishlist.length : "Privée"/
+    /profile.canViewCollection\s+\? wishlist.length.toLocaleString\("en-US"\)\s+: "Private"/
   );
   assert.match(source, /data-profile-likes/);
   assert.match(

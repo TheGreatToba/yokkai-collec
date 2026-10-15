@@ -189,7 +189,7 @@ test("les routes consommatrices de MarketView ont exactement un h1 sans saut de 
 
 test("deleted avatars and auction participants render safely without profile links", () => {
   const { Avatar } = load("components/ui/index.tsx");
-  assert.match(render(Avatar, { name: null }), /aria-label="Joueur supprimé"/);
+  assert.match(render(Avatar, { name: null }), /aria-label="Deleted player"/);
   const { AuctionView, presentAuction } = load(
     "components/community-views.tsx"
   );
@@ -853,7 +853,7 @@ test("le compteur wishlist d'un ami ouvre toute sa wishlist et chaque carte rest
   }
   assert.match(
     normalizeWhitespace(profile),
-    normalizeWhitespace(/Wishlist de \$\{profile\.pseudo\}/)
+    normalizeWhitespace(/\$\{profile\.pseudo\}’s wishlist/)
   );
   assert.match(
     normalizeWhitespace(profile),
@@ -863,13 +863,11 @@ test("le compteur wishlist d'un ami ouvre toute sa wishlist et chaque carte rest
   );
   assert.match(
     normalizeWhitespace(profile),
-    normalizeWhitespace(/Voir la wishlist/)
+    normalizeWhitespace(/View wishlist/)
   );
   assert.match(
     normalizeWhitespace(profile),
-    normalizeWhitespace(
-      /aria-label=\{`Voir \$\{card\.name\} dans le catalogue`\}/
-    )
+    normalizeWhitespace(/aria-label=\{`View \$\{card\.name\} in the catalog`\}/)
   );
 });
 
@@ -987,12 +985,12 @@ test("le catalogue reprend la sidebar sans notion de possession ni action de mas
   );
   assert.match(
     normalizeWhitespace(detail),
-    normalizeWhitespace(/CardOwnerList title="Amis" owners=\{friendOwners\}/)
+    normalizeWhitespace(/CardOwnerList title="Friends" owners=\{friendOwners\}/)
   );
   assert.match(
     normalizeWhitespace(detail),
     normalizeWhitespace(
-      /CardOwnerList title="Autres utilisateurs" owners=\{otherOwners\}/
+      /CardOwnerList title="Other players" owners=\{otherOwners\}/
     )
   );
   assert.match(
@@ -1120,7 +1118,7 @@ test("le bouton de retrait de la wishlist utilise le style danger rouge", () => 
   );
   assert.match(
     normalizeWhitespace(wishlist),
-    normalizeWhitespace(/>♡ Retirer<\/Button>/)
+    normalizeWhitespace(/>♡ Remove<\/Button>/)
   );
 });
 
@@ -1210,20 +1208,17 @@ test("le chat d’enchère est visible mais réservé au vendeur et aux utilisat
   );
   assert.match(
     normalizeWhitespace(gifPicker),
-    normalizeWhitespace(/Charger plus/)
+    normalizeWhitespace(/Load more/)
   );
   assert.match(
     normalizeWhitespace(gifPicker),
-    normalizeWhitespace(/Envoyer ce GIF/)
+    normalizeWhitespace(/Send this GIF/)
   );
   assert.match(
     normalizeWhitespace(gifPicker),
     normalizeWhitespace(/GIF_CATEGORIES/)
   );
-  assert.match(
-    normalizeWhitespace(gifPicker),
-    normalizeWhitespace(/Tendances/)
-  );
+  assert.match(normalizeWhitespace(gifPicker), normalizeWhitespace(/Trending/));
   assert.match(
     normalizeWhitespace(source),
     normalizeWhitespace(/event\.key==="ArrowDown"\|\|event\.key==="ArrowUp"/)

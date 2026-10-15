@@ -2167,7 +2167,11 @@ export function WishlistView({
       setCards(current => current?.filter(card => card.id !== id));
       if (selected?.id === id) setSelected(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Suppression impossible.");
+      setError(
+        e instanceof Error
+          ? e.message
+          : "Couldn't remove this card from your wishlist."
+      );
     }
   }
   const filters = (

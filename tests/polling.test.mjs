@@ -339,7 +339,7 @@ test("notifications timeout releases inFlight and retry makes a fresh request", 
   await new Promise(resolve => setTimeout(resolve, 15050));
   assert.ok(
     f.updates.some(
-      update => update.value === "Impossible de charger tes notifications."
+      update => update.value === "Couldn't load your notifications."
     )
   );
   f.blockNotifications(false);

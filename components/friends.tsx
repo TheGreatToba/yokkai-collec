@@ -386,7 +386,7 @@ export function FriendsPanel({
       setRemoval(undefined);
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Suppression impossible.");
+      setError(e instanceof Error ? e.message : "Couldn't remove this friend.");
     } finally {
       setRemoving(false);
     }
