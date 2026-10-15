@@ -211,6 +211,7 @@ export async function getPaniniAlbumCardsPage({
   license,
   query = "",
   category = "",
+  rarity = "",
   ownedOnly = false,
   page = 1,
   pageSize = 24
@@ -218,6 +219,7 @@ export async function getPaniniAlbumCardsPage({
   license: string;
   query?: string;
   category?: string;
+  rarity?: Rarity | "";
   ownedOnly?: boolean;
   page?: number;
   pageSize?: number;
@@ -230,7 +232,8 @@ export async function getPaniniAlbumCardsPage({
     p_category: category,
     p_owned_only: ownedOnly,
     p_offset: (safePage - 1) * safePageSize,
-    p_limit: safePageSize
+    p_limit: safePageSize,
+    ...(rarity ? { p_rarity: rarity } : {})
   });
   if (error) throw failure(error);
   const result = data as PaniniAlbumCardPage | null;
