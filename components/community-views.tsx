@@ -75,9 +75,9 @@ export type CommunityScreen =
 const headings = {
   profile: ["Collectionneur", "Mon profil"],
   friends: ["Entre collectionneurs", "Mes amis"],
-  market: ["La salle des ventes", "Marché"],
-  auction: ["Marché · Enchère", "Détail de l’enchère"],
-  trades: ["Entre collectionneurs", "Proposer un échange"],
+  market: ["The auction house", "Market"],
+  auction: ["Market · Auction", "Auction details"],
+  trades: ["Between collectors", "Offer a trade"],
   search: ["Toutes les cartes du jeu", "Catalogue"],
   wishlist: ["Les cartes convoitées", "Ma wishlist"]
 };
@@ -402,13 +402,13 @@ export type AuctionPresentation = {
   }[];
 };
 const labels = {
-  leading: "En tête",
-  outbid: "Surenchéri",
-  mine: "Ma vente",
-  won: "Remportée",
-  lost: "Perdue",
-  sold: "Vendue",
-  unsold: "Non vendue"
+  leading: "Leading",
+  outbid: "Outbid",
+  mine: "My listing",
+  won: "Won",
+  lost: "Lost",
+  sold: "Sold",
+  unsold: "Unsold"
 };
 function AuctionStatus({
   status
@@ -436,7 +436,7 @@ const urgencyClass = (seconds: number) =>
       ? "yk-urgency-soon"
       : "";
 const formatKaras = (amount: number) =>
-  `${amount.toLocaleString("fr-FR")} Karas`;
+  `${amount.toLocaleString("en-US")} Karas`;
 function HourglassIcon() {
   return (
     <svg
@@ -469,9 +469,7 @@ function WatchButton({
       type="button"
       aria-pressed={!!watched}
       disabled={!onToggle || busy}
-      aria-label={
-        watched ? "Ne plus suivre cette enchère" : "Suivre cette enchère"
-      }
+      aria-label={watched ? "Unwatch auction" : "Watch auction"}
       className={`yk-watch-button ${watched ? "yk-watching" : ""} ${className}`}
       onClick={async () => {
         if (!onToggle || busy) return;
@@ -495,7 +493,7 @@ function WatchButton({
       >
         <path d="M12 20s-7-4.35-7-10a4 4 0 0 1 7-2.65A4 4 0 0 1 19 10c0 5.65-7 10-7 10Z" />
       </svg>
-      <span className="yk-watch-label">{watched ? "Suivi" : "Suivre"}</span>
+      <span className="yk-watch-label">{watched ? "Watching" : "Watch"}</span>
     </button>
   );
 }
@@ -511,7 +509,7 @@ function AuctionTile({
       <Link
         href={`/marche/${a.id}`}
         className="yk-market-tile-link"
-        aria-label={`Voir l’enchère ${a.card.name}, ${formatKaras(a.amount)}, ${a.finished ? "terminée" : `fin dans ${a.remaining}`}`}
+        aria-label={`View auction for ${a.card.name}, ${formatKaras(a.amount)}, ${a.finished ? "ended" : `ends in ${a.remaining}`}`}
       >
         <CardShell>
           <YokaiCard {...a.card} imageSizes="100vw" />
@@ -530,7 +528,7 @@ function AuctionTile({
               className={`yk-market-timer ${a.finished ? "" : urgencyClass(a.remainingSeconds)}`}
             >
               <HourglassIcon />
-              {a.finished ? "Terminée" : a.remaining}
+              {a.finished ? "Ended" : a.remaining}
             </span>
             <span className="yk-market-tile-state">
               {a.status && <AuctionStatus status={a.status} />}
@@ -550,19 +548,19 @@ function AuctionTile({
 
 const marketEmptyStates = {
   mine: {
-    title: "Aucune enchère en cours pour le moment",
-    text: "Tu n’as aucune vente active ni aucune enchère en tête.",
-    action: "Parcourir le marché"
+    title: "No auctions in progress",
+    text: "You have no active listings or leading bids.",
+    action: "Browse market"
   },
   won: {
-    title: "Tu n’as pas encore remporté d’enchère",
-    text: "Les cartes que tu remportes apparaîtront ici.",
-    action: "Voir les fins imminentes"
+    title: "You haven't won an auction yet",
+    text: "Cards you win will appear here.",
+    action: "See auctions ending soon"
   },
   sold: {
-    title: "Aucune vente terminée pour l’instant",
-    text: "Tes ventes terminées, vendues ou non, apparaîtront ici.",
-    action: "Mettre une carte en vente"
+    title: "No completed listings yet",
+    text: "Your completed listings will appear here, whether sold or unsold.",
+    action: "List a card"
   }
 } as const;
 export type MarketSort = "end" | "asc" | "desc" | "popular";
@@ -620,12 +618,11 @@ export function MarketView({
     : undefined;
   const empty = marketEmptyStates[mineTab];
   const shown = section === "browse" ? browse : mine;
-  const plural = (shown?.length ?? 0) > 1 ? "s" : "";
   const heading = !shown
-    ? "Chargement des enchères…"
+    ? "Loading auctions…"
     : section === "browse"
-      ? `${shown.length.toLocaleString("fr-FR")} carte${plural} aux enchères`
-      : `${shown.length.toLocaleString("fr-FR")} enchère${plural} ${mineTab === "mine" ? "en cours" : mineTab === "won" ? `gagnée${plural}` : `terminée${plural}`}`;
+      ? `${shown.length.toLocaleString("en-US")} ${shown.length === 1 ? "card" : "cards"} up for auction`
+      : `${shown.length.toLocaleString("en-US")} ${mineTab === "mine" ? "active" : mineTab === "won" ? "won" : "completed"} ${shown.length === 1 ? "auction" : "auctions"}`;
   const filters = (
     <>
       <div className="yk-filter-search">
@@ -642,24 +639,24 @@ export function MarketView({
           <path d="m20 20-4-4" />
         </svg>
         <label className="sr-only" htmlFor="market-query">
-          Rechercher dans le marché
+          Search the market
         </label>
         <input
           id="market-query"
           type="search"
           value={query}
           onChange={e => setQuery(e.target.value)}
-          placeholder="Rechercher…"
+          placeholder="Search…"
         />
       </div>
       <div className="yk-market-filter-scroll">
         {section === "mine" && (
-          <CatalogueFilterSection title="Statut">
+          <CatalogueFilterSection title="Status">
             {(
               [
-                ["mine", "En cours"],
-                ["won", "Gagnées"],
-                ["sold", "Terminées"]
+                ["mine", "Active"],
+                ["won", "Won"],
+                ["sold", "Completed"]
               ] as const
             ).map(([key, label]) => (
               <button
@@ -676,7 +673,7 @@ export function MarketView({
             ))}
           </CatalogueFilterSection>
         )}
-        <CatalogueFilterSection title="Rareté">
+        <CatalogueFilterSection title="Rarity">
           <button
             type="button"
             className="yk-filter-option"
@@ -684,7 +681,7 @@ export function MarketView({
             onClick={() => setRarity("")}
           >
             <span className="yk-filter-check" />
-            <span>Toutes</span>
+            <span>All</span>
           </button>
           {catalogueRarities.map(r => (
             <button
@@ -700,7 +697,7 @@ export function MarketView({
             </button>
           ))}
         </CatalogueFilterSection>
-        <CatalogueFilterSection title="Catégorie">
+        <CatalogueFilterSection title="Category">
           <button
             type="button"
             className="yk-filter-option"
@@ -708,7 +705,7 @@ export function MarketView({
             onClick={() => setCategory("")}
           >
             <span className="yk-filter-check" />
-            <span>Toutes les catégories</span>
+            <span>All categories</span>
           </button>
           {categories.map(item => (
             <button
@@ -724,13 +721,13 @@ export function MarketView({
           ))}
         </CatalogueFilterSection>
         {section === "browse" && (
-          <CatalogueFilterSection title="Trier par">
+          <CatalogueFilterSection title="Sort by">
             {(
               [
-                ["end", "Fin imminente"],
-                ["asc", "Prix croissant"],
-                ["desc", "Prix décroissant"],
-                ["popular", "Les + populaires"]
+                ["end", "Ending soon"],
+                ["asc", "Price: low to high"],
+                ["desc", "Price: high to low"],
+                ["popular", "Most popular"]
               ] as const
             ).map(([key, label]) => (
               <button
@@ -770,7 +767,7 @@ export function MarketView({
           <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
           <path d="M3 3v5h5" />
         </svg>
-        Réinitialiser les filtres
+        Reset filters
       </button>
     </>
   );
@@ -794,17 +791,17 @@ export function MarketView({
         >
           <path d="M4 6h16M7 12h10M10 18h4" />
         </svg>
-        Filtres{filtered ? <span>•</span> : null}
+        Filters{filtered ? <span>•</span> : null}
       </button>
       <div
         className="yk-market-sections"
         role="tablist"
-        aria-label="Sections du marché"
+        aria-label="Market sections"
       >
         {(
           [
-            ["browse", "Enchères", lists?.active.length],
-            ["mine", "Mes enchères", mineCount]
+            ["browse", "Auctions", lists?.active.length],
+            ["mine", "My auctions", mineCount]
           ] as const
         ).map(([key, label, count]) => (
           <button
@@ -824,12 +821,12 @@ export function MarketView({
         ))}
       </div>
       <div className="yk-market-band-actions">
-        <StatusPill>Mes ventes actives · {activeSales ?? "—"}</StatusPill>
+        <StatusPill>My active listings · {activeSales ?? "—"}</StatusPill>
       </div>
     </div>
   );
   return (
-    <section aria-label="Marché aux enchères" className="yk-market">
+    <section aria-label="Auction market" className="yk-market">
       {pageHeading ? (
         <header className="yk-market-heading">
           {pageHeading}
@@ -846,10 +843,10 @@ export function MarketView({
             </p>
             <p className="mt-1 text-xs text-ink-3">
               {filtered
-                ? "Résultats correspondant à vos filtres"
+                ? "Results matching your filters"
                 : section === "browse"
-                  ? "Toutes les enchères en cours"
-                  : "Tes ventes et tes mises"}
+                  ? "All active auctions"
+                  : "Your listings and bids"}
             </p>
           </div>
         </div>
@@ -858,7 +855,7 @@ export function MarketView({
         <button
           type="button"
           className="yk-filter-backdrop"
-          aria-label="Fermer les filtres"
+          aria-label="Close filters"
           onClick={() => setFiltersOpen(false)}
         />
       )}
@@ -866,13 +863,13 @@ export function MarketView({
         <aside
           id="market-filters"
           className={`yk-collection-sidebar yk-market-sidebar ${filtersOpen ? "yk-sidebar-open" : ""}`}
-          aria-label="Filtres du marché"
+          aria-label="Market filters"
         >
           <div className="yk-sidebar-mobile-head">
-            <strong>Filtres</strong>
+            <strong>Filters</strong>
             <button
               type="button"
-              aria-label="Fermer les filtres"
+              aria-label="Close filters"
               onClick={() => setFiltersOpen(false)}
             >
               ×
@@ -884,17 +881,17 @@ export function MarketView({
           {!pageHeading && toolbar}
           {section === "browse" ? (
             !browse ? (
-              <Unavailable>Chargement des enchères…</Unavailable>
+              <Unavailable>Loading auctions…</Unavailable>
             ) : !browse.length ? (
               <Unavailable>
                 {filtered
-                  ? "Aucune enchère ne correspond à votre recherche et vos filtres."
-                  : "Aucune enchère en cours pour le moment."}
+                  ? "No auctions match your search and filters."
+                  : "No auctions in progress right now."}
               </Unavailable>
             ) : (
               <ul
                 className="yk-card-grid yk-market-list"
-                aria-label="Enchères en cours"
+                aria-label="Active auctions"
               >
                 {browse.map(a => (
                   <AuctionTile
@@ -906,7 +903,7 @@ export function MarketView({
               </ul>
             )
           ) : !lists || !mine ? (
-            <Unavailable>Chargement de tes enchères…</Unavailable>
+            <Unavailable>Loading your auctions…</Unavailable>
           ) : !lists[mineTab].length ? (
             <div role="status" className="yk-empty-state">
               <span
@@ -941,12 +938,12 @@ export function MarketView({
             </div>
           ) : !mine.length ? (
             <Unavailable>
-              Aucune enchère ne correspond à votre recherche et vos filtres.
+              No auctions match your search and filters.
             </Unavailable>
           ) : (
             <ul
               className="yk-card-grid yk-market-list"
-              aria-label={`Mes enchères · ${empty.action}`}
+              aria-label={`My auctions · ${empty.action}`}
             >
               {mine.map(a => (
                 <AuctionTile
@@ -968,28 +965,28 @@ function AuctionOutcome({ auction }: { auction: AuctionPresentation }) {
   if (won)
     return (
       <div role="status" className="yk-auction-outcome yk-outcome-won">
-        <p className="yk-outcome-badge">Enchère remportée !</p>
+        <p className="yk-outcome-badge">Auction won!</p>
         <p className="mt-2 text-sm text-ink-2">
-          {auction.card.name} rejoint ta collection pour{" "}
+          {auction.card.name} joins your collection for{" "}
           {formatKaras(auction.amount)}.
         </p>
         <Link href="/collection" className="yk-button yk-button-secondary mt-4">
-          Voir ma collection
+          View my collection
         </Link>
       </div>
     );
   if (lost)
     return (
       <div role="status" className="yk-auction-outcome yk-outcome-lost">
-        <p className="yk-outcome-badge">Enchère perdue</p>
+        <p className="yk-outcome-badge">Auction lost</p>
         <p className="mt-2 text-sm text-ink-2">
           {auction.winner
-            ? `Remportée par ${auction.winner} pour ${formatKaras(auction.amount)}.`
-            : "Une autre offre l’a emporté."}{" "}
-          Tes Karas misés t’ont été rendus.
+            ? `Won by ${auction.winner} for ${formatKaras(auction.amount)}.`
+            : "Another bid won."}{" "}
+          Your bid has been refunded.
         </p>
         <Link href="/marche" className="yk-button yk-button-secondary mt-4">
-          Retour au marché
+          Back to market
         </Link>
       </div>
     );
@@ -999,9 +996,9 @@ function AuctionOutcome({ auction }: { auction: AuctionPresentation }) {
   )
     return (
       <div role="status" className="yk-auction-outcome yk-outcome-won">
-        <p className="yk-outcome-badge">Carte vendue</p>
+        <p className="yk-outcome-badge">Card sold</p>
         <p className="mt-2 text-sm text-ink-2">
-          Vendue à {auction.winner ?? "un joueur"} pour{" "}
+          Sold to {auction.winner ?? "un joueur"} for{" "}
           {formatKaras(auction.amount)}.
         </p>
       </div>
@@ -1009,19 +1006,19 @@ function AuctionOutcome({ auction }: { auction: AuctionPresentation }) {
   if (auction.status === "unsold")
     return (
       <div role="status" className="yk-auction-outcome">
-        <p className="yk-outcome-badge">Aucune offre</p>
+        <p className="yk-outcome-badge">No bids</p>
         <p className="mt-2 text-sm text-ink-2">
-          La carte est revenue dans ta collection.
+          The card has returned to your collection.
         </p>
       </div>
     );
   return (
     <div role="status" className="yk-auction-outcome">
-      <p className="yk-outcome-badge">Enchère terminée</p>
+      <p className="yk-outcome-badge">Auction ended</p>
       <p className="mt-2 text-sm text-ink-2">
         {auction.winner
-          ? `Remportée par ${auction.winner} pour ${formatKaras(auction.amount)}.`
-          : "Aucune offre n’a été placée."}
+          ? `Won by ${auction.winner} for ${formatKaras(auction.amount)}.`
+          : "No bids were placed."}
       </p>
     </div>
   );
@@ -1436,9 +1433,7 @@ export function AuctionView({
       await onBid(amount);
       setOffer("");
     } catch (e) {
-      setError(
-        e instanceof Error ? e.message : "Impossible d’envoyer cette offre."
-      );
+      setError(e instanceof Error ? e.message : "Couldn't place this bid.");
     } finally {
       setPending(false);
     }
@@ -1452,9 +1447,7 @@ export function AuctionView({
       setCancelConfirm(false);
     } catch (e) {
       setError(
-        e instanceof Error
-          ? e.message
-          : "Impossible de retirer cette carte de la vente."
+        e instanceof Error ? e.message : "Couldn't cancel this listing."
       );
       setCancelConfirm(false);
     } finally {
@@ -1462,9 +1455,7 @@ export function AuctionView({
     }
   }
   if (!auction)
-    return (
-      <Unavailable>Cette enchère est indisponible pour le moment.</Unavailable>
-    );
+    return <Unavailable>This auction is currently unavailable.</Unavailable>;
   // Display-only comparisons of values already provided by the adapter; the RPC stays the source of truth.
   const offerValue = offer.trim() === "" ? undefined : Number(offer);
   const offerTooLow =
@@ -1499,14 +1490,14 @@ export function AuctionView({
             </div>
             <h2 className="mt-2 font-display">{auction.card.name}</h2>
             <p className="yk-auction-seller mt-2 text-sm text-ink-2">
-              {franchise} · vendue par{" "}
+              {franchise} · listed by{" "}
               <Avatar
                 name={auction.seller}
                 image={auction.sellerAvatarUrl ?? undefined}
                 size={26}
               />
               {auction.sellerId === null ? (
-                <span className="font-semibold">Joueur supprimé</span>
+                <span className="font-semibold">Deleted player</span>
               ) : (
                 <Link
                   href={`/profil/${encodeURIComponent(auction.seller)}`}
@@ -1525,18 +1516,18 @@ export function AuctionView({
             />
           )}
         </header>
-        <section className="yk-auction-panel" aria-label="Enchérir">
+        <section className="yk-auction-panel" aria-label="Place a bid">
           <div className="yk-auction-figures">
             <div>
-              <p className="yk-auction-label">Prix actuel</p>
+              <p className="yk-auction-label">Current price</p>
               <Karas amount={auction.amount} className="yk-auction-price" />
               <p className="mt-1 text-xs text-ink-3">
-                {auction.bids} mise{auction.bids > 1 ? "s" : ""}
+                {auction.bids} bid{auction.bids === 1 ? "" : "s"}
               </p>
             </div>
             <div>
               <p className="yk-auction-label">
-                {auction.finished ? "Enchère terminée" : "Temps restant"}
+                {auction.finished ? "Auction ended" : "Temps restant"}
               </p>
               <p
                 className={`yk-auction-countdown font-display ${auction.finished ? "" : urgencyClass(auction.remainingSeconds)} ${auction.extended ? "yk-countdown-extended" : ""}`}
@@ -1549,7 +1540,7 @@ export function AuctionView({
           {auction.extended && !auction.finished && (
             <p role="status" className="yk-auction-extension">
               <HourglassIcon />
-              Une minute a été ajoutée à l’enchère.
+              One minute has been added to the auction.
             </p>
           )}
           {!auction.extended &&
@@ -1565,8 +1556,8 @@ export function AuctionView({
           ) : auction.nextBid == null ? (
             <>
               <p className="yk-auction-hint">
-                C’est ta vente : tu ne peux pas enchérir dessus. Les offres des
-                autres joueurs apparaissent dans l’historique.
+                This is your listing, so you can&apos;t bid on it. Other
+                players&apos; bids appear in the history.
               </p>
               {onCancel &&
                 (auction.bids === 0 ? (
@@ -1575,12 +1566,12 @@ export function AuctionView({
                     disabled={pending}
                     onClick={() => setCancelConfirm(true)}
                   >
-                    Retirer la carte de la vente
+                    Cancel listing
                   </Button>
                 ) : (
                   <p className="yk-auction-alert">
-                    Cette carte ne peut plus être retirée car une mise a déjà
-                    été placée.
+                    This listing can&apos;t be canceled because a bid has
+                    already been placed.
                   </p>
                 ))}
             </>
@@ -1603,7 +1594,7 @@ export function AuctionView({
                 }}
               >
                 <label htmlFor="bid" className="yk-auction-label">
-                  Ou saisis un montant
+                  Or enter an amount
                 </label>
                 <div className="yk-auction-offer-row">
                   <input
@@ -1616,8 +1607,8 @@ export function AuctionView({
                     onChange={e => setOffer(e.target.value)}
                     placeholder={
                       auction.minimumBid == null
-                        ? "Ton offre"
-                        : `Minimum ${auction.minimumBid.toLocaleString("fr-FR")}`
+                        ? "Your bid"
+                        : `Minimum ${auction.minimumBid.toLocaleString("en-US")}`
                     }
                     aria-invalid={offerTooLow || offerShort || undefined}
                     aria-describedby="bid-help"
@@ -1634,7 +1625,7 @@ export function AuctionView({
                       offerShort
                     }
                   >
-                    Placer l’offre
+                    Place bid
                   </Button>
                 </div>
                 <p
@@ -1642,23 +1633,24 @@ export function AuctionView({
                   className={`mt-2 text-xs ${offerTooLow ? "text-danger-ink" : "text-ink-3"}`}
                 >
                   {offerTooLow && auction.minimumBid != null
-                    ? `L’offre doit être d’au moins ${formatKaras(auction.minimumBid)}.`
-                    : `Minimum ${auction.minimumBid != null ? formatKaras(auction.minimumBid) : "—"} · +10 Karas par rapport à l’offre actuelle.`}
+                    ? `Your bid must be at least ${formatKaras(auction.minimumBid)}.`
+                    : `Minimum ${auction.minimumBid != null ? formatKaras(auction.minimumBid) : "—"} · 10 Karas above the current bid.`}
                 </p>
               </form>
               <div className="yk-auction-balance">
-                <span>Ton solde</span>
+                <span>Your balance</span>
                 <Karas amount={auction.balance} />
               </div>
               {(quickShort || offerShort) && (
                 <p role="alert" className="yk-auction-alert">
-                  Solde de Karas insuffisant (ton solde :{" "}
+                  Not enough Karas (your balance:{" "}
                   {auction.balance != null ? formatKaras(auction.balance) : "—"}
                   ).
                 </p>
               )}
               <p className="text-xs text-ink-3">
-                Karas prélevés immédiatement, rendus si tu es surenchéri.
+                Karas are deducted immediately and refunded if you&apos;re
+                outbid.
               </p>
             </>
           )}
@@ -1680,11 +1672,11 @@ export function AuctionView({
         onClose={() => {
           if (!pending) setCancelConfirm(false);
         }}
-        title="Retirer la carte de la vente"
+        title="Cancel listing"
       >
         <p className="text-sm leading-6 text-ink-2">
-          La vente sera annulée et la carte retournera immédiatement dans ta
-          collection.
+          The listing will be canceled and the card will return to your
+          collection immediately.
         </p>
         <div className="mt-6 flex justify-end gap-3">
           <Button
@@ -1692,20 +1684,20 @@ export function AuctionView({
             disabled={pending}
             onClick={() => setCancelConfirm(false)}
           >
-            Garder la vente
+            Keep listing
           </Button>
           <Button
             variant="danger"
             disabled={pending}
             onClick={() => void cancel()}
           >
-            {pending ? "Retrait…" : "Confirmer le retrait"}
+            {pending ? "Retrait…" : "Confirm cancellation"}
           </Button>
         </div>
       </Modal>
-      <section className="yk-auction-history" aria-label="Historique des mises">
+      <section className="yk-auction-history" aria-label="Bid history">
         <h2 className="yk-section-title">
-          Historique des mises
+          Bid history
           {auction.history?.length ? ` (${auction.history.length})` : ""}
         </h2>
         {auction.history?.length ? (
@@ -1722,9 +1714,9 @@ export function AuctionView({
                 />
                 <p className="min-w-0 flex-1 text-sm">
                   {h.mine ? (
-                    <strong>Vous</strong>
-                  ) : !h.name || h.name === "Joueur supprimé" ? (
-                    <strong>Joueur supprimé</strong>
+                    <strong>You</strong>
+                  ) : !h.name || h.name === "Deleted player" ? (
+                    <strong>Deleted player</strong>
                   ) : (
                     <Link
                       href={`/profil/${encodeURIComponent(h.name)}`}
@@ -1742,7 +1734,7 @@ export function AuctionView({
                 </p>
                 {i === 0 && (
                   <StatusPill tone="success">
-                    {auction.finished ? "Gagnant" : "En tête"}
+                    {auction.finished ? "Gagnant" : "Leading"}
                   </StatusPill>
                 )}
               </li>
@@ -1750,8 +1742,7 @@ export function AuctionView({
           </ol>
         ) : (
           <p className="mt-4 text-sm text-ink-3">
-            Aucune mise pour le moment · prix de départ{" "}
-            {formatKaras(auction.amount)}.
+            No bids yet · starting price {formatKaras(auction.amount)}.
           </p>
         )}
       </section>
@@ -2095,7 +2086,7 @@ export function TradesView() {
     <>
       <div className="my-8 rounded-panel border border-accent-neon/25 bg-accent-neon/10 p-5">
         <p className="text-sm text-accent-neon">
-          Échange tes cartes et tes Karas uniquement avec tes amis.
+          Trade cards and Karas with your friends.
         </p>
       </div>
       <TradesPanel
@@ -2499,7 +2490,7 @@ export function presentAuction(
     amount: raw.amount,
     remaining: left.text,
     remainingSeconds: left.seconds,
-    seller: raw.seller || "Joueur supprimé",
+    seller: raw.seller || "Deleted player",
     sellerId: raw.sellerId,
     sellerAvatarUrl: raw.sellerAvatarUrl,
     bids: raw.bids ?? detail.history?.length ?? 0,
@@ -2513,14 +2504,14 @@ export function presentAuction(
     wishlist: raw.watched,
     antiSnipeMessage:
       left.seconds < 300 && !finished
-        ? "Toute mise ajoute une minute à la fin."
+        ? "Each bid adds one minute to the end time."
         : undefined,
     history: detail.history?.map(b => ({
       id: b.id,
       name: b.name,
       avatarUrl: b.avatarUrl,
       amount: b.amount,
-      time: new Date(b.createdAt).toLocaleTimeString("fr-FR", {
+      time: new Date(b.createdAt).toLocaleTimeString("en-US", {
         hour: "2-digit",
         minute: "2-digit"
       }),
@@ -2625,7 +2616,7 @@ export function CommunityView({
       },
       () => {
         if (active)
-          setError("Impossible de charger votre solde. Réessayez plus tard.");
+          setError("Couldn't load your balance. Please try again later.");
       }
     );
     if (screen === "profile" && isMe)
@@ -2651,9 +2642,7 @@ export function CommunityView({
         e => {
           if (active)
             setError(
-              e instanceof Error
-                ? e.message
-                : "Impossible de charger le marché."
+              e instanceof Error ? e.message : "Couldn't load the market."
             );
         }
       );
@@ -2665,9 +2654,7 @@ export function CommunityView({
         e => {
           if (active)
             setError(
-              e instanceof Error
-                ? e.message
-                : "Impossible de charger l’enchère."
+              e instanceof Error ? e.message : "Couldn't load this auction."
             );
         }
       );
@@ -2760,7 +2747,7 @@ export function CommunityView({
       setMarket(await getAuctions());
     } catch (e) {
       setError(
-        e instanceof Error ? e.message : "Impossible de suivre cette enchère."
+        e instanceof Error ? e.message : "Couldn't update your watchlist."
       );
     }
   }
@@ -2771,7 +2758,7 @@ export function CommunityView({
       await refreshAuction();
     } catch (e) {
       setError(
-        e instanceof Error ? e.message : "Impossible de suivre cette enchère."
+        e instanceof Error ? e.message : "Couldn't update your watchlist."
       );
     }
   }
@@ -2810,7 +2797,7 @@ export function CommunityView({
           <div>
             {screen === "auction" && (
               <Link href="/marche" className="yk-back-link">
-                ← Retour au marché
+                ← Back to market
               </Link>
             )}
             <p className="eyebrow">{overline}</p>

@@ -39,7 +39,7 @@ function ProfileAuction({
       adapter.viewer()
     ]);
     if (next.sellerId !== ownerId)
-      throw new Error("Cette vente n’appartient plus à ce profil.");
+      throw new Error("This listing no longer belongs to this profile.");
     if (mounted.current && ticket === revision.current) {
       setAuction(next);
       setViewer(currentViewer);
@@ -60,7 +60,7 @@ function ProfileAuction({
       } catch (reason) {
         if (mounted.current)
           setError(
-            reason instanceof Error ? reason.message : "Enchère indisponible."
+            reason instanceof Error ? reason.message : "Auction unavailable."
           );
       } finally {
         loading = false;
@@ -92,7 +92,7 @@ function ProfileAuction({
         // A successful write must never be presented as a failed bid (and retried).
         if (mounted.current)
           setError(
-            "Action enregistrée. Actualise l’enchère pour voir son nouvel état."
+            "Action saved. Refresh the auction to see its latest status."
           );
       }
     } finally {
@@ -108,7 +108,7 @@ function ProfileAuction({
       onClose={() => {
         if (!lock.current) onClose();
       }}
-      title="Détail de l’enchère"
+      title="Auction details"
       className="yk-profile-auction-modal"
     >
       {error && (
@@ -119,15 +119,15 @@ function ProfileAuction({
             disabled={busy}
             onClick={() =>
               void refresh().catch(() =>
-                setError("Impossible d’actualiser cette enchère.")
+                setError("Couldn't refresh this auction.")
               )
             }
           >
-            Actualiser
+            Refresh
           </Button>
         </div>
       )}
-      {!auction && !error && <p role="status">Chargement de l’enchère…</p>}
+      {!auction && !error && <p role="status">Loading auction…</p>}
       {presentation && (
         <AuctionView
           auction={presentation}
@@ -151,7 +151,7 @@ function ProfileAuction({
                     setError(
                       reason instanceof Error
                         ? reason.message
-                        : "Impossible de suivre cette enchère."
+                        : "Couldn't update your watchlist."
                     );
                   }
                 }
@@ -206,7 +206,7 @@ export function ProfileSales({
       } catch (reason) {
         if (mounted.current)
           setError(
-            reason instanceof Error ? reason.message : "Ventes indisponibles."
+            reason instanceof Error ? reason.message : "Listings unavailable."
           );
       } finally {
         loading.current = false;
@@ -247,14 +247,14 @@ export function ProfileSales({
         Date.parse(item.endsAt) > now
     ) ?? [];
   return (
-    <section className="yk-profile-sales" aria-label="Ventes en cours">
+    <section className="yk-profile-sales" aria-label="Active listings">
       <div className="yk-profile-section-heading">
         <div>
-          <p className="eyebrow">Sur le marché</p>
-          <h2>Ventes en cours</h2>
+          <p className="eyebrow">On the market</p>
+          <h2>Active listings</h2>
         </div>
         <Button variant="secondary" disabled={busy} onClick={() => void load()}>
-          Actualiser les ventes
+          Refresh listings
         </Button>
       </div>
       {error && (
@@ -262,9 +262,9 @@ export function ProfileSales({
           {error}
         </p>
       )}
-      {!page && busy && <p role="status">Chargement des ventes…</p>}
+      {!page && busy && <p role="status">Loading listings…</p>}
       {page && !active.length && !busy && (
-        <p className="yk-profile-empty">Aucune carte en vente actuellement.</p>
+        <p className="yk-profile-empty">No cards listed right now.</p>
       )}
       <div className="yk-profile-sales-grid">
         {active.map(item => (
@@ -273,7 +273,7 @@ export function ProfileSales({
             key={item.id}
             className="yk-profile-sale"
             onClick={() => setSelected(item.id)}
-            aria-label={`Voir l’enchère de ${item.card.name}`}
+            aria-label={`View auction for ${item.card.name}`}
           >
             <div className="yk-profile-sale-art">
               <YokaiCard
@@ -284,9 +284,9 @@ export function ProfileSales({
             <div className="yk-profile-sale-meta">
               <Karas amount={item.amount} />
               <span>
-                {item.bids} mise{item.bids > 1 ? "s" : ""}
+                {item.bids} bid{item.bids === 1 ? "" : "s"}
               </span>
-              <span>Voir l’enchère →</span>
+              <span>View auction →</span>
             </div>
           </button>
         ))}
@@ -297,7 +297,7 @@ export function ProfileSales({
           disabled={busy}
           onClick={() => void load(page.nextCursor)}
         >
-          {busy ? "Chargement…" : "Voir plus de ventes"}
+          {busy ? "Loading…" : "See more listings"}
         </Button>
       )}
       {selected && (
