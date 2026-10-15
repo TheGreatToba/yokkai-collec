@@ -87,6 +87,14 @@ function CategoryField({
           className={inputClass}
           name={choice === NEW_CATEGORY ? undefined : "categorie"}
           onChange={event => setChoice(event.target.value)}
+          ref={select => {
+            if (!select) return;
+            // React form actions invoke the native form reset after saving.
+            // Keep its reset baseline aligned with the controlled selection.
+            for (const option of select.options) {
+              option.defaultSelected = option.value === choice;
+            }
+          }}
           required
           value={choice}
         >
