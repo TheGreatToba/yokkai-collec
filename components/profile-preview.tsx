@@ -103,6 +103,7 @@ export function ProfilePreview() {
   const emptyFavorites = params.get("favorites") === "empty";
   const reportError = params.get("reportError") === "1";
   const previewUrls = useRef<string[]>([]);
+  const wishlistedCards = useRef(new Set<string>());
   const social = useRef<ProfileEngagement>({
     likes: 42,
     likedByMe: false
@@ -168,6 +169,87 @@ export function ProfilePreview() {
     };
     return {
       previewWidgets,
+      discovery: {
+        get: async (id, offset = 0, limit = 12) => {
+          if (params.get("discoveryError") === "1")
+            throw new Error("Détail indisponible.");
+          const card = collection.find(item => item.id === id);
+          if (!card) throw new Error("Carte introuvable.");
+          const owners = Array.from({ length: 14 }, (_, index) => ({
+            id: `demo-owner-${index}`,
+            pseudo: index ? `Joueur ${index}` : "Kitsune",
+            copies: 1,
+            isFriend: index === 0
+          }));
+          return {
+            card,
+            marketValue: 250,
+            activeAuctionId: null,
+            wishlisted: wishlistedCards.current.has(id),
+            ownerCount: owners.length,
+            owners: owners.slice(offset, offset + limit)
+          };
+        },
+        toggle: async id => {
+          if (wishlistedCards.current.has(id)) {
+            wishlistedCards.current.delete(id);
+            return false;
+          }
+          wishlistedCards.current.add(id);
+          return true;
+        },
+        report: async () => {}
+      },
+      friendCollection: async () => {
+        if (hiddenCollection) throw new Error("Cette collection est privée.");
+        return collection;
+      },
+      friendAlbums: async (
+        _id,
+        { query = "", category = "", page = 1, pageSize = 72 } = {}
+      ) => {
+        if (hiddenCollection) throw new Error("Cette collection est privée.");
+        const items = collection
+          .filter(
+            card =>
+              (!category || card.category === category) &&
+              card.anime?.toLowerCase().includes(query.trim().toLowerCase())
+          )
+          .map(card => ({
+            license: card.anime!,
+            total: 1,
+            owned: 1,
+            percent: 100,
+            favorite: card.anime === "One Piece"
+          }))
+          .sort(
+            (a, b) =>
+              Number(b.favorite) - Number(a.favorite) ||
+              a.license.localeCompare(b.license)
+          );
+        return {
+          items: items.slice((page - 1) * pageSize, page * pageSize),
+          total: items.length
+        };
+      },
+      friendAlbumCards: async (
+        _id,
+        { license, query = "", category = "", page = 1, pageSize = 28 }
+      ) => {
+        if (hiddenCollection) throw new Error("Cette collection est privée.");
+        const items = collection
+          .filter(
+            card =>
+              card.anime === license &&
+              (!category || card.category === category) &&
+              card.name.toLowerCase().includes(query.toLowerCase())
+          )
+          .map(card => ({ ...card, owned: true }));
+        return {
+          items: items.slice((page - 1) * pageSize, page * pageSize),
+          total: items.length
+        };
+      },
       market: {
         viewer: async () => (visitor ? "preview-visitor" : "preview"),
         list: async () => {

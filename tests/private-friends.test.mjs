@@ -135,6 +135,7 @@ function renderProfile(profile) {
     "@/components/player-moderation": { PlayerModeration: () => null },
     "@/components/profile-wall": { ProfileWall: () => null },
     "@/components/profile-sales": { ProfileSales: () => null },
+    "@/components/community-views": { CatalogueCardModal: () => null },
     "@/components/profile-license-picker": load(
       "components/profile-license-picker.tsx",
       {

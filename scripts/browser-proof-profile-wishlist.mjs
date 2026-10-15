@@ -41,6 +41,7 @@ try {
   let id = 0;
   const pending = new Map();
   const trackingRequests = [];
+  const unexpectedCardRequests = [];
   const exceptions = [];
   socket.addEventListener("message", event => {
     const message = JSON.parse(event.data);
@@ -54,6 +55,12 @@ try {
         )
       )
         trackingRequests.push(request.url);
+      if (
+        /\/rpc\/(get_card_discovery|toggle_wishlist|report_card|get_friend_collection|get_friend_panini_albums_page|get_friend_panini_album_cards_page)(?:\?|$)/.test(
+          request.url
+        )
+      )
+        unexpectedCardRequests.push(request.url);
     }
     if (!pending.has(message.id)) return;
     const { resolve, reject } = pending.get(message.id);
@@ -206,6 +213,25 @@ try {
     "(() => {const dialog=document.querySelector('dialog[open]');return dialog.scrollWidth<=dialog.clientWidth&&document.documentElement.scrollWidth<=window.innerWidth;})()"
   );
   await capture("wishlist-mobile.png");
+  await click("dialog[open] .yk-wishlist-grid a");
+  await waitFor(
+    "document.querySelector('.yk-catalogue-detail-modal[open]')?.textContent.includes('Possesseurs actuels (14)')"
+  );
+  assert.equal(await evaluate("location.href"), initialUrl);
+  assert.equal(
+    await evaluate("document.querySelectorAll('dialog[open]').length"),
+    2
+  );
+  await waitFor(
+    "(() => {const dialog=document.querySelector('.yk-catalogue-detail-modal[open]');return dialog.scrollWidth<=dialog.clientWidth;})()"
+  );
+  await capture("wishlist-card-mobile.png");
+  await click('.yk-catalogue-detail-modal[open] [aria-label="Fermer"]');
+  await waitFor("!document.querySelector('.yk-catalogue-detail-modal[open]')");
+  assert.ok(
+    await evaluate("document.activeElement.matches('.yk-wishlist-grid a')"),
+    "Closing the card restores focus to the wishlist card"
+  );
   await close();
   assert.ok(
     await evaluate("document.activeElement.matches('[data-profile-wishlist]')"),
@@ -216,6 +242,111 @@ try {
   await waitFor(
     "document.querySelectorAll('dialog[open] .yk-wishlist-grid a').length===3"
   );
+  await send("Emulation.setDeviceMetricsOverride", {
+    width: 1440,
+    height: 1000,
+    deviceScaleFactor: 1,
+    mobile: false
+  });
+  const visitorUrl = await evaluate("location.href");
+  await click("dialog[open] .yk-wishlist-grid a");
+  await waitFor(
+    "document.querySelector('.yk-catalogue-detail-modal[open]')?.textContent.includes('Possesseurs actuels (14)')"
+  );
+  assert.equal(await evaluate("location.href"), visitorUrl);
+  for (const text of [
+    "Valeur de marché",
+    "Amis",
+    "Autres utilisateurs",
+    "Kitsune",
+    "Signaler cette carte"
+  ])
+    assert.ok(
+      await evaluate(
+        `document.querySelector('.yk-catalogue-detail-modal').textContent.includes(${JSON.stringify(text)})`
+      )
+    );
+  await evaluate(
+    "Array.from(document.querySelectorAll('.yk-catalogue-detail-modal button')).find(button=>button.textContent.includes('Afficher plus')).click()"
+  );
+  await waitFor(
+    "document.querySelector('.yk-catalogue-detail-modal').textContent.includes('Joueur 13')"
+  );
+  assert.equal(
+    await evaluate(
+      "document.querySelectorAll('.yk-catalogue-detail-modal .yk-catalogue-owners a').length"
+    ),
+    14
+  );
+  await evaluate(
+    "Array.from(document.querySelectorAll('.yk-catalogue-detail-modal button')).find(button=>button.textContent.includes('Ajouter à ma wishlist')).click()"
+  );
+  await waitFor(
+    "document.querySelector('.yk-catalogue-detail-modal').textContent.includes('Retirer de ma wishlist')"
+  );
+  await evaluate(
+    "Array.from(document.querySelectorAll('.yk-catalogue-detail-modal button')).find(button=>button.textContent.includes('Retirer de ma wishlist')).click()"
+  );
+  await waitFor(
+    "document.querySelector('.yk-catalogue-detail-modal').textContent.includes('Ajouter à ma wishlist')"
+  );
+  await capture("wishlist-card-desktop.png");
+  await click(
+    '.yk-catalogue-detail-modal button[title="Signaler cette carte"]'
+  );
+  await waitFor(
+    "Boolean(document.querySelector('.yk-card-report-modal[open]'))"
+  );
+  await click('.yk-card-report-modal input[value="image_issue"]');
+  await evaluate(
+    "Array.from(document.querySelectorAll('.yk-card-report-modal button')).find(button=>button.textContent.includes('Envoyer le signalement')).click()"
+  );
+  await waitFor(
+    "document.querySelector('.yk-card-report-modal').textContent.includes('Signalement envoyé')"
+  );
+  await click('.yk-card-report-modal [aria-label="Fermer"]');
+  await click('.yk-catalogue-detail-modal [aria-label="Fermer"]');
+  await waitFor("!document.querySelector('.yk-catalogue-detail-modal[open]')");
+  assert.equal(
+    await evaluate(
+      "document.querySelectorAll('dialog[open] .yk-wishlist-grid a').length"
+    ),
+    3,
+    "The viewed wishlist is unchanged by the visitor's toggles"
+  );
+  await close();
+  await click(
+    '.yk-profile-side-counts button[aria-label^="Voir les 2578 cartes"]'
+  );
+  await waitFor(
+    "Boolean(document.querySelector('dialog[open] .yk-toolbar')) || Boolean(document.querySelector('dialog[open] .yk-collection-toolbar')) || Boolean(document.querySelector('dialog[open] button[aria-pressed]'))"
+  );
+  await evaluate(
+    "Array.from(document.querySelectorAll('dialog[open] button')).find(button=>button.textContent.trim()==='Classeur').click()"
+  );
+  await waitFor(
+    "document.querySelectorAll('dialog[open] .yk-panini-album-item').length===3"
+  );
+  assert.equal(
+    await evaluate(
+      "document.querySelector('dialog[open] .yk-panini-album-item strong').textContent"
+    ),
+    "One Piece"
+  );
+  assert.equal(
+    await evaluate(
+      "document.querySelector('dialog[open] .yk-panini-album-item').classList.contains('is-favorite')"
+    ),
+    true
+  );
+  assert.equal(
+    await evaluate(
+      "document.querySelectorAll('dialog[open] .yk-panini-favorite').length"
+    ),
+    0,
+    "Visitors cannot modify the owner's favorites"
+  );
+  await capture("friend-favorite-binders.png");
   await close();
   await evaluate(
     "Array.from(document.querySelectorAll('.yk-profile-actions + button, .yk-profile-identity-content > button')).find(button=>button.textContent.includes('Aimer ce profil')).click()"
@@ -237,6 +368,17 @@ try {
   await waitFor(
     "Boolean(document.querySelector('dialog[open] .yk-bid-quick'))"
   );
+  await close();
+  await navigate("&visitor=1&discoveryError=1");
+  await click("[data-profile-wishlist]");
+  await waitFor(
+    "Boolean(document.querySelector('dialog[open] .yk-wishlist-grid a'))"
+  );
+  await click("dialog[open] .yk-wishlist-grid a");
+  await waitFor(
+    "document.querySelector('.yk-catalogue-detail-modal [role=alert]')?.textContent.includes('Détail indisponible')"
+  );
+  await click('.yk-catalogue-detail-modal [aria-label="Fermer"]');
   await close();
   await navigate("&visitor=1&private=1");
   assert.equal(
@@ -274,8 +416,13 @@ try {
     "No record_profile_view request on visits, likes, tabs or modal interactions"
   );
   assert.deepEqual(exceptions, []);
+  assert.deepEqual(
+    unexpectedCardRequests,
+    [],
+    "Preview card actions and binder reads stay simulated, never touching production"
+  );
   console.log(
-    "Profile wishlist proof OK: counter, old modal, search/rarity/category, links, mobile, focus, owner/friend/private, likes, sales and zero view recording."
+    "Profile wishlist proof OK: counter, filters, shared card modal, owners, wishlist toggle, report, mobile/focus, private/error states, owner's favorite binders, likes, sales, zero production card requests and zero view recording."
   );
   await send("Browser.close");
 } finally {

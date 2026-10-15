@@ -53,9 +53,9 @@ import { PlayerModeration } from "@/components/player-moderation";
 import { FriendsPanel } from "@/components/friends";
 import { ProfileExperience } from "@/components/profile";
 import {
-  getCardDiscovery,
+  getCardDiscovery as liveGetCardDiscovery,
   getWishlist,
-  toggleWishlist,
+  toggleWishlist as liveToggleWishlist,
   type CardDiscovery,
   type CardOwner,
   type WishlistCard
@@ -160,15 +160,27 @@ function CardOwnerList({
     </div>
   );
 }
-function CatalogueCardModal({
+export type CatalogueCardAdapter = {
+  get: typeof liveGetCardDiscovery;
+  toggle: typeof liveToggleWishlist;
+  report?: (
+    cardId: string,
+    reason: import("@/lib/data/card-reports").CardReportReason
+  ) => Promise<void>;
+};
+export function CatalogueCardModal({
   selected,
   onClose,
-  onWishlistChange
+  onWishlistChange,
+  adapter
 }: {
   selected: Card | null;
   onClose: () => void;
   onWishlistChange?: (cardId: string, wishlisted: boolean) => void;
+  adapter?: CatalogueCardAdapter;
 }) {
+  const getCardDiscovery = adapter?.get ?? liveGetCardDiscovery;
+  const toggleWishlist = adapter?.toggle ?? liveToggleWishlist;
   const [discovery, setDiscovery] = useState<{
     cardId: string;
     detail?: CardDiscovery;
@@ -200,7 +212,7 @@ function CatalogueCardModal({
     return () => {
       active = false;
     };
-  }, [selected]);
+  }, [selected, getCardDiscovery]);
   async function toggle() {
     if (!selected || busy) return;
     setBusy(true);
@@ -301,6 +313,7 @@ function CatalogueCardModal({
               cardId={selected.id}
               cardName={selected.name}
               className="mt-3 w-full"
+              sendReport={adapter?.report}
             />
             {error && (
               <p role="alert" className="mt-3 text-sm text-danger">
@@ -2161,7 +2174,7 @@ export function WishlistView({
   const filtered = !!(query || rarity || category || sort !== "recent");
   async function remove(id: string) {
     try {
-      await (onRemove ? onRemove(id) : toggleWishlist(id));
+      await (onRemove ? onRemove(id) : liveToggleWishlist(id));
       setCards(current => current?.filter(card => card.id !== id));
       if (selected?.id === id) setSelected(null);
     } catch (e) {

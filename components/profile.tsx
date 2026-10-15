@@ -3,7 +3,14 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent
+} from "react";
 import { Avatar, Button, Modal, Toast } from "@/components/ui";
 import { YokaiCard } from "@/components/yokai-card";
 import { CardShell } from "@/components/card-shell";
@@ -12,6 +19,10 @@ import { PlayerModeration } from "@/components/player-moderation";
 import { ProfileLicensePicker } from "@/components/profile-license-picker";
 import { ProfileWall } from "@/components/profile-wall";
 import { ProfileSales } from "@/components/profile-sales";
+import {
+  CatalogueCardModal,
+  type CatalogueCardAdapter
+} from "@/components/community-views";
 import type { WallAdapter } from "@/lib/data/profile-wall";
 import type { ProfileMarketAdapter } from "@/lib/data/profile-market";
 import { listBlockedUsers, type BlockedUser } from "@/lib/data/moderation";
@@ -710,11 +721,29 @@ function WishlistRarityIcon({ rarity }: { rarity: Rarity }) {
 }
 function FriendWishlist({
   cards,
-  onNavigate
+  onNavigate,
+  onSelect
 }: {
   cards: WishlistCard[];
   onNavigate: () => void;
+  onSelect: (card: WishlistCard) => void;
 }) {
+  const openCard =
+    (card: WishlistCard) => (event: MouseEvent<HTMLAnchorElement>) => {
+      // Preserve href for new tabs and the navigation fallback.
+      if (
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) {
+        onNavigate();
+        return;
+      }
+      event.preventDefault();
+      onSelect(card);
+    };
   const [query, setQuery] = useState("");
   const [rarity, setRarity] = useState<Rarity | "">("");
   const [category, setCategory] = useState("");
@@ -841,7 +870,8 @@ function FriendWishlist({
               <Link
                 href={`/recherche?carte=${card.id}`}
                 key={card.id}
-                onClick={onNavigate}
+                onClick={openCard(card)}
+                aria-haspopup="dialog"
                 aria-label={`Voir ${card.name} dans le catalogue`}
               >
                 <CardShell>
@@ -941,6 +971,10 @@ function ProfileCompletion({
 }
 
 export type ProfileAdapter = {
+  discovery?: CatalogueCardAdapter;
+  friendCollection?: typeof getFriendCollection;
+  friendAlbums?: typeof getFriendPaniniAlbumsPage;
+  friendAlbumCards?: typeof getFriendPaniniAlbumCardsPage;
   wall?: WallAdapter;
   market?: ProfileMarketAdapter;
   // Compatibility harness for the retired widget UI; never enabled by liveProfile.
@@ -989,6 +1023,7 @@ export function ProfileExperience({
   const [blocked, setBlocked] = useState<BlockedUser[]>([]);
   const [collectionOpen, setCollectionOpen] = useState(false);
   const [wishlistOpen, setWishlistOpen] = useState(false);
+  const [wishlistCard, setWishlistCard] = useState<WishlistCard | null>(null);
   const [friendCards, setFriendCards] = useState<CollectedCard[]>();
   const [collectionError, setCollectionError] = useState("");
   const [tab, setTab] = useState("tableau");
@@ -1045,16 +1080,20 @@ export function ProfileExperience({
   const loadFriendPaniniAlbums = useCallback(
     (options: Parameters<typeof getFriendPaniniAlbumsPage>[1]) => {
       if (!profile) return Promise.reject(new Error("Profil indisponible."));
+      if (adapter.friendAlbums)
+        return adapter.friendAlbums(profile.id, options);
       return getFriendPaniniAlbumsPage(profile.id, options);
     },
-    [profile]
+    [profile, adapter]
   );
   const loadFriendPaniniAlbumCards = useCallback(
     (options: Parameters<typeof getFriendPaniniAlbumCardsPage>[1]) => {
       if (!profile) return Promise.reject(new Error("Profil indisponible."));
+      if (adapter.friendAlbumCards)
+        return adapter.friendAlbumCards(profile.id, options);
       return getFriendPaniniAlbumCardsPage(profile.id, options);
     },
-    [profile]
+    [profile, adapter]
   );
   useEffect(() => {
     let active = true;
@@ -1143,7 +1182,11 @@ export function ProfileExperience({
     if (friendCards) return;
     setCollectionError("");
     try {
-      setFriendCards(await getFriendCollection(friendId));
+      setFriendCards(
+        adapter.friendCollection
+          ? await adapter.friendCollection(friendId)
+          : await getFriendCollection(friendId)
+      );
     } catch (reason) {
       setCollectionError(
         reason instanceof Error ? reason.message : "Collection indisponible."
@@ -1649,14 +1692,21 @@ export function ProfileExperience({
       </Modal>
       <Modal
         open={wishlistOpen && profile.canViewCollection}
-        onClose={() => setWishlistOpen(false)}
+        onClose={() => {
+          setWishlistCard(null);
+          setWishlistOpen(false);
+        }}
         title={`Wishlist de ${profile.pseudo}`}
         className="yk-friend-collection-modal"
       >
         {wishlist.length ? (
           <FriendWishlist
             cards={wishlist}
-            onNavigate={() => setWishlistOpen(false)}
+            onNavigate={() => {
+              setWishlistCard(null);
+              setWishlistOpen(false);
+            }}
+            onSelect={setWishlistCard}
           />
         ) : (
           <div className="yk-empty-state">
@@ -1664,6 +1714,14 @@ export function ProfileExperience({
           </div>
         )}
       </Modal>
+      {wishlistCard && wishlistOpen && profile.canViewCollection && (
+        <CatalogueCardModal
+          key={wishlistCard.id}
+          selected={wishlistCard}
+          onClose={() => setWishlistCard(null)}
+          adapter={adapter.discovery}
+        />
+      )}
       <Modal
         open={editing}
         onClose={() => setEditing(false)}
