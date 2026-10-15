@@ -389,10 +389,11 @@ export function Game({
       >
         {view === "packs" ? (
           <header className="yk-pack-page-heading">
-            <p className="eyebrow">Une ouverture. Cinq destins.</p>
-            <h1 className="yk-title mt-3">Tes boosters</h1>
+            <p className="eyebrow">The summoning room</p>
+            <h1 className="yk-title mt-3">Your next great pull.</h1>
             <p className="mt-4 max-w-xl text-sm leading-6 text-ink-2">
-              Brise le sceau. Révèle les cartes qui rejoindront ta collection.
+              A sealed pack. A world of possibilities. Find the next card you’ll
+              never want to let go.
             </p>
           </header>
         ) : (
