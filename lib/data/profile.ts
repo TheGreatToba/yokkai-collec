@@ -11,12 +11,12 @@ export type ProfileLicensePage = {items: string[]; total: number};
 export type ProfileEngagement = {likes:number;likedByMe:boolean};
 export async function getProfileEngagement(ownerId:string): Promise<ProfileEngagement> {
   const {data,error} = await readRequest(signal => db().rpc("get_profile_engagement",{p_owner_id:ownerId}).abortSignal(signal));
-  if (error) throw new Error("Les likes sont temporairement indisponibles.");
+  if (error) throw new Error("Likes are temporarily unavailable.");
   return data as ProfileEngagement;
 }
 export async function setProfileLike(ownerId:string,liked:boolean): Promise<ProfileEngagement> {
   const {data,error} = await db().rpc("set_profile_like",{p_owner_id:ownerId,p_liked:liked});
-  if (error) throw new Error("Impossible de modifier le like du profil. Réessayez dans un instant.");
+  if (error) throw new Error("Couldn't update this profile like. Please try again in a moment.");
   return data as ProfileEngagement;
 }
 export type ProfileDetails = {
@@ -34,7 +34,7 @@ export type ProfileDetails = {
 };
 let client:ReturnType<typeof createClient>|undefined;
 const db=()=>client??=createClient();
-function fail(error:{message?:string}) { const messages:Record<string,string>={PROFILE_NOT_FOUND:"Ce profil est introuvable.",BIO_TOO_LONG:"La bio ne peut pas dépasser 300 caractères.",AVATAR_URL_INVALID:"URL non autorisée. Utilisez le bouton pour envoyer votre avatar (2 048 caractères maximum).",FEATURED_CARDS_INVALID:"Choisissez au maximum cinq cartes différentes.",CARD_NOT_OWNED:"Une carte sélectionnée n’est plus dans votre collection.",FRIENDS_ONLY:"La collection complète est réservée aux amis.",PROFILE_PRIVATE:"Ce profil est privé. Seuls ses amis peuvent voir sa collection."};return new Error(messages[error.message??""]??"Impossible de charger les données du profil."); }
+function fail(error:{message?:string}) { const messages:Record<string,string>={PROFILE_NOT_FOUND:"This profile couldn't be found.",BIO_TOO_LONG:"Your bio can contain up to 300 characters.",AVATAR_URL_INVALID:"This URL is not allowed. Use the button to upload your avatar (up to 2,048 characters).",FEATURED_CARDS_INVALID:"Choose up to five different cards.",CARD_NOT_OWNED:"This card is no longer in your collection.",FRIENDS_ONLY:"Only friends can view the full collection.",PROFILE_PRIVATE:"This profile is private. Only friends can view its collection."};return new Error(messages[error.message??""]??"Couldn't load profile data."); }
 async function hydrateProfile(profile:Profile, bounded = false){const bannerCard=profile.bannerCard?(await withLiveCardFranchises([profile.bannerCard], bounded))[0]:null;const featuredCards=await withLiveCardFranchises(profile.featuredCards, bounded);const friendsVisible=profile.friendsVisible??profile.friendshipStatus==="self";const friends=friendsVisible&&Array.isArray(profile.friends)?profile.friends:[];return {...profile,bannerCard,featuredCards,friends,friendsVisible};}
 export async function getProfile(identifier?:string){const {data,error}=await readRequest(signal => db().rpc("get_profile",{p_identifier:identifier??null}).abortSignal(signal));if(error)throw fail(error);return hydrateProfile(data as Profile, true);}
 export async function getProfileDetails(identifier?: string): Promise<ProfileDetails> {
@@ -44,25 +44,25 @@ export async function getProfileDetails(identifier?: string): Promise<ProfileDet
 }
 export async function saveProfileInterests(interests: ProfileInterests): Promise<ProfileInterests> {
   const {data,error} = await db().rpc("update_profile_interests", {p_interests: interests});
-  if (error) throw new Error("Impossible d’enregistrer le tableau. Limitez chaque section à 12 titres de 100 caractères.");
+  if (error) throw new Error("Couldn't save your dashboard. Each section can contain up to 12 titles of 100 characters.");
   publishPlayerSnapshotInvalidation(["profile"]);
   return data as ProfileInterests;
 }
 export async function saveProfileWidgets(widgets: ProfileWidget[]): Promise<ProfileWidget[]> {
   const {data,error} = await db().rpc("update_profile_widgets", {p_widgets: widgets});
-  if (error) throw new Error("Impossible d’enregistrer les widgets. Choisissez jusqu’à 12 licences du catalogue par catégorie ; une licence a peut-être été renommée ou supprimée.");
+  if (error) throw new Error("Couldn't save your widgets. Choose up to 12 catalog franchises per category; a franchise may have been renamed or removed.");
   publishPlayerSnapshotInvalidation(["profile"]);
   return data as ProfileWidget[];
 }
 export async function getProfileWidgetLicenses({category,query="",page=1}: {category:string;query?:string;page?:number}): Promise<ProfileLicensePage> {
   const {data,error} = await readRequest(signal => db().rpc("get_profile_widget_licenses", {p_category:category,p_query:query,p_offset:(Math.max(1,Math.trunc(page))-1)*72,p_limit:72}).abortSignal(signal));
-  if (error) throw new Error("Impossible de charger les licences. Réessayez dans un instant.");
+  if (error) throw new Error("Couldn't load franchises. Please try again in a moment.");
   const result = data as ProfileLicensePage | null;
   return {items:result?.items??[],total:result?.total??0};
 }
 export async function saveProfileAppearance(bio: string, avatarUrl: string | null, featuredIds: string[], bannerCardId: string | null, bannerUrl: string | null): Promise<Profile & {bannerUrl: string | null}> {
   const {data,error} = await db().rpc("update_profile_appearance", {p_bio:bio,p_avatar_url:avatarUrl,p_featured_card_ids:featuredIds,p_banner_card_id:bannerCardId,p_banner_url:bannerUrl});
-  if (error) throw error.message === "BANNER_URL_INVALID" ? new Error("Bannière non autorisée. Importez une image depuis votre appareil.") : fail(error);
+  if (error) throw error.message === "BANNER_URL_INVALID" ? new Error("This banner is not allowed. Upload an image from your device.") : fail(error);
   const profile = await hydrateProfile(data as Profile & {bannerUrl: string | null});
   publishPlayerSnapshotInvalidation(["profile"]);
   return profile as Profile & {bannerUrl: string | null};

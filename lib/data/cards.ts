@@ -42,27 +42,27 @@ const FRANCHISE_BATCH = 200;
 
 function failure(error: { message?: string; code?: string }) {
   const messages: Record<string, string> = {
-    AUTH_REQUIRED: "Connectez-vous pour retrouver votre collection et vos packs.",
-    PROFILE_MISSING: "Votre profil est introuvable. Impossible de charger la partie.",
-    PACK_NOT_READY: "Aucun pack disponible pour le moment.",
-    CATALOGUE_INCOMPLETE: "Le catalogue n’est pas encore prêt. Réessayez plus tard.",
-    SSR_CARD_NOT_OWNED: "Cet exemplaire SSR n’est plus dans votre collection.",
-    NOT_ENOUGH_SSR_COPIES: "Il faut trois exemplaires SSR identiques pour effectuer cette évolution.",
-    DECISION_PACK_NOT_READY: "Le Decision Pack quotidien n’est pas encore disponible.",
-    DECISION_CHOICE_UNAVAILABLE: "Cette carte du Decision Pack n’est plus disponible.",
-    DECISION_LAST_CHOICE: "La dernière carte doit être conservée.",
-    CARD_NOT_OWNED: "Cette carte n’est plus dans votre collection.",
-    CARD_FROZEN: "Cette carte est placée aux enchères, elle ne peut pas être détruite.",
-    CARD_LOCKED: "Cette carte est verrouillée. Déverrouillez-la avant cette action.",
-    INVALID_CARD_SELECTION: "Sélection de cartes invalide. Sélectionnez entre 1 et 500 exemplaires.",
-    FOLDER_NAME_TAKEN: "Un dossier porte déjà ce nom.",
-    FOLDER_NOT_FOUND: "Ce dossier n’existe plus.",
+    AUTH_REQUIRED: "Sign in to view your collection and packs.",
+    PROFILE_MISSING: "Your profile couldn't be found. The game couldn't be loaded.",
+    PACK_NOT_READY: "No packs available right now.",
+    CATALOGUE_INCOMPLETE: "The catalog isn't ready yet. Please try again later.",
+    SSR_CARD_NOT_OWNED: "This SSR copy is no longer in your collection.",
+    NOT_ENOUGH_SSR_COPIES: "You need three identical SSR copies for this evolution.",
+    DECISION_PACK_NOT_READY: "Your daily Decision Pack isn't available yet.",
+    DECISION_CHOICE_UNAVAILABLE: "This Decision Pack card is no longer available.",
+    DECISION_LAST_CHOICE: "You must keep the last card.",
+    CARD_NOT_OWNED: "This card is no longer in your collection.",
+    CARD_FROZEN: "This card is listed in an auction and can't be destroyed.",
+    CARD_LOCKED: "This card is locked. Unlock it before doing this.",
+    INVALID_CARD_SELECTION: "Invalid card selection. Select between 1 and 500 copies.",
+    FOLDER_NAME_TAKEN: "A folder with this name already exists.",
+    FOLDER_NOT_FOUND: "This folder no longer exists.",
   };
-  if (error.message === "INVALID_IMGUR_URL") return new Error("Saisissez un lien Imgur valide commençant par https://i.imgur.com/ ou https://imgur.com/.");
+  if (error.message === "INVALID_IMGUR_URL") return new Error("Enter a valid Imgur link starting with https://i.imgur.com/ or https://imgur.com/.");
   if (error.message && messages[error.message]) return new Error(messages[error.message]);
   if (error.code === "PGRST301") return new Error(messages.AUTH_REQUIRED);
-  if (error.code === "42501") return new Error("Vos données sont temporairement inaccessibles. Actualisez la page ou reconnectez-vous.");
-  return new Error("Impossible de joindre les données du jeu. Réessayez dans un instant.");
+  if (error.code === "42501") return new Error("Your data is temporarily unavailable. Refresh the page or sign in again.");
+  return new Error("Couldn't reach game data. Please try again in a moment.");
 }
 
 function cardFromRow(row: CardRow): Card {

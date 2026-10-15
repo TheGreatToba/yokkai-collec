@@ -7,7 +7,7 @@ export async function readRequest<T>(load: (signal: AbortSignal) => PromiseLike<
   const expired = new Promise<never>((_, reject) => {
     timer = setTimeout(() => {
       controller.abort();
-      reject(new Error("La requête a dépassé 15 secondes. Réessaie."));
+      reject(new Error("The request timed out after 15 seconds. Please try again."));
     }, timeout);
   });
   try { return await Promise.race([Promise.resolve().then(() => load(controller.signal)), expired]); }

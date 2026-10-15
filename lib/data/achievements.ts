@@ -20,14 +20,14 @@ export type ClaimResult = { balance: number; claimedAt: string; reward: number }
 
 function failure(error: { message?: string; code?: string }) {
   const messages: Record<string, string> = {
-    AUTH_REQUIRED: "Connectez-vous pour consulter vos succès.",
-    PROFILE_MISSING: "Votre profil est introuvable.",
-    ACHIEVEMENT_LOCKED: "Ce succès n’est pas encore complété.",
-    ACHIEVEMENT_ALREADY_CLAIMED: "Cette récompense a déjà été réclamée.",
+    AUTH_REQUIRED: "Sign in to view your achievements.",
+    PROFILE_MISSING: "Your profile couldn't be found.",
+    ACHIEVEMENT_LOCKED: "This achievement isn't complete yet.",
+    ACHIEVEMENT_ALREADY_CLAIMED: "This reward has already been claimed.",
   };
   if (error.message && messages[error.message]) return new Error(messages[error.message]);
   if (error.code === "PGRST301") return new Error(messages.AUTH_REQUIRED);
-  return new Error("Impossible de joindre les données des succès. Réessayez dans un instant.");
+  return new Error("Couldn't load achievements. Please try again in a moment.");
 }
 
 export async function getAchievements(): Promise<Achievement[]> {
