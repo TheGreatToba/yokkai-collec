@@ -13,18 +13,26 @@ Les fichiers HTML sont les corps complets prêts à copier, avec `lang="en"`. Co
 
 ## Variables et fichiers Coolify à modifier par Walid
 
-Service Auth/GoTrue de la stack Supabase, après mise à disposition des fichiers par un déploiement autorisé :
+État vérifié en lecture seule le 15/10/2026 : les quatre valeurs sont **vides** dans le fichier Coolify et le conteneur Auth. Les exemples français de l'ancien guide étaient des valeurs proposées, pas la configuration active. GoTrue utilise actuellement ses modèles/sujets par défaut anglais pour ces deux parcours. Aucun secret n'a été relevé ni aucune variable modifiée.
 
-| Variable injectée dans GoTrue        | Valeur cible exacte                                     | Action                                        |
-| ------------------------------------ | ------------------------------------------------------- | --------------------------------------------- |
-| GOTRUE_MAILER_SUBJECTS_CONFIRMATION  | Confirm your email address — Yokkai Collec’             | Remplacer le sujet personnalisé               |
-| GOTRUE_MAILER_SUBJECTS_RECOVERY      | Reset your password — Yokkai Collec’                    | Remplacer le sujet personnalisé               |
-| GOTRUE_MAILER_TEMPLATES_CONFIRMATION | https://yokkai-collec.com/auth-emails/confirmation.html | Conserver si déjà identique, sinon configurer |
-| GOTRUE_MAILER_TEMPLATES_RECOVERY     | https://yokkai-collec.com/auth-emails/recovery.html     | Conserver si déjà identique, sinon configurer |
+Dans l'interface Coolify, stack Supabase, modifier les variables **MAILER_*** ci-dessous. Le compose les transmet aux noms **GOTRUE_MAILER_*** du conteneur Auth :
 
-Correspondance documentée dans [auth-hardening.md](auth-hardening.md) et l'inventaire validé ; la configuration active n'a pas été relue ou modifiée pour cette PR. Si Coolify utilise des variables intermédiaires dans son compose, Walid doit vérifier leur injection vers ces quatre noms GoTrue : une variable visible mais non transmise au conteneur n'a pas d'effet. Les fichiers concernés sont `public/auth-emails/confirmation.html` et `public/auth-emails/recovery.html`, inclus dans l'image Next ; GoTrue les récupère par HTTP(S), pas par `file://`.
+| Variable Coolify à modifier   | Variable GoTrue alimentée            | Ancienne valeur à sauvegarder | Valeur cible                                            |
+| ----------------------------- | ------------------------------------ | ----------------------------- | ------------------------------------------------------- |
+| MAILER_SUBJECTS_CONFIRMATION  | GOTRUE_MAILER_SUBJECTS_CONFIRMATION  | chaîne vide                   | Confirm your email address — Yokkai Collec’             |
+| MAILER_SUBJECTS_RECOVERY      | GOTRUE_MAILER_SUBJECTS_RECOVERY      | chaîne vide                   | Reset your password — Yokkai Collec’                    |
+| MAILER_TEMPLATES_CONFIRMATION | GOTRUE_MAILER_TEMPLATES_CONFIRMATION | chaîne vide                   | https://yokkai-collec.com/auth-emails/confirmation.html |
+| MAILER_TEMPLATES_RECOVERY     | GOTRUE_MAILER_TEMPLATES_RECOVERY     | chaîne vide                   | https://yokkai-collec.com/auth-emails/recovery.html     |
 
-Sauvegarder les anciennes valeurs et les anciens HTML. Ne modifier ni `GOTRUE_SITE_URL`, ni `GOTRUE_URI_ALLOW_LIST`, ni les secrets SMTP/JWT/captcha. Recréer uniquement le service Auth si des variables changent, selon la procédure Coolify ; un simple restart ne recharge pas l'environnement Docker. Vérifier depuis Auth que les deux URLs répondent 200 et servent les marqueurs Go Template bruts, puis vérifier avec Walid un email réellement reçu dans chaque parcours. Le cache GoTrue peut garder un ancien modèle ou revenir au modèle par défaut si le chargement échoue.
+Fichiers :
+
+- `public/auth-emails/confirmation.html` et `public/auth-emails/recovery.html` : corps HTML complets de cette PR, à livrer dans l'image Next par un déploiement autorisé. Les anciennes versions françaises sont conservées dans Git au commit `e36e5a6b064cc0a3aefd619c89446327cb13ca59`. Elles n'étaient pas sélectionnées par GoTrue puisque les variables TEMPLATES étaient vides.
+- `/data/coolify/services/gawq4yyxiise96wens0dt1ex/.env` : les quatre variables `MAILER_*` ci-dessus étaient présentes et vides. Conserver cet état pour le retour arrière, sans recopier les autres lignes ou secrets.
+- `/data/coolify/services/gawq4yyxiise96wens0dt1ex/docker-compose.yml` : correspondances `GOTRUE_MAILER_*: '${MAILER_*}'` déjà en place ; aucune édition manuelle nécessaire. Passer par l'interface Coolify pour les variables, afin de ne pas perdre les modifications à sa prochaine régénération.
+
+Après mise à disposition des HTML, Walid peut configurer ces quatre valeurs, puis recréer uniquement Auth via Coolify. Un simple restart ne recharge pas l'environnement Docker. GoTrue récupère les HTML par HTTP(S), pas par `file://`. Vérifier depuis Auth les deux réponses 200 et les marqueurs Go Template bruts, puis le contenu d'un email reçu dans chaque parcours ; aucun email n'a été envoyé pour cette vérification en lecture seule. Le cache GoTrue peut conserver un ancien modèle ou revenir au défaut anglais en cas d'échec de chargement.
+
+Ne modifier ni `GOTRUE_SITE_URL`, ni `GOTRUE_URI_ALLOW_LIST`, ni les secrets SMTP/JWT/captcha. Les URLs d'authentification et Turnstile restent inchangées.
 
 ## Modèles non personnalisés
 
@@ -32,4 +40,4 @@ Confirmé dans le [code officiel GoTrue v2.196.0](https://github.com/supabase/au
 
 ## Retour arrière
 
-Restaurer les deux HTML et les valeurs sauvegardées, recréer Auth seulement si des variables ont changé, puis vérifier le contenu réellement reçu. Ne pas changer les liens d'authentification ou les paramètres de sécurité pour revenir aux textes précédents.
+Remettre les quatre variables Coolify MAILER_* à leur ancienne chaîne vide, recréer Auth, puis vérifier le retour aux modèles/sujets par défaut anglais sur un email réellement reçu. Si le code doit aussi revenir en arrière, restaurer les deux HTML au commit e36e5a6b064cc0a3aefd619c89446327cb13ca59 ; ils sont sans effet sur GoTrue tant que les variables TEMPLATES restent vides. Ne pas changer les liens d'authentification ou les paramètres de sécurité pour revenir aux textes précédents.
