@@ -1270,7 +1270,7 @@ export function CollectionView({
                     setPage(1);
                   }}
                 >
-                  <span>Shiny uniquement</span>
+                  <span>SSR+ / Shiny only</span>
                   <i />
                 </button>
                 <div className="yk-view-toggle" aria-label="Mode d’affichage">
@@ -1927,8 +1927,9 @@ export function CollectionView({
                   <span
                     className={`text-sm font-bold tracking-widest ${rarityText[selected.rarity]}`}
                   >
-                    {selected.rarity}
-                    {selected.shiny ? " ✦ Shiny" : ""}
+                    {selected.rarity === "SSR" && selected.shiny
+                      ? "SSR+"
+                      : `${selected.rarity}${selected.shiny ? " ✦ Shiny" : ""}`}
                   </span>
                   {selected.isEvolved && (
                     <span className="text-[10px] font-semibold tracking-wider text-accent-gold">
@@ -2074,13 +2075,13 @@ export function CollectionView({
                     {selected.rarity === "SSR" && !selected.shiny && (
                       <div className="yk-detail-evolve">
                         <div className="yk-detail-progress-copy">
-                          <strong>Progression Shiny</strong>
-                          <span>{evolvableCopies}/5 exemplaires</span>
+                          <strong>SSR+ progress</strong>
+                          <span>{evolvableCopies}/5 copies</span>
                         </div>
                         <div
                           className="yk-detail-progress"
                           role="progressbar"
-                          aria-label="Progression vers l’évolution Shiny"
+                          aria-label="SSR+ evolution progress"
                           aria-valuemin={0}
                           aria-valuemax={5}
                           aria-valuenow={Math.min(evolvableCopies, 5)}
@@ -2108,7 +2109,7 @@ export function CollectionView({
                             setEvolveConfirm(true);
                           }}
                         >
-                          Évoluer en Shiny
+                          Evolve to SSR+
                         </Button>
                       </div>
                     )}
@@ -2213,7 +2214,7 @@ export function CollectionView({
             setEvolutionError("");
           }
         }}
-        title="Confirmer l’évolution Shiny"
+        title="Confirm SSR+ evolution"
       >
         {selected && (
           <>
@@ -2254,8 +2255,8 @@ export function CollectionView({
               })}
             </ul>
             <p className="mt-4 text-xs leading-5 text-ink-3">
-              L’évolution créée sera une nouvelle SSR Shiny, sans dossier et
-              avec l’image d’origine.
+              Evolution creates a new SSR+ card, with the original artwork and
+              no folder. Its SSR pink frame is preserved.
             </p>
             {evolutionError && (
               <p role="alert" className="mt-4 text-sm text-danger">
@@ -2274,7 +2275,7 @@ export function CollectionView({
                 disabled={evolving || evolutionCards.length !== 5}
                 onClick={() => void evolveSelected()}
               >
-                {evolving ? "Évolution…" : "Confirmer l’évolution"}
+                {evolving ? "Evolving…" : "Confirm SSR+ evolution"}
               </Button>
             </div>
           </>
@@ -2480,8 +2481,9 @@ export function CollectionView({
                   <p
                     className={`text-sm font-bold tracking-widest ${rarityText[selected.rarity]}`}
                   >
-                    {selected.rarity}
-                    {selected.shiny ? " ✦" : ""}
+                    {selected.rarity === "SSR" && selected.shiny
+                      ? "SSR+"
+                      : `${selected.rarity}${selected.shiny ? " ✦" : ""}`}
                   </p>
                   <h3 className="mt-1 font-display text-2xl leading-tight">
                     {selected.name}

@@ -2,6 +2,7 @@
 
 import type { CSSProperties, SyntheticEvent } from "react";
 import type { Rarity } from "@/lib/data/cards";
+import { cardVariantLabel } from "@/lib/ui/card-variant";
 import "@/styles/cards.css";
 
 export type YokaiCardProps = {
@@ -42,6 +43,7 @@ export function YokaiCard({
   catalogueImage
 }: YokaiCardProps) {
   const holo = shiny && (rarity === "SSR" || rarity === "LR");
+  const ssrPlus = shiny && rarity === "SSR";
   const franchise = anime?.trim();
   const sparkCount = !animated
     ? 0
@@ -68,12 +70,12 @@ export function YokaiCard({
   };
   return (
     <div
-      className={`yk-card yk-rarity-${rarity} ${holo ? "yk-shiny" : ""} ${animated ? "yk-animated" : ""} ${className}`}
+      className={`yk-card yk-rarity-${rarity} ${holo ? "yk-shiny" : ""} ${ssrPlus ? "yk-ssr-plus" : ""} ${animated ? "yk-animated" : ""} ${className}`}
     >
       <div
         className="yk-card-clip"
         role="img"
-        aria-label={`${name}, ${rarity}${holo ? " Shiny" : ""}, ${franchise || category}`}
+        aria-label={`${name}, ${cardVariantLabel(rarity, holo)}, ${franchise || category}`}
       >
         <div className="yk-card-frame" />
         {holo && <div className="yk-shiny-frame" />}
@@ -112,7 +114,11 @@ export function YokaiCard({
               </span>
               <span className="yk-card-badges">
                 <span className="yk-card-badge">{rarity}</span>
-                {holo && <span className="yk-shiny-badge">✦</span>}
+                {holo && (
+                  <span className="yk-shiny-badge" aria-hidden="true">
+                    {ssrPlus ? "+" : "✦"}
+                  </span>
+                )}
               </span>
             </div>
             {!image && (

@@ -50,6 +50,7 @@ function supportedGradient(value: string) {
 }
 
 async function rarityTokens(rarity: Rarity, shiny: boolean) {
+  const lrShiny = shiny && rarity === "LR";
   const source = await tokensSource;
   const block = source.match(
     new RegExp(`\\.yk-rarity-${rarity}\\s*\\{([^}]+)\\}`)
@@ -59,7 +60,7 @@ async function rarityTokens(rarity: Rarity, shiny: boolean) {
     frame: supportedGradient(
       resolved(
         source,
-        shiny
+        lrShiny
           ? variable(source, "--holo-frame")
           : variable(block, "--card-frame")
       )
@@ -67,9 +68,11 @@ async function rarityTokens(rarity: Rarity, shiny: boolean) {
     background: resolved(source, variable(block, "--card-bg")),
     accent: resolved(
       source,
-      shiny ? variable(source, "--holo-badge") : variable(block, "--card-badge")
+      lrShiny
+        ? variable(source, "--holo-badge")
+        : variable(block, "--card-badge")
     ),
-    ink: shiny
+    ink: lrShiny
       ? "#04000B"
       : resolved(source, variable(block, "--card-badge-ink"))
   };
@@ -189,8 +192,9 @@ export async function renderSharedCardImage(
           <span>YOKKAI COLLEC&apos;</span>
         </div>
         <span>
-          {card.rarity}
-          {card.shiny ? " · SHINY" : ""}
+          {card.rarity === "SSR" && card.shiny
+            ? "SSR+"
+            : `${card.rarity}${card.rarity === "LR" && card.shiny ? " · SHINY" : ""}`}
         </span>
       </div>
       <div

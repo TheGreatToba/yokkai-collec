@@ -112,7 +112,11 @@ export function CollectionPreviewClient({
         const consumed = new Set(instanceIds);
         const evolved = {
           ...source,
-          instanceId: `${source.instanceId}-shiny`,
+          instanceId: `${source.instanceId}-ssr-plus`,
+          image: source.catalogueImage,
+          customImageUrl: null,
+          folderId: null,
+          isFirstOwner: false,
           shiny: true,
           isEvolved: true
         };

@@ -241,6 +241,31 @@
   box-shadow: inset 0 0 28px
     color-mix(in srgb, var(--holo-glow) 55%, transparent);
 }
+.yk-ssr-plus {
+  --holo-glow: rgba(255, 95, 168, 0.55);
+  --holo-spark: #ffd0e6;
+  --holo-frame: conic-gradient(
+    from 0deg,
+    #b91f67,
+    #ff5fa8,
+    #ffe1ef,
+    #ff8cc4,
+    #b91f67,
+    #ff5fa8,
+    #ffd0e6,
+    #b91f67
+  );
+  --holo-badge: var(--card-badge);
+}
+.yk-ssr-plus .yk-shiny-frame {
+  mix-blend-mode: normal;
+  opacity: 1;
+}
+.yk-ssr-plus .yk-shiny-badge {
+  color: var(--card-badge-ink);
+  border-color: var(--card-badge-border);
+  font-weight: 800;
+}
 .yk-card-back {
   width: 100%;
   aspect-ratio: 5 / 7;

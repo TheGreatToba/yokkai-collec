@@ -29,7 +29,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const card = await getSharedCard(id);
   if (!card) notFound();
   const owner = card.pseudo ? ` by ${card.pseudo}` : "";
-  const description = `${card.cardName}, a ${card.rarity}${card.shiny ? " Shiny" : ""} card from ${card.franchise}, shared${owner} on Yokkai Collec'.`;
+  const variant =
+    card.rarity === "SSR" && card.shiny
+      ? "SSR+"
+      : `${card.rarity}${card.shiny ? " Shiny" : ""}`;
+  const description = `${card.cardName}, a ${variant} card from ${card.franchise}, shared${owner} on Yokkai Collec'.`;
   const image = `${siteOrigin()}/partage/${id}/image/og`;
   return {
     title: `${card.cardName} · Yokkai Collec'`,
@@ -74,8 +78,9 @@ export default async function SharedCardPage({ params }: Props) {
         <h1 className="yk-title mt-7">{card.cardName}</h1>
         <p className="mt-3 text-sm text-ink-2">{card.franchise}</p>
         <p className={`mt-4 font-display ${rarityText[card.rarity]}`}>
-          {card.rarity}
-          {card.shiny ? " · Shiny" : ""}
+          {card.rarity === "SSR" && card.shiny
+            ? "SSR+"
+            : `${card.rarity}${card.shiny ? " · Shiny" : ""}`}
         </p>
         {card.pseudo ? (
           <p className="mt-4 text-sm text-ink-3">Shared by {card.pseudo}</p>

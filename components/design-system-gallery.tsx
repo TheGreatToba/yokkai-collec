@@ -123,7 +123,7 @@ export function DesignSystemGallery() {
               />
             </CardShell>
             <p className="mt-3 text-center text-xs font-semibold text-ink-2">
-              SSR Shiny
+              SSR+
             </p>
           </div>
           <div>

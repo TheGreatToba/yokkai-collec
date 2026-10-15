@@ -181,7 +181,11 @@ function CardPicker({
                     className={`mt-2 block text-xs font-bold ${rarityText[card.rarity]}`}
                   >
                     {card.rarity}
-                    {card.shiny ? " · Shiny" : ""}
+                    {card.shiny
+                      ? card.rarity === "SSR"
+                        ? "+"
+                        : " · Shiny"
+                      : ""}
                   </span>
                 </div>
                 <div
@@ -256,7 +260,7 @@ function ReviewCards({ cards }: { cards: CollectedCard[] }) {
             </div>
             <strong>
               {card.name}
-              {card.shiny ? " · Shiny" : ""}
+              {card.shiny ? (card.rarity === "SSR" ? "+" : " · Shiny") : ""}
             </strong>
             {card.customImageUrl && <small>Custom image</small>}
           </div>
@@ -292,7 +296,11 @@ function TradeSummary({
               {grouped(offered).map(group => (
                 <li key={group.key}>
                   {group.representative.name}
-                  {group.representative.shiny ? " · Shiny" : ""}
+                  {group.representative.shiny
+                    ? group.representative.rarity === "SSR"
+                      ? "+"
+                      : " · Shiny"
+                    : ""}
                   {group.cards.length > 1 ? ` ×${group.cards.length}` : ""}
                 </li>
               ))}
@@ -323,7 +331,11 @@ function TradeSummary({
               {grouped(requested).map(group => (
                 <li key={group.key}>
                   {group.representative.name}
-                  {group.representative.shiny ? " · Shiny" : ""}
+                  {group.representative.shiny
+                    ? group.representative.rarity === "SSR"
+                      ? "+"
+                      : " · Shiny"
+                    : ""}
                   {group.cards.length > 1 ? ` ×${group.cards.length}` : ""}
                 </li>
               ))}
