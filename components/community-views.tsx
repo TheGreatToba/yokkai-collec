@@ -74,12 +74,12 @@ export type CommunityScreen =
   | "wishlist";
 const headings = {
   profile: ["Collectionneur", "Mon profil"],
-  friends: ["Entre collectionneurs", "Mes amis"],
+  friends: ["Between collectors", "My friends"],
   market: ["The auction house", "Market"],
   auction: ["Market · Auction", "Auction details"],
   trades: ["Between collectors", "Offer a trade"],
   search: ["Toutes les cartes du jeu", "Catalogue"],
-  wishlist: ["Les cartes convoitées", "Ma wishlist"]
+  wishlist: ["Cards you're looking for", "My wishlist"]
 };
 function Unavailable({ children }: { children: ReactNode }) {
   return (
@@ -148,14 +148,15 @@ function CardOwnerList({
               <Link href={`/profil/${owner.id}`} title={owner.pseudo}>
                 <span className="yk-catalogue-owner-name">{owner.pseudo}</span>
                 <span className="yk-catalogue-owner-copies">
-                  {owner.copies} ex.
+                  {owner.copies.toLocaleString("en-US")}{" "}
+                  {owner.copies === 1 ? "copy" : "copies"}
                 </span>
               </Link>
             </li>
           ))}
         </ul>
       ) : (
-        <p>Aucun</p>
+        <p>None</p>
       )}
     </div>
   );
@@ -205,7 +206,7 @@ export function CatalogueCardModal({
         if (active)
           setDiscovery({
             cardId,
-            error: e instanceof Error ? e.message : "Détail indisponible."
+            error: e instanceof Error ? e.message : "Details unavailable."
           });
       }
     );
@@ -233,7 +234,7 @@ export function CatalogueCardModal({
       setDiscovery({
         cardId: selected.id,
         detail,
-        error: e instanceof Error ? e.message : "Action impossible."
+        error: e instanceof Error ? e.message : "Couldn't complete this action."
       });
     } finally {
       setBusy(false);
@@ -255,7 +256,7 @@ export function CatalogueCardModal({
       setDiscovery({
         cardId: selected.id,
         detail,
-        error: e instanceof Error ? e.message : "Possesseurs indisponibles."
+        error: e instanceof Error ? e.message : "Owners unavailable."
       });
     }
   }
@@ -265,7 +266,7 @@ export function CatalogueCardModal({
     <Modal
       open={!!selected}
       onClose={onClose}
-      title={selected?.name ?? "Détail de la carte"}
+      title={selected?.name ?? "Card details"}
       className="yk-catalogue-detail-modal"
     >
       {selected && (
@@ -278,25 +279,23 @@ export function CatalogueCardModal({
               {selected.category} · {selected.rarity}
             </p>
             <p className="mt-2 text-sm text-ink-3">
-              {selected.anime ?? "Franchise non renseignée"}
+              {selected.anime ?? "No franchise listed"}
             </p>
-            <p className="mt-7 text-xs text-ink-3">Valeur de marché</p>
+            <p className="mt-7 text-xs text-ink-3">Market value</p>
             {detail?.marketValue != null ? (
               <Karas
                 amount={Math.round(detail.marketValue)}
                 className="mt-2 text-xl"
               />
             ) : (
-              <p className="mt-2 text-sm text-ink-3">
-                Aucune vente enregistrée
-              </p>
+              <p className="mt-2 text-sm text-ink-3">No sales recorded</p>
             )}
             {detail?.activeAuctionId ? (
               <Link
                 className="yk-button mt-5 flex w-full justify-center"
                 href={`/marche/${detail.activeAuctionId}`}
               >
-                Voir l’enchère
+                View auction
               </Link>
             ) : null}
             <Button
@@ -306,8 +305,8 @@ export function CatalogueCardModal({
               onClick={() => void toggle()}
             >
               {detail?.wishlisted
-                ? "♥ Retirer de ma wishlist"
-                : "♡ Ajouter à ma wishlist"}
+                ? "♥ Remove from my wishlist"
+                : "♡ Add to my wishlist"}
             </Button>
             <CardReportButton
               cardId={selected.id}
@@ -322,20 +321,17 @@ export function CatalogueCardModal({
             )}
             <section className="yk-catalogue-owners">
               <h3 className="font-display text-sm">
-                Possesseurs actuels {detail ? `(${detail.ownerCount})` : ""}
+                Current owners {detail ? `(${detail.ownerCount})` : ""}
               </h3>
               {detail?.owners.length ? (
                 <div className="yk-catalogue-owner-columns">
-                  <CardOwnerList title="Amis" owners={friendOwners} />
-                  <CardOwnerList
-                    title="Autres utilisateurs"
-                    owners={otherOwners}
-                  />
+                  <CardOwnerList title="Friends" owners={friendOwners} />
+                  <CardOwnerList title="Other players" owners={otherOwners} />
                 </div>
               ) : detail ? (
-                <p>Aucun possesseur actuellement.</p>
+                <p>No current owners.</p>
               ) : (
-                <p>Chargement…</p>
+                <p>Loading…</p>
               )}
               {detail && detail.owners.length < detail.ownerCount ? (
                 <Button
@@ -343,7 +339,7 @@ export function CatalogueCardModal({
                   className="mt-3 w-full"
                   onClick={() => void moreOwners()}
                 >
-                  Afficher plus
+                  Show more
                 </Button>
               ) : null}
             </section>
@@ -1066,7 +1062,7 @@ export function AuctionChatPanel({
   const listRef = useRef<HTMLOListElement>(null);
   const mentionIndexRef = useRef(0);
   const mentionMatch = draft.match(/(?:^|\s)@([^\s@]*)$/);
-  const mentionQuery = mentionMatch?.[1].toLocaleLowerCase("fr");
+  const mentionQuery = mentionMatch?.[1].toLocaleLowerCase("en-US");
   const hasMention = !!mentionMatch;
   const mentionOptions = useMemo(
     () =>
@@ -1076,7 +1072,7 @@ export function AuctionChatPanel({
               participant =>
                 !participant.mine &&
                 participant.pseudo
-                  .toLocaleLowerCase("fr")
+                  .toLocaleLowerCase("en-US")
                   .startsWith(mentionQuery ?? "")
             )
             .slice(0, 5) ?? [])
@@ -1215,7 +1211,7 @@ export function AuctionChatPanel({
         waitToSend(e.retryAfterSeconds);
       } else {
         setSendError(
-          e instanceof Error ? e.message : "Message impossible à envoyer."
+          e instanceof Error ? e.message : "Couldn't send this message."
         );
       }
     } finally {
@@ -1232,12 +1228,12 @@ export function AuctionChatPanel({
     <section
       id="chat-enchere"
       className="yk-auction-chat"
-      aria-label="Chat de l’enchère"
+      aria-label="Auction chat"
     >
       <div className="yk-auction-chat-head">
         <div>
-          <h2 className="yk-section-title">Chat de l’enchère</h2>
-          <p>Le vendeur et les enchérisseurs peuvent écrire.</p>
+          <h2 className="yk-section-title">Auction chat</h2>
+          <p>The seller and bidders can post.</p>
         </div>
         <span>
           {chat?.messages.length ?? 0} message
@@ -1245,7 +1241,7 @@ export function AuctionChatPanel({
         </span>
       </div>
       {!chat && !error ? (
-        <p className="yk-auction-chat-empty">Chargement du chat…</p>
+        <p className="yk-auction-chat-empty">Loading chat…</p>
       ) : chat?.messages.length ? (
         <ol ref={listRef} className="yk-auction-chat-list" aria-live="polite">
           {chat.messages.map(item => (
@@ -1258,10 +1254,10 @@ export function AuctionChatPanel({
               <div>
                 <p>
                   <Link href={`/profil/${encodeURIComponent(item.pseudo)}`}>
-                    {item.mine ? "Vous" : item.pseudo}
+                    {item.mine ? "You" : item.pseudo}
                   </Link>
                   <time dateTime={item.createdAt}>
-                    {new Date(item.createdAt).toLocaleTimeString("fr-FR", {
+                    {new Date(item.createdAt).toLocaleTimeString("en-US", {
                       hour: "2-digit",
                       minute: "2-digit"
                     })}
@@ -1271,7 +1267,7 @@ export function AuctionChatPanel({
                   <img
                     className="yk-auction-chat-gif"
                     src={item.gifUrl}
-                    alt="GIF partagé"
+                    alt="Shared GIF"
                     loading="lazy"
                     decoding="async"
                   />
@@ -1285,7 +1281,9 @@ export function AuctionChatPanel({
                     contextId={item.id}
                     adapter={adapter.moderation}
                     onReported={() =>
-                      setReportMessage("Merci, ton signalement a été transmis.")
+                      setReportMessage(
+                        "Thanks, your report has been submitted."
+                      )
                     }
                     onBlocked={() => void load()}
                   />
@@ -1295,7 +1293,7 @@ export function AuctionChatPanel({
           ))}
         </ol>
       ) : chat ? (
-        <p className="yk-auction-chat-empty">Aucun message pour le moment.</p>
+        <p className="yk-auction-chat-empty">No messages yet.</p>
       ) : null}
       {reportMessage && (
         <p role="status" className="text-sm text-ink-2">
@@ -1321,7 +1319,7 @@ export function AuctionChatPanel({
           }}
         >
           <label className="sr-only" htmlFor="auction-chat-message">
-            Votre message
+            Your message
           </label>
           <div className="yk-auction-chat-composer">
             <textarea
@@ -1343,14 +1341,14 @@ export function AuctionChatPanel({
                   void send();
                 }
               }}
-              placeholder="Écrire un message ou @mentionner…"
+              placeholder="Write a message or @mention someone…"
             />
             {mentionOptions.length > 0 && (
               <ul
                 id="auction-mention-options"
                 className="yk-auction-mention-options"
                 role="listbox"
-                aria-label="Participants à mentionner"
+                aria-label="Participants you can mention"
               >
                 {mentionOptions.map(participant => (
                   <li key={participant.userId}>
@@ -1377,32 +1375,30 @@ export function AuctionChatPanel({
               disabled={busy || retrySeconds > 0}
               onSelect={gif => void send(gif)}
             />
-            <span>
-              {draft.length}/500 · @ pour mentionner · Entrée pour envoyer
-            </span>
+            <span>{draft.length}/500 · @ to mention · Enter to send</span>
             <Button
               type="submit"
               className="yk-auction-chat-send"
               disabled={busy || retrySeconds > 0 || !draft.trim()}
               aria-label={
                 retrySeconds > 0
-                  ? "Envoyer, disponible dans quelques secondes"
+                  ? "Send, available in a few seconds"
                   : undefined
               }
             >
               {busy
-                ? "Envoi…"
+                ? "Sending…"
                 : retrySeconds > 0
                   ? `${retrySeconds} s`
-                  : "Envoyer"}
+                  : "Send"}
             </Button>
           </div>
         </form>
       ) : (
         <p className="yk-auction-chat-locked">
           {finished
-            ? "Le chat est fermé car l’enchère est terminée."
-            : "Place une mise pour pouvoir participer au chat."}
+            ? "Chat is closed because the auction has ended."
+            : "Place a bid to join the chat."}
         </p>
       )}
     </section>
@@ -2141,7 +2137,7 @@ export function WishlistView({
   const categories = useMemo(
     () =>
       Array.from(new Set((cards ?? []).map(card => card.category))).sort(
-        (a, b) => a.localeCompare(b, "fr")
+        (a, b) => a.localeCompare(b, "en-US")
       ),
     [cards]
   );
@@ -2156,10 +2152,10 @@ export function WishlistView({
         )
         .sort((a, b) =>
           sort === "name"
-            ? a.name.localeCompare(b.name, "fr")
+            ? a.name.localeCompare(b.name, "en-US")
             : sort === "rarity"
               ? wishlistRarityRank[a.rarity] - wishlistRarityRank[b.rarity] ||
-                a.name.localeCompare(b.name, "fr")
+                a.name.localeCompare(b.name, "en-US")
               : Date.parse(b.createdAt) - Date.parse(a.createdAt)
         ),
     [cards, query, rarity, category, sort]
@@ -2190,17 +2186,17 @@ export function WishlistView({
           <path d="m20 20-4-4" />
         </svg>
         <label className="sr-only" htmlFor="wishlist-query">
-          Rechercher dans la wishlist
+          Search wishlist
         </label>
         <input
           id="wishlist-query"
           type="search"
           value={query}
           onChange={event => setQuery(event.target.value)}
-          placeholder="Rechercher…"
+          placeholder="Search…"
         />
       </div>
-      <CatalogueFilterSection title="Tri">
+      <CatalogueFilterSection title="Sort">
         <button
           type="button"
           className="yk-filter-option"
@@ -2208,7 +2204,7 @@ export function WishlistView({
           onClick={() => setSort("recent")}
         >
           <span className="yk-filter-check" />
-          <span>Ajout récent</span>
+          <span>Recently added</span>
         </button>
         <button
           type="button"
@@ -2217,7 +2213,7 @@ export function WishlistView({
           onClick={() => setSort("name")}
         >
           <span className="yk-filter-check" />
-          <span>Nom A–Z</span>
+          <span>Name A–Z</span>
         </button>
         <button
           type="button"
@@ -2226,10 +2222,10 @@ export function WishlistView({
           onClick={() => setSort("rarity")}
         >
           <span className="yk-filter-check" />
-          <span>Rareté</span>
+          <span>Rarity</span>
         </button>
       </CatalogueFilterSection>
-      <CatalogueFilterSection title="Rareté">
+      <CatalogueFilterSection title="Rarity">
         <button
           type="button"
           className="yk-filter-option"
@@ -2237,7 +2233,7 @@ export function WishlistView({
           onClick={() => setRarity("")}
         >
           <span className="yk-filter-check" />
-          <span>Toutes</span>
+          <span>All</span>
         </button>
         {catalogueRarities.map(item => (
           <button
@@ -2253,7 +2249,7 @@ export function WishlistView({
           </button>
         ))}
       </CatalogueFilterSection>
-      <CatalogueFilterSection title="Catégorie">
+      <CatalogueFilterSection title="Category">
         <button
           type="button"
           className="yk-filter-option"
@@ -2261,7 +2257,7 @@ export function WishlistView({
           onClick={() => setCategory("")}
         >
           <span className="yk-filter-check" />
-          <span>Toutes les catégories</span>
+          <span>All categories</span>
         </button>
         {categories.map(item => (
           <button
@@ -2287,7 +2283,7 @@ export function WishlistView({
           setSort("recent");
         }}
       >
-        Réinitialiser les filtres
+        Reset filters
       </button>
     </>
   );
@@ -2297,15 +2293,15 @@ export function WishlistView({
         <div className="yk-wishlist-head">
           <div>
             <p className="font-display text-xl">
-              {cards.length} carte{cards.length > 1 ? "s" : ""} suivie
-              {cards.length > 1 ? "s" : ""}
+              {cards.length.toLocaleString("en-US")}{" "}
+              {cards.length === 1 ? "card" : "cards"} on your wishlist
             </p>
             <p className="mt-2 text-sm text-ink-2">
-              Recevez une alerte dès qu’une de ces cartes est mise aux enchères.
+              Get an alert when one of these cards is listed for auction.
             </p>
           </div>
           <Link href="/recherche" className="yk-button yk-button-secondary">
-            Découvrir des cartes
+            Discover cards
           </Link>
         </div>
       )}
@@ -2315,17 +2311,16 @@ export function WishlistView({
         </p>
       )}
       {cards === undefined ? (
-        <Unavailable>Chargement de votre wishlist…</Unavailable>
+        <Unavailable>Loading your wishlist…</Unavailable>
       ) : cards.length === 0 ? (
         <div className="yk-wishlist-empty">
           <span aria-hidden="true">☆</span>
-          <h2>Ta wishlist est vide</h2>
+          <h2>Your wishlist is empty</h2>
           <p>
-            Ajoute des cartes depuis la recherche ou ta collection pour les
-            retrouver ici.
+            Add cards from the catalog or your collection to find them here.
           </p>
           <Link href="/recherche" className="yk-button yk-button-secondary">
-            Explorer le catalogue
+            Explore catalog
           </Link>
         </div>
       ) : (
@@ -2333,13 +2328,13 @@ export function WishlistView({
           <div className="yk-catalogue-heading">
             <div>
               <p role="status" className="font-display text-xl">
-                {filteredCards.length.toLocaleString("fr-FR")} carte
-                {filteredCards.length > 1 ? "s" : ""}
+                {filteredCards.length.toLocaleString("en-US")}{" "}
+                {filteredCards.length === 1 ? "card" : "cards"}
               </p>
               <p className="mt-1 text-xs text-ink-3">
                 {filtered
-                  ? "Résultats correspondant à vos filtres"
-                  : "Toutes les cartes de votre wishlist"}
+                  ? "Results matching your filters"
+                  : "All cards on your wishlist"}
               </p>
             </div>
             <button
@@ -2360,14 +2355,14 @@ export function WishlistView({
               >
                 <path d="M4 6h16M7 12h10M10 18h4" />
               </svg>
-              Trier et filtrer{filtered ? <span>•</span> : null}
+              Sort and filter{filtered ? <span>•</span> : null}
             </button>
           </div>
           {filtersOpen && (
             <button
               type="button"
               className="yk-filter-backdrop"
-              aria-label="Fermer les filtres"
+              aria-label="Close filters"
               onClick={() => setFiltersOpen(false)}
             />
           )}
@@ -2375,13 +2370,13 @@ export function WishlistView({
             <aside
               id="wishlist-filters"
               className={`yk-collection-sidebar ${filtersOpen ? "yk-sidebar-open" : ""}`}
-              aria-label="Tri et filtres de la wishlist"
+              aria-label="Wishlist sorting and filters"
             >
               <div className="yk-sidebar-mobile-head">
-                <strong>Trier et filtrer</strong>
+                <strong>Sort and filter</strong>
                 <button
                   type="button"
-                  aria-label="Fermer les filtres"
+                  aria-label="Close filters"
                   onClick={() => setFiltersOpen(false)}
                 >
                   ×
@@ -2398,7 +2393,7 @@ export function WishlistView({
                         type="button"
                         className="yk-catalogue-card"
                         onClick={() => setSelected(card)}
-                        aria-label={`Voir ${card.name}, ${card.rarity}`}
+                        aria-label={`View ${card.name}, ${card.rarity}`}
                         aria-haspopup="dialog"
                       >
                         <CardShell>
@@ -2412,17 +2407,15 @@ export function WishlistView({
                       <Button
                         variant="danger"
                         onClick={() => void remove(card.id)}
-                        aria-label={`Retirer ${card.name} de la wishlist`}
+                        aria-label={`Remove ${card.name} from your wishlist`}
                       >
-                        ♡ Retirer
+                        ♡ Remove
                       </Button>
                     </article>
                   ))}
                 </div>
               ) : (
-                <Unavailable>
-                  Aucune carte ne correspond à ces filtres.
-                </Unavailable>
+                <Unavailable>No cards match these filters.</Unavailable>
               )}
             </div>
           </div>

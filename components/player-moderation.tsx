@@ -9,11 +9,11 @@ import {
 } from "@/lib/data/moderation";
 
 const reasons: [ReportReason, string][] = [
-  ["harassment", "Harcèlement ou insultes"],
-  ["inappropriate", "Contenu inapproprié, image ou GIF"],
+  ["harassment", "Harassment or insults"],
+  ["inappropriate", "Inappropriate content, image, or GIF"],
   ["spam", "Spam"],
-  ["cheating", "Triche ou faux comptes"],
-  ["other", "Autre"]
+  ["cheating", "Cheating or fake accounts"],
+  ["other", "Other"]
 ];
 export function PlayerModeration({
   userId,
@@ -65,7 +65,7 @@ export function PlayerModeration({
           blockAlso
         });
         if (blockAlso) onBlocked?.();
-        setSuccess("Merci, ton signalement a été transmis.");
+        setSuccess("Thanks, your report has been submitted.");
         onReported?.();
       }
       setSheet(null);
@@ -73,7 +73,7 @@ export function PlayerModeration({
       setError(
         failure instanceof Error
           ? failure.message
-          : "Impossible d’effectuer cette action."
+          : "Couldn't complete this action."
       );
     } finally {
       setBusy(false);
@@ -85,27 +85,27 @@ export function PlayerModeration({
         <button
           type="button"
           className="text-xs text-ink-3 underline hover:text-ink"
-          aria-label={`Signaler le message de ${pseudo}`}
+          aria-label={`Report ${pseudo}'s message`}
           onClick={() => open("report")}
         >
-          Signaler
+          Report
         </button>
       ) : (
         <details className="relative">
           <summary
             className="yk-button yk-button-secondary cursor-pointer"
-            aria-label={`Actions pour ${pseudo}`}
+            aria-label={`Actions for ${pseudo}`}
           >
             ⋯
           </summary>
           <div className="absolute right-0 z-10 mt-2 flex min-w-40 flex-col gap-2 rounded-panel border border-veil bg-surface p-3">
             {!blockedByMe && (
               <Button variant="danger" onClick={() => open("block")}>
-                Bloquer
+                Block
               </Button>
             )}
             <Button variant="secondary" onClick={() => open("report")}>
-              Signaler
+              Report
             </Button>
           </div>
         </details>
@@ -116,18 +116,18 @@ export function PlayerModeration({
         onClose={() => {
           if (!busy) setSheet(null);
         }}
-        title={sheet === "block" ? `Bloquer ${pseudo} ?` : `Signaler ${pseudo}`}
+        title={sheet === "block" ? `Block ${pseudo}?` : `Report ${pseudo}`}
         className="max-w-lg"
       >
         {sheet === "block" ? (
           <p className="text-sm leading-6 text-ink-2">
-            Il sera retiré de tes amis et vos offres d’échange en attente seront
-            annulées. Il ne sera pas prévenu.
+            They will be removed from your friends list and your pending trade
+            offers will be canceled. They won&apos;t be notified.
           </p>
         ) : (
           <div className="space-y-4">
             <label className="block text-sm">
-              Motif
+              Reason
               <select
                 className="auth-input mt-2"
                 value={reason}
@@ -144,7 +144,7 @@ export function PlayerModeration({
               </select>
             </label>
             <label className="block text-sm">
-              Détails facultatifs
+              Optional details
               <textarea
                 className="auth-input mt-2 min-h-28"
                 maxLength={500}
@@ -164,7 +164,7 @@ export function PlayerModeration({
                   disabled={busy}
                   onChange={event => setBlockAlso(event.target.checked)}
                 />
-                Bloquer aussi ce joueur
+                Also block this player
               </label>
             )}
           </div>
@@ -180,18 +180,14 @@ export function PlayerModeration({
             disabled={busy}
             onClick={() => setSheet(null)}
           >
-            Annuler
+            Cancel
           </Button>
           <Button
             variant={sheet === "block" ? "danger" : "primary"}
             disabled={busy}
             onClick={() => void submit()}
           >
-            {busy
-              ? "Envoi…"
-              : sheet === "block"
-                ? "Bloquer"
-                : "Transmettre le signalement"}
+            {busy ? "Sending…" : sheet === "block" ? "Block" : "Submit report"}
           </Button>
         </div>
       </Modal>

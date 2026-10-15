@@ -44,7 +44,7 @@ test("partage client : consentement explicite, erreurs sûres et URL absolue", a
   );
   assert.throws(() => api.cardShareUrl("bad"));
   failure = { message: "private SQL details" };
-  await assert.rejects(api.listCardShares(), /momentanément indisponibles/);
+  await assert.rejects(api.listCardShares(), /temporarily unavailable/);
   failure = { message: "CARD_SHARE_DAILY_LIMIT" };
   await assert.rejects(
     api.createCardShare("owned-instance", false),

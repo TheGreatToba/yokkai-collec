@@ -59,109 +59,109 @@ export function notificationItem(
 ): NotificationItem {
   const common = {
     id: notification.id,
-    time: new Date(notification.createdAt).toLocaleString("fr-FR"),
+    time: new Date(notification.createdAt).toLocaleString("en-US"),
     read: !!notification.readAt
   };
   if (notification.type === "friend_request")
     return {
       ...common,
-      title: "Nouvelle demande d’ami",
-      text: `${notification.actorPseudo ?? "Joueur supprimé"} veut t’ajouter en ami.`,
+      title: "New friend request",
+      text: `${notification.actorPseudo ?? "Deleted player"} sent you a friend request.`,
       href: "/amis",
       kind: "friend"
     };
   if (notification.type === "outbid")
     return {
       ...common,
-      title: "Tu as été surenchéri",
-      text: `Tu as été surenchéri sur ${notification.cardName ?? "une carte"}.`,
+      title: "You've been outbid",
+      text: `You've been outbid on ${notification.cardName ?? "a card"}.`,
       href: `/marche/${notification.referenceId}`,
       kind: "outbid"
     };
   if (notification.type === "trade_offer_received")
     return {
       ...common,
-      title: "Nouvelle offre d’échange",
-      text: `${notification.actorPseudo ?? "Joueur supprimé"} t’a envoyé une offre d’échange.`,
+      title: "New trade offer",
+      text: `${notification.actorPseudo ?? "Deleted player"} sent you a trade offer.`,
       href: `/echanges?offre=${notification.referenceId}`,
       kind: "trade"
     };
   if (notification.type === "trade_counter_offer_received")
     return {
       ...common,
-      title: "Nouvelle contre-proposition",
-      text: `${notification.actorPseudo ?? "Joueur supprimé"} t’a fait une contre-proposition.`,
+      title: "New counteroffer",
+      text: `${notification.actorPseudo ?? "Deleted player"} sent you a counteroffer.`,
       href: `/echanges?offre=${notification.referenceId}`,
       kind: "trade-counter"
     };
   if (notification.type === "trade_offer_accepted")
     return {
       ...common,
-      title: "Offre acceptée",
-      text: `${notification.actorPseudo ?? "Joueur supprimé"} a accepté ton offre d’échange.`,
+      title: "Offer accepted",
+      text: `${notification.actorPseudo ?? "Deleted player"} accepted your trade offer.`,
       href: `/echanges?offre=${notification.referenceId}`,
       kind: "trade-accepted"
     };
   if (notification.type === "trade_offer_declined")
     return {
       ...common,
-      title: "Offre refusée",
-      text: `${notification.actorPseudo ?? "Joueur supprimé"} a refusé ton offre d’échange.`,
+      title: "Offer declined",
+      text: `${notification.actorPseudo ?? "Deleted player"} declined your trade offer.`,
       href: `/echanges?offre=${notification.referenceId}`,
       kind: "trade-declined"
     };
   if (notification.type === "trade_offer_cancelled")
     return {
       ...common,
-      title: "Offre annulée",
-      text: `${notification.actorPseudo ?? "Joueur supprimé"} a annulé son offre d’échange.`,
+      title: "Offer canceled",
+      text: `${notification.actorPseudo ?? "Deleted player"} canceled their trade offer.`,
       href: `/echanges?offre=${notification.referenceId}`,
       kind: "trade-cancelled"
     };
   if (notification.type === "auction_won")
     return {
       ...common,
-      title: "Enchère remportée",
-      text: `Tu as remporté ${notification.cardName ?? "une carte"} !`,
+      title: "Auction won",
+      text: `You won ${notification.cardName ?? "a card"}!`,
       href: `/marche/${notification.referenceId}`,
       kind: "won"
     };
   if (notification.type === "auction_sold")
     return {
       ...common,
-      title: "Personnage vendu",
-      text: `Tu as vendu ${notification.cardName ?? "un personnage"} pour ${(notification.karaAmount ?? 0).toLocaleString("fr-FR")} KARA.`,
+      title: "Card sold",
+      text: `You sold ${notification.cardName ?? "a character"} for ${(notification.karaAmount ?? 0).toLocaleString("en-US")} Karas.`,
       href: `/marche/${notification.referenceId}`,
       kind: "sold"
     };
   if (notification.type === "auction_chat_mention")
     return {
       ...common,
-      title: "Mention dans une enchère",
-      text: `${notification.actorPseudo ?? "Joueur supprimé"} t’a mentionné dans la discussion de ${notification.cardName ?? "l’enchère"}.`,
+      title: "Auction mention",
+      text: `${notification.actorPseudo ?? "Deleted player"} mentioned you in the chat for ${notification.cardName ?? "an auction"}.`,
       href: `/marche/${notification.referenceId}#chat-enchere`,
       kind: "mention"
     };
   if (notification.type === "achievement_completed")
     return {
       ...common,
-      title: "Succès débloqué",
-      text: `Nouveau succès : ${notification.achievementName ?? "un succès"}.`,
+      title: "Achievement unlocked",
+      text: `New achievement: ${notification.achievementName ?? "an achievement"}.`,
       href: `/succes#${notification.referenceId}`,
       kind: "mission"
     };
   if (notification.type === "wishlist_card_on_auction")
     return {
       ...common,
-      title: "Carte en wishlist aux enchères",
-      text: `${notification.cardName ?? "Une carte"} de ta wishlist vient d’être mise aux enchères — clique pour voir.`,
+      title: "Wishlist card up for auction",
+      text: `${notification.cardName ?? "A card"} on your wishlist is now up for auction. Take a look!`,
       href: `/marche/${notification.referenceId}`,
       kind: "wishlist"
     };
   return {
     ...common,
-    title: "Nouvelle activité",
-    text: "Une nouvelle activité est disponible.",
+    title: "New activity",
+    text: "New activity is available.",
     kind: "mission"
   };
 }
@@ -454,7 +454,7 @@ export function Topbar({
                 <button
                   type="button"
                   tabIndex={-1}
-                  aria-label="Fermer les notifications"
+                  aria-label="Close notifications"
                   className="yk-notification-backdrop"
                   onClick={() => setPanel(null)}
                 />
@@ -470,14 +470,12 @@ export function Topbar({
                     <div>
                       <h2>Notifications</h2>
                       {shown && (
-                        <p>
-                          {unread ?? 0} non lue{unread === 1 ? "" : "s"}
-                        </p>
+                        <p>{(unread ?? 0).toLocaleString("en-US")} unread</p>
                       )}
                     </div>
                     {!!unread && (
                       <button onClick={() => void readAll()}>
-                        Tout marquer comme lu
+                        Mark all as read
                       </button>
                     )}
                   </div>
@@ -487,7 +485,7 @@ export function Topbar({
                       className="yk-notification-state is-error"
                     >
                       <span aria-hidden="true">!</span>
-                      <strong>Impossible de charger tes notifications</strong>
+                      <strong>Couldn&apos;t load your notifications</strong>
                       <p>{visibleNotificationError}</p>
                       <button
                         type="button"
@@ -503,14 +501,15 @@ export function Topbar({
                   ) : !shown ? (
                     <div className="yk-notification-state">
                       <span className="yk-skeleton block h-10 w-10" />
-                      <p>Chargement des notifications…</p>
+                      <p>Loading notifications…</p>
                     </div>
                   ) : shown.length === 0 ? (
                     <div className="yk-notification-state">
                       <span aria-hidden="true">♢</span>
-                      <strong>Aucune notification pour le moment</strong>
+                      <strong>No notifications yet</strong>
                       <p>
-                        Tu es à jour. Tes alertes et activités apparaîtront ici.
+                        You&apos;re all caught up. Your alerts and activity will
+                        appear here.
                       </p>
                     </div>
                   ) : (
@@ -533,7 +532,7 @@ export function Topbar({
                             </span>
                             {!n.read && (
                               <span
-                                aria-label="Non lue"
+                                aria-label="Unread"
                                 className="mt-2 size-1.5 shrink-0 rounded-full bg-accent-gold"
                               />
                             )}

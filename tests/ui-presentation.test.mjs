@@ -66,15 +66,15 @@ test("la wishlist d'un ami se filtre par recherche, rareté et catégorie", () =
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/title="Rareté"/)
+    normalizeWhitespace(/title="Rarity"/)
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/title="Catégorie"/)
+    normalizeWhitespace(/title="Category"/)
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/Réinitialiser les filtres/)
+    normalizeWhitespace(/Reset filters/)
   );
   assert.match(
     normalizeWhitespace(source),
@@ -983,7 +983,7 @@ test("le catalogue reprend la sidebar sans notion de possession ni action de mas
   );
   assert.match(
     normalizeWhitespace(detail),
-    normalizeWhitespace(/Possesseurs actuels/)
+    normalizeWhitespace(/Current owners/)
   );
   assert.match(
     normalizeWhitespace(detail),
@@ -1029,7 +1029,7 @@ test("le catalogue reprend la sidebar sans notion de possession ni action de mas
   );
   assert.match(
     normalizeWhitespace(detail),
-    normalizeWhitespace(/Ajouter à ma wishlist/)
+    normalizeWhitespace(/Add to my wishlist/)
   );
   assert.doesNotMatch(
     normalizeWhitespace(catalogue),
@@ -1069,7 +1069,7 @@ test("une carte de la wishlist ouvre le détail partagé du catalogue et ses pos
   assert.match(
     normalizeWhitespace(wishlist),
     normalizeWhitespace(
-      /aria-label=\{`Voir \$\{card\.name\}, \$\{card\.rarity\}`\}/
+      /aria-label=\{`View \$\{card\.name\}, \$\{card\.rarity\}`\}/
     )
   );
   assert.match(
@@ -1082,7 +1082,7 @@ test("une carte de la wishlist ouvre le détail partagé du catalogue et ses pos
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/Possesseurs actuels/)
+    normalizeWhitespace(/Current owners/)
   );
 });
 
@@ -1096,9 +1096,9 @@ test("la wishlist reprend le tri et les effets statiques du catalogue", () => {
     source.indexOf("const remaining")
   );
   assert.match(wishlist, /id="wishlist-filters"/);
-  assert.match(wishlist, /CatalogueFilterSection title="Tri"/);
-  assert.match(wishlist, /CatalogueFilterSection title="Rareté"/);
-  assert.match(wishlist, /CatalogueFilterSection title="Catégorie"/);
+  assert.match(wishlist, /CatalogueFilterSection title="Sort"/);
+  assert.match(wishlist, /CatalogueFilterSection title="Rarity"/);
+  assert.match(wishlist, /CatalogueFilterSection title="Category"/);
   assert.match(
     normalizeWhitespace(wishlist),
     normalizeWhitespace(/<YokaiCard \{\.\.\.card\} animated=\{false\}/)
@@ -1142,7 +1142,7 @@ test("le chat d’enchère est visible mais réservé au vendeur et aux utilisat
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/Le vendeur et les enchérisseurs peuvent écrire/)
+    normalizeWhitespace(/The seller and bidders can post/)
   );
   assert.match(
     normalizeWhitespace(source),
@@ -1175,7 +1175,7 @@ test("le chat d’enchère est visible mais réservé au vendeur et aux utilisat
   assert.match(
     normalizeWhitespace(market),
     normalizeWhitespace(
-      /CHAT_PARTICIPANTS_ONLY:"Seuls le vendeur et les enchérisseurs peuvent participer au chat\."/
+      /CHAT_PARTICIPANTS_ONLY:"Only the seller and bidders can join the chat\."/
     )
   );
   assert.match(
@@ -1184,7 +1184,7 @@ test("le chat d’enchère est visible mais réservé au vendeur et aux utilisat
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/@ pour mentionner/)
+    normalizeWhitespace(/@ to mention/)
   );
   assert.match(
     normalizeWhitespace(source),
@@ -1362,16 +1362,16 @@ test("mobile : vitrine du profil en carrousel tactile et page Amis sans déborde
   assert.match(
     normalizeWhitespace(friends),
     normalizeWhitespace(
-      /tab === "friends" \?\(? <Button variant="danger" onClick=\{\(\) => setRemoval\(person\)\}>Supprimer<\/Button>/
+      /tab === "friends" \?\(? <Button variant="danger" onClick=\{\(\) => setRemoval\(person\)\}>Remove<\/Button>/
     )
   );
   assert.doesNotMatch(
     normalizeWhitespace(friends),
-    normalizeWhitespace(/<StatusPill tone="success">Ami<\/StatusPill>/)
+    normalizeWhitespace(/<StatusPill tone="success">Friend<\/StatusPill>/)
   );
   assert.match(
     normalizeWhitespace(friends),
-    normalizeWhitespace(/title="Supprimer cet ami \?"/)
+    normalizeWhitespace(/title="Remove this friend\?"/)
   );
 });
 
@@ -1424,25 +1424,25 @@ test("la liste d’amis affiche la présence et actualise la dernière activité
       { isOnline: true, lastSeenAt: "2026-10-08T10:00:00Z" },
       now
     ),
-    "En ligne"
+    "Online"
   );
   assert.equal(
     friendPresenceLabel(
       { isOnline: false, lastSeenAt: "2026-10-08T11:55:00Z" },
       now
     ),
-    "Vu il y a 5 min"
+    "Last seen 5 minutes ago"
   );
   assert.equal(
     friendPresenceLabel(
       { isOnline: false, lastSeenAt: "2026-10-08T09:00:00Z" },
       now
     ),
-    "Vu il y a 3 h"
+    "Last seen 3 hours ago"
   );
   assert.equal(
     friendPresenceLabel({ isOnline: false, lastSeenAt: null }, now),
-    "Jamais vu en ligne"
+    "Not seen online yet"
   );
 });
 
@@ -3051,23 +3051,20 @@ test("les notifications connues ont un texte et une redirection, les inconnues u
   ]) {
     assert.match(model, new RegExp(type));
   }
-  assert.match(
-    source,
-    /de ta wishlist vient d’être mise aux enchères — clique pour voir/
-  );
-  assert.match(source, /Tu as été surenchéri sur/);
-  assert.match(source, /Tu as remporté/);
-  assert.match(source, /Tu as vendu/);
-  assert.match(source, /t’a envoyé une offre d’échange/);
-  assert.match(source, /t’a fait une contre-proposition/);
-  assert.match(source, /a accepté ton offre d’échange/);
-  assert.match(source, /a refusé ton offre d’échange/);
-  assert.match(source, /a annulé son offre d’échange/);
-  assert.match(source, /Nouvelle activité/);
+  assert.match(source, /on your wishlist is now up for auction. Take a look!/);
+  assert.match(source, /You've been outbid on/);
+  assert.match(source, /You won/);
+  assert.match(source, /You sold/);
+  assert.match(source, /sent you a trade offer/);
+  assert.match(source, /sent you a counteroffer/);
+  assert.match(source, /accepted your trade offer/);
+  assert.match(source, /declined your trade offer/);
+  assert.match(source, /canceled their trade offer/);
+  assert.match(source, /New activity/);
   for (const glyph of ["⇄", "↺", "✓", "×"])
     assert.match(source, new RegExp(glyph));
-  assert.match(source, /Nouveau succès/);
-  assert.match(source, /veut t’ajouter en ami/);
+  assert.match(source, /New achievement/);
+  assert.match(source, /sent you a friend request/);
   for (const href of ["/marche/", "/amis", "/echanges?offre=", "/succes#"]) {
     assert.match(source, new RegExp(href.replace("?", "\\?")));
   }
@@ -3082,8 +3079,8 @@ test("les notifications connues ont un texte et une redirection, les inconnues u
     actorPseudo: null,
     achievementName: null
   });
-  assert.equal(unknown.title, "Nouvelle activité");
-  assert.equal(unknown.text, "Une nouvelle activité est disponible.");
+  assert.equal(unknown.title, "New activity");
+  assert.equal(unknown.text, "New activity is available.");
   const sold = notificationItem({
     id: "sold",
     type: "auction_sold",
@@ -3095,8 +3092,8 @@ test("les notifications connues ont un texte et une redirection, les inconnues u
     achievementName: null,
     karaAmount: 1250
   });
-  assert.equal(sold.title, "Personnage vendu");
-  assert.equal(sold.text, "Tu as vendu Kitsune pour 1 250 KARA.");
+  assert.equal(sold.title, "Card sold");
+  assert.equal(sold.text, "You sold Kitsune for 1,250 Karas.");
   assert.equal(sold.kind, "sold");
   const mention = notificationItem({
     id: "mention",
@@ -3108,10 +3105,7 @@ test("les notifications connues ont un texte et une redirection, les inconnues u
     actorPseudo: "Bob",
     achievementName: null
   });
-  assert.equal(
-    mention.text,
-    "Bob t’a mentionné dans la discussion de Kitsune."
-  );
+  assert.equal(mention.text, "Bob mentioned you in the chat for Kitsune.");
   assert.equal(mention.href, "/marche/auction#chat-enchere");
   assert.equal(mention.kind, "mention");
 });

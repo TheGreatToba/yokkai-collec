@@ -11,7 +11,7 @@ import {
 } from "@/lib/data/card-shares";
 
 const previewWarning =
-  "Les aperçus déjà publiés sur Discord, WhatsApp ou X peuvent rester visibles après la suppression du lien.";
+  "Previews already posted on Discord, WhatsApp, or X may remain visible after you delete the link.";
 
 export function CardShareButton({
   instanceId,
@@ -24,7 +24,7 @@ export function CardShareButton({
   return (
     <>
       <Button variant="secondary" onClick={() => setOpen(true)}>
-        Partager
+        Share
       </Button>
       <Modal
         open={open}
@@ -66,7 +66,7 @@ function ShareSheet({
     } catch (reason) {
       if (!(reason instanceof DOMException && reason.name === "AbortError")) {
         setError(
-          reason instanceof Error ? reason.message : "Action indisponible."
+          reason instanceof Error ? reason.message : "Action unavailable."
         );
       }
     } finally {
@@ -80,7 +80,9 @@ function ShareSheet({
       cache: "no-store"
     });
     if (!response.ok || response.headers.get("Content-Type") !== "image/png") {
-      throw new Error("L’image est indisponible. Réessaie dans un instant.");
+      throw new Error(
+        "The image is unavailable. Please try again in a moment."
+      );
     }
     const blobUrl = URL.createObjectURL(await response.blob());
     const link = document.createElement("a");
@@ -95,9 +97,9 @@ function ShareSheet({
   return (
     <div className="space-y-5">
       <p className="text-sm text-ink-2">
-        L’image affichée sur ta carte sera publiée, y compris ton image
-        personnalisée si tu en as une. Un lien existant sera actualisé avec
-        cette image. Maximum 10 nouvelles créations par jour UTC.
+        The image shown on your card will be published, including your custom
+        image if you have one. An existing link will be updated with this image.
+        You can create up to 10 new links per UTC day.
       </p>
       <label className="flex items-center gap-3 text-sm">
         <input
@@ -110,7 +112,7 @@ function ShareSheet({
             setMessage("");
           }}
         />
-        Afficher mon pseudo
+        Show my username
       </label>
       {!url ? (
         <Button
@@ -123,12 +125,12 @@ function ShareSheet({
             )
           }
         >
-          {busy ? "Création…" : "Créer le lien"}
+          {busy ? "Creating…" : "Create link"}
         </Button>
       ) : (
         <>
           <label className="block text-sm">
-            Lien public
+            Public link
             <input
               className="auth-input mt-2"
               readOnly
@@ -142,11 +144,11 @@ function ShareSheet({
               onClick={() =>
                 void run(async () => {
                   await navigator.clipboard.writeText(url);
-                  setMessage("Lien copié");
+                  setMessage("Link copied");
                 })
               }
             >
-              Copier le lien
+              Copy link
             </Button>
             {nativeShare && (
               <Button
@@ -158,7 +160,7 @@ function ShareSheet({
                   })
                 }
               >
-                Partager le lien
+                Share link
               </Button>
             )}
             <Button
@@ -166,14 +168,14 @@ function ShareSheet({
               disabled={busy}
               onClick={() => void run(() => download("story"))}
             >
-              Télécharger la story
+              Download story
             </Button>
             <Button
               variant="secondary"
               disabled={busy}
               onClick={() => void run(() => download("square"))}
             >
-              Télécharger le carré
+              Download square image
             </Button>
           </div>
         </>
@@ -198,13 +200,9 @@ export function MyCardShares() {
   return (
     <>
       <Button variant="secondary" onClick={() => setOpen(true)}>
-        Mes liens partagés
+        My shared links
       </Button>
-      <Modal
-        open={open}
-        onClose={() => setOpen(false)}
-        title="Mes liens partagés"
-      >
+      <Modal open={open} onClose={() => setOpen(false)} title="My shared links">
         {open && <ShareList />}
       </Modal>
     </>
@@ -274,7 +272,7 @@ function ShareList() {
         </p>
       )}
       {loading ? (
-        <p role="status">Chargement…</p>
+        <p role="status">Loading…</p>
       ) : rows.length ? (
         <ul className="space-y-4">
           {rows.map(row => (
@@ -289,17 +287,17 @@ function ShareList() {
                 {row.shiny ? " Shiny" : ""}
               </a>
               <p className="my-2 text-xs text-ink-3">
-                {row.showPseudo ? "Pseudo affiché" : "Sans pseudo"} ·{" "}
-                {new Date(row.createdAt).toLocaleDateString("fr-FR")}
+                {row.showPseudo ? "Username shown" : "Sans pseudo"} ·{" "}
+                {new Date(row.createdAt).toLocaleDateString("en-US")}
               </p>
               <Button variant="danger" onClick={() => setCandidate(row)}>
-                Supprimer
+                Remove
               </Button>
             </li>
           ))}
         </ul>
       ) : (
-        <p>Aucun lien partagé sur cette page.</p>
+        <p>No shared links on this page.</p>
       )}
       <div className="flex gap-3">
         <Button
@@ -307,14 +305,14 @@ function ShareList() {
           disabled={loading || offset === 0}
           onClick={() => page(Math.max(0, offset - 50))}
         >
-          Précédente
+          Previous
         </Button>
         <Button
           variant="secondary"
           disabled={loading || rows.length < 50}
           onClick={() => page(offset + 50)}
         >
-          Suivante
+          Next
         </Button>
       </div>
       <Modal
@@ -322,10 +320,10 @@ function ShareList() {
         onClose={() => {
           if (!deleting) setCandidate(null);
         }}
-        title="Supprimer ce lien ?"
+        title="Delete this link?"
       >
         <p className="text-sm text-ink-2">
-          Le lien de {candidate?.cardName} ne sera plus accessible.{" "}
+          The link for {candidate?.cardName} will no longer be available.{" "}
           {previewWarning}
         </p>
         {error && (
@@ -339,14 +337,14 @@ function ShareList() {
             disabled={deleting}
             onClick={() => setCandidate(null)}
           >
-            Annuler
+            Cancel
           </Button>
           <Button
             variant="danger"
             disabled={deleting}
             onClick={() => void remove()}
           >
-            {deleting ? "Suppression…" : "Confirmer la suppression"}
+            {deleting ? "Suppression…" : "Confirm deletion"}
           </Button>
         </div>
       </Modal>

@@ -62,8 +62,7 @@ export function useNotificationFeed(
                   : undefined,
               error: failure
             });
-          if (mounted.current)
-            setError("Impossible de charger tes notifications.");
+          if (mounted.current) setError("Couldn't load your notifications.");
         }
       )
       .finally(() => {

@@ -274,7 +274,7 @@ export async function renderSharedCardImage(
                 color: "#A9A2C2"
               }}
             >
-              Partagée par {card.pseudo}
+              Shared by {card.pseudo}
             </div>
           ) : null}
         </div>
