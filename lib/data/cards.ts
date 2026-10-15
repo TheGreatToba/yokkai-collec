@@ -250,7 +250,7 @@ export async function setPaniniAlbumFavorite(
   const id = await playerId();
   const safeLicense = license.trim();
   if (!safeLicense || safeLicense.length > 200)
-    throw new Error("Ce classeur ne peut pas être ajouté aux favoris.");
+    throw new Error("This binder can't be added to favorites.");
   const request = favorite
     ? db()
         .from("panini_album_favorites")

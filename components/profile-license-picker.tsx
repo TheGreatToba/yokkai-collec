@@ -47,9 +47,7 @@ function LicenseResults({
           reason => {
             if (!active) return;
             setError(
-              reason instanceof Error
-                ? reason.message
-                : "Licences indisponibles."
+              reason instanceof Error ? reason.message : "Licenses unavailable."
             );
             setBusy(false);
           }
@@ -79,7 +77,7 @@ function LicenseResults({
     } catch (reason) {
       if (mounted.current)
         setError(
-          reason instanceof Error ? reason.message : "Licences indisponibles."
+          reason instanceof Error ? reason.message : "Licenses unavailable."
         );
     } finally {
       pending.current = false;
@@ -90,12 +88,12 @@ function LicenseResults({
     <>
       <p className="yk-profile-muted" role="status">
         {busy && !page
-          ? "Chargement des licences…"
-          : `${result.total} licence${result.total > 1 ? "s" : ""} disponible${result.total > 1 ? "s" : ""} · ${selected.length}/12 sélectionnées`}
+          ? "Loading licenses…"
+          : `${result.total.toLocaleString("en-US")} ${result.total === 1 ? "license" : "licenses"} available · ${selected.length}/12 selected`}
       </p>
       <div
         className="yk-profile-license-results"
-        aria-label={`Licences disponibles · ${category}`}
+        aria-label={`Available licenses · ${category}`}
       >
         {result.items.map(license => (
           <button
@@ -115,9 +113,7 @@ function LicenseResults({
         ))}
       </div>
       {!busy && !error && !result.total && (
-        <p className="yk-profile-empty">
-          Aucune licence ne correspond à cette recherche.
-        </p>
+        <p className="yk-profile-empty">No licenses match this search.</p>
       )}
       {error && (
         <p role="alert" className="text-danger-ink">
@@ -130,11 +126,7 @@ function LicenseResults({
           disabled={busy || disabled}
           onClick={() => void nextPage()}
         >
-          {busy
-            ? "Chargement…"
-            : error
-              ? "Réessayer"
-              : "Afficher plus de licences"}
+          {busy ? "Loading…" : error ? "Try again" : "Show more licenses"}
         </Button>
       )}
     </>
@@ -155,14 +147,14 @@ export function ProfileLicensePicker(props: PickerProps) {
   return (
     <div className="yk-profile-license-picker" ref={panel}>
       <label>
-        Rechercher parmi les licences du catalogue
+        Search catalog licenses
         <input
           className="auth-input"
           type="search"
           maxLength={200}
           value={query}
           disabled={props.disabled}
-          placeholder="Rechercher une licence…"
+          placeholder="Search licenses…"
           onChange={event => setQuery(event.target.value)}
         />
       </label>

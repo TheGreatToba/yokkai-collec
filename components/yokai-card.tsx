@@ -139,7 +139,7 @@ export function CardBack({ className = "" }: { className?: string }) {
   return (
     <div
       role="img"
-      aria-label="Dos de carte Yokkai Collec’"
+      aria-label="Yokkai Collec’ card back"
       className={`yk-card-back ${className}`}
     />
   );

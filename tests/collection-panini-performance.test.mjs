@@ -52,7 +52,7 @@ test("les classeurs personnels peuvent être placés en favoris", () => {
     /onClick=\{event => \{\s*event\.stopPropagation\(\);[^]*togglePaniniAlbumFavorite/
   );
   assert.match(collectionStyles, /\.yk-panini-favorite\s*\{[^}]*z-index:\s*2;/);
-  assert.match(collection, /★ Favoris uniquement/);
+  assert.match(collection, /★ Favorites only/);
   assert.match(collection, /aria-pressed=\{favoritesOnly\}/);
   assert.match(collection, /favoritesOnly,/);
   assert.match(
@@ -73,8 +73,8 @@ test("les données Panini ne sont chargées que lorsque ce mode est ouvert", () 
 });
 
 test("le bouton Classeur revient à la collection normale au second clic", () => {
-  assert.match(collection, /<span>Classeur<\/span>/);
-  assert.match(collection, /<h2>Mes classeurs par licence<\/h2>/);
+  assert.match(collection, /<span>Binder<\/span>/);
+  assert.match(collection, /<h2>My license binders<\/h2>/);
   assert.doesNotMatch(
     collection,
     /Album Panini|Mode Panini|Mes albums par licence|Tous les albums|Chargement des albums/

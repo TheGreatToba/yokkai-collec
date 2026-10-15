@@ -378,14 +378,12 @@ test("les nouveaux visuels distinguent le booster régulier du Decision Pack", (
   const styles = readFileSync(path.join(root, "styles/boosters.css"), "utf8");
   assert.match(
     normalizeWhitespace(boosters),
-    normalizeWhitespace(
-      /src="\/assets\/booster-pack\.png" alt="Booster Régulier/
-    )
+    normalizeWhitespace(/src="\/assets\/booster-pack\.png" alt="Regular Pack/)
   );
   assert.match(
     normalizeWhitespace(boosters),
     normalizeWhitespace(
-      /src="\/assets\/decision-booster-pack\.png" alt="Booster Décisif/
+      /src="\/assets\/decision-booster-pack\.png" alt="Decision Pack/
     )
   );
   assert.match(
@@ -712,11 +710,11 @@ test("la destruction multiple est active et transmet tous les exemplaires sélec
   );
   assert.match(
     normalizeWhitespace(controls),
-    normalizeWhitespace(/busy\?"Destruction…":"Détruire la sélection"/)
+    normalizeWhitespace(/busy\?"Destroying…":"Destroy selected"/)
   );
   assert.doesNotMatch(
     normalizeWhitespace(collection),
-    normalizeWhitespace(/Destruction bientôt disponible/)
+    normalizeWhitespace(/Destruction coming soon/)
   );
   assert.ok(
     collection.indexOf("<SelectionBar") >
@@ -765,10 +763,7 @@ test("la collection d'un ami montre ses images personnalisées sans proposer d'�
   });
   assert.match(html, /Carte de test/);
   assert.match(html, /private\.png/);
-  assert.doesNotMatch(
-    html,
-    /Sélection multiple|Détruire la sélection|Modifier le profil/
-  );
+  assert.doesNotMatch(html, /Sélection multiple|Destroy selected|Edit profile/);
 });
 
 test("le compteur de cartes ouvre toute collection autorisée en lecture seule", () => {
@@ -791,13 +786,13 @@ test("le compteur de cartes ouvre toute collection autorisée en lecture seule",
   assert.match(
     normalizeWhitespace(profile),
     normalizeWhitespace(
-      /profile\.canViewCollection\?profile\.cardCount:"Privée"/
+      /profile\.canViewCollection\?profile\.cardCount:"Private"/
     )
   );
   assert.match(
     normalizeWhitespace(profile),
     normalizeWhitespace(
-      /profile\.canViewCollection\?profile\.distinctCardCount:"Privée"/
+      /profile\.canViewCollection\?profile\.distinctCardCount:"Private"/
     )
   );
   assert.match(
@@ -858,7 +853,7 @@ test("le compteur wishlist d'un ami ouvre toute sa wishlist et chaque carte rest
   assert.match(
     normalizeWhitespace(profile),
     normalizeWhitespace(
-      /shown\.map\(card=>\(?<Link href=\{`\/recherche\?carte=\$\{card\.id\}`\}/
+      /shown\.map\(card=>\(?<Link href=\{`\/recherche\?card=\$\{card\.id\}`\}/
     )
   );
   assert.match(
@@ -912,15 +907,15 @@ test("une carte d'ami ouvre une proposition d'échange présélectionnée et ext
   );
   assert.match(
     normalizeWhitespace(collection),
-    normalizeWhitespace(/\/echanges\?ami=.*&carte=/)
+    normalizeWhitespace(/\/echanges\?ami=.*&card=/)
   );
   assert.match(
     normalizeWhitespace(collection),
-    normalizeWhitespace(/Proposer un échange/)
+    normalizeWhitespace(/Offer a trade/)
   );
   assert.match(
     normalizeWhitespace(community),
-    normalizeWhitespace(/initialRequestedCardId=\{searchParams\.get\("carte"\)/)
+    normalizeWhitespace(/initialRequestedCardId=\{searchParams\.get\("card"\)/)
   );
   assert.match(
     normalizeWhitespace(trades),
@@ -955,11 +950,11 @@ test("le catalogue reprend la sidebar sans notion de possession ni action de mas
   );
   assert.match(
     normalizeWhitespace(catalogue),
-    normalizeWhitespace(/CatalogueFilterSection title="Rareté"/)
+    normalizeWhitespace(/CatalogueFilterSection title="Rarity"/)
   );
   assert.match(
     normalizeWhitespace(catalogue),
-    normalizeWhitespace(/CatalogueFilterSection title="Catégorie"/)
+    normalizeWhitespace(/CatalogueFilterSection title="Category"/)
   );
   assert.match(
     normalizeWhitespace(catalogue),
@@ -1031,7 +1026,7 @@ test("le catalogue reprend la sidebar sans notion de possession ni action de mas
   );
   assert.doesNotMatch(
     normalizeWhitespace(catalogue),
-    normalizeWhitespace(/Dossier|Sélection multiple|Obtenue le|possédée/)
+    normalizeWhitespace(/Folder|Sélection multiple|Obtained on|possédée/)
   );
   assert.match(
     normalizeWhitespace(layout),
@@ -1724,11 +1719,11 @@ test("la collection annonce l'évolution de cinq SSR non-Shiny en Shiny", () => 
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/Progression Shiny/)
+    normalizeWhitespace(/Shiny progress/)
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/\{evolvableCopies\}\/5 exemplaires/)
+    normalizeWhitespace(/\{evolvableCopies\}\/5 copies/)
   );
   assert.doesNotMatch(
     normalizeWhitespace(source),
@@ -1736,12 +1731,12 @@ test("la collection annonce l'évolution de cinq SSR non-Shiny en Shiny", () => 
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/Confirmer l’évolution Shiny/)
+    normalizeWhitespace(/Confirm Shiny evolution/)
   );
   assert.match(
     normalizeWhitespace(source),
     normalizeWhitespace(
-      /Image : \{card\.customImageUrl\?"personnalisée \(sera perdue\)":"d’origine"\}/
+      /Image: \{card\.customImageUrl\?"personnalisée \(sera perdue\)":"original"\}/
     )
   );
   assert.match(
@@ -1772,11 +1767,11 @@ test("le Decision Pack confirmé affiche une carte gardée et quatre perdues", (
     }
   });
   assert.equal((html.match(/yk-lost-stamp/g) || []).length, 4);
-  assert.equal((html.match(/GARDÉE/g) || []).length, 1);
-  assert.doesNotMatch(html, />Détruire</);
+  assert.equal((html.match(/KEPT/g) || []).length, 1);
+  assert.doesNotMatch(html, />Destroy</);
   assert.match(
     html,
-    /Carte ajoutée à ta collection · \+0 Karas depuis les cartes non conservées/
+    /Carte ajoutée à ta collection · \+0 Karas from the cards you didn't keep/
   );
   assert.match(html, />SSR ×(?:<!-- -->)?1</);
   assert.doesNotMatch(html, />SSR ×(?:<!-- -->)?5</);
@@ -1806,7 +1801,7 @@ test("la collection pagine par multiples de 6 pour remplir la grille", () => {
     html,
     /<option value="24"[^>]*>24<\/option><option value="36"[^>]*>36<\/option><option value="48"[^>]*>48<\/option>/
   );
-  assert.doesNotMatch(html, /Cartes par page \(non disponible/);
+  assert.doesNotMatch(html, /Cards per page \(unavailable/);
 });
 
 test("le Classeur affiche 28 cartes par page par défaut", () => {
@@ -1859,10 +1854,10 @@ test("la collection signale et catégorise les cartes en enchères", () => {
     },
     async onCreateAuction() {}
   });
-  assert.match(html, /Statut/);
-  assert.match(html, /En enchères/);
+  assert.match(html, /Status/);
+  assert.match(html, /In auctions/);
   assert.match(html, /yk-group-frozen/);
-  assert.match(html, /1 en enchère/);
+  assert.match(html, /1 in auction/);
 });
 
 test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
@@ -1879,14 +1874,14 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
     onReturn() {},
     async onDiscard() {}
   });
-  assert.equal((regular.match(/>Défausser</g) || []).length, 2);
+  assert.equal((regular.match(/>Discard</g) || []).length, 2);
   assert.doesNotMatch(
     normalizeWhitespace(regular),
-    normalizeWhitespace(/>Sélectionner</)
+    normalizeWhitespace(/>Select</)
   );
   assert.doesNotMatch(
     normalizeWhitespace(regular),
-    normalizeWhitespace(/Voir ma collection|yk-reveal-summary/)
+    normalizeWhitespace(/View my collection|yk-reveal-summary/)
   );
   const regularDone = render(BoosterReveal, {
     cards,
@@ -1897,13 +1892,13 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
   });
   assert.match(
     normalizeWhitespace(regularDone),
-    normalizeWhitespace(/href="\/collection"[^>]*>Voir ma collection</)
+    normalizeWhitespace(/href="\/collection"[^>]*>View my collection</)
   );
   assert.match(
     normalizeWhitespace(regularDone),
-    normalizeWhitespace(/>Sélectionner</)
+    normalizeWhitespace(/>Select</)
   );
-  assert.equal((regularDone.match(/>Défausser</g) || []).length, 5);
+  assert.equal((regularDone.match(/>Discard</g) || []).length, 5);
   const choosing = render(BoosterReveal, {
     cards,
     revealed: 5,
@@ -1915,10 +1910,10 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
       }
     }
   });
-  assert.equal((choosing.match(/>Garder celle-ci</g) || []).length, 5);
+  assert.equal((choosing.match(/>Keep this one</g) || []).length, 5);
   assert.doesNotMatch(
     normalizeWhitespace(choosing),
-    normalizeWhitespace(/yk-slot-button">Défausser/)
+    normalizeWhitespace(/yk-slot-button">Discard/)
   );
   const selection = render(Boosters, {
     status: { available: 0, maximum: 5, nextPackAt: Date.now() + 60_000 },
@@ -1943,29 +1938,29 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
   });
   assert.match(
     normalizeWhitespace(selection),
-    normalizeWhitespace(/0\/5 en réserve/)
+    normalizeWhitespace(/0\/5 in reserve/)
   );
   assert.match(
     normalizeWhitespace(selection),
-    normalizeWhitespace(/Prochain dans 01:00/)
+    normalizeWhitespace(/Next in 01:00/)
   );
   assert.match(
     normalizeWhitespace(selection),
-    normalizeWhitespace(/1 carte à garder parmi 5/)
+    normalizeWhitespace(/Keep 1 of 5 cards/)
   );
   assert.match(
     normalizeWhitespace(selection),
-    normalizeWhitespace(/Revient demain à 00:30/)
+    normalizeWhitespace(/Available tomorrow at 12:30 AM/)
   );
   assert.equal(
-    (selection.match(/aria-label="Voir les taux du Booster/g) || []).length,
+    (selection.match(/aria-label="View taux du Booster/g) || []).length,
     2
   );
   assert.match(
     normalizeWhitespace(
       readFileSync(path.join(root, "components/boosters.tsx"), "utf8")
     ),
-    normalizeWhitespace(/Taux de drop du Booster/)
+    normalizeWhitespace(/drop rates/)
   );
   const source = readFileSync(
     path.join(root, "components/boosters.tsx"),
@@ -1998,7 +1993,7 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
   assert.match(
     normalizeWhitespace(source),
     normalizeWhitespace(
-      /Garder cette carte et perdre les \{cards\.length - 1\} autres \?/
+      /Keep this card and lose the other \{cards\.length - 1\} \{cards\.length - 1 === 1 \? "card" : "cards"\}\?/
     )
   );
   assert.match(
@@ -2072,13 +2067,10 @@ test("les boosters annoncent les gains autoritaires avant confirmation", () => {
     onReturn() {},
     async onDiscard() {}
   });
-  assert.match(
-    normalizeWhitespace(regular),
-    normalizeWhitespace(/>Sélectionner</)
-  );
+  assert.match(normalizeWhitespace(regular), normalizeWhitespace(/>Select</));
   assert.doesNotMatch(
     normalizeWhitespace(regular),
-    normalizeWhitespace(/Défausser \(\+/)
+    normalizeWhitespace(/Discard \(\+/)
   );
   const decision = render(BoosterReveal, {
     cards,
@@ -2091,10 +2083,10 @@ test("les boosters annoncent les gains autoritaires avant confirmation", () => {
       }
     }
   });
-  assert.equal((decision.match(/>Garder celle-ci</g) || []).length, 5);
+  assert.equal((decision.match(/>Keep this one</g) || []).length, 5);
   assert.doesNotMatch(
     normalizeWhitespace(decision),
-    normalizeWhitespace(/Garder celle-ci \(\+/)
+    normalizeWhitespace(/Keep this one \(\+/)
   );
   const source = readFileSync(
     path.join(root, "components/boosters.tsx"),
@@ -2109,7 +2101,7 @@ test("les boosters annoncent les gains autoritaires avant confirmation", () => {
   assert.match(
     normalizeWhitespace(source),
     normalizeWhitespace(
-      /Tu recevras <strong className="text-karas">\{selectedValue\}/
+      /You'll receive <strong className="text-karas">\{selectedValue\}/
     )
   );
   assert.match(
@@ -2158,12 +2150,12 @@ test("une carte révélée ouvre le détail de collection avant sa mise en vente
   );
   assert.doesNotMatch(
     normalizeWhitespace(boosters),
-    normalizeWhitespace(/className="yk-slot-button">Mettre en vente<\/Button>/)
+    normalizeWhitespace(/className="yk-slot-button">List for auction<\/Button>/)
   );
   assert.match(
     normalizeWhitespace(boosters),
     normalizeWhitespace(
-      /auctioned\.has\(card\.instanceId\)\?\(?<StatusPill tone="info">EN VENTE/
+      /auctioned\.has\(card\.instanceId\)\?\(?<StatusPill tone="info">LISTED/
     )
   );
   assert.match(
@@ -2198,8 +2190,8 @@ test("la modale de détail hiérarchise verrouillage, progression et actions ava
     "utf8"
   );
   const modal = source.slice(
-    source.indexOf('title="Détail de la carte"'),
-    source.indexOf('title="Détruire des exemplaires ?"')
+    source.indexOf('title="Card details"'),
+    source.indexOf('title="Destroy copies?"')
   );
   assert.ok(modal.indexOf("yk-detail-art") < modal.indexOf("yk-detail-folder"));
   assert.ok(
@@ -2232,16 +2224,16 @@ test("la modale de détail hiérarchise verrouillage, progression et actions ava
   assert.match(
     normalizeWhitespace(modal),
     normalizeWhitespace(
-      /<details className="yk-detail-image"><summary>Personnaliser l'image/
+      /<details className="yk-detail-image"><summary>Customize image/
     )
   );
   assert.match(
     normalizeWhitespace(modal),
-    normalizeWhitespace(/Détruire des exemplaires/)
+    normalizeWhitespace(/Destroy copies/)
   );
   assert.match(
     normalizeWhitespace(modal),
-    normalizeWhitespace(/Revenir à l’image d’origine/)
+    normalizeWhitespace(/Restore original image/)
   );
   assert.match(
     normalizeWhitespace(modal),
@@ -2249,11 +2241,11 @@ test("la modale de détail hiérarchise verrouillage, progression et actions ava
   );
   assert.doesNotMatch(
     normalizeWhitespace(modal),
-    normalizeWhitespace(/Une carte verrouillée ne peut pas être vendue/)
+    normalizeWhitespace(/Une card verrouillée ne peut pas être vendue/)
   );
   assert.doesNotMatch(
     normalizeWhitespace(modal),
-    normalizeWhitespace(/aria-label=\{`Détruire \$\{selected\.name\}`\}/)
+    normalizeWhitespace(/aria-label=\{`Destroy \$\{selected\.name\}`\}/)
   );
   assert.match(
     normalizeWhitespace(source),
@@ -2286,21 +2278,15 @@ test("les cartes verrouillees sont exclues des actions sensibles", () => {
       /filter\(c=>!c\.locked&&!presentation\[c\.instanceId\]\?\.frozen\)/
     )
   );
+  assert.match(normalizeWhitespace(source), normalizeWhitespace(/Lock card/));
+  assert.match(normalizeWhitespace(source), normalizeWhitespace(/Unlock card/));
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/Verrouiller la carte/)
+    normalizeWhitespace(/selected\.locked\?"Card locked"/)
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/Déverrouiller la carte/)
-  );
-  assert.match(
-    normalizeWhitespace(source),
-    normalizeWhitespace(/selected\.locked\?"Carte verrouillée"/)
-  );
-  assert.match(
-    normalizeWhitespace(source),
-    normalizeWhitespace(/Cartes verrouillées/)
+    normalizeWhitespace(/Locked cards/)
   );
   assert.match(
     normalizeWhitespace(source),
@@ -2345,18 +2331,18 @@ test("la Collection groupe les tuiles et sélectionne tous les exemplaires dispo
   );
   assert.doesNotMatch(
     normalizeWhitespace(source),
-    normalizeWhitespace(/Dernier exemplaire obtenu le/)
+    normalizeWhitespace(/Last copy obtained on/)
   );
   assert.match(
     normalizeWhitespace(source),
     normalizeWhitespace(
-      />Obtenu le <time dateTime=\{historyGroup\.firstObtainedAt\}>\{formatDate\(historyGroup\.firstObtainedAt\)\}<\/time>/
+      />Obtained on <time dateTime=\{historyGroup\.firstObtainedAt\}>\{formatDate\(historyGroup\.firstObtainedAt\)\}<\/time>/
     )
   );
   assert.match(
     normalizeWhitespace(source),
     normalizeWhitespace(
-      /Premier propriétaire, obtenu le \{formatDate\(historyGroup\.firstObtainedAt\)\}/
+      /First owner, obtained on \{formatDate\(historyGroup\.firstObtainedAt\)\}/
     )
   );
   assert.match(
@@ -2373,7 +2359,7 @@ test("la Collection groupe les tuiles et sélectionne tous les exemplaires dispo
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/Choisis précisément cinq exemplaires/)
+    normalizeWhitespace(/Choose exactly five copies/)
   );
 });
 
@@ -2396,11 +2382,11 @@ test("la sélection multiple peut être rangée dans un dossier", () => {
   );
   assert.match(
     normalizeWhitespace(collection),
-    normalizeWhitespace(/>Choisir un dossier…<\/option>/)
+    normalizeWhitespace(/>Choose a folder…<\/option>/)
   );
   assert.match(
     normalizeWhitespace(collection),
-    normalizeWhitespace(/bulkFolderBusy\?"Rangement…":"Ranger"/)
+    normalizeWhitespace(/bulkFolderBusy\?"Moving…":"Move"/)
   );
   assert.match(
     normalizeWhitespace(game),
@@ -2435,12 +2421,12 @@ test("la mise en vente suggère la valeur de marché sans remplacer le prix par 
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/Suggestion : <Karas amount=\{auctionSuggestion\}/)
+    normalizeWhitespace(/Suggested: <Karas amount=\{auctionSuggestion\}/)
   );
   assert.match(
     normalizeWhitespace(source),
     normalizeWhitespace(
-      /onClick=\{\(\)=>setAuctionPrice\(String\(auctionSuggestion\)\)\}>Utiliser cette valeur/
+      /onClick=\{\(\)=>setAuctionPrice\(String\(auctionSuggestion\)\)\}>Use this value/
     )
   );
   const proof = readFileSync(
@@ -2583,7 +2569,7 @@ test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
   assert.match(search, /<header class="yk-market-heading">/);
   assert.equal((search.match(/<h1(?:\s|>)/g) ?? []).length, 1);
   assert.equal((html.match(/<h1(?:\s|>)/g) ?? []).length, 0);
-  assert.doesNotMatch(search, /Vendre une carte|All active auctions/);
+  assert.doesNotMatch(search, /Vendre une card|All active auctions/);
   assert.match(
     normalizeWhitespace(search),
     normalizeWhitespace(/<span>Manga<\/span>/)
@@ -2619,7 +2605,7 @@ test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
     normalizeWhitespace(source),
     normalizeWhitespace(/"Vendues"/)
   );
-  // One sidebar for both tabs; My auctions swaps the price sort for a Statut section.
+  // One sidebar for both tabs; My auctions swaps the price sort for a Status section.
   assert.match(
     normalizeWhitespace(source),
     normalizeWhitespace(
@@ -2730,7 +2716,7 @@ test("le Marché trie par favoris_count puis fin et identifiant", () => {
     path.join(root, "supabase/migrations/20261001000001_market_popularity.sql"),
     "utf8"
   );
-  assert.match(migration, /'popularity',coalesce\(c\.favoris_count,0\)/);
+  assert.match(migration, /'popularity',coalesce\(c\.favorites_count,0\)/);
   assert.doesNotMatch(migration, /join public\.auction_watchers/);
   assert.ok(
     existsSync(
@@ -2954,13 +2940,13 @@ test("Phase 6 : la mise en vente confirme le verrouillage et signale la réiniti
   assert.match(
     normalizeWhitespace(source),
     normalizeWhitespace(
-      /Carte mise aux enchères — verrouillée jusqu’à la fin de la vente/
+      /Card listed for auction — locked until the auction ends/
     )
   );
   assert.match(
     normalizeWhitespace(source),
     normalizeWhitespace(
-      /selected\.customImageUrl&&\(?<li>L’image personnalisée de cette carte sera réinitialisée\.<\/li>/
+      /selected\.customImageUrl&&\(?<li>L’image personnalisée de this card sera réinitialisée\.<\/li>/
     )
   );
   assert.match(
@@ -3238,7 +3224,7 @@ test("tri de la Collection : rareté par défaut, dates, nom français et ordre 
   assert.equal(DEFAULT_COLLECTION_SORT, "rarity");
   assert.equal(
     COLLECTION_SORTS.map(option => option.label).join(" | "),
-    "Rareté | Plus récentes | Plus anciennes | Nom (A → Z)"
+    "Rarity | Newest first | Oldest first | Name (A → Z)"
   );
   assert.equal(names("rarity"), "akira,Zorro,Mochi,Écho,Kitsune,Bashō");
   assert.equal(names("recent"), "Bashō,Zorro,Mochi,Écho,akira,Kitsune");
@@ -3287,4 +3273,46 @@ test("tri de la Collection : rareté par défaut, dates, nom français et ordre 
     ),
     "la largeur partagée des actions ne change pas"
   );
+});
+
+test("English selection and achievement labels handle singulars, plurals and en-US numbers", () => {
+  const { SelectionBar } = load("components/ui/index.tsx");
+  const noop = () => {};
+  for (const [count, itemLabel, expected] of [
+    [0, "carte", "0 cards selected"],
+    [1, "exemplaire", "1 copy selected"],
+    [2, "exemplaire", "2 copies selected"],
+    [1000, "carte", "1,000 cards selected"]
+  ]) {
+    const html = render(SelectionBar, {
+      count,
+      itemLabel,
+      onAll: noop,
+      onNone: noop,
+      onDestroy: noop,
+      onClose: noop
+    });
+    assert.ok(html.replace(/<[^>]*>/g, "").includes(expected), expected);
+    assert.match(html, /aria-label="Exit multi-select"/);
+  }
+  const { AchievementCard } = load("components/achievements.tsx");
+  for (const [conditionType, target, expected] of [
+    ["first_lr_card", 1, "0/1 LR card"],
+    ["shiny_cards_collected", 2, "0/2 Shiny cards"],
+    ["regular_packs_opened", 1000, "0/1,000 packs opened"]
+  ]) {
+    const html = render(AchievementCard, {
+      item: {
+        id: "proof",
+        title: "Proof",
+        description: "Proof description.",
+        conditionType,
+        progressCurrent: 0,
+        progressTarget: target,
+        karasReward: 10
+      },
+      onClaim: noop
+    });
+    assert.ok(html.includes(expected), expected);
+  }
 });

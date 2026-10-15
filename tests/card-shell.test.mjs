@@ -104,7 +104,7 @@ test("les reveals et la confirmation Decision Pack gardent les composants direct
   assert.match(
     normalizeWhitespace(boosters),
     normalizeWhitespace(
-      /title={`Garder \$\{chosen\?\.name \|\| "cette carte"\} \?`}[^]*?<YokaiCard \{\.\.\.chosen\} \/>/
+      /title={`Keep \$\{chosen\?\.name \|\| "this card"\}\?`}[^]*?<YokaiCard \{\.\.\.chosen\} \/>/
     )
   );
 });

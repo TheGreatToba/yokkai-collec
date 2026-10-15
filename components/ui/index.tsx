@@ -90,7 +90,7 @@ export function Pagination({
     >
       <button
         type="button"
-        aria-label="Page précédente"
+        aria-label="Previous page"
         disabled={activePage === 1}
         onClick={() => onPageChange(activePage - 1)}
         className={`${buttonClass} border-veil text-ink-2 hover:border-veil-strong hover:text-ink disabled:cursor-not-allowed disabled:opacity-30`}
@@ -121,7 +121,7 @@ export function Pagination({
       )}
       <button
         type="button"
-        aria-label="Page suivante"
+        aria-label="Next page"
         disabled={activePage === pageCount}
         onClick={() => onPageChange(activePage + 1)}
         className={`${buttonClass} border-veil text-ink-2 hover:border-veil-strong hover:text-ink disabled:cursor-not-allowed disabled:opacity-30`}
@@ -178,8 +178,8 @@ export function SelectionModeButton({
   active,
   onClick,
   className = "",
-  inactiveLabel = "Mode sélection",
-  activeLabel = "Quitter la sélection"
+  inactiveLabel = "Select cards",
+  activeLabel = "Exit selection"
 }: {
   active: boolean;
   onClick: () => void;
@@ -241,9 +241,15 @@ export function SelectionBar({
   return (
     <div className="yk-selection-bar">
       <span className="text-sm">
-        <strong>{count}</strong> {itemLabel}
-        {count === 1 ? "" : "s"} sélectionné{itemLabel === "carte" ? "e" : ""}
-        {count === 1 ? "" : "s"}
+        <strong>{count.toLocaleString("en-US")}</strong>{" "}
+        {itemLabel === "carte"
+          ? count === 1
+            ? "card"
+            : "cards"
+          : count === 1
+            ? "copy"
+            : "copies"}{" "}
+        selected
       </span>
       <Karas amount={value} />
       <button
@@ -252,7 +258,7 @@ export function SelectionBar({
         className="text-xs text-ink-2"
         onClick={onAll}
       >
-        Tout
+        All
       </button>
       <button
         type="button"
@@ -260,7 +266,7 @@ export function SelectionBar({
         className="text-xs text-ink-2"
         onClick={onNone}
       >
-        Aucune
+        None
       </button>
       {actions}
       {error && (
@@ -269,13 +275,13 @@ export function SelectionBar({
         </span>
       )}
       <Button variant="danger" disabled={!count || busy} onClick={onDestroy}>
-        {busy ? "Destruction…" : "Détruire la sélection"}
+        {busy ? "Destroying…" : "Destroy selected"}
       </Button>
       <button
         type="button"
         disabled={busy}
-        aria-label="Quitter la sélection multiple"
-        title="Quitter la sélection multiple"
+        aria-label="Exit multi-select"
+        title="Exit multi-select"
         className="flex size-9 shrink-0 items-center justify-center rounded-full border border-veil text-lg leading-none text-ink-2 transition-colors hover:border-veil-strong hover:bg-veil hover:text-ink"
         onClick={onClose}
       >

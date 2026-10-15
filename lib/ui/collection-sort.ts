@@ -2,10 +2,10 @@ import type { CollectedCard, Rarity } from "@/lib/data/cards";
 
 export type CollectionSort = "rarity" | "recent" | "oldest" | "name";
 export const COLLECTION_SORTS: { value: CollectionSort; label: string }[] = [
-  { value: "rarity", label: "Rareté" },
-  { value: "recent", label: "Plus récentes" },
-  { value: "oldest", label: "Plus anciennes" },
-  { value: "name", label: "Nom (A → Z)" }
+  { value: "rarity", label: "Rarity" },
+  { value: "recent", label: "Newest first" },
+  { value: "oldest", label: "Oldest first" },
+  { value: "name", label: "Name (A → Z)" }
 ];
 export const DEFAULT_COLLECTION_SORT: CollectionSort = "rarity";
 export const isCollectionSort = (value: unknown): value is CollectionSort =>
