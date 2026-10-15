@@ -6,6 +6,7 @@ import { ProfileExperience, type ProfileAdapter } from "@/components/profile";
 import { Topbar } from "@/components/topbar";
 import { getPaniniAlbumsPage, type CollectedCard } from "@/lib/data/cards";
 import type { ProfileDetails, ProfileInterests } from "@/lib/data/profile";
+import { PROFILE_IMAGE_MAX_BYTES } from "@/lib/data/profile";
 import type { ProfileEngagement } from "@/lib/data/profile";
 import type { WallPost } from "@/lib/data/profile-wall";
 import type { AuctionDetail, AuctionChatMessage } from "@/lib/data/market";
@@ -157,12 +158,12 @@ export function ProfilePreview() {
     });
     const upload = async (file: File) => {
       if (
-        file.size > 2 * 1024 * 1024 ||
+        file.size > PROFILE_IMAGE_MAX_BYTES ||
         !["image/jpeg", "image/png", "image/webp", "image/gif"].includes(
           file.type
         )
       )
-        throw new Error("JPG, PNG, WebP ou GIF, 2 Mo maximum.");
+        throw new Error("Use a JPG, PNG, WebP or GIF image up to 4 MB.");
       const url = URL.createObjectURL(file);
       previewUrls.current.push(url);
       return url;
