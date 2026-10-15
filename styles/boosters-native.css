@@ -1,0 +1,282 @@
+/* Native counterparts of the supplied visual references. The actual game card
+   stays in the existing flip/deposit flow; no video, canvas recording or player. */
+.yk-reveal-stage:is(.yk-reveal-sr, .yk-reveal-ssr, .yk-reveal-lr) {
+  --drop-violet: #c4a3ee;
+  --drop-pink: #ff5fa8;
+  --drop-gold: #e8c26a;
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  min-height: 100dvh;
+  justify-content: center;
+  overflow: hidden;
+  padding: 70px 20px 50px;
+  background: radial-gradient(ellipse at center, #151125, #070910 65%);
+}
+.yk-reveal-stage:is(.yk-reveal-sr, .yk-reveal-ssr, .yk-reveal-lr) .yk-deck {
+  width: clamp(164px, 18vw, 250px);
+}
+.yk-reveal-stage:is(.yk-reveal-sr, .yk-reveal-ssr, .yk-reveal-lr)
+  > p:last-child {
+  position: absolute;
+  inset: auto 20px max(26px, env(safe-area-inset-bottom));
+  margin: 0;
+}
+.yk-reveal-stage .yk-callout {
+  top: max(28px, env(safe-area-inset-top));
+  width: 100%;
+  text-align: center;
+  font-size: clamp(15px, 2vw, 22px);
+}
+.yk-reveal-stage .yk-ssr-backdrop,
+.yk-reveal-stage .yk-lr-backdrop {
+  animation: none;
+  background: radial-gradient(ellipse at center, #171123, #070910 68%);
+}
+
+/* SR: violet border ignition, small stars, a quiet halo and a real 3D flip. */
+.yk-reveal-sr .yk-face-up {
+  transform: translateY(-10px) scale(1.05);
+}
+.yk-reveal-sr .yk-face-up .yk-card {
+  box-shadow:
+    0 0 2px #fff,
+    0 0 24px #c4a3ee,
+    0 0 65px #a78bfa66;
+}
+.yk-reveal-sr .yk-sr-flash {
+  top: 50%;
+  width: min(360px, 85vw);
+  height: 440px;
+  transform: translate(-50%, -50%);
+  filter: none;
+  background: radial-gradient(ellipse, #c4a3ee44, transparent 68%);
+  animation: yk-native-sr-halo 1.2s ease-out both;
+}
+.yk-reveal-sr .yk-sr-flash::before {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(circle at 18% 24%, white 0 1px, transparent 3px),
+    radial-gradient(circle at 80% 38%, #dfcaff 0 2px, transparent 4px),
+    radial-gradient(circle at 28% 77%, white 0 1px, transparent 3px),
+    radial-gradient(circle at 78% 84%, #c4a3ee 0 2px, transparent 4px),
+    radial-gradient(circle at 40% 12%, white 0 1px, transparent 3px);
+  filter: drop-shadow(0 0 5px #c4a3ee);
+  animation: yk-native-stars 1.3s ease-out both;
+}
+.yk-reveal-sr .yk-sr-flash::after {
+  inset: 10% 18%;
+  height: auto;
+  border: 1px solid #dfcaff88;
+  border-radius: 24px;
+  background: none;
+  transform: none;
+  filter: blur(2px);
+  animation: yk-native-sr-ring 1.1s ease-out both;
+}
+
+/* SSR: pink comet ribbons orbit the actual card, then burst into petals. */
+.yk-reveal-ssr .yk-face-up .yk-flip {
+  transition: none;
+  animation: yk-native-ssr-flip 3.2s cubic-bezier(0.2, 0.75, 0.2, 1) both;
+}
+.yk-reveal-stage .yk-ssr-ribbon-stage {
+  top: 50%;
+  width: clamp(330px, 48vw, 580px);
+  height: clamp(420px, 60vw, 660px);
+}
+.yk-reveal-stage .yk-ssr-ribbon-svg {
+  filter: drop-shadow(0 0 5px #ff91cd) drop-shadow(0 0 14px #ff5fa8aa);
+}
+.yk-reveal-stage .yk-ssr-ribbon-path {
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 90 48 24 438;
+}
+.yk-reveal-stage .yk-ssr-ribbon-1 {
+  animation: yk-native-pink-comet 3.2s ease-out both;
+}
+.yk-reveal-stage .yk-ssr-ribbon-2 {
+  animation: yk-native-pink-comet 3.2s 0.12s ease-out both;
+}
+.yk-reveal-stage .yk-ssr-petal {
+  width: calc(var(--p-size) * 0.7);
+  height: calc(var(--p-size) * 1.7);
+}
+.yk-reveal-stage .yk-ssr-godray {
+  height: 3px;
+  filter: blur(3px);
+}
+.yk-reveal-stage .yk-ssr-flare-core {
+  width: 150px;
+  height: 150px;
+}
+.yk-reveal-stage .yk-ssr-backlight,
+.yk-reveal-stage .yk-ssr-ribbon-stage,
+.yk-reveal-stage .yk-ssr-godrays,
+.yk-reveal-stage .yk-ssr-supernova,
+.yk-reveal-stage .yk-ssr-petals-explosion,
+.yk-reveal-stage .yk-ssr-ambient-petals {
+  top: 50%;
+}
+
+/* LR: violet anticipation, golden radial beams, expanding halo and stardust. */
+.yk-reveal-lr .yk-face-up .yk-flip {
+  transition: none;
+  animation: yk-native-lr-flip 4.4s cubic-bezier(0.2, 0.75, 0.2, 1) both;
+}
+.yk-reveal-stage .yk-lr-godray {
+  width: 85vmax;
+  height: clamp(30px, 7vw, 100px);
+  clip-path: polygon(0 48%, 100% 0, 100% 100%, 0 52%);
+  background: linear-gradient(
+    90deg,
+    #fff9db,
+    #f6dc8ecc 22%,
+    #e8c26a66 65%,
+    transparent
+  );
+  filter: blur(1px);
+  animation: yk-native-golden-burst 1.7s calc(2.65s + var(--ray-i) * 5ms)
+    ease-out both;
+}
+.yk-reveal-stage .yk-lr-cosmic-dust {
+  background: #fff0bb;
+  box-shadow: 0 0 8px #e8c26a;
+}
+.yk-reveal-stage .yk-lr-lightning-svg {
+  opacity: 0.3;
+}
+.yk-reveal-lr .yk-lr-callout {
+  color: var(--drop-gold);
+  text-shadow:
+    0 0 24px #e8c26a,
+    0 0 45px #e8c26a99;
+}
+.yk-reveal-stage .yk-lr-nebula {
+  filter: blur(28px);
+}
+.yk-reveal-stage .yk-lr-flare-core {
+  width: 200px;
+  height: 200px;
+}
+.yk-reveal-stage .yk-lr-backlight,
+.yk-reveal-stage .yk-lr-lightning-stage,
+.yk-reveal-stage .yk-lr-godrays,
+.yk-reveal-stage .yk-lr-supernova,
+.yk-reveal-stage .yk-lr-spark-explosion,
+.yk-reveal-stage .yk-lr-stardust-ring {
+  top: 50%;
+}
+
+@keyframes yk-native-sr-halo {
+  0% {
+    opacity: 0;
+    scale: 0.7;
+  }
+  38% {
+    opacity: 1;
+    scale: 1.05;
+  }
+  100% {
+    opacity: 0.4;
+    scale: 1;
+  }
+}
+@keyframes yk-native-stars {
+  0% {
+    opacity: 0;
+    translate: 0 15px;
+  }
+  45% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.35;
+    translate: 0 -12px;
+  }
+}
+@keyframes yk-native-sr-ring {
+  0% {
+    opacity: 0;
+    scale: 0.9;
+  }
+  35% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    scale: 1.3;
+  }
+}
+@keyframes yk-native-ssr-flip {
+  0%,
+  32% {
+    transform: rotateY(0deg) rotateZ(-3deg);
+  }
+  62%,
+  100% {
+    transform: rotateY(180deg) rotateZ(0deg);
+  }
+}
+@keyframes yk-native-lr-flip {
+  0%,
+  54% {
+    transform: rotateY(0deg) rotateZ(-3deg);
+  }
+  82%,
+  100% {
+    transform: rotateY(180deg) rotateZ(0deg);
+  }
+}
+@keyframes yk-native-pink-comet {
+  0% {
+    opacity: 0;
+    stroke-dashoffset: 600;
+  }
+  18% {
+    opacity: 0.9;
+  }
+  65% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.25;
+    stroke-dashoffset: -400;
+  }
+}
+@keyframes yk-native-golden-burst {
+  0% {
+    opacity: 0;
+    transform: translateY(-50%) rotate(calc(var(--ray-i) * 15deg)) scaleX(0.05);
+  }
+  22% {
+    opacity: 0.9;
+  }
+  65% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-50%) rotate(calc(var(--ray-i) * 15deg)) scaleX(1.15);
+  }
+}
+@media (max-width: 600px) {
+  .yk-reveal-stage:is(.yk-reveal-sr, .yk-reveal-ssr, .yk-reveal-lr) .yk-deck {
+    width: min(48vw, 190px);
+  }
+  .yk-reveal-stage .yk-ssr-ribbon-stage {
+    width: 95vw;
+    height: min(130vw, 560px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .yk-reveal-stage:is(.yk-reveal-sr, .yk-reveal-ssr, .yk-reveal-lr) *,
+  .yk-reveal-stage:is(.yk-reveal-sr, .yk-reveal-ssr, .yk-reveal-lr) *::before,
+  .yk-reveal-stage:is(.yk-reveal-sr, .yk-reveal-ssr, .yk-reveal-lr) *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
