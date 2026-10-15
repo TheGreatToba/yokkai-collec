@@ -831,12 +831,26 @@ test("le compteur wishlist d'un ami ouvre toute sa wishlist et chaque carte rest
     path.join(root, "components/profile.tsx"),
     "utf8"
   );
-  assert.match(
-    normalizeWhitespace(profile),
-    normalizeWhitespace(
-      /profile\.friendshipStatus==="accepted"\?\(?<button[^>]+onClick=\{\(\)=>setWishlistOpen\(true\)\}/
-    )
-  );
+  if (profile.includes("data-profile-wishlist")) {
+    assert.match(
+      normalizeWhitespace(profile),
+      normalizeWhitespace(
+        /<button[^>]+onClick=\{\(\)=>setWishlistOpen\(true\)\}[^>]+data-profile-wishlist/
+      )
+    );
+    assert.match(
+      normalizeWhitespace(profile),
+      normalizeWhitespace(/disabled=\{!profile\.canViewCollection\}/)
+    );
+    assert.match(profile, /aria-haspopup="dialog"/);
+  } else {
+    assert.match(
+      normalizeWhitespace(profile),
+      normalizeWhitespace(
+        /profile\.friendshipStatus==="accepted"\?\(?<button[^>]+onClick=\{\(\)=>setWishlistOpen\(true\)\}/
+      )
+    );
+  }
   assert.match(
     normalizeWhitespace(profile),
     normalizeWhitespace(/Wishlist de \$\{profile\.pseudo\}/)
@@ -868,12 +882,18 @@ test("l’aperçu wishlist du profil garde des cartes compactes", () => {
     path.join(root, "styles/community.css"),
     "utf8"
   );
-  assert.match(
-    normalizeWhitespace(profile),
-    normalizeWhitespace(
-      /className="yk-card-grid yk-profile-wishlist-preview mt-5"/
-    )
-  );
+  if (profile.includes("data-profile-wishlist")) {
+    assert.doesNotMatch(profile, /tab !== "wishlist"/);
+    assert.doesNotMatch(profile, /\["wishlist", "Wishlist"\]/);
+    assert.match(profile, /className="yk-card-grid yk-wishlist-grid"/);
+  } else {
+    assert.match(
+      normalizeWhitespace(profile),
+      normalizeWhitespace(
+        /className="yk-card-grid yk-profile-wishlist-preview mt-5"/
+      )
+    );
+  }
   assert.match(
     normalizeWhitespace(community),
     normalizeWhitespace(
