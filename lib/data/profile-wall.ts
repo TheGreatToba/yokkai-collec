@@ -10,16 +10,16 @@ export type WallAdapter = {
   discard: (path: string) => Promise<void>;
 };
 const messages: Record<string,string> = {
-  WALL_PRIVATE: "Ce mur est privé. Seuls ses amis peuvent le consulter.",
-  WALL_RATE_LIMITED: "Patiente quelques secondes entre deux publications (30 maximum par heure).",
-  WALL_FULL: "Ton mur contient déjà 500 publications. Supprime-en une pour continuer.",
-  WALL_POST_INVALID: "Écris jusqu’à 3 000 caractères, ou ajoute une image ou un GIF.",
-  WALL_GIF_INVALID: "Choisis un GIF dans le sélecteur.",
-  WALL_MEDIA_INVALID: "L’image n’est plus disponible. Choisis-la à nouveau."
+  WALL_PRIVATE: "This wall is private. Only their friends can view it.",
+  WALL_RATE_LIMITED: "Wait a few seconds between posts (up to 30 per hour).",
+  WALL_FULL: "Your wall already has 500 posts. Delete one to continue.",
+  WALL_POST_INVALID: "Write up to 3,000 characters, or add an image or GIF.",
+  WALL_GIF_INVALID: "Choose a GIF from the picker.",
+  WALL_MEDIA_INVALID: "The image is no longer available. Choose it again."
 };
 async function rpc<T>(name: string, args: Record<string,unknown>): Promise<T> {
   const { data, error } = await createClient().rpc(name,args);
-  if(error) throw new Error(messages[error.message] ?? "Le mur est temporairement indisponible. Réessaie dans un instant.");
+  if(error) throw new Error(messages[error.message] ?? "The wall is temporarily unavailable. Please try again in a moment.");
   return data as T;
 }
 export const liveWall: WallAdapter = {
@@ -28,14 +28,14 @@ export const liveWall: WallAdapter = {
   remove: id => rpc("delete_profile_wall_post",{p_id:id}),
   upload: async (file,ownerId) => {
     const formats: Record<string,string> = {"image/jpeg":"jpg","image/png":"png","image/webp":"webp","image/gif":"gif"};
-    if(!formats[file.type] || file.size>6*1024*1024 || file.size===0) throw new Error("JPG, PNG, WebP ou GIF, 6 Mo maximum.");
+    if(!formats[file.type] || file.size>6*1024*1024 || file.size===0) throw new Error("JPG, PNG, WebP, or GIF, up to 6 MB.");
     const path=`${ownerId}/${crypto.randomUUID()}.${formats[file.type]}`;
     const {error}=await createClient().storage.from("profile-wall-media").upload(path,file,{upsert:false,contentType:file.type});
-    if(error) throw new Error(error.message.includes("WALL_STORAGE_FULL") ? "Ton mur a atteint son quota de 100 Mo d’images. Supprime une ancienne publication illustrée pour continuer." : "Impossible d’envoyer l’image. Ton texte est conservé.");
+    if(error) throw new Error(error.message.includes("WALL_STORAGE_FULL") ? "Your wall has reached its 100 MB image quota. Delete an older post with an image to continue." : "Couldn't upload the image. Your text has been kept.");
     return path;
   },
   discard: async path => {
     const {error}=await createClient().storage.from("profile-wall-media").remove([path]);
-    if(error) throw new Error("Le fichier n’a pas pu être nettoyé. Réessaie.");
+    if(error) throw new Error("Couldn't remove the file. Please try again.");
   }
 };

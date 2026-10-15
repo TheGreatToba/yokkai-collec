@@ -7,7 +7,13 @@ de Walid et coordination avec sa PR #247 confirmées dans la conversation.
 - UR est entre SSR et LR ; aucune conversion des shiny déjà obtenues.
 - Les probabilités des boosters ne changent pas.
 
-Cette PR ne modifie que le contrat du test d'interface. Les assertions historiques
+Cette PR adapte le contrat du test d'interface et les données de test des taux de
+drop. UR étant une rareté d'exemplaire obtenue par fusion uniquement, la fixture
+du catalogue de boosters exclut UR de l'enum des raretés. Deux assertions ajoutées
+interdisent UR dans les probabilités des deux boosters. Aucun nombre de tirages,
+seuil statistique ou assertion existante de probabilité n'est modifié.
+
+Les assertions historiques du test d'interface
 restent actives tant que la nouvelle migration n'existe pas. Dès que la migration
 `20261015000008_ssr_evolution_ur.sql` est livrée, le même test exige exclusivement
 le nouveau contrat UR et interdit les anciens libellés Shiny. Il ne peut pas

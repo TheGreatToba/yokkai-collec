@@ -88,7 +88,7 @@ test("friends pagination never falls back on authorization failure", async () =>
     }),
     { paged: true }
   );
-  await assert.rejects(api.getFriendships(), /pas autoris/i);
+  await assert.rejects(api.getFriendships(), /permission to do this/i);
   assert.deepEqual(
     calls.map(call => call.name),
     ["get_friendships_page"]
@@ -102,14 +102,17 @@ test("amis : erreurs métier, autorisation et réseau ont des messages distincts
   }));
   await assert.rejects(
     business.api.sendFriendRequest("alice"),
-    /vous ajouter vous-m/i
+    /add yourself as a friend/i
   );
 
   const authorization = setup(async () => ({
     data: null,
     error: { message: "Forbidden", status: 403, code: "42501" }
   }));
-  await assert.rejects(authorization.api.getFriendships(), /pas autoris/i);
+  await assert.rejects(
+    authorization.api.getFriendships(),
+    /permission to do this/i
+  );
   assert.equal(authorization.logs[0][1].code, "42501");
   assert.equal(authorization.logs[0][1].status, 403);
   assert.equal(authorization.logs[0][1].message, "Forbidden");
@@ -119,16 +122,16 @@ test("amis : erreurs métier, autorisation et réseau ont des messages distincts
   });
   await assert.rejects(
     network.api.searchUsers("ali"),
-    /Impossible de joindre le serveur/
+    /Couldn't reach the server/
   );
   assert.equal(network.logs.length, 1);
 });
 
 test("amis : une relation existante distingue ami, demande envoyÃ©e et demande reÃ§ue", async () => {
   for (const [bucket, message] of [
-    ["friends", /amis avec ce joueur/],
-    ["outgoing", /ce joueur/],
-    ["incoming", /une demande/]
+    ["friends", /friends with this player/],
+    ["outgoing", /this player a friend request/],
+    ["incoming", /sent you a friend request/]
   ]) {
     const lists = { friends: [], incoming: [], outgoing: [] };
     lists[bucket].push({ id: "target", pseudo: "Yuki" });
@@ -153,7 +156,7 @@ test("amis : les dÃ©tails techniques ne sont pas journalisÃ©s en production"
     }),
     { nodeEnv: "production" }
   );
-  await assert.rejects(api.getFriendships(), /pas autoris/i);
+  await assert.rejects(api.getFriendships(), /permission to do this/i);
   assert.equal(logs.length, 0);
 });
 
@@ -185,7 +188,7 @@ test("demande impossible : aucun message de blocage n’est révélé", async ()
   await assert.rejects(
     api.sendFriendRequest("target"),
     error =>
-      error.message === "Impossible d’envoyer cette demande." &&
-      !/bloqu/i.test(error.message)
+      error.message === "Couldn't send this request." &&
+      !/block/i.test(error.message)
   );
 });

@@ -214,7 +214,7 @@ test("CHAT_RATE_LIMITED : détails RPC, brouillon, décompte et polling réel du
   assert.equal(ui.button().props.children, "42 s");
   assert.equal(
     ui.button().props["aria-label"],
-    "Envoyer, disponible dans quelques secondes"
+    "Send, available in a few seconds"
   );
   assert.equal(ui.status(), undefined);
   assert.equal(ui.alert(), undefined);
@@ -249,7 +249,7 @@ test("plafond de mentions : texte clair, erreur persistante après polling, brou
   await ui.flush();
   assert.equal(
     ui.alert().props.children,
-    "Tu peux mentionner au maximum 3 personnes différentes par message."
+    "You can mention up to 3 different people per message."
   );
   await ui.advance(3000);
   assert.equal(ui.textarea().props.value, "@Alice @Bob @Charlie @Diane");

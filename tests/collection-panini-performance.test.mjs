@@ -106,8 +106,8 @@ test("les cartes manquantes du Classeur restent visibles en niveaux de gris", ()
     collection,
     /<CatalogueCardModal[^]*selected=\{selectedMissingCard\}[^]*onClose=\{\(\) => setSelectedMissingCard\(null\)\}/
   );
-  assert.match(catalogueModal, /Possesseurs actuels/);
-  assert.match(catalogueModal, /Ajouter à ma wishlist/);
+  assert.match(catalogueModal, /Current owners/);
+  assert.match(catalogueModal, /Add to my wishlist/);
   assert.match(catalogueModal, /getCardDiscovery\(cardId\)/);
   assert.doesNotMatch(collection, /<span>\?<\/span>/);
   assert.doesNotMatch(collection, />Non possédée</);

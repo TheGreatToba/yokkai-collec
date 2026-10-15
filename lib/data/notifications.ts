@@ -17,5 +17,5 @@ export class NotificationRequestError extends Error {
 }
 let client:ReturnType<typeof createClient>|undefined;
 const db=()=>client??=createClient();
-export async function getNotifications(){const {data,error}=await readRequest(signal => db().rpc("list_notifications",{p_limit:30}).abortSignal(signal));if(error)throw new NotificationRequestError("Impossible de charger les notifications.",error);return data as AppNotification[];}
-export async function markNotificationRead(id?:string){const {error}=await db().rpc("mark_notification_read",{p_notification_id:id??null});if(error)throw new NotificationRequestError("Impossible de marquer la notification comme lue.",error);}
+export async function getNotifications(){const {data,error}=await readRequest(signal => db().rpc("list_notifications",{p_limit:30}).abortSignal(signal));if(error)throw new NotificationRequestError("Couldn't load notifications.",error);return data as AppNotification[];}
+export async function markNotificationRead(id?:string){const {error}=await db().rpc("mark_notification_read",{p_notification_id:id??null});if(error)throw new NotificationRequestError("Couldn't mark this notification as read.",error);}

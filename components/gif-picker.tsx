@@ -30,12 +30,12 @@ type GiphyResponse = {
 
 const PAGE_SIZE = 18;
 const GIF_CATEGORIES = [
-  { label: "Tendances", term: "" },
-  { label: "Réactions", term: "reaction" },
+  { label: "Trending", term: "" },
+  { label: "Reactions", term: "reaction" },
   { label: "Anime", term: "anime" },
   { label: "Gaming", term: "gaming" },
-  { label: "Sport", term: "sport" },
-  { label: "Mèmes", term: "meme" }
+  { label: "Sports", term: "sport" },
+  { label: "Memes", term: "meme" }
 ];
 
 const toChoice = (item: GiphyItem): GifChoice => {
@@ -88,7 +88,7 @@ export function GifPicker({
     const load = async () => {
       const key = process.env.NEXT_PUBLIC_GIPHY_API_KEY;
       if (!key) {
-        setError("La recherche GIF n’est pas configurée.");
+        setError("GIF search isn't configured.");
         setGifs([]);
         return;
       }
@@ -101,7 +101,7 @@ export function GifPicker({
           limit: String(PAGE_SIZE),
           offset: String(offset),
           rating: "pg-13",
-          lang: "fr",
+          lang: "en",
           bundle: "messaging_non_clips"
         });
         if (debouncedQuery) params.set("q", debouncedQuery.slice(0, 50));
@@ -130,7 +130,7 @@ export function GifPicker({
         );
       } catch (reason) {
         if (!(reason instanceof DOMException && reason.name === "AbortError"))
-          setError("Impossible de charger les GIF.");
+          setError("Couldn't load GIFs.");
       } finally {
         if (!controller.signal.aborted) setLoading(false);
       }
@@ -172,11 +172,11 @@ export function GifPicker({
       <Modal
         open={open}
         onClose={close}
-        title="Choisir un GIF"
+        title="Choose a GIF"
         className="yk-gif-modal"
       >
         <section className="yk-gif-panel">
-          <div className="yk-gif-categories" aria-label="Catégories de GIF">
+          <div className="yk-gif-categories" aria-label="GIF categories">
             {GIF_CATEGORIES.map(category => (
               <button
                 type="button"
@@ -189,7 +189,7 @@ export function GifPicker({
             ))}
           </div>
           <label className="sr-only" htmlFor="auction-gif-search">
-            Rechercher un GIF
+            Search GIFs
           </label>
           <div className="yk-gif-search">
             <span aria-hidden="true">⌕</span>
@@ -198,12 +198,12 @@ export function GifPicker({
               type="search"
               value={query}
               onChange={event => setQuery(event.target.value)}
-              placeholder="Rechercher sur GIPHY…"
+              placeholder="Search GIPHY…"
             />
             {query && (
               <button
                 type="button"
-                aria-label="Effacer la recherche"
+                aria-label="Clear search"
                 onClick={() => setQuery("")}
               >
                 ×
@@ -215,7 +215,7 @@ export function GifPicker({
               <button
                 type="button"
                 key={gif.id}
-                aria-label={`Aperçu : ${gif.title}`}
+                aria-label={`Preview: ${gif.title}`}
                 onClick={() => setSelected(gif)}
               >
                 <img
@@ -229,10 +229,10 @@ export function GifPicker({
           </div>
           {loading && offset === 0 && (
             <div className="yk-gif-loading" role="status">
-              Chargement des GIF…
+              Loading GIFs…
             </div>
           )}
-          {!loading && !error && !gifs.length && <p>Aucun GIF trouvé.</p>}
+          {!loading && !error && !gifs.length && <p>No GIFs found.</p>}
           {error && <p role="alert">{error}</p>}
           {hasMore && !error && (
             <button
@@ -241,14 +241,14 @@ export function GifPicker({
               disabled={loading}
               onClick={() => setOffset(value => value + PAGE_SIZE)}
             >
-              {loading ? "Chargement…" : "Charger plus"}
+              {loading ? "Loading…" : "Load more"}
             </button>
           )}
           {selected && (
             <div
               className="yk-gif-preview"
               role="group"
-              aria-label="Aperçu du GIF"
+              aria-label="GIF preview"
             >
               <img
                 src={selected.previewUrl}
@@ -257,10 +257,10 @@ export function GifPicker({
               />
               <div>
                 <button type="button" onClick={() => setSelected(null)}>
-                  Annuler
+                  Cancel
                 </button>
                 <button type="button" onClick={sendSelected}>
-                  Envoyer ce GIF
+                  Send this GIF
                 </button>
               </div>
             </div>
