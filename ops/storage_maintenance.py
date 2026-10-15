@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """One fail-closed cleaner. Dry-run by default; no Docker volume operations."""
 import argparse
-import base64
 import contextlib
 import datetime as dt
 import hashlib
@@ -508,28 +507,8 @@ def watch():
         process.wait(timeout=10)
 
 
-ALERT_PHP = r"""<?php
-require '/var/www/html/vendor/autoload.php';
-$app=require '/var/www/html/bootstrap/app.php';
-$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
-$application=App\Models\Application::where('uuid', __APP_UUID__)->firstOrFail();
-$team=$application->team();
-if (!$team) { exit(2); }
-$settings=$team->discordNotificationSettings;
-if (!$settings || !$settings->isEnabled() || !$settings->discord_webhook_url) { exit(2); }
-"""
-
-
-def discord_alert(message=None):
-    source = ALERT_PHP.replace("__APP_UUID__", json.dumps(APP))
-    if message is not None:
-        encoded = base64.b64encode(message.encode()).decode()
-        source += "\n$message=base64_decode('" + encoded + "');\n"
-        source += r"""$response=Illuminate\Support\Facades\Http::timeout(15)->post(
-$settings->discord_webhook_url, ['content'=>$message, 'allowed_mentions'=>['parse'=>[]]]);
-if (!$response->successful()) { exit(3); }
-"""
-    run(["docker", "exec", "-i", "coolify", "php"], source.encode(), timeout=30)
+def journal_alert(message):
+    run(["logger", "-p", "daemon.err", "-t", "yokkai-storage", message])
 
 
 def record_result(error=None):
@@ -544,14 +523,14 @@ def record_result(error=None):
     save_state(state, path=RUNS)
     if count >= 2 and not state["alert_sent"]:
         try:
-            discord_alert("Yokkai storage maintenance: " + str(count) + " consecutive STOPs. Containers: "
+            journal_alert("Yokkai storage maintenance: " + str(count) + " consecutive STOPs. Containers: "
                           + (", ".join(names) or "none identified") + ". Reason: " + str(error))
             state["alert_sent"] = True
             save_state(state, path=RUNS)
-            log("discord-alert-sent", consecutive_stops=count, containers=names)
+            log("repeated-stop-alert", channel="journal", consecutive_stops=count, containers=names)
         except Exception:
-            log("discord-alert-failed", consecutive_stops=count, containers=names,
-                reason="Discord unavailable or not configured in Coolify; next STOP will retry")
+            log("journal-alert-failed", consecutive_stops=count, containers=names,
+                reason="journal delivery failed; next STOP will retry")
 
 
 def main():
@@ -561,7 +540,6 @@ def main():
     mode.add_argument("--dry-run", action="store_true")
     mode.add_argument("--watch", action="store_true")
     mode.add_argument("--initialize-state", action="store_true")
-    mode.add_argument("--check-alert", action="store_true")
     parser.add_argument("--rollback-image")
     parser.add_argument("--expect-plan")
     args = parser.parse_args()
@@ -569,10 +547,6 @@ def main():
         raise Unsafe("run as root through the authorized installation")
     if args.watch:
         return watch()
-    if args.check_alert:
-        discord_alert()
-        log("discord-ready")
-        return
     with locked():
         if args.initialize_state:
             if STATE.exists():
@@ -608,7 +582,7 @@ if __name__ == "__main__":
     except Exception as error:
         log("STOP", reason=str(error) if isinstance(error, Unsafe) else type(error).__name__,
             containers=getattr(error, "details", []))
-        if "--watch" not in sys.argv and "--check-alert" not in sys.argv:
+        if "--watch" not in sys.argv:
             try:
                 with locked():
                     record_result(error if isinstance(error, Unsafe) else Unsafe(type(error).__name__))

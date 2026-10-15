@@ -38,7 +38,6 @@ case "$mode" in
     echo "Installed in dry-run mode; timer activation awaits successful manual apply"
     ;;
   activate)
-    /usr/local/sbin/yokkai-storage-maintenance --check-alert
     python3 - <<'PY'
 import json
 state = json.load(open('/var/lib/yokkai-storage-maintenance/state.json'))

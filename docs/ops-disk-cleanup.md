@@ -1,251 +1,195 @@
-# Nettoyage du disque — procédure et rapport
+# Nettoyage automatique du disque
 
-## Résultat de l’intervention
+## Résultat du premier passage réel
 
-**Activation réelle arrêtée par un garde-fou. Aucune commande `--apply` exécutée.**
+Le 15 octobre 2026, dry-run manuel réussi à 13:10 UTC, liste vérifiée puis apply
+sur la même empreinte, terminé à 13:14:48 UTC. Version exécutée : `552ba3db`,
+revue indépendante et CI GitHub vertes. Aucun volume, réseau, base active ni
+journal de suppression de comptes touché. Aucun conteneur redémarré.
 
-Le commit `6eb84e90` de la PR #242 a été relu et validé par GitHub Actions
-(lint, types, format, tests, build, audit des dépendances et sécurité migrations).
-Il a été installé le 14 octobre 2026 à 23:58 UTC, uniquement en simulation.
-Coordination avec Abdou confirmée par Walid ; aucun changement Supabase ni migration.
+| Catégorie          | Résultat                                                                                                          |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| Image application  | Une image ancienne supprimée, 3 281 511 018 octets logiques ; couches partagées, pas un gain physique attribuable |
+| Cache Railpack     | 34 références retirées, 8 616 991 142 octets d’inventaire ; buildctl annonce 8,62 Go                              |
+| Sauvegardes SQL    | 10 dumps excédentaires, 321 528 162 octets ; sept quotidiennes conservées, dernière incluse                       |
+| Conteneurs arrêtés | Aucun candidat, aucune suppression                                                                                |
+| Disque réel        | 14 → 25 Gio libres ; 82 → 66 % occupés ; 12 087 029 760 octets récupérés, environ 11,3 Gio                        |
 
-Le rechargement du timer persistant a déclenché un dry-run automatique, terminé
-sans suppression à 23:59:57 UTC : trois images candidates, neuf dumps / 285 259 633
-octets candidats, aucun conteneur arrêté candidat et aucun volume candidat.
-Les trois dernières images, la courante, le rollback et la dernière sauvegarde
-étaient explicitement protégés. Une tentative manuelle concomitante a été refusée
-par le verrou avant tout travail. La sauvegarde de minuit a ensuite été créée.
+Avant/après exact : disponibles 14 035 312 640 → 26 122 342 400 octets ;
+utilisés 61 749 858 304 → 49 662 828 544, capacité 79 048 540 160.
+Docker : 27 → 26 images (23,8 → 20,64 Go logiques), 22 conteneurs actifs,
+14 volumes présents (contenu 25,64 → 17,5 Go). Les volumes n’ont pas été retirés.
+Cache restant : 12 références / 1 938 229 197 octets, sous le plafond souple.
+Les tailles Docker/BuildKit et le gain de df ne sont pas additives.
 
-Le passage automatique suivant a refusé toute purge à 00:02:18 UTC :
+Après : 22 conteneurs running ; toutes les sondes présentes healthy ; PostgreSQL
+accepte les connexions, aucune erreur critique nouvelle détectée. Accueil,
+connexion, inscription : 200 publiquement et directement dans l’application.
+Dernière sauvegarde conservée : `pg-dump-postgres-1792022407.dmp`.
+Image supprimée : tag applicatif `741a5fbffa85e4741bc88a1e73a4f793bf5a3418`,
+créée le 14 octobre à 16:58:14 UTC ; ID `13d3f5a6cab4…`.
+Dumps retirés : dates UTC du 30 septembre au 8 octobre, doublon du 30 inclus.
+Les noms, dates, tailles et motifs sont conservés dans le journal JSON privé.
 
-```text
-current or rollback image is missing or belongs to another repository
-```
+Le dry-run avait prouvé : aucun volume candidat, aucune image candidate utilisée
+par un conteneur, aucun journal de suppression candidat, dernière sauvegarde exclue.
+Courante `097cb1fa9a2d…`, rollback observé `3b181eec399f…` et trois dernières
+images conservés. Le pin n’a pas été changé artificiellement : il suit les versions
+précédemment observées saines.
 
-Vérification en lecture seule : l’image de rollback `b5c95e5988ee…` a disparu.
-Il ne reste que `3b181eec399f…` (courante) et `13d3f5a6cab4…` dans le dépôt de
-l’application. La troisième image récente a également disparu.
-Les journaux Coolify montrent `App\Jobs\DockerCleanupJob` démarré le 15 octobre
-à 00:00:07 UTC et terminé à 00:01:21. Cette tâche native coïncide avec la
-suppression de cinq images et un inventaire BuildKit désormais vide (`null`).
-Nous n’avons exécuté ni suppression d’image, ni prune de cache, ni purge de dump.
-
-| Mesure                | Avant                                           | Après le nettoyage externe                                  |
-| --------------------- | ----------------------------------------------- | ----------------------------------------------------------- |
-| df -h /               | 74 Gio ; 57 Gio utilisés ; 15 Gio libres ; 80 % | 74 Gio ; 44 Gio utilisés ; 28 Gio libres ; 62 %             |
-| Docker images         | 29 ; 26,41 Go logiques                          | 24 ; 18,84 Go logiques                                      |
-| Conteneurs            | 22 actifs                                       | 22 actifs                                                   |
-| Volumes, protégés     | 14 ; 22,29 Go de contenu                        | 14 ; 15,72 Go de contenu                                    |
-| Série SQL quotidienne | 16 dumps avant minuit                           | 17 dumps ; 585 755 424 octets, nouvelle sauvegarde comprise |
-
-Le gain apparent d’environ 13 Gio n’est pas attribuable à notre script. Les tailles
-Docker sont logiques et non additives ; les couches sont partagées. Le contenu
-du volume d’état BuildKit peut diminuer après purge interne sans retrait du volume.
-Dernier df exact : 79 048 540 160 octets de capacité ; 46 255 951 872 utilisés ;
-29 529 219 072 disponibles (62 %).
-
-Tous les conteneurs restent actifs, sains lorsqu’ils disposent d’une sonde.
-PostgreSQL accepte les connexions, aucune nouvelle erreur critique détectée ;
-accueil, connexion et inscription répondent en 200, publiquement et en interne
-avant installation, puis publiquement après le blocage.
-
-État laissé : `CLEANUP_MODE=--dry-run`, service événements inactif ; timer existant
-conservé et étendu, mais ses passages restent des simulations. Aucun redémarrage
-de Docker, du site ou d’une base. Aucun réglage Coolify/Traefik/Supabase modifié.
-Aucune restauration de configuration déclenchée : pas de dégradation du site ;
-restaurer l’ancien script réintroduirait sa purge globale.
-
-**Avant reprise :** Walid et Abdou doivent vérifier les réglages de nettoyage
-natif dans Coolify et choisir un seul nettoyeur. Ne pas activer notre purge en
-parallèle. Retrouver ou reconstruire un rollback identifié et validé ; ne pas
-réécrire le pin pour contourner le refus. La permission SQL actuelle ne couvre
-que la file de déploiement, pas la lecture des réglages Coolify en base.
+Décision finale de Walid : **pas de Discord**. Le code d’envoi et le prérequis
+Discord sont retirés. Deux STOP consécutifs génèrent une alerte locale de niveau
+error dans journald, avec noms concernés ; aucune notification externe.
+Walid a confirmé la désactivation de la purge native Coolify dans l’interface.
+Le serveur reçoit la version du dépôt, jamais une variante corrigée à la main.
 
 ## Risque accepté pendant la bêta
 
-Walid accepte temporairement des sauvegardes uniquement sur le serveur : une
-perte du disque peut perdre simultanément les données joueurs et leurs copies.
-Aucune copie externe n’est exigée pour cette rétention locale. Avant lancement
-public : copie chiffrée hors serveur et restauration d’essai obligatoires.
-Une archive lisible par pg_restore ne remplace pas un test de restauration.
+Sauvegardes uniquement sur le serveur : perte possible des données joueurs et de
+leurs copies en cas de perte du disque. Aucune copie extérieure n’est exigée pour
+la rétention locale validée. Avant lancement public : copie chiffrée hors serveur
+et restauration d’essai. Une archive lisible ne remplace pas un test de restauration.
 
-## Règles du script installé, encore en simulation
+## Ce que chaque règle supprime et protège
 
-| Catégorie          | Cible autorisée                                                                                                          | Ce qui est protégé                                                                                                            |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
-| Images application | Identifiant du seul dépôt `lbugcql3gc8ijtbv7qqy70do`, sans force                                                         | Trois dernières, courante, rollback épinglé, toute image référencée par un conteneur même arrêté, âge inférieur à deux heures |
-| Cache Railpack     | `buildctl prune --keep-duration 2h --keep-storage 2048 --all`, limité aux IDs inventoriés par filtres `id==…`            | Références en usage et récentes ; jamais le volume lui-même                                                                   |
-| Restes de build    | Conteneur arrêté, construction de plus de deux heures, image du dépôt et label explicite `yokkai.cleanup.role=app-build` | Tous les autres conteneurs ; aucun étiquetage automatique                                                                     |
-| Dumps quotidiens   | Copies au-delà de sept jours UTC distincts conservés, ou âgées de plus de quatorze jours, doublons compris               | Dernière sauvegarde toujours conservée même ancienne ; autres séries, bases et journaux hors périmètre                        |
+| Catégorie       | Cible autorisée                                                                                       | Protections                                                                                                      |
+| --------------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Images          | IDs du seul dépôt `lbugcql3gc8ijtbv7qqy70do`, sans force                                              | Trois dernières + courante + rollback, toute image référencée même par un conteneur arrêté, moins de deux heures |
+| Cache           | buildctl interne Railpack, IDs inventoriés, âge deux heures, plafond 2 048 Mo                         | Références utilisées/récentes, volume d’état conservé ; plafond souple si protections empêchent d’y descendre    |
+| Restes de build | Arrêtés, construction de plus de deux heures, image du dépôt ET label `yokkai.cleanup.role=app-build` | Tous les autres conteneurs ; aucun étiquetage automatique de l’existant                                          |
+| Dumps           | Sept jours UTC distincts maximum sur quatorze jours, doublons/anciens excédentaires retirés           | Dernière sauvegarde toujours conservée même ancienne ; autres séries et bases actives exclues                    |
 
-La limite du cache est souple : protections d’âge et d’usage prioritaires sur le
-plafond de 2 048 Mo. Les images Supabase/Coolify, images sans étiquette, réseaux et
-volumes ne sont jamais candidats. L’ancienne purge globale de sept jours est remplacée.
+Images Supabase/Coolify, images sans étiquette, volumes, réseaux et journal de
+suppression de comptes : jamais candidats. Aucune suppression directe dans les
+répertoires internes Docker. Aucun changement de configuration Supabase/Traefik.
 
-Seul dossier de sauvegardes admis, sans récursion :
+Seule série SQL admise, sans récursion :
 
 ```text
 /data/coolify/backups/databases/root-team-0/supabase-yokkai-supabase-db-gawq4yyxiise96wens0dt1ex
 ```
 
-Noms complets `pg-dump-postgres-<timestamp>.dmp`, date UTC issue du nom, fichiers
-réguliers sans liens, chemin canonique. Dernière archive et candidates parcourues
-en flux par `pg_restore --file=/dev/null`, sans connexion à une base ni affichage
-SQL. Inventaire ou inode modifié : arrêt. Archive invalide, trop petite ou dont
-la modification date de moins de dix minutes : arrêt. Le journal de suppression
-de comptes, les dumps ponctuels, archives physiques et `/var/backups` sont exclus.
+Seuls noms complets `pg-dump-postgres-<timestamp>.dmp`, date UTC du nom, chemin
+canonique, fichiers réguliers sans lien. Dernière et candidates entièrement lues
+en flux par `pg_restore --file=/dev/null`, sans connexion à une base ni sortie SQL.
+Archive invalide, trop petite, modifiée depuis moins de dix minutes ou inventaire
+changé : arrêt. Les autres dumps, archives physiques et `/var/backups` sont exclus.
 
-Verrou flock commun `/run/yokkai-storage-maintenance.lock`. Simulation par défaut ;
-suppression seulement avec `--apply`. Première apply avec `--expect-plan` et
-empreinte du dry-run relu. La simulation écrit uniquement journal et métadonnées
-de rollback. État root 600 sous `/var/lib/yokkai-storage-maintenance/state.json`,
-dossier 700. Avant suppression, marqueur `in_progress=true` synchronisé sur disque ;
-succès et santé finale seuls le lèvent. Une exception pose aussi `paused=true`.
-Après interruption, un opérateur doit comprendre/réparer avant toute nouvelle purge.
+## Garde-fou ciblé, nouvelles tentatives et journal
 
-File Coolify lue dans une transaction SQL READ ONLY limitée aux statuts et
-références autorisés par Walid, sans clé admin/service_role. File non vide ou
-illisible, helper actif, conteneur inattendu arrêté/malsain, HTTP en échec : refus.
-Contrôle juste avant chaque opération. Cette lecture n’est pas un verrou atomique
-sur Coolify : un déploiement peut commencer entre contrôles. Docker sans force
-refuse une image référencée et BuildKit protège les références actives.
-Le rollback observé sain est enregistré avant toute purge, indépendamment de son succès.
+Critiques : application courante, PostgreSQL, envoy, proxy public, auth et REST.
+Un critique absent, arrêté ou en pause bloque. Les non-critiques arrêtés, tâches
+terminées (exited 0 compris) et absence de sonde ne bloquent pas. Une ancienne
+application arrêtée ne bloque pas si une courante unique existe ; son image reste
+protégée. Une sonde unhealthy seule sur un conteneur running ne déclenche pas
+l’ancien blocage global ; HTTP public/interne et pg_isready restent obligatoires.
 
-Timer : nuit conservée à 03:30 Europe/Paris et passages 00:00, 06:00, 12:00,
-18:00 UTC, délai aléatoire maximal d’une minute. Service événements préparé mais
-inactif : attendre trois minutes après le dernier démarrage applicatif, regrouper
-les rafales, appeler le même service ; conflit/échec réessayé après une minute.
-Journal JSON dans journald : protections, candidats, suppressions, df et Docker
+Queue Coolify non vide, helper actif ou références BuildKit `inUse` : attente.
+BuildKit simplement running n’est pas un build actif. Démarrage d’un critique :
+attente aussi. Premier essai puis au plus trois retries espacés de 60 secondes,
+puis STOP avec noms, états, santé, exit code et références concernés.
+La file est lue dans une transaction SQL READ ONLY limitée aux statuts/références
+explicitement autorisés, sans clé admin ou service_role. Une file illisible
+n’est jamais considérée vide.
+
+Verrou flock commun `/run/yokkai-storage-maintenance.lock`. Verrou occupé : SKIP,
+pas de purge concurrente. Simulation par défaut, `--apply` pour supprimer.
+Première apply liée à l’empreinte du dry-run relu. Simulation : écrit uniquement
+journal et métadonnées de protection, aucune suppression.
+État privé root 600 dans `/var/lib/yokkai-storage-maintenance`, dossier 700.
+Avant toute suppression, `in_progress=true` est synchronisé sur disque ; succès
+et santé finale seuls le lèvent. Exception : `paused=true` aussi. Après interruption,
+audit et réparation nécessaires avant nouvelle purge ; ne pas effacer le marqueur
+pour contourner un échec ou changer un pin manquant.
+
+Après deux exécutions en STOP, `logger -p daemon.err` écrit l’alerte locale.
+Une alerte par série d’échecs ; succès réarme le compteur, envoi local impossible
+réessayé au prochain STOP. Compteur durable `runs.json`. Pas de Discord, pas de
+lecture de webhook et pas de notification externe, conformément à la décision finale.
+
+Contrôles répétés avant chaque opération. Pas de verrou atomique sur Coolify :
+un déploiement peut commencer entre deux contrôles. Docker sans force refuse
+une image référencée ; BuildKit protège ses références actives. Ne pas réactiver
+le nettoyage natif Coolify en parallèle.
+
+Journal JSON dans journald : candidats, protections, suppressions, df/Docker
 avant/après. Plafonds existants conservés : journald 200 Mo / sept jours ; Docker
-10 Mo × 3. Aucun redémarrage Docker nécessaire.
+10 Mo × 3. Aucun redémarrage du démon nécessaire.
 
-## Commandes de reprise — ne pas exécuter avant résolution du conflit
+## Installation et automatisation
 
-Le serveur reçoit seulement une archive Git du commit relu et vert, dans
-`/opt/yokkai-ops/revisions/<commit>/`. La release installée reste `6eb84e90`.
+Archive du commit relu et vert sous `/opt/yokkai-ops/revisions/<commit>/`,
+pointeur `/opt/yokkai-ops/current`. `upgrade` conserve l’état de rollback et
+installe en simulation. Après première apply saine, `activate` met le mode réel.
+Il garde le timer d’Abdou : nuit 03:30 Europe/Paris, plus 00:00, 06:00, 12:00,
+18:00 UTC ; délai aléatoire maximal d’une minute. Le service événements redémarré
+charge la nouvelle version et attend trois minutes après le dernier démarrage
+applicatif ; rafales regroupées, même service et même verrou. Après conflit/échec,
+le watcher réessaie après une minute. Reconnexion : réconciliation des événements manqués.
 
 ```sh
-# Installation initiale, déjà faite ; ne pas réinitialiser un état existant :
-sudo bash ops/install-storage-maintenance.sh prepare <sha256-du-rollback-observe>
-
-# Après résolution du conflit et validation du rollback :
+# Depuis la release immuable du commit validé :
+sudo bash ops/install-storage-maintenance.sh upgrade
 sudo /usr/local/sbin/yokkai-storage-maintenance --dry-run
+# Après lecture et vérification de la liste :
 sudo /usr/local/sbin/yokkai-storage-maintenance --apply --expect-plan <empreinte-relue>
-
-# Seulement après santé et première apply réussies :
+# Après santé et première apply réussies :
 sudo bash ops/install-storage-maintenance.sh activate
 ```
 
-Ne pas lancer l’ancien script comme diagnostic. Avant/après : df, Docker,
-conteneurs, PostgreSQL et HTTP 200 sur les trois pages. Aucun compte ni partage créé.
+Avant/après : df, docker system df, tous les conteneurs, PostgreSQL et HTTP 200
+sur les trois pages. Aucun compte ni partage créé. Le premier passage réel est
+déjà réussi ; une mise à jour sans changement de sélection conserve cette preuve.
 
 ```sh
 sudo journalctl -t yokkai-storage --since today --no-pager
+sudo journalctl -p err -t yokkai-storage --since today --no-pager
 sudo journalctl -u yokkai-storage-maintenance-events --since today --no-pager
 systemctl list-timers --all yokkai-storage-maintenance.timer
 sudo cat /var/lib/yokkai-storage-maintenance/state.json
 ```
 
-## Désactivation et retour arrière
+## Désactivation et réparation
 
-Pour geler les suppressions sans désactiver le timer du collègue : conserver
-`CLEANUP_MODE=--dry-run` dans `/etc/default/yokkai-storage-maintenance` et le
-service événements arrêté. C’est déjà l’état actuel.
+Pour geler les suppressions : remettre `CLEANUP_MODE=--dry-run` dans
+`/etc/default/yokkai-storage-maintenance` et arrêter seulement le service événements.
+Le timer reste conservé ; ses passages deviennent des simulations.
 
-Snapshot vérifié : `/var/backups/yokkai-ops-config/20261014T233834311541Z`, root 700,
-manifest des fichiers présents/absents et empreintes SHA256 des copies. Script,
-service, timer, journald et logrotate copiés. Journald/logrotate non modifiés.
-Depuis la release installée, retour arrière disponible :
+Snapshot de reprise vérifié, root 700 :
+`/var/backups/yokkai-ops-config/20261015T003557105985238Z`.
+Script, service, timer, service événements, mode, journald et logrotate copiés,
+SHA256 contrôlés. `previous-release` indique la version précédente.
+Journald/logrotate n’ont pas été modifiés. Pour revenir à cette configuration :
 
 ```sh
-sudo bash ops/install-storage-maintenance.sh rollback
+snapshot=/var/backups/yokkai-ops-config/20261015T003557105985238Z
+sudo systemctl stop yokkai-storage-maintenance-events.service
+for path in /usr/local/sbin/yokkai-storage-maintenance /etc/default/yokkai-storage-maintenance /etc/systemd/system/yokkai-storage-maintenance.service /etc/systemd/system/yokkai-storage-maintenance.timer /etc/systemd/system/yokkai-storage-maintenance-events.service; do
+  sudo cp -a "$snapshot/files$path" "$path"
+done
+sudo ln -sfn "$(sudo cat "$snapshot/previous-release")" /opt/yokkai-ops/current
+sudo systemctl daemon-reload
+sudo systemctl restart yokkai-storage-maintenance.timer
 ```
 
-Arrête/désactive seulement le nouveau service événements ; restaure par `cp -a`
-le script et les deux unités depuis `snapshot/files/<chemin>` ; recharge systemd
-et réactive le timer nocturne initial. Les autres fichiers restent inertes.
-Aucun conteneur redémarré. Attention : l’ancienne purge globale est rétablie.
-Un cache se reconstitue, une image exige reconstruction ; un dump supprimé sans
-copie ne peut pas être récupéré. Le retour de configuration n’annule pas une suppression.
+Le mode sauvegardé est dry-run. Garder les métadonnées de protection courantes ;
+ce retour de configuration ne recrée pas les données retirées. Un cache se
+reconstitue, une image exige reconstruction ; un dump sans copie est irrécupérable.
+Le snapshot initial `20261014T233834311541Z` et le mode `rollback` de l’installateur
+rétablissent l’ancien script global : option historique à faire relire, car ses
+protections sont plus faibles. Préférer le snapshot de reprise ci-dessus.
 
-## Alertes Discord — action manuelle de Walid
+## Inventaire observé avant correction
 
-Dans **Notifications > Discord** : activer Discord, coller le webhook directement
-au champ **Webhook URL**, enregistrer ; dans les événements **Servers**, activer
-**Disk usage warning**. Choisir un canal d’exploitation restreint. **Send test**
-envoie un vrai message : Walid le déclenche lui-même. Jamais d’URL dans le chat/Git.
-Dans **Servers > serveur > Advanced > Disk usage** : **Notification threshold = 80**,
-**Check frequency = */15 * * * *** ; enregistrer et vérifier la réception.
+23 conteneurs tous running, aucun paused/exited ; un conteneur supplémentaire
+sans sonde a disparu ensuite pendant le build. Au contrôle après nettoyage :
+22 running, toutes les sondes présentes healthy.
 
-Coolify 4.3.23 installé n’expose qu’un seuil par serveur. Deux niveaux natifs
-80/90 ne sont pas possibles simultanément : conserver 80 ; le niveau 90 reste
-à décider avec Walid/Abdou. Aucun webhook supplémentaire ni réglage modifié ici.
-L’alerte doit fonctionner même pendant un déploiement ou un refus du nettoyeur.
-Le nettoyage Docker natif ne garantit pas nos protections d’âge/rollback ; ne pas
-le cumuler avec notre mécanisme. Les volumes/réseaux inutilisés doivent rester conservés.
-Sources : [nettoyage Coolify](https://coolify.io/docs/core/infrastructure/servers/automated-docker-cleanup),
-[notifications](https://coolify.io/docs/core/notifications/events),
-[BuildKit 0.32.2](https://github.com/moby/buildkit/blob/v0.32.2/cmd/buildctl/prune.go).
-
-## Capacité et suivi
-
-Au moins seize images construites le 14 octobre : compte incomplet de builds,
-pas de déploiements réussis. À 2,04–3,28 Go/image : 32,6–52,5 Go logiques/jour,
-plus variation du cache. Une image usuelle avait environ 1,51 Go propres :
-24,2 Go/jour avant purge/réutilisation, jusqu’à 29,4 Go en ajoutant la
-reconstitution des 5,22 Go de cache auparavant purgés. Scénarios, pas gain net de df.
-74 Gio peuvent suffire temporairement en bêta si 10–15 Gio restent libres ;
-rafales de moins de deux heures prioritaires sur le plafond d’images. Recommander
-120–160 Gio pour une marge durable ; agrandissement OVH réservé à Walid.
-Le suivi à 24 h reste exclusivement en lecture seule : espace, suppressions/refus,
-santé et incidents. Il ne doit jamais relancer automatiquement cette activation bloquée.
-
-## Révision du garde-fou — reprise du 15 octobre
-
-Cette révision remplace le contrôle global de santé décrit plus haut. Installation
-et activation de cette révision encore en attente de revue/CI et des réglages que
-Walid réalise dans l’interface. Le nettoyage natif doit être désactivé, pas le timer
-existant d’Abdou. Le canal Discord de l’équipe propriétaire doit être configuré.
-
-Garde ciblé : application active, PostgreSQL, envoy, proxy public, auth et REST
-obligatoirement en cours d’exécution. Une ancienne application arrêtée ne bloque
-pas si une courante unique existe ; son image reste protégée par sa référence.
-Les conteneurs non critiques arrêtés, les tâches terminées (y compris exited 0),
-leurs sondes transitoires et l’absence de sonde ne bloquent pas. Une sonde unhealthy
-seule ne suffit pas à bloquer un conteneur running ; HTTP public/interne et
-pg_isready restent obligatoires. Un critique arrêté, absent ou en pause bloque.
-
-Queue Coolify non vide, helper running ou références BuildKit `inUse` : attente.
-Le conteneur BuildKit simplement running n’est pas un build actif. Démarrage d’un
-critique : attente aussi. Premier essai plus trois retries de 60 secondes, puis
-STOP avec noms, états, santé, exit code et références de build concernés. Aucun
-retrait pendant ces attentes. Une file illisible ne devient jamais une file vide.
-
-Le verrou occupé produit SKIP, pas STOP ; aucun second nettoyeur ne s’exécute.
-Après deux exécutions finies en STOP : alerte Discord avec noms et raison, via le
-webhook déjà stocké dans Coolify, lu et utilisé exclusivement dans son conteneur.
-Ni URL, ni clé n’est transmise à l’hôte ou au dépôt. Une alerte par série d’échecs,
-nouvelle tentative au prochain STOP si envoi impossible ; succès réarme le compteur.
-L’absence de canal produit un journal explicite et interdit l’activation complète.
-Le compteur durable reste privé dans `runs.json`, à côté de l’état de rollback.
-
-`upgrade` conserve cet état et installe en dry-run ; le timer n’est rechargé qu’à
-l’activation après apply réussie. L’activation redémarre le watcher pour charger
-le nouveau code. Toutes les règles de suppression, d’âge, de backup et de pin
-restent inchangées. Aucune réinitialisation artificielle de rollback.
-
-### Inventaire avant correction
-
-Le relevé contient 23 conteneurs, tous running et aucun paused/exited. Le conteneur
-supplémentaire `4nxumgfhmmjzcpmgy2hxbkes` avait disparu au contrôle suivant.
-BuildKit avait alors des références `inUse` : un build réel était en cours.
-Aucun conteneur normalement arrêté n’a été observé dans ce relevé.
-
-| Nom                                              | État                               | Santé      |
+| Nom au relevé                                    | État                               | Santé      |
 | ------------------------------------------------ | ---------------------------------- | ---------- |
 | coolify-sentinel                                 | running                            | healthy    |
-| 4nxumgfhmmjzcpmgy2hxbkes                         | running au relevé, disparu ensuite | sans sonde |
-| lbugcql3gc8ijtbv7qqy70do-001410284090            | running                            | sans sonde |
+| 4nxumgfhmmjzcpmgy2hxbkes                         | running, disparu ensuite           | sans sonde |
+| lbugcql3gc8ijtbv7qqy70do-001410284090            | running, version remplacée ensuite | sans sonde |
 | supabase-envoy-gawq4yyxiise96wens0dt1ex          | running                            | healthy    |
 | supabase-edge-functions-gawq4yyxiise96wens0dt1ex | running                            | healthy    |
 | supabase-storage-gawq4yyxiise96wens0dt1ex        | running                            | healthy    |
@@ -266,3 +210,14 @@ Aucun conteneur normalement arrêté n’a été observé dans ce relevé.
 | coolify-db                                       | running                            | healthy    |
 | coolify-redis                                    | running                            | healthy    |
 | coolify-realtime                                 | running                            | healthy    |
+
+## Capacité et suivi
+
+Au moins seize builds observés le 14 octobre, pas seize déploiements certifiés.
+À 2,04–3,28 Go/image : 32,6–52,5 Go logiques/jour plus variation du cache.
+L’estimation de 1,51 Go propres/image donnait environ 24,2 Go/jour avant purge,
+plus cache ; ce n’est pas une mesure nette de df. Garder 10–15 Gio de marge.
+74 Gio restent une capacité de bêta ; 120–160 Gio recommandés pour une marge durable.
+Agrandissement OVH réservé à Walid, hors intervention.
+Suivi à 24 h en lecture seule : espace, suppressions, refus, santé, incidents ;
+pas de nouvelle action destructive dans ce suivi.

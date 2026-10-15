@@ -174,7 +174,7 @@ class SafetyContract(unittest.TestCase):
                 path.write_text(json.dumps(data), encoding="utf-8")
             error = cleanup.GuardBlocked("critical down", [dict(name="database", state="exited")], False)
             with patch.object(cleanup, "RUNS", target), patch.object(cleanup, "save_state", side_effect=save), \
-                    patch.object(cleanup, "discord_alert") as alert:
+                    patch.object(cleanup, "journal_alert") as alert:
                 cleanup.record_result(error)
                 alert.assert_not_called()
                 cleanup.record_result(error)
@@ -183,6 +183,15 @@ class SafetyContract(unittest.TestCase):
                 alert.assert_called_once()
                 cleanup.record_result()
                 self.assertEqual(json.loads(target.read_text())["consecutive_stops"], 0)
+
+    def test_repeated_stop_alert_is_local_error_priority_only(self):
+        with patch.object(cleanup, "run") as run:
+            cleanup.journal_alert("two stops: database")
+            self.assertEqual(run.call_args.args[0], ["logger", "-p", "daemon.err", "-t",
+                                                     "yokkai-storage", "two stops: database"])
+        source = Path(__file__).with_name("storage_maintenance.py").read_text(encoding="utf-8")
+        self.assertNotIn("discord_webhook_url", source)
+        self.assertNotIn("ALERT_PHP", source)
 
     def test_no_volume_or_global_prune_command_is_generated(self):
         text = Path(__file__).with_name("storage_maintenance.py").read_text()
