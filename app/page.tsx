@@ -15,7 +15,6 @@ export const metadata: Metadata = {
     url: "/",
     images: [
       {
-        // Walid will supply the English asset at this path.
         url: "/og-home.png",
         width: 1200,
         height: 630,
