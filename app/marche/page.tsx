@@ -5,8 +5,8 @@ export default function Page() {
       screen="market"
       pageHeading={
         <div>
-          <p className="eyebrow">La salle des ventes</p>
-          <h1 className="yk-title mt-3">Marché</h1>
+          <p className="eyebrow">The auction house</p>
+          <h1 className="yk-title mt-3">Market</h1>
         </div>
       }
     />

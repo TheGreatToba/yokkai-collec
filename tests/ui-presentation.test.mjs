@@ -2488,6 +2488,16 @@ test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
     won: [],
     sold: []
   };
+  for (const [count, label] of [
+    [0, "0 cards up for auction"],
+    [1, "1 card up for auction"],
+    [2, "2 cards up for auction"]
+  ]) {
+    const pluralHtml = render(MarketView, {
+      lists: { ...lists, active: lists.active.slice(0, count) }
+    });
+    assert.ok(pluralHtml.includes(label), label);
+  }
   const html = render(MarketView, {
     lists,
     activeSales: "0",
@@ -2497,7 +2507,7 @@ test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
   assert.match(
     normalizeWhitespace(html),
     normalizeWhitespace(
-      /aria-pressed="true"[^>]*aria-label="Ne plus suivre cette enchère"[^>]*>.*?<span class="yk-watch-label">Suivi<\/span>/
+      /aria-pressed="true"[^>]*aria-label="Unwatch auction"[^>]*>.*?<span class="yk-watch-label">Watching<\/span>/
     )
   );
   assert.match(
@@ -2507,7 +2517,7 @@ test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
   assert.match(
     normalizeWhitespace(html),
     normalizeWhitespace(
-      /aria-pressed="false"[^>]*aria-label="Suivre cette enchère"[^>]*>.*?<span class="yk-watch-label">Suivre<\/span>/
+      /aria-pressed="false"[^>]*aria-label="Watch auction"[^>]*>.*?<span class="yk-watch-label">Watch<\/span>/
     )
   );
   assert.match(
@@ -2527,13 +2537,13 @@ test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
   assert.match(
     normalizeWhitespace(html),
     normalizeWhitespace(
-      /aria-pressed="true"><span class="yk-filter-check"><\/span><span>Fin imminente<\/span>/
+      /aria-pressed="true"><span class="yk-filter-check"><\/span><span>Ending soon<\/span>/
     )
   );
   assert.match(
     normalizeWhitespace(html),
     normalizeWhitespace(
-      /<span>Prix croissant<\/span>.*<span>Prix décroissant<\/span>/
+      /<span>Price: low to high<\/span>.*<span>Price: high to low<\/span>/
     )
   );
   assert.match(
@@ -2544,7 +2554,7 @@ test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
     pageHeading: React.createElement(
       "div",
       null,
-      React.createElement("h1", null, "Marché")
+      React.createElement("h1", null, "Market")
     ),
     lists: {
       ...lists,
@@ -2572,13 +2582,13 @@ test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
   });
   assert.match(
     normalizeWhitespace(search),
-    normalizeWhitespace(/2 cartes aux enchères/)
+    normalizeWhitespace(/2 cards up for auction/)
   );
   assert.match(search, /role="status" class="sr-only"/);
   assert.match(search, /<header class="yk-market-heading">/);
   assert.equal((search.match(/<h1(?:\s|>)/g) ?? []).length, 1);
   assert.equal((html.match(/<h1(?:\s|>)/g) ?? []).length, 0);
-  assert.doesNotMatch(search, /Vendre une carte|Toutes les enchères en cours/);
+  assert.doesNotMatch(search, /Vendre une carte|All active auctions/);
   assert.match(
     normalizeWhitespace(search),
     normalizeWhitespace(/<span>Manga<\/span>/)
@@ -2586,13 +2596,10 @@ test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
   assert.match(
     normalizeWhitespace(html),
     normalizeWhitespace(
-      /aria-pressed="false"><span class="yk-filter-check"><\/span><span>Les \+ populaires<\/span>/
+      /aria-pressed="false"><span class="yk-filter-check"><\/span><span>Most popular<\/span>/
     )
   );
-  assert.match(
-    normalizeWhitespace(html),
-    normalizeWhitespace(/>Mes enchères</)
-  );
+  assert.match(normalizeWhitespace(html), normalizeWhitespace(/>My auctions</));
   const source = readFileSync(
     path.join(root, "components/community-views.tsx"),
     "utf8"
@@ -2610,24 +2617,24 @@ test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
   assert.match(
     normalizeWhitespace(source),
     normalizeWhitespace(
-      /\[\["mine","En cours"\],\["won","Gagnées"\],\["sold","Terminées"\]\]/
+      /\[\["mine","Active"\],\["won","Won"\],\["sold","Completed"\]\]/
     )
   );
   assert.doesNotMatch(
     normalizeWhitespace(source),
     normalizeWhitespace(/"Vendues"/)
   );
-  // One sidebar for both tabs; Mes enchères swaps the price sort for a Statut section.
+  // One sidebar for both tabs; My auctions swaps the price sort for a Statut section.
   assert.match(
     normalizeWhitespace(source),
     normalizeWhitespace(
-      /\{section==="mine"&&\(?<CatalogueFilterSection title="Statut">/
+      /\{section==="mine"&&\(?<CatalogueFilterSection title="Status">/
     )
   );
   assert.match(
     normalizeWhitespace(source),
     normalizeWhitespace(
-      /\{section==="browse"&&\(?<CatalogueFilterSection title="Trier par">/
+      /\{section==="browse"&&\(?<CatalogueFilterSection title="Sort by">/
     )
   );
   // Same layout as Collection/Catalogue: the sidebar stays in normal page flow without its own scroll area.
@@ -2691,9 +2698,7 @@ test("la recherche du marché filtre en mémoire par nom et franchise", () => {
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(
-      /Aucune enchère ne correspond à votre recherche et vos filtres/
-    )
+    normalizeWhitespace(/No auctions match your search and filters/)
   );
   assert.ok(
     existsSync(
@@ -2818,8 +2823,8 @@ test("Phase 6 : détail d'enchère, solde, minute ajoutée, historique et issues
   };
   const live = render(AuctionView, { auction: base, async onBid() {} });
   assert.match(live, />\+10 Karas<span>· 130 Karas<\/span>/);
-  assert.match(live, /Une minute a été ajoutée à l’enchère\./);
-  assert.match(live, /Solde de Karas insuffisant \(ton solde : 100 Karas\)/);
+  assert.match(live, /One minute has been added to the auction\./);
+  assert.match(live, /Not enough Karas \(your balance: 100 Karas\)/);
   assert.match(
     live,
     /Oni<\/a><span class="text-ink-3"> · <\/span><span class="text-karas tabular-nums">120 Karas<\/span><span class="text-ink-3"> · <\/span><time[^>]*>14:32<\/time>/
@@ -2831,19 +2836,19 @@ test("Phase 6 : détail d'enchère, solde, minute ajoutée, historique et issues
     render(AuctionView, {
       auction: { ...base, finished: true, status: "won" }
     }),
-    /Enchère remportée !/
+    /Auction won!/
   );
   assert.match(
     render(AuctionView, {
       auction: { ...base, finished: true, status: "lost", winner: "Oni" }
     }),
-    /Enchère perdue[^]*Remportée par Oni/
+    /Auction lost[^]*Won by Oni/
   );
   const ownSale = { ...base, bids: 0, nextBid: undefined, status: "mine" };
   assert.equal(
     (
       render(AuctionView, { auction: ownSale, async onCancel() {} }).match(
-        /Retirer la carte de la vente/g
+        /Cancel listing/g
       ) ?? []
     ).length,
     2
@@ -2852,13 +2857,10 @@ test("Phase 6 : détail d'enchère, solde, minute ajoutée, historique et issues
     auction: { ...ownSale, bids: 1 },
     async onCancel() {}
   });
-  assert.equal(
-    (bidSale.match(/Retirer la carte de la vente/g) ?? []).length,
-    1
-  );
+  assert.equal((bidSale.match(/Cancel listing/g) ?? []).length, 1);
   assert.match(
     bidSale,
-    /ne peut plus être retirée car une mise a déjà été placée/
+    /can&#x27;t be canceled because a bid has already been placed/
   );
   const raw = {
     id: "a",
@@ -2895,7 +2897,10 @@ test("Phase 6 : détail d'enchère, solde, minute ajoutée, historique et issues
     presentAuction({ ...raw, status: "sold", buyerId: "me" }, "me").status,
     "won"
   );
-  assert.match(presentAuction(raw, "me").history[0].time, /^\d{2}:\d{2}$/);
+  assert.match(
+    presentAuction(raw, "me").history[0].time,
+    /^\d{2}:\d{2} [AP]M$/
+  );
 });
 
 test("Mes enchères conserve les participations surenchéries exposées par list_auctions", () => {

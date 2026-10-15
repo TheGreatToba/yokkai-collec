@@ -273,12 +273,15 @@ test("deux annulations dans le même tick ne déclenchent qu’un seul appel RPC
 
 test("les erreurs d’échange sont traduites sans exposer le message serveur", () => {
   const { tradeErrorMessage } = tradeApi();
-  assert.match(tradeErrorMessage("TRADE_INSUFFICIENT_KARAS"), /ami.*Karas/i);
-  assert.match(tradeErrorMessage("TRADE_CARD_UNAVAILABLE"), /plus disponible/i);
-  assert.match(tradeErrorMessage("CARD_LOCKED"), /verrouillée/i);
+  assert.match(tradeErrorMessage("TRADE_INSUFFICIENT_KARAS"), /friend.*Karas/i);
+  assert.match(
+    tradeErrorMessage("TRADE_CARD_UNAVAILABLE"),
+    /no longer available/i
+  );
+  assert.match(tradeErrorMessage("CARD_LOCKED"), /locked/i);
   assert.equal(
     tradeErrorMessage("détail SQL sensible"),
-    "Impossible de traiter cet échange. Réessayez."
+    "Couldn't process this trade. Please try again."
   );
 });
 
@@ -446,19 +449,19 @@ test("l’identifiant d’examen survit au passage dans l’historique et résou
 test("les pastilles reflètent le statut réel sans transformer une réponse en indisponibilité", () => {
   const { tradeStatusPresentation } = tradeApi();
   for (const [status, label, tone] of [
-    ["pending", "En attente", "gold"],
-    ["accepted", "Acceptée", "success"],
-    ["declined", "Refusée", "danger"],
-    ["countered", "Contre-proposée", "info"],
-    ["cancelled", "Annulée", "neutral"],
-    ["expired", "Indisponible", "neutral"],
-    [undefined, "Indisponible", "neutral"]
+    ["pending", "Pending", "gold"],
+    ["accepted", "Accepted", "success"],
+    ["declined", "Declined", "danger"],
+    ["countered", "Countered", "info"],
+    ["cancelled", "Canceled", "neutral"],
+    ["expired", "Unavailable", "neutral"],
+    [undefined, "Unavailable", "neutral"]
   ]) {
     const presentation = tradeStatusPresentation(status);
     assert.equal(presentation.label, label);
     assert.equal(presentation.tone, tone);
     if (["accepted", "declined", "countered", "cancelled"].includes(status))
-      assert.notEqual(presentation.label, "Indisponible");
+      assert.notEqual(presentation.label, "Unavailable");
   }
 });
 
@@ -479,7 +482,7 @@ test("l’annulation reste disponible uniquement pour une offre envoyée en atte
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/Cette proposition a été annulée/)
+    normalizeWhitespace(/This offer was canceled/)
   );
   assert.match(
     normalizeWhitespace(source),
@@ -489,7 +492,7 @@ test("l’annulation reste disponible uniquement pour une offre envoyée en atte
   );
 });
 
-test("les six erreurs d’annulation ont un message français et aucun détail brut", () => {
+test("les six erreurs d’annulation ont un message anglais et aucun détail brut", () => {
   const { tradeErrorMessage } = tradeApi();
   for (const code of [
     "TRADE_NOT_FOUND",
@@ -500,7 +503,7 @@ test("les six erreurs d’annulation ont un message français et aucun détail b
     "TRADE_ALREADY_COUNTERED"
   ]) {
     const message = tradeErrorMessage(code);
-    assert.notEqual(message, "Impossible de traiter cet échange. Réessayez.");
+    assert.notEqual(message, "Couldn't process this trade. Please try again.");
     assert.ok(!message.includes(code));
   }
 });
@@ -509,7 +512,7 @@ test("une acceptation devenue impossible traduit TRADE_NOT_PENDING et recharge l
   const { tradeErrorMessage } = tradeApi();
   assert.equal(
     tradeErrorMessage("TRADE_NOT_PENDING"),
-    "Cette offre n’est plus en attente."
+    "This offer is no longer pending."
   );
   const source = readFileSync(
     new URL("../components/trades.tsx", import.meta.url),
@@ -523,7 +526,7 @@ test("une acceptation devenue impossible traduit TRADE_NOT_PENDING et recharge l
   assert.match(
     normalizeWhitespace(failure),
     normalizeWhitespace(
-      /setError\(e instanceof Error \? e\.message : "Action impossible\."\)/
+      /setError\(e instanceof Error \? e\.message : "Couldn't complete this action\."\)/
     )
   );
   assert.match(

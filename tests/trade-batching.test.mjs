@@ -136,7 +136,7 @@ test("deleted trade participants keep their history with anonymous labels", asyn
   const { api, requests } = setup(offers);
   const [offer] = await api.listTradeOffers();
   assert.equal(offer.fromUser, null);
-  assert.equal(offer.fromPseudo, "Joueur supprimé");
+  assert.equal(offer.fromPseudo, "Deleted player");
   assert.equal(offer.toPseudo, "Recipient");
   assert.equal(offer.offeredCards[0].instanceId, "give");
   assert.equal(requests.length, 2);

@@ -77,7 +77,7 @@ function CardPicker({
   const [rarity, setRarity] = useState<"" | Rarity>("");
   const [sort, setSort] = useState<"rarity" | "newest" | "oldest">("rarity");
   const searchId = useId();
-  const normalized = query.trim().toLocaleLowerCase("fr-FR");
+  const normalized = query.trim().toLocaleLowerCase("en-US");
   const groups = groupCollection(cards)
     .filter(group => {
       const card = group.representative;
@@ -91,7 +91,7 @@ function CardPicker({
             card.rarity,
             card.shiny ? "shiny" : ""
           ].some(value =>
-            value?.toLocaleLowerCase("fr-FR").includes(normalized)
+            value?.toLocaleLowerCase("en-US").includes(normalized)
           ))
       );
     })
@@ -113,22 +113,22 @@ function CardPicker({
     >
       <div className="yk-trade-picker-toolbar">
         <label className="sr-only" htmlFor={searchId}>
-          Rechercher une carte à échanger
+          Search for a card to trade
         </label>
         <input
           id={searchId}
           type="search"
           value={query}
           onChange={event => setQuery(event.target.value)}
-          placeholder="Rechercher une carte ou une franchise…"
+          placeholder="Search cards or franchises…"
           className="auth-input"
         />
         <select
-          aria-label="Filtrer par rareté"
+          aria-label="Filter by rarity"
           value={rarity}
           onChange={event => setRarity(event.target.value as "" | Rarity)}
         >
-          <option value="">Toutes les raretés</option>
+          <option value="">All rarities</option>
           {(["LR", "SSR", "SR", "R", "C"] as Rarity[]).map(value => (
             <option key={value} value={value}>
               {value}
@@ -136,17 +136,17 @@ function CardPicker({
           ))}
         </select>
         <select
-          aria-label="Trier les cartes"
+          aria-label="Sort cards"
           value={sort}
           onChange={event => setSort(event.target.value as typeof sort)}
         >
-          <option value="rarity">Rareté</option>
-          <option value="newest">Plus récentes</option>
-          <option value="oldest">Plus anciennes</option>
+          <option value="rarity">Rarity</option>
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
         </select>
       </div>
       <p className="yk-trade-picker-note">
-        Les exemplaires verrouillés ou en vente ne sont pas proposés.
+        Locked or listed copies aren&apos;t available for trades.
       </p>
       {groups.length ? (
         <div className="yk-trade-picker-grid">
@@ -186,12 +186,12 @@ function CardPicker({
                 </div>
                 <div
                   className="yk-trade-quantity"
-                  aria-label={`Quantité de ${card.name}`}
+                  aria-label={`Number of copies of ${card.name}`}
                 >
                   <button
                     type="button"
                     disabled={quantity === 0}
-                    aria-label={`Retirer un exemplaire de ${card.name}`}
+                    aria-label={`Remove one copy of ${card.name}`}
                     onClick={() =>
                       onChange(
                         selectGroupQuantity(selected, group.cards, quantity - 1)
@@ -204,7 +204,7 @@ function CardPicker({
                   <button
                     type="button"
                     disabled={quantity === group.cards.length}
-                    aria-label={`Ajouter un exemplaire de ${card.name}`}
+                    aria-label={`Add one copy of ${card.name}`}
                     onClick={() =>
                       onChange(
                         selectGroupQuantity(selected, group.cards, quantity + 1)
@@ -220,15 +220,15 @@ function CardPicker({
         </div>
       ) : (
         <p role="status" className="py-10 text-center text-sm text-ink-3">
-          Aucune carte ne correspond à ces filtres.
+          No cards match these filters.
         </p>
       )}
       <footer className="yk-trade-picker-footer">
         <span>
-          {selected.size} exemplaire{selected.size > 1 ? "s" : ""} sélectionné
-          {selected.size > 1 ? "s" : ""}
+          {selected.size.toLocaleString("en-US")}{" "}
+          {selected.size === 1 ? "copy" : "copies"} selected
         </span>
-        <Button onClick={onClose}>Valider la sélection</Button>
+        <Button onClick={onClose}>Confirm selection</Button>
       </footer>
     </Modal>
   );
@@ -258,13 +258,13 @@ function ReviewCards({ cards }: { cards: CollectedCard[] }) {
               {card.name}
               {card.shiny ? " · Shiny" : ""}
             </strong>
-            {card.customImageUrl && <small>Image personnalisée</small>}
+            {card.customImageUrl && <small>Custom image</small>}
           </div>
         );
       })}
     </div>
   ) : (
-    <p className="mt-3 text-xs text-ink-3">Aucune carte</p>
+    <p className="mt-3 text-xs text-ink-3">No cards</p>
   );
 }
 function TradeSummary({
@@ -283,10 +283,10 @@ function TradeSummary({
   const hasFolder = offered.some(card => card.folderId);
   return (
     <section className="yk-trade-summary" aria-labelledby="trade-summary-title">
-      <h3 id="trade-summary-title">Récapitulatif avant envoi</h3>
+      <h3 id="trade-summary-title">Review before sending</h3>
       <div>
         <article>
-          <strong>Tu donnes</strong>
+          <strong>You give</strong>
           {grouped(offered).length ? (
             <ul>
               {grouped(offered).map(group => (
@@ -298,18 +298,18 @@ function TradeSummary({
               ))}
             </ul>
           ) : (
-            <p>Aucune carte</p>
+            <p>No cards</p>
           )}
           <Karas amount={offeredKaras} />
           {offered.length > 0 && (
             <details>
-              <summary>Exemplaires précis ({offered.length})</summary>
+              <summary>Specific copies ({offered.length})</summary>
               <ul>
                 {offered.map(card => (
                   <li key={card.instanceId}>
                     <code>{card.instanceId}</code>
-                    {card.customImageUrl ? " · image personnalisée" : ""}
-                    {card.folderId ? " · rangée dans un dossier" : ""}
+                    {card.customImageUrl ? "· custom image" : ""}
+                    {card.folderId ? "· stored in a folder" : ""}
                   </li>
                 ))}
               </ul>
@@ -317,7 +317,7 @@ function TradeSummary({
           )}
         </article>
         <article>
-          <strong>Tu reçois</strong>
+          <strong>You receive</strong>
           {grouped(requested).length ? (
             <ul>
               {grouped(requested).map(group => (
@@ -329,7 +329,7 @@ function TradeSummary({
               ))}
             </ul>
           ) : (
-            <p>Aucune carte</p>
+            <p>No cards</p>
           )}
           <Karas amount={requestedKaras} />
         </article>
@@ -338,12 +338,14 @@ function TradeSummary({
         <ul className="yk-trade-summary-warnings">
           {hasCustom && (
             <li>
-              L’image personnalisée sera conservée et visible par le
-              destinataire après le transfert.
+              The custom image will be kept and visible to the recipient after
+              the transfer.
             </li>
           )}
           {hasFolder && (
-            <li>Le rangement dans le dossier sera retiré lors du transfert.</li>
+            <li>
+              The card will be removed from its folder during the transfer.
+            </li>
           )}
         </ul>
       )}
@@ -370,8 +372,8 @@ function OfferList({
         <span className="yk-social-empty-icon" aria-hidden="true">
           ⇄
         </span>
-        <strong>Aucune proposition</strong>
-        <p>Les propositions correspondant à cet onglet apparaîtront ici.</p>
+        <strong>No trade offers</strong>
+        <p>Trade offers for this tab will appear here.</p>
       </div>
     );
   return (
@@ -392,8 +394,8 @@ function OfferList({
                 {offer.incoming ? offer.fromPseudo : offer.toPseudo}
               </strong>
               <p>
-                {offer.incoming ? "Proposition reçue" : "Proposition envoyée"} ·{" "}
-                {new Date(offer.createdAt).toLocaleString("fr-FR")}
+                {offer.incoming ? "Offer received" : "Offer sent"} ·{" "}
+                {new Date(offer.createdAt).toLocaleString("en-US")}
               </p>
             </div>
             <StatusPill tone={tradeStatusPresentation(offer.status).tone}>
@@ -402,12 +404,12 @@ function OfferList({
           </header>
           <div className="yk-trade-offer-sides">
             <div>
-              <p>{offer.fromPseudo} donne</p>
+              <p>{offer.fromPseudo} gives</p>
               <OfferCards cards={offer.offeredCards} />
               {offer.offeredKaras > 0 && <Karas amount={offer.offeredKaras} />}
             </div>
             <div>
-              <p>{offer.toPseudo} donne</p>
+              <p>{offer.toPseudo} gives</p>
               <OfferCards cards={offer.requestedCards} />
               {offer.requestedKaras > 0 && (
                 <Karas amount={offer.requestedKaras} />
@@ -417,9 +419,7 @@ function OfferList({
           {(onReview || onCancel) && (
             <footer>
               {onReview && (
-                <Button onClick={() => onReview(offer)}>
-                  Examiner l’échange
-                </Button>
+                <Button onClick={() => onReview(offer)}>Review trade</Button>
               )}
               {onCancel && (
                 <Button
@@ -427,7 +427,7 @@ function OfferList({
                   disabled={busy}
                   onClick={() => onCancel(offer)}
                 >
-                  Annuler l’offre
+                  Cancel offer
                 </Button>
               )}
             </footer>
@@ -463,7 +463,7 @@ function TradeReview({
       <header>
         <p className="eyebrow">
           {offer
-            ? `Échange avec ${offer.incoming ? offer.fromPseudo : offer.toPseudo}`
+            ? `Trade with ${offer.incoming ? offer.fromPseudo : offer.toPseudo}`
             : "Offre introuvable"}
         </p>
         <StatusPill tone={presentation.tone}>{presentation.label}</StatusPill>
@@ -472,20 +472,20 @@ function TradeReview({
         <>
           <p className="mt-4 text-sm text-ink-2">
             {offer.status === "accepted"
-              ? "Cet échange a été accepté. Voici ce qui a été échangé."
+              ? "This trade was accepted. Here's what was exchanged."
               : offer.status === "declined"
-                ? "Cette proposition a été refusée."
+                ? "This offer was declined."
                 : offer.status === "countered"
-                  ? "Une contre-proposition a remplacé cette offre."
+                  ? "A counteroffer replaced this offer."
                   : offer.status === "cancelled"
-                    ? "Cette proposition a été annulée."
+                    ? "This offer was canceled."
                     : offer.status === "pending"
-                      ? "Consulte les deux lots avant de répondre."
-                      : "Cette offre n’est plus disponible."}
+                      ? "Review both sides before responding."
+                      : "This offer is no longer available."}
           </p>
           <div className="yk-trade-review-lots">
             <article>
-              <h3>Ce que tu reçois</h3>
+              <h3>What you receive</h3>
               <ReviewCards
                 cards={
                   offer.incoming ? offer.offeredCards : offer.requestedCards
@@ -498,7 +498,7 @@ function TradeReview({
               />
             </article>
             <article>
-              <h3>Ce que tu donnes</h3>
+              <h3>What you give</h3>
               <ReviewCards
                 cards={
                   offer.incoming ? offer.requestedCards : offer.offeredCards
@@ -514,30 +514,30 @@ function TradeReview({
         </>
       ) : (
         <p className="mt-4 text-sm text-ink-2">
-          Cette offre est introuvable ou n’est plus disponible.
+          This offer couldn&apos;t be found or is no longer available.
         </p>
       )}
       <footer>
         {actionable && (
           <>
             <Button disabled={busy} onClick={onAccept}>
-              Accepter
+              Accept
             </Button>
             <Button variant="secondary" disabled={busy} onClick={onCounter}>
-              Contre-proposer
+              Counteroffer
             </Button>
             <Button variant="secondary" disabled={busy} onClick={onDecline}>
-              Refuser
+              Decline
             </Button>
           </>
         )}
         {cancellable && (
           <Button variant="secondary" disabled={busy} onClick={onCancel}>
-            Annuler l’offre
+            Cancel offer
           </Button>
         )}
         <Button variant="secondary" onClick={onClose}>
-          Fermer
+          Close
         </Button>
       </footer>
     </section>
@@ -637,7 +637,7 @@ export function TradesPanel({
         },
         e => {
           if (active)
-            setError(e instanceof Error ? e.message : "Chargement impossible.");
+            setError(e instanceof Error ? e.message : "Couldn't load trades.");
         }
       )
       .finally(() => {
@@ -691,7 +691,7 @@ export function TradesPanel({
             }
             if (removed)
               setSelectionNotice(
-                `${removed} carte${removed > 1 ? "s" : ""} sélectionnée${removed > 1 ? "s" : ""} ${removed > 1 ? "ne sont" : "n’est"} plus disponible${removed > 1 ? "s" : ""} et ${removed > 1 ? "ont" : "a"} été retirée${removed > 1 ? "s" : ""}.`
+                `${removed.toLocaleString("en-US")} selected ${removed === 1 ? "card is" : "cards are"} no longer available and ${removed === 1 ? "has" : "have"} been removed.`
               );
             setContext(nextContext);
           }
@@ -748,12 +748,12 @@ export function TradesPanel({
             )
           )
             updateRequested(new Set([requestedCardId]));
-          else setError("Cette carte n’est plus disponible pour un échange.");
+          else setError("This card is no longer available to trade.");
         }
       }
     } catch (e) {
       if (friendIdRef.current === id && contextRequest.current === request)
-        setError(e instanceof Error ? e.message : "Chargement impossible.");
+        setError(e instanceof Error ? e.message : "Couldn't load trades.");
     }
   }
   function requestFriendChange(id: string, parentId: string | null = null) {
@@ -769,7 +769,7 @@ export function TradesPanel({
       !offer.fromUser ||
       !tradeOfferIsActionable(offer.id, offersRef.current)
     ) {
-      setError("Cette offre n’est plus en attente.");
+      setError("This offer is no longer pending.");
       return;
     }
     setBusy(true);
@@ -785,7 +785,7 @@ export function TradesPanel({
         !tradeOfferIsActionable(offer.id, offersRef.current)
       ) {
         friendIdRef.current = previousFriend;
-        setError("Cette offre n’est plus en attente.");
+        setError("This offer is no longer pending.");
         return;
       }
       const draft = counterTradeDraft(offer, nextContext);
@@ -799,7 +799,7 @@ export function TradesPanel({
       setRequestedKaras(draft.requestedKaras);
       setSelectionNotice(
         draft.removed
-          ? `${draft.removed} carte${draft.removed > 1 ? "s" : ""} de l’offre d’origine ${draft.removed > 1 ? "ne sont" : "n’est"} plus disponible${draft.removed > 1 ? "s" : ""}.`
+          ? `${draft.removed.toLocaleString("en-US")} ${draft.removed === 1 ? "card" : "cards"} from the original offer ${draft.removed === 1 ? "is" : "are"} no longer available.`
           : ""
       );
       setReviewedId(undefined);
@@ -808,9 +808,7 @@ export function TradesPanel({
       if (contextRequest.current === request) {
         friendIdRef.current = previousFriend;
         setError(
-          e instanceof Error
-            ? e.message
-            : "Impossible de préparer la contre-proposition."
+          e instanceof Error ? e.message : "Couldn't prepare the counteroffer."
         );
       }
     } finally {
@@ -831,14 +829,14 @@ export function TradesPanel({
       .friendships()
       .then(async relations => {
         if (!active) return;
-        const normalized = initialFriendId.toLocaleLowerCase("fr-FR");
+        const normalized = initialFriendId.toLocaleLowerCase("en-US");
         const friend = relations.friends.find(
           item =>
             item.id === initialFriendId ||
-            item.pseudo.toLocaleLowerCase("fr-FR") === normalized
+            item.pseudo.toLocaleLowerCase("en-US") === normalized
         );
         if (!friend) {
-          setError("Cet utilisateur n’est pas disponible pour un échange.");
+          setError("This player isn't available to trade.");
           return;
         }
         friendIdRef.current = friend.id;
@@ -866,13 +864,13 @@ export function TradesPanel({
             )
           )
             setRequested(new Set([initialRequestedCardId]));
-          else setError("Cette carte n’est plus disponible pour un échange.");
+          else setError("This card is no longer available to trade.");
         }
       })
       .catch(reason => {
         if (active)
           setError(
-            reason instanceof Error ? reason.message : "Chargement impossible."
+            reason instanceof Error ? reason.message : "Couldn't load trades."
           );
       });
     return () => {
@@ -908,15 +906,13 @@ export function TradesPanel({
       contextRequest.current++;
       setFriendId("");
       setParent(null);
-      setSentNotice(
-        "Proposition envoyée. Elle est maintenant visible dans cet onglet."
-      );
+      setSentNotice("Offer sent. You can now find it in this tab.");
       setTab("sent");
     } catch (e) {
       setError(
         e instanceof Error
           ? e.message
-          : "Impossible d’envoyer cette proposition. Réessayez."
+          : "Couldn't send this offer. Please try again."
       );
     } finally {
       submissionLock.current = false;
@@ -932,7 +928,9 @@ export function TradesPanel({
       await reload();
     } catch (e) {
       setAccepting(undefined);
-      setError(e instanceof Error ? e.message : "Action impossible.");
+      setError(
+        e instanceof Error ? e.message : "Couldn't complete this action."
+      );
       try {
         await reload();
       } catch {}
@@ -950,7 +948,7 @@ export function TradesPanel({
       await reload();
     } catch (e) {
       setCancelling(undefined);
-      setError(e instanceof Error ? e.message : "Annulation impossible.");
+      setError(e instanceof Error ? e.message : "Couldn't cancel this offer.");
       try {
         await reload();
       } catch {}
@@ -973,26 +971,32 @@ export function TradesPanel({
     <div className="yk-social-stack">
       <section className="yk-social-panel">
         <Tabs
-          label="Navigation des échanges"
+          label="Trade navigation"
           value={tab}
           onChange={value => setTab(value as TradeTab)}
           items={[
             { id: "compose", label: "Proposer" },
-            { id: "received", label: `Reçues · ${received.length}` },
-            { id: "sent", label: `Envoyées · ${sent.length}` },
-            { id: "history", label: "Historique" }
+            {
+              id: "received",
+              label: `Received · ${received.length.toLocaleString("en-US")}`
+            },
+            {
+              id: "sent",
+              label: `Sent · ${sent.length.toLocaleString("en-US")}`
+            },
+            { id: "history", label: "History" }
           ]}
         />
         {tab === "compose" && (
-          <div role="tabpanel" aria-label="Proposer un échange">
+          <div role="tabpanel" aria-label="Offer a trade">
             <div className="yk-trade-heading mt-6">
               <div>
-                <p className="eyebrow">Nouvelle proposition</p>
-                <h2 className="yk-section-title mt-2">Choisir un ami</h2>
+                <p className="eyebrow">New offer</p>
+                <h2 className="yk-section-title mt-2">Choose a friend</h2>
               </div>
               {context && (
                 <StatusPill tone="info">
-                  Échange avec {context.friend.pseudo}
+                  Trade with {context.friend.pseudo}
                 </StatusPill>
               )}
             </div>
@@ -1016,8 +1020,8 @@ export function TradesPanel({
             </div>
             {!friends.length && (
               <div className="yk-social-empty is-compact">
-                <strong>Aucun ami disponible</strong>
-                <span>Ajoutez d’abord un ami depuis la page Amis.</span>
+                <strong>No friends available</strong>
+                <span>Add a friend from the Friends page first.</span>
               </div>
             )}
             {context && (
@@ -1027,10 +1031,10 @@ export function TradesPanel({
                     <header>
                       <span className="yk-trade-side-index">01</span>
                       <div>
-                        <p>Tu donnes</p>
+                        <p>You give</p>
                         <small>
-                          Ta collection · {offered.size} sélectionnée
-                          {offered.size > 1 ? "s" : ""}
+                          Your collection ·{" "}
+                          {offered.size.toLocaleString("en-US")} selected
                         </small>
                       </div>
                     </header>
@@ -1048,10 +1052,10 @@ export function TradesPanel({
                       variant="secondary"
                       onClick={() => setPicker("offered")}
                     >
-                      Ajouter des cartes de ma collection
+                      Add cards from my collection
                     </Button>
                     <label className="yk-trade-karas">
-                      Compensation en Karas <Karas amount={context.balance} />
+                      Karas to offer <Karas amount={context.balance} />
                       <input
                         type="number"
                         min="0"
@@ -1064,8 +1068,8 @@ export function TradesPanel({
                     </label>
                     {insufficient && (
                       <p role="alert" className="yk-inline-error">
-                        Solde de Karas insuffisant (votre solde :{" "}
-                        {context.balance.toLocaleString("fr-FR")} K)
+                        Not enough Karas (your balance:{" "}
+                        {context.balance.toLocaleString("en-US")} K)
                       </p>
                     )}
                   </section>
@@ -1073,11 +1077,10 @@ export function TradesPanel({
                     <header>
                       <span className="yk-trade-side-index">02</span>
                       <div>
-                        <p>Tu reçois</p>
+                        <p>You receive</p>
                         <small>
-                          Collection de {context.friend.pseudo} ·{" "}
-                          {requested.size} sélectionnée
-                          {requested.size > 1 ? "s" : ""}
+                          Collection of {context.friend.pseudo} ·{" "}
+                          {requested.size.toLocaleString("en-US")} selected
                         </small>
                       </div>
                     </header>
@@ -1095,10 +1098,10 @@ export function TradesPanel({
                       variant="secondary"
                       onClick={() => setPicker("requested")}
                     >
-                      Parcourir les cartes de {context.friend.pseudo}
+                      Browse cards from {context.friend.pseudo}
                     </Button>
                     <label className="yk-trade-karas">
-                      Compensation demandée en Karas
+                      Karas to request
                       <input
                         type="number"
                         min="0"
@@ -1126,8 +1129,8 @@ export function TradesPanel({
                 />
                 <footer className="yk-trade-submit">
                   <p>
-                    Les possessions seront revérifiées au moment de
-                    l’acceptation.
+                    Card ownership will be checked again when the trade is
+                    accepted.
                   </p>
                   <Button
                     aria-busy={busy || undefined}
@@ -1135,10 +1138,10 @@ export function TradesPanel({
                     onClick={() => void submit()}
                   >
                     {busy
-                      ? "Envoi…"
+                      ? "Sending…"
                       : parent
-                        ? "Envoyer la contre-offre"
-                        : "Envoyer la proposition"}
+                        ? "Send counteroffer"
+                        : "Send offer"}
                   </Button>
                 </footer>
               </div>
@@ -1150,28 +1153,28 @@ export function TradesPanel({
             role="tabpanel"
             aria-label={
               tab === "received"
-                ? "Propositions reçues"
+                ? "Received offers"
                 : tab === "sent"
-                  ? "Propositions envoyées"
-                  : "Historique des échanges"
+                  ? "Sent offers"
+                  : "Trade history"
             }
           >
             {tab === "sent" && sentNotice && (
-              <Feedback tone="success" title="Proposition envoyée">
+              <Feedback tone="success" title="Offer sent">
                 {sentNotice}
               </Feedback>
             )}
             <div className="yk-trade-history-head mt-6">
               <div>
                 <p className="eyebrow">
-                  {tab === "history" ? "Historique" : "En cours"}
+                  {tab === "history" ? "History" : "Active"}
                 </p>
                 <h2 className="yk-section-title mt-2">
                   {tab === "received"
-                    ? "Propositions reçues"
+                    ? "Received offers"
                     : tab === "sent"
-                      ? "Propositions envoyées"
-                      : "Échanges terminés"}
+                      ? "Sent offers"
+                      : "Completed trades"}
                 </h2>
               </div>
             </div>
@@ -1194,7 +1197,7 @@ export function TradesPanel({
       <Modal
         open={!!reviewedId}
         onClose={() => setReviewedId(undefined)}
-        title="Examiner l’échange"
+        title="Review trade"
         className="yk-trade-review-modal"
       >
         <TradeReview
@@ -1219,7 +1222,7 @@ export function TradesPanel({
           <CardPicker
             open={picker === "offered"}
             onClose={() => setPicker(undefined)}
-            title="Sélectionner dans ta collection"
+            title="Choose from your collection"
             cards={context.ownCards}
             selected={offered}
             onChange={updateOffered}
@@ -1227,7 +1230,7 @@ export function TradesPanel({
           <CardPicker
             open={picker === "requested"}
             onClose={() => setPicker(undefined)}
-            title={`Sélectionner dans la collection de ${context.friend.pseudo}`}
+            title={`Choose from ${context.friend.pseudo}'s collection`}
             cards={context.friendCards}
             selected={requested}
             onChange={updateRequested}
@@ -1237,20 +1240,20 @@ export function TradesPanel({
       <Modal
         open={!!pendingFriend}
         onClose={() => setPendingFriend(undefined)}
-        title="Changer d’ami ?"
+        title="Change friend?"
         className="max-w-lg"
       >
         <p className="text-sm leading-6 text-ink-2">
-          Les cartes demandées appartiennent à l’ami actuel. Changer d’ami
-          videra uniquement cette sélection ; tes cartes offertes et les Karas
-          saisis seront conservés.
+          The requested cards belong to your current friend. Changing friends
+          will clear only that selection. Your offered cards and entered Karas
+          amounts will be kept.
         </p>
         <div className="mt-6 flex justify-end gap-3">
           <Button
             variant="secondary"
             onClick={() => setPendingFriend(undefined)}
           >
-            Annuler
+            Cancel
           </Button>
           <Button
             onClick={() => {
@@ -1259,26 +1262,26 @@ export function TradesPanel({
               if (next) void chooseFriend(next.id, next.parentId);
             }}
           >
-            Changer d’ami
+            Change friend
           </Button>
         </div>
       </Modal>
       <Modal
         open={!!pendingCounter}
         onClose={() => setPendingCounter(undefined)}
-        title="Remplacer le brouillon ?"
+        title="Replace draft?"
         className="max-w-lg"
       >
         <p className="text-sm leading-6 text-ink-2">
-          Préparer cette contre-proposition remplacera l’ami, les cartes et les
-          Karas du brouillon actuel.
+          Preparing this counteroffer will replace the friend, cards, and Karas
+          in your current draft.
         </p>
         <div className="mt-6 flex justify-end gap-3">
           <Button
             variant="secondary"
             onClick={() => setPendingCounter(undefined)}
           >
-            Conserver mon brouillon
+            Keep my draft
           </Button>
           <Button
             onClick={() => {
@@ -1287,31 +1290,31 @@ export function TradesPanel({
               if (offer) void composeCounter(offer);
             }}
           >
-            Remplacer et continuer
+            Replace and continue
           </Button>
         </div>
       </Modal>
       <Modal
         open={!!accepting}
         onClose={() => setAccepting(undefined)}
-        title="Action irréversible"
+        title="This can't be undone"
         className="max-w-lg"
       >
         <p className="text-sm leading-6 text-ink-2">
-          En acceptant, les cartes et les Karas de cette offre seront transférés
-          immédiatement. Vérifiez une dernière fois son contenu.
+          Accepting will transfer the cards and Karas in this offer immediately.
+          Check its contents one last time.
         </p>
         {accepting && (
           <div className="yk-trade-confirm">
             <div>
-              <strong>Tu reçois</strong>
+              <strong>You receive</strong>
               <OfferCards cards={accepting.offeredCards} />
               {accepting.offeredKaras > 0 && (
                 <Karas amount={accepting.offeredKaras} />
               )}
             </div>
             <div>
-              <strong>Tu donnes</strong>
+              <strong>You give</strong>
               <OfferCards cards={accepting.requestedCards} />
               {accepting.requestedKaras > 0 && (
                 <Karas amount={accepting.requestedKaras} />
@@ -1321,24 +1324,24 @@ export function TradesPanel({
         )}
         <div className="mt-6 flex justify-end gap-3">
           <Button variant="secondary" onClick={() => setAccepting(undefined)}>
-            Annuler
+            Cancel
           </Button>
           <Button
             disabled={busy}
             onClick={() => accepting && void respond(accepting.id, "accept")}
           >
-            {busy ? "Acceptation…" : "Confirmer l’échange"}
+            {busy ? "Accepting…" : "Confirm trade"}
           </Button>
         </div>
       </Modal>
       <Modal
         open={!!cancelling}
         onClose={() => setCancelling(undefined)}
-        title="Annuler cette offre ?"
+        title="Cancel this offer?"
         className="max-w-lg"
       >
         <p className="text-sm leading-6 text-ink-2">
-          Cette offre quittera les propositions en attente.
+          This offer will be removed from pending offers.
         </p>
         <div className="mt-6 flex justify-end gap-3">
           <Button
@@ -1346,14 +1349,14 @@ export function TradesPanel({
             disabled={busy}
             onClick={() => setCancelling(undefined)}
           >
-            Conserver l’offre
+            Keep offer
           </Button>
           <Button
             variant="danger"
             disabled={busy}
             onClick={() => cancelling && void cancel(cancelling.id)}
           >
-            {busy ? "Annulation…" : "Annuler l’offre"}
+            {busy ? "Canceling…" : "Cancel offer"}
           </Button>
         </div>
       </Modal>
