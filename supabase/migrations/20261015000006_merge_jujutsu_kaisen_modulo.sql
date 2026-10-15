@@ -1,5 +1,11 @@
 begin;
 
+-- Serialize catalogue/favourite writes only for this short transaction so an
+-- import cannot change the audited set or recreate the old spelling mid-merge.
+-- Ordinary reads remain available.
+lock table public.cards, public.card_franchises, public.panini_album_favorites
+  in share row exclusive mode;
+
 -- Fail closed if the audited ten-card source changed before deployment.
 -- Empty databases are allowed so the full migration history stays replayable.
 do $$
