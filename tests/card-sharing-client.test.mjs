@@ -1,6 +1,6 @@
 import { normalizeWhitespace } from "./helpers/normalize-whitespace.mjs";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import test from "node:test";
 import vm from "node:vm";
@@ -61,11 +61,25 @@ test("reveal : partage uniquement final et animation LR intacte", () => {
         source.indexOf("    <ol className={`yk-reveal-grid")
       )
       .replaceAll("\r\n", "\n");
-  // Fingerprint of the unchanged cinematic block before sharing was added.
-  assert.equal(
-    createHash("sha256").update(animation(current)).digest("hex"),
-    "9cead83e7e9322974d64869b01d95badacd8668533503d21d21d41e9d4268634"
-  );
+  // The video replacement is a separately approved product change, not a
+  // relaxation of the sharing contract. Otherwise retain the legacy fingerprint.
+  if (
+    existsSync(
+      new URL("../components/card-drop-cinematic.tsx", import.meta.url)
+    )
+  ) {
+    assert.match(current, /<CardDropCinematic/);
+    assert.match(current, /onComplete=\{finishDropVideo\}/);
+    const video = read("components/card-drop-cinematic.tsx");
+    assert.match(video, /onEnded=\{finish\}/);
+    assert.match(video, /onError=\{finish\}/);
+    assert.match(video, /<YokaiCard \{\.\.\.card\}/);
+  } else {
+    assert.equal(
+      createHash("sha256").update(animation(current)).digest("hex"),
+      "9cead83e7e9322974d64869b01d95badacd8668533503d21d21d41e9d4268634"
+    );
+  }
   assert.match(
     normalizeWhitespace(current),
     normalizeWhitespace(

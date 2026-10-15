@@ -1,12 +1,34 @@
 import { normalizeWhitespace } from "./helpers/normalize-whitespace.mjs";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import test from "node:test";
 
 const root = path.resolve(import.meta.dirname, "..");
+// Product change approved with Walid in this test-only PR. Keep exactly one
+// contract active: the old CSS reveal until the video component is installed.
+const videoReveal = existsSync(
+  path.join(root, "components/card-drop-cinematic.tsx")
+);
 
 test("le reveal SR possede un flash bref et un pulse sans reprendre le burst SSR/LR", () => {
+  if (videoReveal) {
+    const video = readFileSync(
+      path.join(root, "components/card-drop-cinematic.tsx"),
+      "utf8"
+    );
+    const mapping = readFileSync(
+      path.join(root, "lib/ui/card-drop-video.ts"),
+      "utf8"
+    );
+    assert.match(mapping, /SR: "\/assets\/drops\/sr-v1\.mp4"/);
+    assert.match(video, /<video/);
+    assert.match(video, /onEnded=\{finish\}/);
+    assert.match(video, /onError=\{finish\}/);
+    assert.match(video, /<YokaiCard \{\.\.\.card\}/);
+    assert.match(video, /<CardBack/);
+    return;
+  }
   const source = readFileSync(
     path.join(root, "components/boosters.tsx"),
     "utf8"
@@ -33,6 +55,38 @@ test("le reveal SR possede un flash bref et un pulse sans reprendre le burst SSR
 });
 
 test("SSR et LR escaladent rayons, particules, shake et duree", () => {
+  if (videoReveal) {
+    const source = readFileSync(
+      path.join(root, "components/boosters.tsx"),
+      "utf8"
+    );
+    const mapping = readFileSync(
+      path.join(root, "lib/ui/card-drop-video.ts"),
+      "utf8"
+    );
+    const video = readFileSync(
+      path.join(root, "components/card-drop-cinematic.tsx"),
+      "utf8"
+    );
+    const css = readFileSync(
+      path.join(root, "styles/card-drop-cinematic.css"),
+      "utf8"
+    );
+    assert.match(mapping, /SSR: "\/assets\/drops\/ssr-v1\.mp4"/);
+    assert.match(mapping, /LR: "\/assets\/drops\/lr-v1\.mp4"/);
+    assert.match(source, /<CardDropCinematic/);
+    assert.match(video, /playsInline/);
+    assert.match(video, /muted/);
+    assert.match(video, /Skip animation/);
+    assert.match(video, /prefers-reduced-motion/);
+    assert.match(video, /CSS\.supports/);
+    assert.match(css, /mask-composite: exclude/);
+    assert.match(css, /-webkit-mask-composite: xor/);
+    assert.match(css, /object-fit: contain/);
+    assert.match(css, /prefers-reduced-motion/);
+    assert.doesNotMatch(source, /className="yk-(?:ssr|lr)-cinematic-stage"/);
+    return;
+  }
   const source = readFileSync(
     path.join(root, "components/boosters.tsx"),
     "utf8"
