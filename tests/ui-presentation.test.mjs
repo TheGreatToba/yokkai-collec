@@ -1718,22 +1718,33 @@ test("Collection, Catalogue et Marché partagent une seule échelle de colonnes"
   }
 });
 
-test("la collection annonce l'évolution de cinq SSR non-Shiny en Shiny", () => {
+test("la collection annonce la récompense de fusion correspondant à la migration installée", () => {
+  // Product change approved separately: keep the legacy contract until the UR
+  // migration exists, then require the new contract (never accept either at will).
+  const urEvolution = existsSync(
+    path.join(root, "supabase/migrations/20261015000008_ssr_evolution_ur.sql")
+  );
   const source = readFileSync(
     path.join(root, "components/collection.tsx"),
     "utf8"
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/évolution Shiny/i)
+    normalizeWhitespace(
+      urEvolution ? /Confirm UR evolution/ : /évolution Shiny/i
+    )
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/Progression Shiny/)
+    normalizeWhitespace(urEvolution ? /UR progress/ : /Progression Shiny/)
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/\{evolvableCopies\}\/5 exemplaires/)
+    normalizeWhitespace(
+      urEvolution
+        ? /\{evolvableCopies\}\/5 copies/
+        : /\{evolvableCopies\}\/5 exemplaires/
+    )
   );
   assert.doesNotMatch(
     normalizeWhitespace(source),
@@ -1741,8 +1752,18 @@ test("la collection annonce l'évolution de cinq SSR non-Shiny en Shiny", () => 
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/Confirmer l’évolution Shiny/)
+    normalizeWhitespace(
+      urEvolution ? /Confirm UR evolution/ : /Confirmer l’évolution Shiny/
+    )
   );
+  if (urEvolution) {
+    assert.match(normalizeWhitespace(source), /Evolve to UR/);
+    assert.match(normalizeWhitespace(source), /new non-shiny UR/);
+    assert.doesNotMatch(
+      source,
+      /Progression Shiny|Évoluer en Shiny|Confirmer l’évolution Shiny/
+    );
+  }
   assert.match(
     normalizeWhitespace(source),
     normalizeWhitespace(
