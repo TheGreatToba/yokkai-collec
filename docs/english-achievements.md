@@ -1,6 +1,6 @@
 # Succès : textes anglais
 
-Migration : `20261015190000_english_achievement_texts.sql`. **Non appliquée au VPS.** Cette PR ne doit pas être mergée ou appliquée sans la décision de Walid ; aucune intervention de production n'a été effectuée.
+Migration : `20261015190000_english_achievement_texts.sql`. **Non appliquée au VPS.** Walid a autorisé la correction et l’application après CI verte ; l’application reste à effectuer.
 
 Les onze définitions existantes de `public.achievements` reçoivent uniquement un nouveau `titre` et une nouvelle `description`. IDs, conditions, catégories et récompenses restent identiques. Les tables joueurs, notifications et catalogue ne sont pas modifiées ; les notifications affichent le titre de la définition par jointure existante. Aucune fonction SQL ni route ne change. Les nouvelles fonctions ou les futurs succès UR relèvent des PR d'Abdou, hors périmètre ici.
 
@@ -8,19 +8,39 @@ La migration est idempotente : une définition déjà traduite ne déclenche auc
 
 ## Libellés proposés
 
-| ID technique conservé | Titre                  | Description                                       |
-| --------------------- | ---------------------- | ------------------------------------------------- |
-| premier-rituel        | First Ritual           | Open your first Regular Pack.                     |
-| habitude-installe     | Getting into the Habit | Open 10 Regular Packs.                            |
-| chasseur-yokkai       | Yokkai Hunter          | Open 50 Regular Packs.                            |
-| decision-decisive     | Decisive Choice        | Complete your first Decision Pack.                |
-| collection-en-marche  | Collection in Motion   | Collect 25 different cards from the catalog.      |
-| legende-naissante     | A Legend Begins        | Collect your first LR card.                       |
-| eclat-inattendu       | Unexpected Sparkle     | Collect your first Shiny card.                    |
-| specialiste           | Specialist             | Collect 50% of any category.                      |
-| adjuge                | Going, Going, Gone!    | Win your first auction.                           |
-| marche-conclu         | Deal Done              | Complete your first accepted trade.               |
-| transcendance         | Transcendence          | Evolve an SSR card into Shiny for the first time. |
+| ID technique conservé | Titre                  | Description                                  |
+| --------------------- | ---------------------- | -------------------------------------------- |
+| premier-rituel        | First Ritual           | Open your first Regular Pack.                |
+| habitude-installe     | Getting into the Habit | Open 10 Regular Packs.                       |
+| chasseur-yokkai       | Yokkai Hunter          | Open 50 Regular Packs.                       |
+| decision-decisive     | Decisive Choice        | Complete your first Decision Pack.           |
+| collection-en-marche  | Collection in Motion   | Collect 25 different cards from the catalog. |
+| legende-naissante     | A Legend Begins        | Collect your first LR card.                  |
+| eclat-inattendu       | Unexpected Sparkle     | Collect your first Shiny card.               |
+| specialiste           | Specialist             | Collect 50% of any category.                 |
+| adjuge                | Going, Going, Gone!    | Win your first auction.                      |
+| marche-conclu         | Deal Done              | Complete your first accepted trade.          |
+| transcendance         | Transcendence          | Obtain your first evolved Shiny SSR card.    |
+
+## Vérification des règles actives
+
+Lecture des définitions et fonctions réellement actives sur le VPS le 15/10/2026, sans modifier de donnée joueur. Les dix autres anciens textes correspondent aux règles ; seule Transcendance présente un écart de sens.
+
+| IDs                                                  | Condition réelle et source lue                                                                                                                      | Description anglaise vérifiée                                                   |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| premier-rituel / habitude-installe / chasseur-yokkai | `regular_packs_opened >= 1 / 10 / 50`, compteur incrémenté par `open_regular_pack`                                                                  | Open your first Regular Pack. / Open 10 Regular Packs. / Open 50 Regular Packs. |
+| decision-decisive                                    | `decision_packs_completed >= 1`, transition `pending → claimed` dans `on_decision_pack_completed_achievement`                                       | Complete your first Decision Pack.                                              |
+| collection-en-marche                                 | `count(distinct card_id) >= 25` dans `achievement_progress`                                                                                         | Collect 25 different cards from the catalog.                                    |
+| legende-naissante                                    | Existence d’une carte possédée dont `cards.rarete_base = LR`                                                                                        | Collect your first LR card.                                                     |
+| eclat-inattendu                                      | Au moins une carte possédée avec `is_shiny = true`                                                                                                  | Collect your first Shiny card.                                                  |
+| specialiste                                          | Maximum par catégorie de `floor(100 × cartes distinctes possédées / cartes distinctes du catalogue) >= 50`                                          | Collect 50% of any category.                                                    |
+| adjuge                                               | `auctions_won >= 1`, transition `active → sold` avec acheteur non nul dans `on_auction_won_achievement`                                             | Win your first auction.                                                         |
+| marche-conclu                                        | `trades_completed >= 1` pour les deux participants, transition `pending → accepted` dans `on_trade_completed_achievement`                           | Complete your first accepted trade.                                             |
+| transcendance                                        | `ssr_evolved_to_lr >= 1`, compteur incrémenté lors de l’insertion ou de l’acquisition d’une carte `is_evolved` dans les deux déclencheurs de cartes | Obtain your first evolved Shiny SSR card.                                       |
+
+Écart constaté : ancien texte actif « Évoluer une première carte SSR en LR. » → nouveau texte « Obtain your first evolved Shiny SSR card. ». La fonction `evolve_ssr_card(uuid[])` exige exactement cinq identifiants distincts appartenant au joueur, tous pour la même carte de base SSR, de rareté possédée SSR et non Shiny. Elle consomme ces cinq exemplaires et insère une carte SSR avec `is_shiny=true` et `is_evolved=true`. La contrainte `user_cards_evolved_shiny_ssr_check` impose ce résultat ; ce n’est pas une LR. Recevoir une carte déjà évoluée déclenche aussi ce succès : « Obtain » couvre les deux cas sans inventer de condition d’origine. Le nom technique historique est conservé.
+
+Les récompenses, seuils et fonctions restent strictement inchangés. `complete_achievements` compare la progression au seuil et mémorise le déblocage ; la traduction ne recalcule aucune progression. Le retour arrière ci-dessous restaure le texte effectivement relevé sur le VPS, y compris l’ancien libellé SSR → LR ; cette restauration n’est pas une validation de sa justesse.
 
 ## Validation
 
@@ -46,7 +66,7 @@ from (values
   ('specialiste', 'Spécialiste', 'Compléter 50 % de n''importe quelle catégorie.', 'Specialist', 'Collect 50% of any category.'),
   ('adjuge', 'Adjugé !', 'Gagner sa première enchère.', 'Going, Going, Gone!', 'Win your first auction.'),
   ('marche-conclu', 'Marché conclu', 'Réaliser son premier échange accepté.', 'Deal Done', 'Complete your first accepted trade.'),
-  ('transcendance', 'Transcendance', 'Faire évoluer une première carte SSR en Shiny.', 'Transcendence', 'Evolve an SSR card into Shiny for the first time.')
+  ('transcendance', 'Transcendance', 'Évoluer une première carte SSR en LR.', 'Transcendence', 'Obtain your first evolved Shiny SSR card.')
 ) as translation(id, old_title, old_description, english_title, english_description)
 where achievement.id = translation.id
   and achievement.titre = translation.english_title

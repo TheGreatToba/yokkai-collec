@@ -19,6 +19,8 @@ test("English achievement text preserves rules and player data, is idempotent an
   });
   t.after(() => db.close());
   await db.exec(`
+    -- Reproduce the label observed on the VPS; migration replay already has a newer French label.
+    update public.achievements set description = 'Évoluer une première carte SSR en LR.' where id = 'transcendance';
     insert into auth.users(id, raw_user_meta_data) values ('10000000-0000-4000-8000-000000000001', '{"pseudo":"EnglishProof"}');
     insert into public.user_achievements(user_id, achievement_id, completed_at, claimed_at)
       values ('10000000-0000-4000-8000-000000000001', 'premier-rituel', '2026-10-01T00:00:00Z', '2026-10-01T00:01:00Z');
@@ -47,6 +49,10 @@ test("English achievement text preserves rules and player data, is idempotent an
   await db.exec(migration);
   const english = await definitions();
   assert.equal(english.length, 11);
+  assert.equal(
+    english.find(item => item.id === "transcendance").description,
+    "Obtain your first evolved Shiny SSR card."
+  );
   for (let index = 0; index < before.length; index++) {
     const {
       titre: oldTitle,

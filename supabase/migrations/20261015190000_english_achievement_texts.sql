@@ -14,7 +14,7 @@ from (values
   ('specialiste', 'Specialist', 'Collect 50% of any category.'),
   ('adjuge', 'Going, Going, Gone!', 'Win your first auction.'),
   ('marche-conclu', 'Deal Done', 'Complete your first accepted trade.'),
-  ('transcendance', 'Transcendence', 'Evolve an SSR card into Shiny for the first time.')
+  ('transcendance', 'Transcendence', 'Obtain your first evolved Shiny SSR card.')
 ) as translation(id, title, description)
 where achievement.id = translation.id
   and (achievement.titre, achievement.description)
