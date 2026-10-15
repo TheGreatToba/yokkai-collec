@@ -29,8 +29,14 @@ begin
       or jsonb_typeof(frame->'x') is distinct from 'number'
       or jsonb_typeof(frame->'y') is distinct from 'number'
       or jsonb_typeof(frame->'zoom') is distinct from 'number'
-      or exists(select 1 from jsonb_object_keys(frame) k where k not in ('x','y','zoom'))
+      or exists(select 1 from jsonb_object_keys(frame) k where k not in ('x','y','zoom','rotation'))
       then raise exception 'BANNER_FRAME_INVALID'; end if;
+    if frame ? 'rotation' then
+      if jsonb_typeof(frame->'rotation') is distinct from 'number'
+        then raise exception 'BANNER_FRAME_INVALID'; end if;
+      if (frame->>'rotation')::numeric not in (0,90,180,270)
+        then raise exception 'BANNER_FRAME_INVALID'; end if;
+    end if;
     if (frame->>'x')::numeric not between 0 and 100
       or (frame->>'y')::numeric not between 0 and 100
       or (frame->>'zoom')::numeric not between 0.01 and 4
@@ -137,7 +143,7 @@ begin
     union all
     select 'wall_files'::text section,value from (select jsonb_build_object('type',to_jsonb(t)->'metadata'->'mimetype','size',to_jsonb(t)->'metadata'->'size') value from storage.objects t where t.bucket_id='profile-wall-media' and split_part(t.name,'/',1)=p_user_id::text limit 100001) bounded
     union all
-    select 'profile'::text section, value from (select jsonb_build_object('pseudo',t.pseudo,'next_regular_pack_at',t.next_regular_pack_at,'next_decision_pack_at',t.next_decision_pack_at,'karas_balance',t.karas_balance,'avatar_url',case when t.avatar_url ~ '^https://[^/@?#]+/' then regexp_replace(t.avatar_url, '[?#].*$', '') else null end,'bio',t.bio,'featured_card_ids',t.featured_card_ids,'banner_card_id',t.banner_card_id,'is_public',t.is_public,'last_seen_at',t.last_seen_at,'presence_active',t.presence_active,'interests',t.interests,'profile_widgets',t.profile_widgets,'banner_frame',t.banner_frame,'banner_url',case when t.banner_url ~ '^https://[^/@?#]+/' then regexp_replace(t.banner_url,'[?#].*$','') else null end) value from public.user_profiles t where t.user_id=p_user_id limit 100001) bounded
+    select 'profile'::text section, value from (select jsonb_build_object('pseudo',t.pseudo,'next_regular_pack_at',t.next_regular_pack_at,'next_decision_pack_at',t.next_decision_pack_at,'karas_balance',t.karas_balance,'avatar_url',case when t.avatar_url ~ '^https://[^/@?#]+/' then regexp_replace(t.avatar_url, '[?#].*$', '') else null end,'bio',t.bio,'featured_card_ids',t.featured_card_ids,'banner_card_id',t.banner_card_id,'is_public',t.is_public,'last_seen_at',t.last_seen_at,'presence_active',t.presence_active,'interests',t.interests,'profile_widgets',t.profile_widgets,'banner_frame',t.banner_frame,'banner_frame_source',case when t.banner_frame_source ~ '^https://[^/@?#]+/' then regexp_replace(t.banner_frame_source,'[?#].*$','') else t.banner_frame_source end,'banner_url',case when t.banner_url ~ '^https://[^/@?#]+/' then regexp_replace(t.banner_url,'[?#].*$','') else null end) value from public.user_profiles t where t.user_id=p_user_id limit 100001) bounded
     union all
     select 'progress'::text section, value from (select jsonb_build_object('regular_packs_opened', t.regular_packs_opened, 'decision_packs_completed', t.decision_packs_completed, 'auctions_won', t.auctions_won, 'trades_completed', t.trades_completed, 'ssr_evolved_to_lr', t.ssr_evolved_to_lr) value from public.user_achievement_stats t where t.user_id=p_user_id limit 100001) bounded
     union all

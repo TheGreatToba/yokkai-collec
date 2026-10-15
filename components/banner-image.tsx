@@ -28,7 +28,7 @@ export function BannerImage({
       draggable={false}
       style={{
         visibility: ready ? "visible" : "hidden",
-        transform: `translate(${geometry.offsetX}%, ${geometry.offsetY}%) scale(${geometry.scale})`
+        transform: `translate(${geometry.offsetX}%, ${geometry.offsetY}%) scale(${geometry.scale}) rotate(${geometry.rotation}deg)`
       }}
       onLoad={event => {
         const image = event.currentTarget;

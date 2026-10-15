@@ -16,6 +16,42 @@ const { bannerGeometry, normalizeBannerFrame, panBanner, BANNER_ASPECT } =
   exports;
 const center = { x: 50, y: 50, zoom: 1 };
 
+test("quarter turns cycle through all four orientations and keep the complete image visible in fit mode", () => {
+  for (const aspect of [0.2, 0.66, 1, 2.3, 4, 10]) {
+    let frame = { ...center, zoom: bannerGeometry(aspect, center).minZoom };
+    for (const rotation of [90, 180, 270, 0]) {
+      frame = exports.rotateBanner(frame, aspect);
+      assert.equal(frame.rotation, rotation);
+      const geometry = bannerGeometry(aspect, frame);
+      assert.equal(geometry.rotation, rotation);
+      assert.ok(geometry.overflowX < 1e-9 && geometry.overflowY < 1e-9);
+      const fittedHeight = Math.min(BANNER_ASPECT / aspect, 1);
+      const quarterTurn = rotation === 90 || rotation === 270;
+      const width =
+        (quarterTurn ? fittedHeight : aspect * fittedHeight) * geometry.scale;
+      const height =
+        (quarterTurn ? aspect * fittedHeight : fittedHeight) * geometry.scale;
+      assert.ok(width <= BANNER_ASPECT + 1e-9);
+      assert.ok(height <= 1 + 1e-9);
+      assert.ok(
+        Math.abs(width - BANNER_ASPECT) < 1e-9 || Math.abs(height - 1) < 1e-9
+      );
+    }
+  }
+});
+
+test("rotation remains bounded while panning and resets invalid angles safely", () => {
+  for (const rotation of [0, 90, 180, 270]) {
+    const frame = { ...center, rotation, zoom: 1.8 };
+    const moved = panBanner(frame, 0.66, 0.1, -0.1);
+    assert.equal(moved.rotation, rotation);
+    assert.ok(moved.x >= 0 && moved.x <= 100 && moved.y >= 0 && moved.y <= 100);
+  }
+  for (const rotation of [NaN, Infinity, -90, 45, 360]) {
+    assert.equal(normalizeBannerFrame({ ...center, rotation }).rotation, 0);
+  }
+});
+
 test("banner framing fits every image ratio without changing its proportions", () => {
   for (const aspect of [0.2, 0.66, 1, 2.3, 4, 10]) {
     const initial = bannerGeometry(aspect, center);

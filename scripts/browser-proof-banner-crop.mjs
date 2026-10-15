@@ -203,7 +203,15 @@ try {
   );
   await click("Fit entire image");
   assert.match(await transform(), /scale\(1(?:\.0+)?\)/);
+  for (const rotation of [90, 180, 270, 0]) {
+    await click("Rotate 90°");
+    await delay(50);
+    assert.ok((await transform()).includes("rotate(" + rotation + "deg)"));
+  }
   await click("Reset");
+  await click("Rotate 90°");
+  await delay(50);
+  await capture("desktop-rotated.png");
   await click("Apply crop");
   await until("!document.querySelector('.yk-banner-crop-modal')");
   assert.ok(
@@ -217,6 +225,7 @@ try {
   const saved = await evaluate(
     "document.querySelector('.yk-profile-banner.has-frame img').style.transform"
   );
+  assert.match(saved, /rotate\(90deg\)/, "rotation is saved on the profile");
   await capture("desktop-profile.png");
   await edit();
   await until("!!document.querySelector('.yk-profile-banner-editor')");

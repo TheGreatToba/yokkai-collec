@@ -8,6 +8,7 @@ import {
   DEFAULT_BANNER_FRAME,
   normalizeBannerFrame,
   panBanner,
+  rotateBanner,
   type BannerFrame
 } from "@/lib/ui/banner-frame";
 
@@ -144,9 +145,24 @@ export function BannerCrop({
         <Button
           variant="secondary"
           disabled={!ready}
-          onClick={() => setFrame({ x: 50, y: 50, zoom: geometry.minZoom })}
+          onClick={() =>
+            setFrame(current => ({
+              ...current,
+              x: 50,
+              y: 50,
+              zoom: geometry.minZoom
+            }))
+          }
         >
           Fit entire image
+        </Button>
+        <Button
+          variant="secondary"
+          disabled={!ready}
+          aria-label="Rotate image 90 degrees clockwise"
+          onClick={() => setFrame(current => rotateBanner(current, aspect!))}
+        >
+          Rotate 90°
         </Button>
         <Button
           variant="secondary"

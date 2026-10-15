@@ -3,6 +3,8 @@
 Un écran « Crop banner » s'ouvre lors du choix d'un personnage ou d'un fichier
 local. Le joueur déplace l'image à la souris, au tactile ou avec les flèches,
 ajuste le zoom, choisit « Fit entire image » ou réinitialise le cadrage.
+« Rotate 90° » tourne l'image par quarts de tour (0/90/180/270°), sans modifier
+le fichier original. Le mode image entière reste actif après une rotation.
 « Apply crop » valide le brouillon ; seul l'enregistrement du profil le persiste.
 Annuler ne remplace pas la bannière précédente et n'envoie aucun fichier.
 
@@ -16,7 +18,7 @@ conservés. Les fichiers importés sont envoyés uniquement à l'enregistrement.
 `20261016000000_profile_banner_frame.sql` ajoute le cadrage et sa source au profil.
 La nouvelle RPC réutilise les contrôles d'apparence existants et enregistre
 l'apparence et le cadrage dans une transaction. Métadonnées bornées : x/y 0–100,
-zoom 0,01–4. Aucun accès direct joueur aux nouvelles colonnes ; aucun nouveau
+zoom 0,01–4 et rotation optionnelle limitée à 0/90/180/270°. Aucun accès direct joueur aux nouvelles colonnes ; aucun nouveau
 droit d'upload, d'inventaire ou de lecture des collections.
 
 Le cadrage ne s'applique qu'à l'image qui lui correspond. Les utilisateurs

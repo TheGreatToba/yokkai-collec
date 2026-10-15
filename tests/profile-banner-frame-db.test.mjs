@@ -41,6 +41,16 @@ test("banner crops persist atomically, bind to their source and keep profile/sto
   await login(owner);
   assert.deepEqual((await save()).bannerFrame, frame);
   assert.deepEqual((await details(owner)).bannerFrame, frame);
+  for (const rotation of [0, 90, 180, 270]) {
+    const rotated = { ...frame, rotation };
+    assert.deepEqual((await save(rotated)).bannerFrame, rotated);
+    assert.deepEqual((await details(owner)).bannerFrame, rotated);
+  }
+  await save(frame);
+  for (const rotation of [-90, 45, 360, "90", null, true]) {
+    await assert.rejects(save({ ...frame, rotation }), /BANNER_FRAME_INVALID/);
+  }
+  assert.deepEqual((await details(owner)).bannerFrame, frame);
   for (const invalid of [
     [],
     {},
