@@ -553,3 +553,24 @@ test("le limiteur ne ralentit pas les autres domaines", async () => {
   });
   assert.equal((await limitedFetch("https://s4.anilist.co/a.png")).status, 200);
 });
+
+test("onWritten ne signale que les lignes réellement écrites (doublon dont l'image échoue)", async () => {
+  const client = fakeClient();
+  const written = [];
+  await importCards({
+    rows: [
+      row("dup"),
+      { ...row("dup"), image_url: "https://example.com/broken.png" },
+      row("other")
+    ],
+    client,
+    fetchImage: async url => {
+      if (String(url).includes("broken")) throw new Error("image cassée");
+      return image();
+    },
+    log: silent,
+    sleep: async () => {},
+    onWritten: async records => written.push(...records)
+  });
+  assert.deepEqual(written, [3]);
+});

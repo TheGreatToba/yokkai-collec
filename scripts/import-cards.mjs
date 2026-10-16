@@ -576,6 +576,7 @@ export async function importCards({
   fetchImage = publicImageFetch,
   log = console.log,
   onFailure = async () => {},
+  onWritten = async () => {},
   sleep = delay
 }) {
   const stats = {
@@ -687,6 +688,8 @@ export async function importCards({
         sleep
       );
       stats.imported += ready.length;
+      // Record numbers (1-based) of the rows actually upserted.
+      await onWritten(ready.map(({ index }) => index));
     }
     stats.batches++;
     log(

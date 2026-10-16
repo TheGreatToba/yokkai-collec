@@ -150,20 +150,33 @@ async function syncFranchises(
   cardId: string,
   franchises: string[]
 ) {
-  const { error: deleteError } = await client
-    .from("card_franchises")
-    .delete()
+  const table = () => client.from("card_franchises");
+  const { data: previous, error: readError } = await table()
+    .select("franchise,position")
     .eq("card_id", cardId);
+  if (readError) throw readError;
+  const { error: deleteError } = await table().delete().eq("card_id", cardId);
   if (deleteError) throw deleteError;
-  if (!franchises.length) return;
-  const { error: insertError } = await client.from("card_franchises").insert(
-    franchises.map((franchise, position) => ({
-      card_id: cardId,
-      franchise,
-      position
-    }))
-  );
-  if (insertError) throw insertError;
+  // One insert per licence: the DB trigger canonicalizes names (e.g.
+  // "Black Butler II" → "Black Butler"), so aliases collapse into a duplicate
+  // (23505) that we skip instead of failing the whole card. Skipped positions
+  // leave harmless gaps; links are only ever ordered by position.
+  for (const link of franchises.map((franchise, position) => ({
+    card_id: cardId,
+    franchise,
+    position
+  }))) {
+    const { error } = await table().insert(link);
+    if (error && error.code !== "23505") {
+      // ponytail: compensating restore, not a transaction; an RPC would be atomic.
+      await table().delete().eq("card_id", cardId);
+      if (previous?.length)
+        await table().insert(
+          previous.map(old => ({ card_id: cardId, ...old }))
+        );
+      throw error;
+    }
+  }
 }
 
 // A CSV cell "One Piece / Naruto" links the card to every listed licence,
@@ -190,7 +203,8 @@ async function syncImportedFranchises(
   for (const [index, row] of rows.entries()) {
     const id = ids.get(`${row.source}\0${row.source_id}`);
     const franchises = albumFranchises(franchisesByRow[index], row.categorie);
-    if (id && franchises.length) await syncFranchises(client, id, franchises);
+    // An empty list clears stale links, matching the cleared cards.franchise.
+    if (id) await syncFranchises(client, id, franchises);
   }
 }
 
@@ -303,7 +317,7 @@ export async function importCardsAction(
     });
     const client = createClient(await cookies());
     const failures: string[] = [];
-    const skippedRecords = new Set<number>();
+    const writtenRecords: number[] = [];
     const stats = await importCards({
       rows,
       client,
@@ -311,8 +325,10 @@ export async function importCardsAction(
       batchSize: 25,
       concurrency: 2,
       log: () => {},
+      onWritten: async (records: number[]) => {
+        writtenRecords.push(...records);
+      },
       onFailure: async (failure: { record: number; message: string }) => {
-        skippedRecords.add(failure.record);
         const cardName = rows[failure.record - 1]?.nom.trim();
         const cardLabel = cardName ? `Carte « ${cardName} »` : "Carte sans nom";
         failures.push(
@@ -322,8 +338,8 @@ export async function importCardsAction(
     });
     await syncImportedFranchises(
       client,
-      rows.filter((_, index) => !skippedRecords.has(index + 1)),
-      franchisesByRow.filter((_, index) => !skippedRecords.has(index + 1))
+      writtenRecords.map(record => rows[record - 1]),
+      writtenRecords.map(record => franchisesByRow[record - 1])
     );
     const { error: auditError } = await client.from("admin_audit_logs").insert({
       admin_user_id: admin.id,
