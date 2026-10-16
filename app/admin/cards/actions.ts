@@ -13,6 +13,7 @@ import {
   imagePath,
   imageUrlFromCsvRow,
   importCards,
+  splitFranchises,
   validateCard,
   validateImageBytes
 } from "@/scripts/import-cards.mjs";
@@ -165,6 +166,34 @@ async function syncFranchises(
   if (insertError) throw insertError;
 }
 
+// A CSV cell "One Piece / Naruto" links the card to every listed licence,
+// exactly like the multi-licence fields of the edit form.
+async function syncImportedFranchises(
+  client: AuthenticatedClient,
+  rows: { source: string; source_id: string; categorie: string }[],
+  franchisesByRow: string[][]
+) {
+  const ids = new Map<string, string>();
+  for (let start = 0; start < rows.length; start += 100) {
+    const chunk = rows.slice(start, start + 100);
+    const { data, error } = await client
+      .from("cards")
+      .select("id,source,source_id")
+      .in(
+        "source_id",
+        chunk.map(row => row.source_id)
+      );
+    if (error) throw error;
+    for (const card of data ?? [])
+      ids.set(`${card.source}\0${card.source_id}`, card.id);
+  }
+  for (const [index, row] of rows.entries()) {
+    const id = ids.get(`${row.source}\0${row.source_id}`);
+    const franchises = albumFranchises(franchisesByRow[index], row.categorie);
+    if (id && franchises.length) await syncFranchises(client, id, franchises);
+  }
+}
+
 export async function createCardAction(
   _previous: AdminActionState,
   form: FormData
@@ -240,14 +269,27 @@ export async function importCardsAction(
     }) as Record<string, string>[];
     if (!records.length) throw new Error("Le CSV est vide.");
     if (records.length > 500) throw new Error("Maximum 500 cartes par import.");
-    const rows = records.map(rawRow => {
+    const franchisesByRow: string[][] = [];
+    const rows = records.map((rawRow, index) => {
       const row = normalizeCsvRow(rawRow);
       const sourceId = (row.source_id || row.identifiant || "").trim();
+      const nom = row.nom ?? row.name ?? row.personnage ?? row.character ?? "";
+      let franchises: string[];
+      try {
+        franchises = splitFranchises(
+          row.franchise ?? row.licence ?? row.anime ?? ""
+        );
+      } catch (error) {
+        throw new Error(
+          `Carte « ${nom.trim()} » (ligne ${index + 1}) : ${(error as Error).message}`
+        );
+      }
+      franchisesByRow.push(franchises);
       const card = {
         source_id: sourceId,
-        nom: row.nom ?? row.name ?? row.personnage ?? row.character ?? "",
+        nom,
         categorie: row.categorie ?? row.category ?? "",
-        franchise: row.franchise ?? row.licence ?? row.anime ?? "",
+        franchise: franchises[0] ?? "",
         franchise_romaji: row.franchise_romaji ?? "",
         image_url: imageUrlFromCsvRow(row).replace(/^http:\/\//i, "https://"),
         favoris_count: row.favoris_count ?? "",
@@ -261,6 +303,7 @@ export async function importCardsAction(
     });
     const client = createClient(await cookies());
     const failures: string[] = [];
+    const skippedRecords = new Set<number>();
     const stats = await importCards({
       rows,
       client,
@@ -269,6 +312,7 @@ export async function importCardsAction(
       concurrency: 2,
       log: () => {},
       onFailure: async (failure: { record: number; message: string }) => {
+        skippedRecords.add(failure.record);
         const cardName = rows[failure.record - 1]?.nom.trim();
         const cardLabel = cardName ? `Carte « ${cardName} »` : "Carte sans nom";
         failures.push(
@@ -276,6 +320,11 @@ export async function importCardsAction(
         );
       }
     });
+    await syncImportedFranchises(
+      client,
+      rows.filter((_, index) => !skippedRecords.has(index + 1)),
+      franchisesByRow.filter((_, index) => !skippedRecords.has(index + 1))
+    );
     const { error: auditError } = await client.from("admin_audit_logs").insert({
       admin_user_id: admin.id,
       action: "card.import",

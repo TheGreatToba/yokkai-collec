@@ -988,3 +988,25 @@ test("la suppression groupée est réservée aux admins, plafonnée et réutilis
     /grant execute on function public\.admin_delete_card_core/
   );
 });
+
+test("l'import CSV sépare plusieurs licences avec « / » sans casser Fate/Zero", async () => {
+  const { splitFranchises } = await import("../scripts/import-cards.mjs");
+  assert.deepEqual(splitFranchises("One Piece / Naruto /  one piece "), [
+    "One Piece",
+    "Naruto"
+  ]);
+  assert.deepEqual(splitFranchises("Fate/Zero / Fate/stay night"), [
+    "Fate/Zero",
+    "Fate/stay night"
+  ]);
+  assert.deepEqual(splitFranchises(""), []);
+  assert.throws(
+    () =>
+      splitFranchises(
+        Array.from({ length: 11 }, (_, i) => `L${i}`).join(" / ")
+      ),
+    /Maximum 10 licences/
+  );
+  const actions = await read("app/admin/cards/actions.ts");
+  assert.match(actions, /syncImportedFranchises\(/);
+});
