@@ -639,6 +639,7 @@ function Editor({
                 className="auth-input"
                 type="search"
                 aria-label="Search your collection for a banner"
+                aria-describedby="banner-search-help"
                 disabled={busy}
                 value={bannerQuery}
                 onChange={e => {
@@ -646,8 +647,12 @@ function Editor({
                   setBannerQuery(value);
                   setError("");
                 }}
-                placeholder="Search your cards or franchises…"
+                placeholder="Search by character and franchise…"
               />
+              <p id="banner-search-help" className="mt-2 text-xs text-ink-3">
+                Combine a character’s name with its franchise, e.g. Loki One
+                Piece.
+              </p>
               {ownedBannerChoices.length > 0 ? (
                 <ul className="yk-banner-results">
                   {ownedBannerChoices.slice(0, 36).map(card => (
