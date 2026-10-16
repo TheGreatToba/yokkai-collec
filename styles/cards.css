@@ -244,15 +244,11 @@
 .yk-card-back {
   width: 100%;
   aspect-ratio: 5 / 7;
-  border: 1px solid
-    color-mix(in srgb, var(--color-accent-gold) 48%, transparent);
+  border: none;
   border-radius: 12px;
-  background: #050507 url("/assets/bubble-card-back-v1.png") center / cover
+  background: transparent url("/assets/bubble-card-back-v1.png") center / cover
     no-repeat;
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--color-void) 90%, transparent),
-    0 10px 28px color-mix(in srgb, var(--color-void) 88%, transparent),
-    0 0 18px color-mix(in srgb, var(--color-accent-gold) 16%, transparent);
+  box-shadow: none;
 }
 @container yokai (max-width: 90px) {
   .yk-card-badge,
