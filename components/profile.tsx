@@ -347,6 +347,7 @@ function Featured({
 }
 
 function Editor({
+  mode,
   profile,
   collection,
   initialBannerUrl,
@@ -356,6 +357,7 @@ function Editor({
   onSaved,
   onClose
 }: {
+  mode: "profile" | "showcase";
   profile: Profile;
   collection: CollectedCard[];
   initialBannerUrl: string | null;
@@ -396,13 +398,14 @@ function Editor({
   );
   const [bannerCard, setBannerCard] = useState<Card | null>(profile.bannerCard);
   const unique = useMemo(() => {
+    if (mode !== "showcase") return [];
     const byCard = new Map<string, CollectedCard>();
     for (const card of collection) {
       if (!byCard.has(card.id) || selected.has(card.instanceId))
         byCard.set(card.id, card);
     }
     return [...byCard.values()];
-  }, [collection, selected]);
+  }, [collection, selected, mode]);
   const featuredChoices = useMemo(
     () =>
       unique
@@ -421,7 +424,11 @@ function Editor({
     [unique, featuredQuery, selected]
   );
   useEffect(() => {
-    if (bannerQuery.trim().length < 2 || bannerQuery === bannerCard?.name)
+    if (
+      mode !== "profile" ||
+      bannerQuery.trim().length < 2 ||
+      bannerQuery === bannerCard?.name
+    )
       return;
     let active = true;
     const timer = window.setTimeout(
@@ -440,7 +447,7 @@ function Editor({
       active = false;
       window.clearTimeout(timer);
     };
-  }, [bannerQuery, bannerCard, adapter]);
+  }, [bannerQuery, bannerCard, adapter, mode]);
   function toggle(id: string) {
     setSelected(current => {
       const next = new Set(current);
@@ -510,218 +517,232 @@ function Editor({
     }
   }
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Avatar name={profile.pseudo} image={avatar ?? undefined} size={80} />
-        <label className="yk-button yk-button-secondary cursor-pointer">
-          Choisir une photo
-          <input
-            className="sr-only"
-            type="file"
-            disabled={busy}
-            accept="image/jpeg,image/png,image/webp,image/gif"
-            onChange={e => void photo(e.target.files?.[0])}
-          />
-        </label>
-      </div>
-      <p className="text-xs text-ink-3">JPG, PNG, WebP or GIF · Up to 4 MB.</p>
-      <label className="block text-sm text-ink-2">
-        Bio
-        <textarea
-          className="auth-input mt-2 min-h-28 resize-y py-3"
-          maxLength={300}
-          value={bio}
-          onChange={e => setBio(e.target.value)}
-          placeholder="Présentez votre collection…"
-        />
-        <span className="mt-1 block text-right text-xs text-ink-3">
-          {bio.length}/300
-        </span>
-      </label>
-      <section className="yk-profile-banner-editor">
-        <h3 className="font-display text-lg">Bannière personnalisée</h3>
-        <p className="yk-profile-muted">
-          Upload an image from your computer or phone. JPG, PNG, WebP or GIF,
-          <strong>up to 4 MB</strong>. Choose the position and zoom before
-          saving.
-        </p>
-        {bannerUrl && !bannerFrame && (
-          <img
-            className="yk-profile-banner-preview"
-            src={bannerUrl}
-            alt="Aperçu de la bannière"
-          />
-        )}
-        {(bannerUrl || bannerCard?.image) && bannerFrame && (
-          <div className="yk-banner-framed-preview">
-            <BannerImage
-              src={(bannerUrl || bannerCard?.image)!}
-              frame={bannerFrame}
+    <div className="space-y-6" data-profile-editor={mode}>
+      {mode === "profile" && (
+        <>
+          <div className="flex items-center gap-4">
+            <Avatar
+              name={profile.pseudo}
+              image={avatar ?? undefined}
+              size={80}
             />
+            <label className="yk-button yk-button-secondary cursor-pointer">
+              Choisir une photo
+              <input
+                className="sr-only"
+                type="file"
+                disabled={busy}
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={e => void photo(e.target.files?.[0])}
+              />
+            </label>
           </div>
-        )}
-        <div className="yk-profile-widget-tools">
-          <label className="yk-button yk-button-secondary cursor-pointer">
-            Importer une bannière
-            <input
-              className="sr-only"
-              aria-label="Importer une bannière"
-              type="file"
-              disabled={busy}
-              accept="image/jpeg,image/png,image/webp,image/gif"
-              onChange={event => {
-                void banner(event.target.files?.[0]);
-                event.target.value = "";
-              }}
+          <p className="text-xs text-ink-3">
+            JPG, PNG, WebP or GIF · Up to 4 MB.
+          </p>
+          <label className="block text-sm text-ink-2">
+            Bio
+            <textarea
+              className="auth-input mt-2 min-h-28 resize-y py-3"
+              maxLength={300}
+              value={bio}
+              onChange={e => setBio(e.target.value)}
+              placeholder="Présentez votre collection…"
             />
+            <span className="mt-1 block text-right text-xs text-ink-3">
+              {bio.length}/300
+            </span>
           </label>
-          {bannerUrl && (
-            <Button
-              variant="secondary"
-              disabled={busy}
-              onClick={() => {
-                setBannerUrl(null);
-                setBannerFile(null);
-                setBannerFrame(null);
-              }}
-            >
-              Retirer la bannière
-            </Button>
-          )}
-          {(bannerUrl || bannerCard?.image) && (
-            <Button
-              variant="secondary"
-              disabled={busy}
-              onClick={() =>
-                setCrop({
-                  src: (bannerUrl || bannerCard?.image)!,
-                  frame: bannerFrame,
-                  card: bannerCard,
-                  file: bannerFile,
-                  uploaded: !!bannerUrl
-                })
-              }
-            >
-              Adjust banner
-            </Button>
-          )}
-        </div>
-      </section>
-      <section>
-        <h3 className="font-display text-lg">Personnage de bannière</h3>
-        <p className="mt-2 text-xs text-ink-3">
-          Ou choisis un personnage du catalogue à la place de l’image importée.
-        </p>
-        {bannerCard && (
-          <div className="yk-banner-choice mt-4">
-            <div>
-              <img src={bannerCard.image} alt="" decoding="async" />
-              <strong>{bannerCard.name}</strong>
-              <small>{bannerCard.anime ?? bannerCard.category}</small>
-            </div>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setBannerCard(null);
-                setBannerFrame(null);
-                setBannerQuery("");
-                setBannerResults([]);
-              }}
-            >
-              Retirer
-            </Button>
-          </div>
-        )}
-        <div className="relative mt-4">
-          <input
-            className="auth-input"
-            type="search"
-            value={bannerQuery}
-            onChange={e => {
-              const value = e.target.value;
-              setBannerQuery(value);
-              setBannerResults([]);
-              setError("");
-            }}
-            placeholder="Nom du personnage ou de la série…"
-          />
-          {bannerResults.length > 0 && (
-            <ul className="yk-banner-results">
-              {bannerResults.map(card => (
-                <li key={card.id}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCrop({
-                        src: card.image,
-                        frame: null,
-                        card,
-                        file: null,
-                        uploaded: false
-                      });
-                    }}
-                  >
-                    <img
-                      src={card.image}
-                      alt=""
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <span>
-                      <strong>{card.name}</strong>
-                      <small>{card.anime ?? card.category}</small>
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </section>
-      <section>
-        <div className="flex items-center justify-between gap-3">
-          <h3 className="font-display text-lg">Cartes mises en avant</h3>
-          <span className="text-xs text-ink-3">
-            {selected.size}/{FEATURED_CARD_LIMIT}
-          </span>
-        </div>
-        <p className="mt-2 text-xs text-ink-3">
-          Choisissez jusqu’à cinq cartes différentes de votre collection.
-        </p>
-        <label className="sr-only" htmlFor="featured-query">
-          Rechercher une carte à mettre en avant
-        </label>
-        <input
-          id="featured-query"
-          className="auth-input mt-4"
-          type="search"
-          value={featuredQuery}
-          onChange={e => setFeaturedQuery(e.target.value)}
-          placeholder="Rechercher une carte…"
-        />
-        <div className="yk-featured-picker mt-4">
-          {featuredChoices.map(card => {
-            const featured = selected.has(card.instanceId);
-            return (
-              <button
-                type="button"
-                key={card.instanceId}
-                aria-pressed={featured}
-                className={featured ? "is-selected" : ""}
-                onClick={() => toggle(card.instanceId)}
-              >
-                <YokaiCard
-                  {...card}
-                  image={featured ? card.image : card.catalogueImage}
-                  animated={false}
-                  imageSizes={PROFILE_CARD_IMAGE_SIZES}
+          <section className="yk-profile-banner-editor">
+            <h3 className="font-display text-lg">Bannière personnalisée</h3>
+            <p className="yk-profile-muted">
+              Upload an image from your computer or phone. JPG, PNG, WebP or
+              GIF,
+              <strong>up to 4 MB</strong>. Choose the position and zoom before
+              saving.
+            </p>
+            {bannerUrl && !bannerFrame && (
+              <img
+                className="yk-profile-banner-preview"
+                src={bannerUrl}
+                alt="Aperçu de la bannière"
+              />
+            )}
+            {(bannerUrl || bannerCard?.image) && bannerFrame && (
+              <div className="yk-banner-framed-preview">
+                <BannerImage
+                  src={(bannerUrl || bannerCard?.image)!}
+                  frame={bannerFrame}
                 />
-                <span>{featured ? "Sélectionnée" : "Choisir"}</span>
-              </button>
-            );
-          })}
-        </div>
-      </section>
+              </div>
+            )}
+            <div className="yk-profile-widget-tools">
+              <label className="yk-button yk-button-secondary cursor-pointer">
+                Importer une bannière
+                <input
+                  className="sr-only"
+                  aria-label="Importer une bannière"
+                  type="file"
+                  disabled={busy}
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={event => {
+                    void banner(event.target.files?.[0]);
+                    event.target.value = "";
+                  }}
+                />
+              </label>
+              {bannerUrl && (
+                <Button
+                  variant="secondary"
+                  disabled={busy}
+                  onClick={() => {
+                    setBannerUrl(null);
+                    setBannerFile(null);
+                    setBannerFrame(null);
+                  }}
+                >
+                  Retirer la bannière
+                </Button>
+              )}
+              {(bannerUrl || bannerCard?.image) && (
+                <Button
+                  variant="secondary"
+                  disabled={busy}
+                  onClick={() =>
+                    setCrop({
+                      src: (bannerUrl || bannerCard?.image)!,
+                      frame: bannerFrame,
+                      card: bannerCard,
+                      file: bannerFile,
+                      uploaded: !!bannerUrl
+                    })
+                  }
+                >
+                  Adjust banner
+                </Button>
+              )}
+            </div>
+          </section>
+          <section>
+            <h3 className="font-display text-lg">Personnage de bannière</h3>
+            <p className="mt-2 text-xs text-ink-3">
+              Ou choisis un personnage du catalogue à la place de l’image
+              importée.
+            </p>
+            {bannerCard && (
+              <div className="yk-banner-choice mt-4">
+                <div>
+                  <img src={bannerCard.image} alt="" decoding="async" />
+                  <strong>{bannerCard.name}</strong>
+                  <small>{bannerCard.anime ?? bannerCard.category}</small>
+                </div>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setBannerCard(null);
+                    setBannerFrame(null);
+                    setBannerQuery("");
+                    setBannerResults([]);
+                  }}
+                >
+                  Retirer
+                </Button>
+              </div>
+            )}
+            <div className="relative mt-4">
+              <input
+                className="auth-input"
+                type="search"
+                value={bannerQuery}
+                onChange={e => {
+                  const value = e.target.value;
+                  setBannerQuery(value);
+                  setBannerResults([]);
+                  setError("");
+                }}
+                placeholder="Nom du personnage ou de la série…"
+              />
+              {bannerResults.length > 0 && (
+                <ul className="yk-banner-results">
+                  {bannerResults.map(card => (
+                    <li key={card.id}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCrop({
+                            src: card.image,
+                            frame: null,
+                            card,
+                            file: null,
+                            uploaded: false
+                          });
+                        }}
+                      >
+                        <img
+                          src={card.image}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                        />
+                        <span>
+                          <strong>{card.name}</strong>
+                          <small>{card.anime ?? card.category}</small>
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </section>
+        </>
+      )}
+      {mode === "showcase" && (
+        <section>
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="font-display text-lg">Cartes mises en avant</h3>
+            <span className="text-xs text-ink-3">
+              {selected.size}/{FEATURED_CARD_LIMIT}
+            </span>
+          </div>
+          <p className="mt-2 text-xs text-ink-3">
+            Choisissez jusqu’à cinq cartes différentes de votre collection.
+          </p>
+          <label className="sr-only" htmlFor="featured-query">
+            Rechercher une carte à mettre en avant
+          </label>
+          <input
+            id="featured-query"
+            className="auth-input mt-4"
+            type="search"
+            value={featuredQuery}
+            onChange={e => setFeaturedQuery(e.target.value)}
+            placeholder="Rechercher une carte…"
+          />
+          <div className="yk-featured-picker mt-4">
+            {featuredChoices.map(card => {
+              const featured = selected.has(card.instanceId);
+              return (
+                <button
+                  type="button"
+                  key={card.instanceId}
+                  aria-pressed={featured}
+                  className={featured ? "is-selected" : ""}
+                  onClick={() => toggle(card.instanceId)}
+                >
+                  <YokaiCard
+                    {...card}
+                    image={featured ? card.image : card.catalogueImage}
+                    animated={false}
+                    imageSizes={PROFILE_CARD_IMAGE_SIZES}
+                  />
+                  <span>{featured ? "Sélectionnée" : "Choisir"}</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
       {error && (
         <p role="alert" className="text-sm text-danger">
           {error}
@@ -1105,6 +1126,9 @@ export function ProfileExperience({
   const [wishlist, setWishlist] = useState<WishlistCard[]>([]);
   const [error, setError] = useState("");
   const [editing, setEditing] = useState(searchParams.get("edition") === "1");
+  const [editingMode, setEditingMode] = useState<"profile" | "showcase">(
+    "profile"
+  );
   const [toast, setToast] = useState("");
   const [blocked, setBlocked] = useState<BlockedUser[]>([]);
   const [collectionOpen, setCollectionOpen] = useState(false);
@@ -1330,7 +1354,19 @@ export function ProfileExperience({
             <section className="yk-profile-surface yk-profile-showcase">
               <div className="yk-profile-section-heading">
                 <h3 className="yk-section-title">Cartes mises en avant</h3>
-                <span className="yk-profile-muted">Sa vitrine</span>
+                {isMe ? (
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setEditingMode("showcase");
+                      setEditing(true);
+                    }}
+                  >
+                    Edit showcase
+                  </Button>
+                ) : (
+                  <span className="yk-profile-muted">Sa vitrine</span>
+                )}
               </div>
               <Featured cards={profile.featuredCards} />
             </section>
@@ -1608,7 +1644,13 @@ export function ProfileExperience({
             </p>
             <div className="yk-profile-actions">
               {isMe ? (
-                <Button variant="secondary" onClick={() => setEditing(true)}>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setEditingMode("profile");
+                    setEditing(true);
+                  }}
+                >
                   Modifier le profil
                 </Button>
               ) : (
@@ -1822,11 +1864,15 @@ export function ProfileExperience({
       <Modal
         open={editing}
         onClose={() => setEditing(false)}
-        title="Modifier mon profil"
+        title={
+          editingMode === "showcase" ? "Edit showcase" : "Modifier mon profil"
+        }
         className="max-w-4xl"
       >
         {isMe && collection && details ? (
           <Editor
+            key={editingMode}
+            mode={editingMode}
             profile={profile}
             collection={collection}
             initialBannerUrl={
@@ -1844,7 +1890,11 @@ export function ProfileExperience({
               setProfile(p);
               setSavedBannerUrl(p.bannerUrl);
               setSavedBannerFrame(p.bannerFrame ?? null);
-              setToast("Profil mis à jour");
+              setToast(
+                editingMode === "showcase"
+                  ? "Showcase updated"
+                  : "Profil mis à jour"
+              );
             }}
           />
         ) : (
