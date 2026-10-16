@@ -108,7 +108,14 @@ test("the editor checks migration availability before uploading a cropped image"
     source.indexOf("return (", source.indexOf("async function submit()"))
   );
   assert.match(submit, /if \(bannerFrame && !framingAvailable\)/);
-  if (source.includes("data-owned-banner-picker")) {
+  if (source.includes("data-banner-upload")) {
+    assert.ok(
+      submit.indexOf("!framingAvailable") <
+        submit.indexOf("adapter.uploadBanner")
+    );
+    assert.match(submit, /bannerFile/);
+    assert.match(source, /ownedBannerChoices/);
+  } else if (source.includes("data-owned-banner-picker")) {
     assert.ok(
       submit.indexOf("!framingAvailable") <
         submit.indexOf("adapter.saveAppearance")

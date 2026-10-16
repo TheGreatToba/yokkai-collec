@@ -1,9 +1,20 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readdirSync } from "node:fs";
 import { replayMigrations } from "../scripts/replay-migrations.mjs";
 
 test("all profile entry points require an owned banner card, reject uploads and keep atomic crop/privacy rights", async t => {
-  const { db } = await replayMigrations();
+  // Preserve the entire original owned-only contract as history. The restored
+  // gallery policy is checked separately against the complete migration replay.
+  const migrations = readdirSync(
+    new URL("../supabase/migrations/", import.meta.url)
+  )
+    .filter(
+      name =>
+        name.endsWith(".sql") && name <= "20261016000001_owned_card_banners.sql"
+    )
+    .sort();
+  const { db } = await replayMigrations({ migrations });
   t.after(() => db.close());
   const owner = "79000000-0000-4000-8000-000000000001";
   const other = "79000000-0000-4000-8000-000000000002";
