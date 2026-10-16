@@ -2382,8 +2382,8 @@ export function CollectionView({
             )}
             {destructibleCards.length < (selectedGroup?.cards.length ?? 0) && (
               <p className="mt-2 text-xs text-ink-3">
-                {(selectedGroup?.cards.length ?? 0) - destructibleCards.length}{" "}
-                copies in auctions are excluded.
+                Excluded copies in auctions:{" "}
+                {(selectedGroup?.cards.length ?? 0) - destructibleCards.length}.
               </p>
             )}
             {discardError && (
