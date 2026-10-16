@@ -51,6 +51,7 @@ import {
 } from "@/lib/data/profile";
 import { getWishlist, type WishlistCard } from "@/lib/data/wishlist";
 import { matchesCardSearch } from "@/lib/ui/card-search";
+import { compareBannerCards } from "@/lib/ui/banner-card-sort";
 
 const FEATURED_CARD_LIMIT = 5;
 const PROFILE_CARD_IMAGE_SIZES =
@@ -392,7 +393,7 @@ function Editor({
         .filter(card =>
           matchesCardSearch(bannerQuery, [card.name, card.category, card.anime])
         )
-        .toSorted((a, b) => a.name.localeCompare(b.name, "en-US")),
+        .toSorted(compareBannerCards),
     [ownedBannerCards, bannerQuery]
   );
   const unique = useMemo(() => {

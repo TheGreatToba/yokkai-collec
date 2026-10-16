@@ -103,14 +103,14 @@ try {
   const run = fn => evaluate("(" + fn.toString() + ")()");
   const click = text =>
     evaluate(
-      "Array.from(document.querySelectorAll('dialog[open] button')).find(b=>b.textContent.trim()===" +
+      "Array.from(Array.from(document.querySelectorAll('dialog[open]')).at(-1).querySelectorAll('button')).find(b=>b.textContent.trim()===" +
         JSON.stringify(text) +
         ")?.click()"
     );
   const edit = () =>
     run(() =>
       Array.from(document.querySelectorAll(".yk-profile-actions button"))
-        .find(b => b.textContent.trim() === "Modifier le profil")
+        .find(b => b.textContent.trim() === "Edit profile")
         .click()
     );
   const input = value =>
@@ -176,6 +176,13 @@ try {
     3,
     "duplicate copies have one choice"
   );
+  assert.deepEqual(
+    await evaluate(
+      "Array.from(document.querySelectorAll('[data-owned-banner-picker] .yk-banner-results button strong'),n=>n.textContent)"
+    ),
+    ["SATORU GOJO", "LEVI ACKERMAN", "MONKEY D. LUFFY"],
+    "LR precedes SSR, with alphabetical order within SSR"
+  );
   await input("NARUTO");
   await until(
     "document.querySelector('[data-owned-banner-picker]').textContent.includes('No matching cards')"
@@ -207,7 +214,7 @@ try {
     ).includes("gojou"),
     "crop remains a draft"
   );
-  await click("Annuler");
+  await click("Cancel");
   await until("!document.querySelector('[data-profile-editor]')");
   assert.ok(
     (
@@ -222,7 +229,7 @@ try {
   await click("Fit entire image");
   await click("Apply crop");
   await until("!document.querySelector('.yk-banner-crop-stage')");
-  await click("Enregistrer");
+  await click("Save");
   await until("!document.querySelector('[data-profile-editor]')");
   await until(
     "document.querySelector('.yk-profile-banner img')?.style.transform.includes('rotate(90deg)')"
@@ -274,7 +281,7 @@ try {
   );
   await capture("mobile-editor.png");
   await click("Remove banner");
-  await click("Enregistrer");
+  await click("Save");
   await until("!document.querySelector('[data-profile-editor]')");
   assert.equal(
     await evaluate(
@@ -297,7 +304,7 @@ try {
       "document.querySelector('[data-owned-banner-picker]').textContent.includes('Collect a card')"
     )
   );
-  await click("Enregistrer");
+  await click("Save");
   await until("!document.querySelector('[data-profile-editor]')");
   assert.equal(
     await evaluate(

@@ -159,6 +159,7 @@ function renderProfile(profile) {
     "@/lib/data/profile": {},
     "@/lib/data/wishlist": {},
     "@/lib/data/cards": {},
+    "@/lib/ui/banner-card-sort": load("lib/ui/banner-card-sort.ts", {}),
     "@/lib/ui/card-search": {}
   });
   return renderToStaticMarkup(h(ProfileExperience, {}));
