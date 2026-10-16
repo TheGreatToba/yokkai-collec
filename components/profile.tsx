@@ -132,7 +132,7 @@ function PreferencesEditor({
     >
       <p className="yk-profile-muted">
         Choose a category, then pick up to 12 catalog licenses to feature.
-        Custom entries aren't available.
+        Custom entries aren&apos;t available.
       </p>
       <div
         className="yk-profile-widget-picker"
@@ -1379,7 +1379,7 @@ export function ProfileExperience({
             )}
             <div className="yk-profile-section-heading">
               <div>
-                <p className="eyebrow">The collector's feed</p>
+                <p className="eyebrow">The collector&apos;s feed</p>
                 <h2>Recent activity</h2>
               </div>
               <span className="yk-profile-muted">Last 20 activities</span>
