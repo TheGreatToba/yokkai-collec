@@ -79,6 +79,24 @@ export function imageUrlFromCsvRow(row) {
   ).trim();
 }
 
+// "One Piece / Naruto" → two licences. Spaces around "/" are required so that
+// real titles such as "Fate/Zero" stay intact.
+export function splitFranchises(value) {
+  const seen = new Set();
+  const franchises = [];
+  for (const part of String(value ?? "").split(/\s+\/\s+/)) {
+    const franchise = part.trim();
+    const key = franchise.toLocaleLowerCase("fr-FR");
+    if (!franchise || seen.has(key)) continue;
+    if (franchise.length > 200)
+      throw new Error("Une licence ne peut pas dépasser 200 caractères.");
+    seen.add(key);
+    franchises.push(franchise);
+  }
+  if (franchises.length > 10) throw new Error("Maximum 10 licences par carte.");
+  return franchises;
+}
+
 export function validateCard(row) {
   const card = Object.fromEntries(
     COLUMNS.map(column => [column, row[column]?.trim() ?? ""])
@@ -558,6 +576,7 @@ export async function importCards({
   fetchImage = publicImageFetch,
   log = console.log,
   onFailure = async () => {},
+  onWritten = async () => {},
   sleep = delay
 }) {
   const stats = {
@@ -669,6 +688,8 @@ export async function importCards({
         sleep
       );
       stats.imported += ready.length;
+      // Record numbers (1-based) of the rows actually upserted.
+      await onWritten(ready.map(({ index }) => index));
     }
     stats.batches++;
     log(

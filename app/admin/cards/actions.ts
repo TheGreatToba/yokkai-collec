@@ -13,6 +13,7 @@ import {
   imagePath,
   imageUrlFromCsvRow,
   importCards,
+  splitFranchises,
   validateCard,
   validateImageBytes
 } from "@/scripts/import-cards.mjs";
@@ -149,20 +150,62 @@ async function syncFranchises(
   cardId: string,
   franchises: string[]
 ) {
-  const { error: deleteError } = await client
-    .from("card_franchises")
-    .delete()
+  const table = () => client.from("card_franchises");
+  const { data: previous, error: readError } = await table()
+    .select("franchise,position")
     .eq("card_id", cardId);
+  if (readError) throw readError;
+  const { error: deleteError } = await table().delete().eq("card_id", cardId);
   if (deleteError) throw deleteError;
-  if (!franchises.length) return;
-  const { error: insertError } = await client.from("card_franchises").insert(
-    franchises.map((franchise, position) => ({
-      card_id: cardId,
-      franchise,
-      position
-    }))
-  );
-  if (insertError) throw insertError;
+  // One insert per licence: the DB trigger canonicalizes names (e.g.
+  // "Black Butler II" → "Black Butler"), so aliases collapse into a duplicate
+  // (23505) that we skip instead of failing the whole card. Skipped positions
+  // leave harmless gaps; links are only ever ordered by position.
+  for (const link of franchises.map((franchise, position) => ({
+    card_id: cardId,
+    franchise,
+    position
+  }))) {
+    const { error } = await table().insert(link);
+    if (error && error.code !== "23505") {
+      // ponytail: compensating restore, not a transaction; an RPC would be atomic.
+      await table().delete().eq("card_id", cardId);
+      if (previous?.length)
+        await table().insert(
+          previous.map(old => ({ card_id: cardId, ...old }))
+        );
+      throw error;
+    }
+  }
+}
+
+// A CSV cell "One Piece / Naruto" links the card to every listed licence,
+// exactly like the multi-licence fields of the edit form.
+async function syncImportedFranchises(
+  client: AuthenticatedClient,
+  rows: { source: string; source_id: string; categorie: string }[],
+  franchisesByRow: string[][]
+) {
+  const ids = new Map<string, string>();
+  for (let start = 0; start < rows.length; start += 100) {
+    const chunk = rows.slice(start, start + 100);
+    const { data, error } = await client
+      .from("cards")
+      .select("id,source,source_id")
+      .in(
+        "source_id",
+        chunk.map(row => row.source_id)
+      );
+    if (error) throw error;
+    for (const card of data ?? [])
+      ids.set(`${card.source}\0${card.source_id}`, card.id);
+  }
+  for (const [index, row] of rows.entries()) {
+    const id = ids.get(`${row.source}\0${row.source_id}`);
+    const franchises = albumFranchises(franchisesByRow[index], row.categorie);
+    // An empty list clears stale links, matching the cleared cards.franchise.
+    if (id) await syncFranchises(client, id, franchises);
+  }
 }
 
 export async function createCardAction(
@@ -240,14 +283,27 @@ export async function importCardsAction(
     }) as Record<string, string>[];
     if (!records.length) throw new Error("Le CSV est vide.");
     if (records.length > 500) throw new Error("Maximum 500 cartes par import.");
-    const rows = records.map(rawRow => {
+    const franchisesByRow: string[][] = [];
+    const rows = records.map((rawRow, index) => {
       const row = normalizeCsvRow(rawRow);
       const sourceId = (row.source_id || row.identifiant || "").trim();
+      const nom = row.nom ?? row.name ?? row.personnage ?? row.character ?? "";
+      let franchises: string[];
+      try {
+        franchises = splitFranchises(
+          row.franchise ?? row.licence ?? row.anime ?? ""
+        );
+      } catch (error) {
+        throw new Error(
+          `Carte « ${nom.trim()} » (ligne ${index + 1}) : ${(error as Error).message}`
+        );
+      }
+      franchisesByRow.push(franchises);
       const card = {
         source_id: sourceId,
-        nom: row.nom ?? row.name ?? row.personnage ?? row.character ?? "",
+        nom,
         categorie: row.categorie ?? row.category ?? "",
-        franchise: row.franchise ?? row.licence ?? row.anime ?? "",
+        franchise: franchises[0] ?? "",
         franchise_romaji: row.franchise_romaji ?? "",
         image_url: imageUrlFromCsvRow(row).replace(/^http:\/\//i, "https://"),
         favoris_count: row.favoris_count ?? "",
@@ -261,6 +317,7 @@ export async function importCardsAction(
     });
     const client = createClient(await cookies());
     const failures: string[] = [];
+    const writtenRecords: number[] = [];
     const stats = await importCards({
       rows,
       client,
@@ -268,6 +325,9 @@ export async function importCardsAction(
       batchSize: 25,
       concurrency: 2,
       log: () => {},
+      onWritten: async (records: number[]) => {
+        writtenRecords.push(...records);
+      },
       onFailure: async (failure: { record: number; message: string }) => {
         const cardName = rows[failure.record - 1]?.nom.trim();
         const cardLabel = cardName ? `Carte « ${cardName} »` : "Carte sans nom";
@@ -276,6 +336,11 @@ export async function importCardsAction(
         );
       }
     });
+    await syncImportedFranchises(
+      client,
+      writtenRecords.map(record => rows[record - 1]),
+      writtenRecords.map(record => franchisesByRow[record - 1])
+    );
     const { error: auditError } = await client.from("admin_audit_logs").insert({
       admin_user_id: admin.id,
       action: "card.import",
