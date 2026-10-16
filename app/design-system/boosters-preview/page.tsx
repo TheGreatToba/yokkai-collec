@@ -1,13 +1,21 @@
 import type { Metadata } from "next";
 import { BoostersPreview } from "@/components/boosters-preview";
 import { Topbar } from "@/components/topbar";
+import { getLocalBoosterCatalogue } from "@/lib/data/local-booster-catalogue";
+import type { Card } from "@/lib/data/cards";
 
 export const metadata: Metadata = {
   title: "Boosters preview · Yokkai Collec’",
   robots: { index: false, follow: false }
 };
 
-export default function BoostersPreviewPage() {
+export default async function BoostersPreviewPage() {
+  let catalogue: Card[];
+  try {
+    catalogue = await getLocalBoosterCatalogue();
+  } catch {
+    catalogue = [];
+  }
   return (
     <div className="flex min-h-dvh w-full flex-col">
       <Topbar view="packs" name="Kitsune" karas={4920} notifications={[]} />
@@ -20,7 +28,7 @@ export default function BoostersPreviewPage() {
             never want to let go.
           </p>
         </header>
-        <BoostersPreview />
+        <BoostersPreview catalogue={catalogue} />
       </main>
       <footer className="mx-auto mt-6 flex w-full max-w-6xl flex-wrap justify-between gap-3 border-t border-veil px-6 py-6 text-xs text-ink-3">
         <span>Yokkai Collec’ · v0.2</span>
