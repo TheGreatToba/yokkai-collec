@@ -44,6 +44,8 @@ import {
   saveProfileAppearance,
   saveProfileWidgets,
   uploadAvatar,
+  uploadBanner,
+  PROFILE_IMAGE_MAX_BYTES,
   type ProfileDetails,
   type ProfileEngagement,
   type ProfileWidget,
@@ -371,15 +373,32 @@ function Editor({
   }, [collection]);
   const eligibleBanner =
     ownedBannerCards.find(card => card.id === profile.bannerCard?.id) ?? null;
-  const [bannerCard, setBannerCard] = useState<Card | null>(eligibleBanner);
+  const [bannerCard, setBannerCard] = useState<Card | null>(
+    initialBannerUrl ? null : eligibleBanner
+  );
+  const [bannerUrl, setBannerUrl] = useState(initialBannerUrl);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  useEffect(() => {
+    if (!bannerPreview) return;
+    return () => URL.revokeObjectURL(bannerPreview);
+  }, [bannerPreview]);
+  const bannerSource =
+    (bannerFile ? bannerPreview : bannerUrl) || bannerCard?.image;
   const [bannerFrame, setBannerFrame] = useState(
-    eligibleBanner && !initialBannerUrl ? initialBannerFrame : null
+    initialBannerUrl || eligibleBanner ? initialBannerFrame : null
   );
   const [crop, setCrop] = useState<{
     src: string;
     frame: BannerFrame | null;
-    card: Card;
+    card: Card | null;
+    file?: File;
   } | null>(null);
+  useEffect(() => {
+    if (!crop?.file) return;
+    const url = crop.src;
+    return () => URL.revokeObjectURL(url);
+  }, [crop]);
   const [selected, setSelected] = useState(
     () => new Set(profile.featuredCards.map(c => c.instanceId))
   );
@@ -457,12 +476,15 @@ function Editor({
         !ownedBannerCards.some(card => card.id === bannerCard.id)
       )
         throw new Error("Choose a card you own for your banner.");
+      const uploadedBannerUrl = bannerFile
+        ? await (adapter.uploadBanner ?? uploadBanner)(bannerFile, profile.id)
+        : bannerUrl;
       const updated = await (adapter.saveAppearance ?? saveProfileAppearance)(
         bio,
         avatar,
         [...selected],
         bannerCard?.id ?? null,
-        null,
+        uploadedBannerUrl,
         bannerFrame ?? undefined
       );
       onSaved(updated);
@@ -516,40 +538,81 @@ function Editor({
           >
             <h3 className="font-display text-lg">Profile banner</h3>
             <p className="yk-profile-muted">
-              Choose a card from your collection. Adjust its position, zoom and
-              rotation before saving.
+              Choose a card from your collection or upload an image. Adjust its
+              position, zoom and rotation before saving.
             </p>
-            {(initialBannerUrl || (profile.bannerCard && !eligibleBanner)) && (
+            {profile.bannerCard && !eligibleBanner && !initialBannerUrl && (
               <p className="mt-2 text-xs text-ink-3" role="status">
                 Your previous banner is no longer eligible. Saving will replace
                 it with your selected card, or remove it if no card is selected.
               </p>
             )}
-            {bannerCard && bannerFrame && (
+            {bannerSource && (
               <div className="yk-banner-framed-preview">
-                <BannerImage src={bannerCard.image} frame={bannerFrame} />
+                <BannerImage
+                  src={bannerSource}
+                  frame={bannerFrame ?? { x: 50, y: 50, zoom: 1, rotation: 0 }}
+                />
               </div>
             )}
             <div className="yk-profile-widget-tools">
-              {bannerCard && (
+              <label
+                className="yk-button yk-button-secondary cursor-pointer"
+                data-banner-upload
+              >
+                Upload banner
+                <input
+                  className="sr-only"
+                  type="file"
+                  disabled={busy}
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={event => {
+                    const file = event.target.files?.[0];
+                    event.target.value = "";
+                    if (!file) return;
+                    if (file.size > PROFILE_IMAGE_MAX_BYTES) {
+                      setError("Your banner must be 4 MB or smaller.");
+                      return;
+                    }
+                    if (
+                      ![
+                        "image/jpeg",
+                        "image/png",
+                        "image/webp",
+                        "image/gif"
+                      ].includes(file.type)
+                    ) {
+                      setError("Use a JPG, PNG, WebP or GIF image.");
+                      return;
+                    }
+                    setError("");
+                    const src = URL.createObjectURL(file);
+                    setCrop({ src, frame: null, card: null, file });
+                  }}
+                />
+              </label>
+              {bannerSource && (
                 <Button
                   variant="secondary"
                   disabled={busy}
                   onClick={() => {
                     setBannerCard(null);
                     setBannerFrame(null);
+                    setBannerUrl(null);
+                    setBannerFile(null);
+                    setBannerPreview(null);
                   }}
                 >
                   Remove banner
                 </Button>
               )}
-              {bannerCard && (
+              {bannerSource && (
                 <Button
                   variant="secondary"
                   disabled={busy}
                   onClick={() =>
                     setCrop({
-                      src: bannerCard.image,
+                      src: bannerSource,
                       frame: bannerFrame,
                       card: bannerCard
                     })
@@ -559,6 +622,9 @@ function Editor({
                 </Button>
               )}
             </div>
+            <p className="mt-2 text-xs text-ink-3">
+              JPG, PNG, WebP or GIF · Up to 4 MB.
+            </p>
             {bannerCard && (
               <div className="yk-banner-choice mt-4">
                 <div>
@@ -615,7 +681,7 @@ function Editor({
                 <p className="mt-3 text-sm text-ink-3" role="status">
                   {ownedBannerCards.length
                     ? "No matching cards in your collection."
-                    : "Collect a card to unlock a profile banner."}
+                    : "Collect a card to use it as a profile banner, or upload an image."}
                 </p>
               )}
               {ownedBannerChoices.length > 36 && (
@@ -693,9 +759,22 @@ function Editor({
           key={crop.src}
           src={crop.src}
           initial={crop.frame}
-          onCancel={() => setCrop(null)}
+          onCancel={() => {
+            if (crop.file) URL.revokeObjectURL(crop.src);
+            setCrop(null);
+          }}
           onApply={frame => {
             setBannerCard(crop.card);
+            if (crop.file) {
+              setBannerFile(crop.file);
+              setBannerPreview(URL.createObjectURL(crop.file));
+              setBannerUrl(null);
+              URL.revokeObjectURL(crop.src);
+            } else if (crop.card) {
+              setBannerFile(null);
+              setBannerUrl(null);
+              setBannerPreview(null);
+            }
             setBannerFrame(frame);
             setCrop(null);
           }}
@@ -1030,6 +1109,7 @@ export type ProfileAdapter = {
   widgetLicenses?: typeof getProfileWidgetLicenses;
   saveAppearance?: typeof saveProfileAppearance;
   uploadAvatar?: typeof uploadAvatar;
+  uploadBanner?: typeof uploadBanner;
 };
 const liveProfile: ProfileAdapter = {
   profile: getProfile,

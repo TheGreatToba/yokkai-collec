@@ -456,6 +456,7 @@ export function ProfilePreview() {
         };
       },
       uploadAvatar: upload,
+      uploadBanner: upload,
       saveAppearance: async (
         bio,
         avatarUrl,
