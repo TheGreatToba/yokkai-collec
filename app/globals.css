@@ -12,7 +12,7 @@
   box-sizing: border-box;
 }
 html {
-  background: var(--color-night);
+  background: #000;
 }
 body {
   margin: 0;
