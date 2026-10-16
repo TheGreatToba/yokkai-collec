@@ -137,7 +137,19 @@ try {
   for (const width of [1440, 390]) {
     for (const kind of ["regular", "decision"]) {
       await navigate(width);
-      if (kind === "decision") await capture(`selection-${width}.png`);
+      if (kind === "decision") {
+        const palette = await evaluate(
+          "(()=>{const panel=document.querySelector('.yk-decision-panel');const style=getComputedStyle(panel);return {accent:style.getPropertyValue('--pack-accent').trim(),text:style.color,background:style.backgroundImage};})()"
+        );
+        assert.equal(palette.accent, "#6352a3");
+        assert.equal(palette.text, "rgb(48, 39, 71)");
+        assert.ok(palette.background.includes("rgb(251, 250, 255)"));
+        if (width < 700)
+          await evaluate(
+            "document.querySelector('.yk-decision-panel').scrollIntoView({block:'center',behavior:'instant'})"
+          );
+        await capture(`selection-${width}.png`);
+      }
       await evaluate(
         `document.querySelector('${kind === "decision" ? ".yk-decision-panel" : ".yk-pack-panel:not(.yk-decision-panel)"} .yk-pack-body > button').click()`
       );
