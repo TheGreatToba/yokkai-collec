@@ -1051,3 +1051,9 @@ main:has(.yk-profile-hub) {
     grid-column: 2;
   }
 }
+.yk-profile-banner-editor .yk-banner-results {
+  position: static;
+  max-height: 280px;
+  margin-top: 12px;
+  overflow-y: auto;
+}

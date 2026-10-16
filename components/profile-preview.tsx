@@ -456,13 +456,6 @@ export function ProfilePreview() {
         };
       },
       uploadAvatar: upload,
-      uploadBanner: upload,
-      search: async query =>
-        collection.filter(card =>
-          `${card.name} ${card.anime}`
-            .toLowerCase()
-            .includes(query.toLowerCase())
-        ),
       saveAppearance: async (
         bio,
         avatarUrl,
@@ -551,7 +544,13 @@ export function ProfilePreview() {
           <ProfileExperience
             key={`${visitor}:${privateProfile}:${demoCatalogue}`}
             adapter={adapter}
-            collection={collection}
+            collection={
+              params.get("bannerCards") === "empty"
+                ? []
+                : params.get("bannerCards") === "duplicates"
+                  ? [...collection, ...collection]
+                  : collection
+            }
           />
         </div>
       </main>
