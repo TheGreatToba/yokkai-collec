@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  /><title>Yokkai Collec’ — Three directions</title
+  ><style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: #101513;
+      color: #f4f1e8;
+      font:
+        16px/1.6 Arial,
+        sans-serif;
+    }
+    main {
+      max-width: 1480px;
+      margin: auto;
+      padding: 32px 20px;
+    }
+    h1 {
+      font-size: clamp(32px, 5vw, 56px);
+      line-height: 1.1;
+      letter-spacing: -2px;
+    }
+    p {
+      color: #b7c1b8;
+      max-width: 800px;
+    }
+    section {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+      margin-top: 32px;
+    }
+    article {
+      min-width: 0;
+    }
+    a {
+      display: block;
+      color: #d9edaa;
+      min-height: 44px;
+      padding: 10px 0;
+      font-weight: bold;
+    }
+    a:focus-visible {
+      outline: 3px solid #d9edaa;
+      outline-offset: 4px;
+    }
+    iframe {
+      width: 100%;
+      height: 1080px;
+      border: 1px solid #435148;
+      background: #18201d;
+    }
+    small {
+      color: #b7c1b8;
+    }
+    @media (max-width: 1000px) {
+      section {
+        grid-template-columns: 1fr;
+      }
+      iframe {
+        height: 860px;
+      }
+    }
+  </style>
+  <main>
+    <small>YOKKAI COLLEC’ / ART DIRECTION / PHASE 01</small>
+    <h1>Three ways to collect culture.</h1>
+    <p>
+      Identical content. Three distinct visual languages. These narrow previews
+      show the mobile layouts; open each direction for the full responsive
+      desktop composition.
+    </p>
+    <section>
+      <article>
+        <a href="folio.html">01 — Folio Club ↗ Recommended</a>
+        <p>Editorial. Tactile. Quietly collectible.</p>
+        <iframe title="Folio Club mobile study" src="folio.html"></iframe>
+      </article>
+      <article>
+        <a href="lumen.html">02 — Light Matter ↗</a>
+        <p>Optical. Fluid. A moment of wonder.</p>
+        <iframe title="Light Matter mobile study" src="lumen.html"></iframe>
+      </article>
+      <article>
+        <a href="press.html">03 — Culture Press ↗</a>
+        <p>Expressive. Printed. Unapologetically pop.</p>
+        <iframe title="Culture Press mobile study" src="press.html"></iframe>
+      </article>
+    </section>
+  </main>
+</html>

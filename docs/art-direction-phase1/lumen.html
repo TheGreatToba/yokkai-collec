@@ -1,0 +1,1183 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  /><meta name="color-scheme" content="dark" /><title>
+    02 / LIGHT MATTER — Yokkai Collec’ art direction</title
+  ><link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+  /><style>
+    * {
+      box-sizing: border-box;
+    }
+    html {
+      scroll-behavior: smooth;
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 15px/1.5 var(--body);
+      color-scheme: dark;
+    }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+    a:focus-visible,
+    summary:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 5px;
+    }
+    a,
+    summary {
+      touch-action: manipulation;
+    }
+    .skip {
+      position: absolute;
+      top: -80px;
+      left: 16px;
+      background: var(--accent);
+      color: var(--bg);
+      padding: 12px;
+      z-index: 9;
+    }
+    .skip:focus {
+      top: 8px;
+    }
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+    h1,
+    h2,
+    h3,
+    .wordmark {
+      font-family: var(--display);
+      line-height: 1.05;
+    }
+    header {
+      border-bottom: 1px solid var(--line);
+    }
+    .bar {
+      max-width: 1280px;
+      margin: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 22px 32px;
+    }
+    .wordmark {
+      font-weight: 800;
+      font-size: 23px;
+      letter-spacing: -1px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .mark {
+      width: 32px;
+      height: 32px;
+      color: var(--accent);
+    }
+    .wordmark small {
+      font: 10px/1 var(--body);
+      letter-spacing: 3px;
+      display: block;
+      margin-top: 5px;
+    }
+    nav {
+      display: flex;
+      gap: 24px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    nav a {
+      padding: 10px 0;
+    }
+    nav a:first-child {
+      color: var(--ink);
+      border-bottom: 2px solid var(--accent);
+    }
+    .wallet {
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .wallet span {
+      color: var(--accent);
+      margin-right: 6px;
+    }
+    .review {
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      font-size: 11px;
+      letter-spacing: 1px;
+      padding: 10px 24px;
+      text-align: center;
+      color: var(--muted);
+    }
+    main {
+      max-width: 1280px;
+      margin: auto;
+      padding: 40px 32px 64px;
+    }
+    .intro {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: clamp(36px, 5vw, 64px);
+      letter-spacing: -2px;
+      max-width: 800px;
+    }
+    .intro p {
+      color: var(--muted);
+      margin-top: 14px;
+    }
+    .date {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: right;
+    }
+    .packs {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    .pack-panel {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 180px;
+      align-items: center;
+      min-height: 300px;
+      overflow: hidden;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 28px;
+      gap: 16px;
+      border-radius: var(--radius);
+    }
+    .pack-panel h2 {
+      font-size: 28px;
+      letter-spacing: -1px;
+      margin: 8px 0 14px;
+    }
+    .pack-panel p {
+      color: var(--muted);
+      max-width: 270px;
+      font-size: 13px;
+    }
+    .status {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent);
+    }
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 12px 18px;
+      background: var(--accent);
+      color: var(--bg);
+      font-weight: 700;
+      font-size: 13px;
+      margin: 20px 0 10px;
+      border-radius: var(--button-radius);
+    }
+    .secondary {
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid var(--muted);
+    }
+    .pack {
+      position: relative;
+      isolation: isolate;
+      width: 150px;
+      height: 218px;
+      transform: rotate(9deg);
+      background: var(--pack);
+      border: 1px solid var(--accent);
+      color: var(--pack-ink);
+      padding: 17px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 12px 18px 0 #0003;
+    }
+    .pack:before,
+    .pack:after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 9px;
+      background: repeating-linear-gradient(
+        90deg,
+        transparent 0 3px,
+        #0004 3px 4px
+      );
+    }
+    .pack:before {
+      top: 0;
+    }
+    .pack:after {
+      bottom: 0;
+    }
+    .pack .symbol {
+      font-size: 72px;
+      line-height: 1;
+      font-family: var(--display);
+    }
+    .pack b {
+      font-size: 14px;
+      line-height: 1.05;
+      letter-spacing: 1px;
+    }
+    .pack small {
+      font-size: 9px;
+      letter-spacing: 1px;
+    }
+    .decision .pack {
+      transform: rotate(-8deg);
+      background: var(--decision);
+      border-style: dashed;
+    }
+    .decision .symbol {
+      display: flex;
+      gap: 6px;
+      font-size: 30px;
+      align-items: center;
+    }
+    .decision .symbol i {
+      display: block;
+      width: 18px;
+      height: 60px;
+      border: 2px solid currentColor;
+      transform: skewY(-20deg);
+    }
+    .decision .symbol i:nth-child(3) {
+      background: currentColor;
+    }
+    .collection-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .collection-head h2 {
+      font-size: 28px;
+      letter-spacing: -1px;
+    }
+    .collection-head p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+    .filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .chip {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      font-size: 12px;
+      border-radius: var(--button-radius);
+      color: var(--muted);
+    }
+    .chip.active {
+      color: var(--ink);
+      border-color: var(--accent);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .card {
+      --rare: #b7bec8;
+      position: relative;
+      aspect-ratio: 5/7;
+      background: var(--card);
+      padding: 6px;
+      border: 1px solid var(--rare);
+      border-radius: var(--card-radius);
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      isolation: isolate;
+    }
+    .card .rail {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 28px;
+      padding: 0 3px 4px;
+      gap: 3px;
+      color: var(--rare);
+      font-weight: 800;
+      font-size: 12px;
+    }
+    .bars {
+      display: flex;
+      gap: 2px;
+      align-items: end;
+    }
+    .bars i {
+      display: block;
+      width: 3px;
+      height: 10px;
+      background: currentColor;
+    }
+    .bars i:nth-child(2) {
+      height: 13px;
+    }
+    .bars i:nth-child(3) {
+      height: 16px;
+    }
+    .bars i:nth-child(4) {
+      height: 19px;
+    }
+    .bars i:nth-child(5) {
+      height: 22px;
+    }
+    .art {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      background: var(--well);
+      display: grid;
+      place-items: center;
+    }
+    .art img {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .card-foot {
+      background: var(--card);
+      padding: 10px 3px 6px;
+      min-height: 62px;
+    }
+    .card-foot b {
+      display: block;
+      font-size: clamp(11px, 1.2vw, 15px);
+      line-height: 1.15;
+      overflow-wrap: anywhere;
+    }
+    .card-foot small {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      margin-top: 6px;
+    }
+    .r {
+      --rare: #9bd9ec;
+    }
+    .sr {
+      --rare: #c6b7ff;
+    }
+    .ssr {
+      --rare: #ffb8a1;
+      border-width: 2px;
+    }
+    .lr {
+      --rare: #f3d58f;
+      border-width: 3px;
+    }
+    .sr:after,
+    .ssr:after,
+    .lr:after {
+      content: "";
+      position: absolute;
+      inset: 3px;
+      border-top: 2px solid var(--rare);
+      pointer-events: none;
+    }
+    .ssr:after {
+      border-bottom: 2px solid var(--rare);
+    }
+    .lr:after {
+      border: 1px solid var(--rare);
+      inset: 3px;
+    }
+    .shiny {
+      background: repeating-linear-gradient(
+        125deg,
+        #b8ffff 0%,
+        #ffbded 18%,
+        #fcf5be 35%,
+        #b8ffff 50%
+      );
+      border-color: #f5ffff;
+    }
+    .shiny:before {
+      content: "";
+      position: absolute;
+      inset: -5px;
+      border: 1px solid #e6ffff;
+      pointer-events: none;
+    }
+    .shiny .rail {
+      color: #111820;
+      background: #eaffff;
+      padding: 1px 3px 5px;
+    }
+    .shiny .art:after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        130deg,
+        transparent 28%,
+        #fff5 29%,
+        #d0ffff66 34%,
+        transparent 38%,
+        transparent 60%,
+        #ffbcee44 66%,
+        transparent 72%
+      );
+      pointer-events: none;
+    }
+    .shiny .card-foot {
+      border-top: 3px double #eaffff;
+    }
+    .provenance {
+      display: block;
+      font-size: 9px;
+      font-weight: 700;
+      margin-top: 5px;
+      color: var(--ink);
+    }
+    .reveal {
+      margin-top: 32px;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+    summary {
+      cursor: pointer;
+      min-height: 44px;
+      font-family: var(--display);
+      font-size: 19px;
+      font-weight: 700;
+      display: list-item;
+      margin-left: 18px;
+    }
+    .reveal p {
+      font-size: 13px;
+      color: var(--muted);
+      margin: 14px 0 20px;
+    }
+    .reveal .grid {
+      max-width: 850px;
+      grid-template-columns: repeat(5, 1fr);
+    }
+    .legend {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      border-top: 1px solid var(--line);
+      margin-top: 28px;
+      padding-top: 20px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    footer {
+      max-width: 1280px;
+      margin: auto;
+      padding: 24px 32px;
+      border-top: 1px solid var(--line);
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .folio {
+      --bg: #121716;
+      --surface: #1c2421;
+      --card: #18201d;
+      --well: #303e37;
+      --ink: #f4f1e8;
+      --muted: #b7c1b8;
+      --accent: #d9edaa;
+      --line: #435148;
+      --pack: #d9edaa;
+      --decision: #b9c9b9;
+      --pack-ink: #121716;
+      --radius: 3px;
+      --button-radius: 2px;
+      --card-radius: 2px;
+      --body: "Manrope", Arial, sans-serif;
+      --display: "Space Grotesk", Arial, sans-serif;
+    }
+    .folio .pack .symbol {
+      border-top: 3px solid;
+      border-bottom: 1px solid;
+      padding: 8px 0;
+      font-size: 58px;
+    }
+    .folio .intro h1 {
+      max-width: 720px;
+    }
+    .lumen {
+      --bg: #10151f;
+      --surface: #1b2431;
+      --card: #17202c;
+      --well: #2d3d52;
+      --ink: #f0f5ff;
+      --muted: #b9c6db;
+      --accent: #a9eaff;
+      --line: #43536b;
+      --pack: linear-gradient(150deg, #14273b, #69c9e5);
+      --decision: linear-gradient(145deg, #20283d, #aaa2f0);
+      --pack-ink: #f0f5ff;
+      --radius: 24px;
+      --button-radius: 30px;
+      --card-radius: 13px;
+      --body: "IBM Plex Sans", Arial, sans-serif;
+      --display: "Syne", Arial, sans-serif;
+    }
+    .lumen .pack {
+      border-radius: 50px 50px 12px 12px;
+      box-shadow: 0 10px 40px #6dddff17;
+    }
+    .lumen .symbol {
+      border: 3px solid;
+      border-radius: 50%;
+      text-align: center;
+      font-size: 64px;
+    }
+    .lumen .packs {
+      grid-template-columns: 1fr 1fr;
+    }
+    .lumen .pack-panel {
+      background:
+        radial-gradient(ellipse at 85% 30%, #a9eaff0e, transparent 55%),
+        var(--surface);
+    }
+    .lumen h1 {
+      letter-spacing: -2px;
+      font-weight: 800;
+    }
+    .lumen .card .art {
+      border-radius: 8px 8px 0 0;
+    }
+    .lumen .lr {
+      border-radius: 22px 22px 12px 12px;
+    }
+    .lumen .ssr:after,
+    .lumen .lr:after {
+      border-radius: inherit;
+    }
+    .press {
+      --bg: #1c1622;
+      --surface: #2c2233;
+      --card: #271d2e;
+      --well: #44324d;
+      --ink: #fff2e9;
+      --muted: #d3bacf;
+      --accent: #ffb891;
+      --line: #6a506c;
+      --pack: #ffb891;
+      --decision: #dcc6ff;
+      --pack-ink: #241629;
+      --radius: 0px;
+      --button-radius: 0px;
+      --card-radius: 0px;
+      --body: "DM Sans", Arial, sans-serif;
+      --display: "Bricolage Grotesque", Arial, sans-serif;
+    }
+    .press .intro {
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 28px;
+    }
+    .press h1 {
+      font-size: clamp(42px, 6vw, 80px);
+      letter-spacing: -3px;
+      max-width: 700px;
+    }
+    .press .pack {
+      box-shadow: 8px 8px 0 var(--accent);
+      border: 2px solid var(--bg);
+      outline: 1px solid var(--accent);
+    }
+    .press .symbol {
+      font-weight: 800;
+      letter-spacing: -10px;
+      transform: rotate(-15deg);
+      font-size: 65px;
+    }
+    .press .pack-panel {
+      border-width: 2px;
+    }
+    .press .packs {
+      grid-template-columns: 1fr 1fr;
+    }
+    .press .cta {
+      box-shadow: 4px 4px 0 #0006;
+    }
+    .press .card {
+      border-left-width: 5px;
+    }
+    .press .rail {
+      border-bottom: 1px dashed var(--rare);
+      margin-bottom: 4px;
+    }
+    .press .card-foot b {
+      font-family: var(--display);
+    }
+    .press .shiny {
+      border-left-width: 5px;
+      outline: 2px dashed #eaffff;
+      outline-offset: 3px;
+    }
+    @media (min-width: 1000px) {
+      .folio .collection-head {
+        border-left: 3px solid var(--accent);
+        padding-left: 16px;
+      }
+      .lumen .intro {
+        justify-content: center;
+        text-align: center;
+      }
+      .lumen .date {
+        display: none;
+      }
+      .lumen .intro h1 {
+        max-width: 850px;
+      }
+      .press .pack-panel {
+        grid-template-columns: 1fr 170px;
+      }
+    }
+    @media (max-width: 1000px) {
+      .grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+      .pack-panel {
+        grid-template-columns: 1fr 120px;
+        padding: 22px;
+      }
+      .pack {
+        width: 110px;
+        height: 180px;
+        padding: 14px;
+      }
+      .pack .symbol {
+        font-size: 50px;
+      }
+      .pack b {
+        font-size: 12px;
+      }
+      .pack small {
+        font-size: 8px;
+      }
+      nav {
+        gap: 14px;
+      }
+      .bar {
+        gap: 14px;
+      }
+      .card-foot b {
+        font-size: 14px;
+      }
+      .date {
+        display: none;
+      }
+    }
+    @media (max-width: 650px) {
+      .bar {
+        padding: 16px;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .wordmark {
+        font-size: 21px;
+      }
+      nav {
+        order: 3;
+        width: 100%;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .wallet {
+        font-size: 12px;
+      }
+      main {
+        padding: 28px 16px 40px;
+      }
+      .packs,
+      .lumen .packs,
+      .press .packs {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin-bottom: 32px;
+      }
+      .pack-panel {
+        min-height: 246px;
+        grid-template-columns: minmax(0, 1fr) 100px;
+        padding: 20px 16px;
+        gap: 12px;
+      }
+      .pack {
+        width: 94px;
+        height: 170px;
+        padding: 12px;
+      }
+      .pack .symbol {
+        font-size: 44px;
+      }
+      .folio .pack .symbol {
+        font-size: 40px;
+      }
+      .lumen .symbol {
+        font-size: 44px;
+      }
+      .decision .symbol {
+        gap: 3px;
+      }
+      .decision .symbol i {
+        width: 11px;
+        height: 45px;
+      }
+      .pack-panel h2 {
+        font-size: 25px;
+      }
+      .pack-panel p {
+        font-size: 12px;
+      }
+      .collection-head {
+        align-items: start;
+        flex-direction: column;
+      }
+      .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+      .card-foot b {
+        font-size: 15px;
+      }
+      .card .rail {
+        font-size: 13px;
+        min-height: 32px;
+      }
+      .card-foot {
+        min-height: 70px;
+      }
+      .reveal {
+        padding: 16px;
+      }
+      .reveal .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .legend {
+        flex-direction: column;
+        gap: 8px;
+      }
+      footer {
+        padding: 20px 16px;
+      }
+      .press h1 {
+        font-size: 44px;
+        letter-spacing: -2px;
+      }
+      .intro p {
+        font-size: 13px;
+      }
+      .review {
+        font-size: 10px;
+        padding: 8px 16px;
+      }
+      .shiny {
+        margin: 4px;
+      }
+      .card .art {
+        min-height: 120px;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+      *,
+      *:before,
+      *:after {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+    .lumen .pack b,
+    .lumen .pack small {
+      background: #10151f;
+      padding: 4px;
+      box-decoration-break: clone;
+    }
+  </style>
+  <body class="lumen">
+    <a class="skip" href="#main">Skip to content</a>
+    <div class="review">
+      ART DIRECTION STUDY 02 / LIGHT MATTER ·
+      <a href="index.html">COMPARE ALL DIRECTIONS ↗</a>
+    </div>
+    <header>
+      <div class="bar">
+        <a class="wordmark" href="#main" aria-label="Yokkai Collec home"
+          ><svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+            <path
+              d="M5 5h10v10H5zm12 0h10v10H17zM11 17h10v10H11z"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="3"
+            /></svg
+          ><span>yokkai<small>COLLEC’</small></span></a
+        >
+        <nav aria-label="Primary navigation">
+          <a href="#packs">Packs</a><a href="#collection">Collection</a
+          ><a href="#notes">Market</a><a href="#notes">Friends</a>
+        </nav>
+        <div class="wallet"><span aria-hidden="true">▰</span>4,920 Karas</div>
+      </div>
+    </header>
+    <main id="main">
+      <div class="intro">
+        <div>
+          <div class="eyebrow">The daily collection ritual / 02</div>
+          <h1>A little wonder. Every day.</h1>
+          <p>
+            Five cards. Infinite connections. Your next discovery is waiting.
+          </p>
+        </div>
+        <div class="date">YOUR COLLECTION<br />128 cards · 18 worlds</div>
+      </div>
+      <section class="packs" id="packs" aria-label="Available packs">
+        <article class="pack-panel">
+          <div>
+            <span class="status">● Available · 5 / 5</span>
+            <h2>Regular Pack</h2>
+            <p>Five cards to discover.<br />Keep every one.</p>
+            <a class="cta" href="#opening">Preview the reveal ↗</a>
+            <p>Stock refills over time.</p>
+          </div>
+          <div class="pack" aria-label="Regular Pack concept">
+            <b>YOKKAI<br />COLLEC’</b
+            ><span class="symbol" aria-hidden="true">◌</span
+            ><small>REGULAR / 05 CARDS</small>
+          </div>
+        </article>
+        <article class="pack-panel decision">
+          <div>
+            <span class="status">● Daily pack ready</span>
+            <h2>Decision Pack</h2>
+            <p>Reveal five. Keep one.<br />The rest return Karas.</p>
+            <a class="cta secondary" href="#opening">Explore the reveal ↗</a>
+            <p>One Decision Pack per day.</p>
+          </div>
+          <div
+            class="pack"
+            aria-label="Decision Pack concept: five strips, one selected"
+          >
+            <b>YOKKAI<br />COLLEC’</b
+            ><span class="symbol" aria-hidden="true"
+              ><i></i><i></i><i></i><i></i><i></i></span
+            ><small>DECISION / KEEP 01</small>
+          </div>
+        </article>
+      </section>
+      <section id="collection">
+        <div class="collection-head">
+          <div>
+            <div class="eyebrow">A collection that feels like you</div>
+            <h2>Your latest finds</h2>
+            <p>128 cards · Sorted by newest</p>
+          </div>
+          <div class="filters">
+            <a class="chip active" href="#collection">All cards</a
+            ><a class="chip" href="#rarities">Rarity guide ↓</a>
+          </div>
+        </div>
+        <div class="grid">
+          <article class="card c" aria-label="Field notes, C">
+            <div class="rail">
+              <span>C</span><span class="bars" aria-hidden="true"><i></i></span>
+            </div>
+            <div class="art">
+              <img
+                src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20360%20520%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23e8dfc5%22/%3E%3Ccircle%20cx%3D%22260%22%20cy%3D%22110%22%20r%3D%2295%22%20fill%3D%22%2349796b%22%20opacity%3D%22.25%22/%3E%3Cpath%20d%3D%22M-20%20430L400%20110M-20%20460L420%20140%22%20stroke%3D%22%2349796b%22%20opacity%3D%22.3%22%20stroke-width%3D%222%22/%3E%3Cpath%20d%3D%22M50%20520L80%20340%20160%20300%20230%20310%20310%20400%20350%20520%22%20fill%3D%22%2349796b%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22/%3E%3Cpath%20d%3D%22M160%20276L157%20335%20205%20363%20225%20308%20214%20266%22%20fill%3D%22%23d8a98f%22%20stroke%3D%22%23111820%22%20stroke-width%3D%225%22/%3E%3Cpath%20d%3D%22M109%20153L117%20245%20162%20289%20205%20286%20251%20228%20242%20145%22%20fill%3D%22%23efc5a4%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22/%3E%3Cpath%20d%3D%22M90%20197L86%20111%20125%20134%20151%2058%20190%20105%20234%2077%20273%20129%20259%20213%20232%20158%20207%20183%20181%20135%20149%20186%20129%20161%20112%20213%22%20fill%3D%22%2323382f%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22/%3E%3Cpath%20d%3D%22M129%20214L163%20209M204%20207L231%20199%22%20stroke%3D%22%23111820%22%20stroke-width%3D%227%22/%3E%3Cpath%20d%3D%22M176%20220L172%20242%20185%20243M168%20261L196%20255%22%20stroke%3D%22%237e5045%22%20stroke-width%3D%224%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M90%20367L170%20400%20140%20520M231%20355L213%20415%20270%20520%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22%20fill%3D%22none%22/%3E%3C/svg%3E"
+                alt="Original graphic portrait study"
+                loading="lazy"
+                width="360"
+                height="520"
+              />
+            </div>
+            <div class="card-foot">
+              <b>Field notes</b><small>Illustration · light</small>
+            </div>
+          </article>
+          <article class="card r" aria-label="Portrait no. 01, R">
+            <div class="rail">
+              <span>R</span
+              ><span class="bars" aria-hidden="true"><i></i><i></i></span>
+            </div>
+            <div class="art">
+              <img
+                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=440&q=80"
+                alt="Photographic portrait study"
+                loading="lazy"
+                width="360"
+                height="520"
+              />
+            </div>
+            <div class="card-foot">
+              <b>Portrait no. 01</b><small>Photography · portrait</small>
+            </div>
+          </article>
+          <article class="card sr" aria-label="Night courier, SR">
+            <div class="rail">
+              <span>SR</span
+              ><span class="bars" aria-hidden="true"
+                ><i></i><i></i><i></i
+              ></span>
+            </div>
+            <div class="art">
+              <img
+                src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20480%20480%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23172936%22/%3E%3Ccircle%20cx%3D%22260%22%20cy%3D%22110%22%20r%3D%2295%22%20fill%3D%22%23b9583c%22%20opacity%3D%22.25%22/%3E%3Cpath%20d%3D%22M-20%20430L400%20110M-20%20460L420%20140%22%20stroke%3D%22%23b9583c%22%20opacity%3D%22.3%22%20stroke-width%3D%222%22/%3E%3Cpath%20d%3D%22M50%20520L80%20340%20160%20300%20230%20310%20310%20400%20350%20520%22%20fill%3D%22%23b9583c%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22/%3E%3Cpath%20d%3D%22M160%20276L157%20335%20205%20363%20225%20308%20214%20266%22%20fill%3D%22%23d8a98f%22%20stroke%3D%22%23111820%22%20stroke-width%3D%225%22/%3E%3Cpath%20d%3D%22M109%20153L117%20245%20162%20289%20205%20286%20251%20228%20242%20145%22%20fill%3D%22%23efc5a4%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22/%3E%3Cpath%20d%3D%22M90%20197L86%20111%20125%20134%20151%2058%20190%20105%20234%2077%20273%20129%20259%20213%20232%20158%20207%20183%20181%20135%20149%20186%20129%20161%20112%20213%22%20fill%3D%22%23e8dfbd%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22/%3E%3Cpath%20d%3D%22M129%20214L163%20209M204%20207L231%20199%22%20stroke%3D%22%23111820%22%20stroke-width%3D%227%22/%3E%3Cpath%20d%3D%22M176%20220L172%20242%20185%20243M168%20261L196%20255%22%20stroke%3D%22%237e5045%22%20stroke-width%3D%224%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M90%20367L170%20400%20140%20520M231%20355L213%20415%20270%20520%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22%20fill%3D%22none%22/%3E%3C/svg%3E"
+                alt="Original graphic portrait study"
+                loading="lazy"
+                width="360"
+                height="520"
+              />
+            </div>
+            <div class="card-foot">
+              <b>Night courier</b><small>Illustration · square</small>
+            </div>
+          </article>
+          <article class="card ssr" aria-label="Portrait no. 02, SSR">
+            <div class="rail">
+              <span>SSR</span
+              ><span class="bars" aria-hidden="true"
+                ><i></i><i></i><i></i><i></i
+              ></span>
+            </div>
+            <div class="art">
+              <img
+                src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=440&q=80"
+                alt="Photographic portrait study"
+                loading="lazy"
+                width="360"
+                height="520"
+              />
+            </div>
+            <div class="card-foot">
+              <b>Portrait no. 02</b><small>Photography · portrait</small>
+            </div>
+          </article>
+          <article class="card lr" aria-label="Silver hour, LR">
+            <div class="rail">
+              <span>LR</span
+              ><span class="bars" aria-hidden="true"
+                ><i></i><i></i><i></i><i></i><i></i
+              ></span>
+            </div>
+            <div class="art">
+              <img
+                src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20360%20520%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23d7e2ed%22/%3E%3Ccircle%20cx%3D%22260%22%20cy%3D%22110%22%20r%3D%2295%22%20fill%3D%22%23283c68%22%20opacity%3D%22.25%22/%3E%3Cpath%20d%3D%22M-20%20430L400%20110M-20%20460L420%20140%22%20stroke%3D%22%23283c68%22%20opacity%3D%22.3%22%20stroke-width%3D%222%22/%3E%3Cpath%20d%3D%22M50%20520L80%20340%20160%20300%20230%20310%20310%20400%20350%20520%22%20fill%3D%22%23283c68%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22/%3E%3Cpath%20d%3D%22M160%20276L157%20335%20205%20363%20225%20308%20214%20266%22%20fill%3D%22%23d8a98f%22%20stroke%3D%22%23111820%22%20stroke-width%3D%225%22/%3E%3Cpath%20d%3D%22M109%20153L117%20245%20162%20289%20205%20286%20251%20228%20242%20145%22%20fill%3D%22%23efc5a4%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22/%3E%3Cpath%20d%3D%22M90%20197L86%20111%20125%20134%20151%2058%20190%20105%20234%2077%20273%20129%20259%20213%20232%20158%20207%20183%20181%20135%20149%20186%20129%20161%20112%20213%22%20fill%3D%22%23e8e6ed%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22/%3E%3Cpath%20d%3D%22M129%20214L163%20209M204%20207L231%20199%22%20stroke%3D%22%23111820%22%20stroke-width%3D%227%22/%3E%3Cpath%20d%3D%22M176%20220L172%20242%20185%20243M168%20261L196%20255%22%20stroke%3D%22%237e5045%22%20stroke-width%3D%224%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M90%20367L170%20400%20140%20520M231%20355L213%20415%20270%20520%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22%20fill%3D%22none%22/%3E%3C/svg%3E"
+                alt="Original graphic portrait study"
+                loading="lazy"
+                width="360"
+                height="520"
+              />
+            </div>
+            <div class="card-foot">
+              <b>Silver hour</b><small>Illustration · light</small>
+            </div>
+          </article>
+          <article class="card lr shiny" aria-label="Afterglow, LR · Shiny">
+            <div class="rail">
+              <span>LR / S</span
+              ><span class="bars" aria-hidden="true"
+                ><i></i><i></i><i></i><i></i><i></i
+              ></span>
+            </div>
+            <div class="art">
+              <img
+                src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20360%20520%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23191329%22/%3E%3Ccircle%20cx%3D%22260%22%20cy%3D%22110%22%20r%3D%2295%22%20fill%3D%22%23815eb5%22%20opacity%3D%22.25%22/%3E%3Cpath%20d%3D%22M-20%20430L400%20110M-20%20460L420%20140%22%20stroke%3D%22%23815eb5%22%20opacity%3D%22.3%22%20stroke-width%3D%222%22/%3E%3Cpath%20d%3D%22M50%20520L80%20340%20160%20300%20230%20310%20310%20400%20350%20520%22%20fill%3D%22%23815eb5%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22/%3E%3Cpath%20d%3D%22M160%20276L157%20335%20205%20363%20225%20308%20214%20266%22%20fill%3D%22%23d8a98f%22%20stroke%3D%22%23111820%22%20stroke-width%3D%225%22/%3E%3Cpath%20d%3D%22M109%20153L117%20245%20162%20289%20205%20286%20251%20228%20242%20145%22%20fill%3D%22%23efc5a4%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22/%3E%3Cpath%20d%3D%22M90%20197L86%20111%20125%20134%20151%2058%20190%20105%20234%2077%20273%20129%20259%20213%20232%20158%20207%20183%20181%20135%20149%20186%20129%20161%20112%20213%22%20fill%3D%22%23eee2c5%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22/%3E%3Cpath%20d%3D%22M129%20214L163%20209M204%20207L231%20199%22%20stroke%3D%22%23111820%22%20stroke-width%3D%227%22/%3E%3Cpath%20d%3D%22M176%20220L172%20242%20185%20243M168%20261L196%20255%22%20stroke%3D%22%237e5045%22%20stroke-width%3D%224%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M90%20367L170%20400%20140%20520M231%20355L213%20415%20270%20520%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22%20fill%3D%22none%22/%3E%3C/svg%3E"
+                alt="Original graphic portrait study"
+                loading="lazy"
+                width="360"
+                height="520"
+              />
+            </div>
+            <div class="card-foot">
+              <b>Afterglow</b><small>Illustration · dark</small
+              ><span class="provenance">SHINY · Direct pull</span>
+            </div>
+          </article>
+          <article
+            class="card ssr shiny"
+            aria-label="Portrait no. 03, SSR · Shiny"
+          >
+            <div class="rail">
+              <span>SSR / S</span
+              ><span class="bars" aria-hidden="true"
+                ><i></i><i></i><i></i><i></i
+              ></span>
+            </div>
+            <div class="art">
+              <img
+                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=440&q=80"
+                alt="Photographic portrait study"
+                loading="lazy"
+                width="360"
+                height="520"
+              />
+            </div>
+            <div class="card-foot">
+              <b>Portrait no. 03</b><small>Photography · evolved</small
+              ><span class="provenance">SHINY · Evolved</span>
+            </div>
+          </article>
+        </div>
+      </section>
+      <details class="reveal" id="opening" open>
+        <summary>Regular Pack / reveal study</summary>
+        <p>
+          Five cards revealed. All five join your collection. This is a static
+          composition; no pack is consumed.
+        </p>
+        <div class="grid">
+          <article class="card c" aria-label="Field notes, C">
+            <div class="rail">
+              <span>C</span><span class="bars" aria-hidden="true"><i></i></span>
+            </div>
+            <div class="art">
+              <img
+                src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20360%20520%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23e8dfc5%22/%3E%3Ccircle%20cx%3D%22260%22%20cy%3D%22110%22%20r%3D%2295%22%20fill%3D%22%2349796b%22%20opacity%3D%22.25%22/%3E%3Cpath%20d%3D%22M-20%20430L400%20110M-20%20460L420%20140%22%20stroke%3D%22%2349796b%22%20opacity%3D%22.3%22%20stroke-width%3D%222%22/%3E%3Cpath%20d%3D%22M50%20520L80%20340%20160%20300%20230%20310%20310%20400%20350%20520%22%20fill%3D%22%2349796b%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22/%3E%3Cpath%20d%3D%22M160%20276L157%20335%20205%20363%20225%20308%20214%20266%22%20fill%3D%22%23d8a98f%22%20stroke%3D%22%23111820%22%20stroke-width%3D%225%22/%3E%3Cpath%20d%3D%22M109%20153L117%20245%20162%20289%20205%20286%20251%20228%20242%20145%22%20fill%3D%22%23efc5a4%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22/%3E%3Cpath%20d%3D%22M90%20197L86%20111%20125%20134%20151%2058%20190%20105%20234%2077%20273%20129%20259%20213%20232%20158%20207%20183%20181%20135%20149%20186%20129%20161%20112%20213%22%20fill%3D%22%2323382f%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22/%3E%3Cpath%20d%3D%22M129%20214L163%20209M204%20207L231%20199%22%20stroke%3D%22%23111820%22%20stroke-width%3D%227%22/%3E%3Cpath%20d%3D%22M176%20220L172%20242%20185%20243M168%20261L196%20255%22%20stroke%3D%22%237e5045%22%20stroke-width%3D%224%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M90%20367L170%20400%20140%20520M231%20355L213%20415%20270%20520%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22%20fill%3D%22none%22/%3E%3C/svg%3E"
+                alt="Original graphic portrait study"
+                loading="lazy"
+                width="360"
+                height="520"
+              />
+            </div>
+            <div class="card-foot">
+              <b>Field notes</b><small>Illustration · light</small>
+            </div>
+          </article>
+          <article class="card r" aria-label="Portrait no. 01, R">
+            <div class="rail">
+              <span>R</span
+              ><span class="bars" aria-hidden="true"><i></i><i></i></span>
+            </div>
+            <div class="art">
+              <img
+                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=440&q=80"
+                alt="Photographic portrait study"
+                loading="lazy"
+                width="360"
+                height="520"
+              />
+            </div>
+            <div class="card-foot">
+              <b>Portrait no. 01</b><small>Photography · portrait</small>
+            </div>
+          </article>
+          <article class="card sr" aria-label="Night courier, SR">
+            <div class="rail">
+              <span>SR</span
+              ><span class="bars" aria-hidden="true"
+                ><i></i><i></i><i></i
+              ></span>
+            </div>
+            <div class="art">
+              <img
+                src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20480%20480%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23172936%22/%3E%3Ccircle%20cx%3D%22260%22%20cy%3D%22110%22%20r%3D%2295%22%20fill%3D%22%23b9583c%22%20opacity%3D%22.25%22/%3E%3Cpath%20d%3D%22M-20%20430L400%20110M-20%20460L420%20140%22%20stroke%3D%22%23b9583c%22%20opacity%3D%22.3%22%20stroke-width%3D%222%22/%3E%3Cpath%20d%3D%22M50%20520L80%20340%20160%20300%20230%20310%20310%20400%20350%20520%22%20fill%3D%22%23b9583c%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22/%3E%3Cpath%20d%3D%22M160%20276L157%20335%20205%20363%20225%20308%20214%20266%22%20fill%3D%22%23d8a98f%22%20stroke%3D%22%23111820%22%20stroke-width%3D%225%22/%3E%3Cpath%20d%3D%22M109%20153L117%20245%20162%20289%20205%20286%20251%20228%20242%20145%22%20fill%3D%22%23efc5a4%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22/%3E%3Cpath%20d%3D%22M90%20197L86%20111%20125%20134%20151%2058%20190%20105%20234%2077%20273%20129%20259%20213%20232%20158%20207%20183%20181%20135%20149%20186%20129%20161%20112%20213%22%20fill%3D%22%23e8dfbd%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22/%3E%3Cpath%20d%3D%22M129%20214L163%20209M204%20207L231%20199%22%20stroke%3D%22%23111820%22%20stroke-width%3D%227%22/%3E%3Cpath%20d%3D%22M176%20220L172%20242%20185%20243M168%20261L196%20255%22%20stroke%3D%22%237e5045%22%20stroke-width%3D%224%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M90%20367L170%20400%20140%20520M231%20355L213%20415%20270%20520%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22%20fill%3D%22none%22/%3E%3C/svg%3E"
+                alt="Original graphic portrait study"
+                loading="lazy"
+                width="360"
+                height="520"
+              />
+            </div>
+            <div class="card-foot">
+              <b>Night courier</b><small>Illustration · square</small>
+            </div>
+          </article>
+          <article class="card ssr" aria-label="Portrait no. 02, SSR">
+            <div class="rail">
+              <span>SSR</span
+              ><span class="bars" aria-hidden="true"
+                ><i></i><i></i><i></i><i></i
+              ></span>
+            </div>
+            <div class="art">
+              <img
+                src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=440&q=80"
+                alt="Photographic portrait study"
+                loading="lazy"
+                width="360"
+                height="520"
+              />
+            </div>
+            <div class="card-foot">
+              <b>Portrait no. 02</b><small>Photography · portrait</small>
+            </div>
+          </article>
+          <article class="card lr" aria-label="Silver hour, LR">
+            <div class="rail">
+              <span>LR</span
+              ><span class="bars" aria-hidden="true"
+                ><i></i><i></i><i></i><i></i><i></i
+              ></span>
+            </div>
+            <div class="art">
+              <img
+                src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20360%20520%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23d7e2ed%22/%3E%3Ccircle%20cx%3D%22260%22%20cy%3D%22110%22%20r%3D%2295%22%20fill%3D%22%23283c68%22%20opacity%3D%22.25%22/%3E%3Cpath%20d%3D%22M-20%20430L400%20110M-20%20460L420%20140%22%20stroke%3D%22%23283c68%22%20opacity%3D%22.3%22%20stroke-width%3D%222%22/%3E%3Cpath%20d%3D%22M50%20520L80%20340%20160%20300%20230%20310%20310%20400%20350%20520%22%20fill%3D%22%23283c68%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22/%3E%3Cpath%20d%3D%22M160%20276L157%20335%20205%20363%20225%20308%20214%20266%22%20fill%3D%22%23d8a98f%22%20stroke%3D%22%23111820%22%20stroke-width%3D%225%22/%3E%3Cpath%20d%3D%22M109%20153L117%20245%20162%20289%20205%20286%20251%20228%20242%20145%22%20fill%3D%22%23efc5a4%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22/%3E%3Cpath%20d%3D%22M90%20197L86%20111%20125%20134%20151%2058%20190%20105%20234%2077%20273%20129%20259%20213%20232%20158%20207%20183%20181%20135%20149%20186%20129%20161%20112%20213%22%20fill%3D%22%23e8e6ed%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22/%3E%3Cpath%20d%3D%22M129%20214L163%20209M204%20207L231%20199%22%20stroke%3D%22%23111820%22%20stroke-width%3D%227%22/%3E%3Cpath%20d%3D%22M176%20220L172%20242%20185%20243M168%20261L196%20255%22%20stroke%3D%22%237e5045%22%20stroke-width%3D%224%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M90%20367L170%20400%20140%20520M231%20355L213%20415%20270%20520%22%20stroke%3D%22%23111820%22%20stroke-width%3D%226%22%20fill%3D%22none%22/%3E%3C/svg%3E"
+                alt="Original graphic portrait study"
+                loading="lazy"
+                width="360"
+                height="520"
+              />
+            </div>
+            <div class="card-foot">
+              <b>Silver hour</b><small>Illustration · light</small>
+            </div>
+          </article>
+        </div>
+      </details>
+      <div class="legend" id="rarities">
+        <span
+          >C → R → SR → SSR → LR: one to five raised bars + written
+          rarity.</span
+        ><span>Shiny: spectral edge + S mark + persistent SHINY label.</span>
+      </div>
+    </main>
+    <footer id="notes">
+      Independent visual proposal · Sample artwork, not game inventory · Market
+      and Friends are navigation studies · Karas have no real-world value and
+      cannot be purchased.
+    </footer>
+  </body>
+</html>
