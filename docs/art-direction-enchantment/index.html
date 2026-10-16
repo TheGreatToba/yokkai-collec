@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Yokkai Collec’ · Enchantment studies</title>
+    <link rel="stylesheet" href="study.css" />
+    <style>
+      body {
+        --bg: #08070d;
+        --surface: #15111f;
+        --ink: #f8f5ff;
+        --muted: #bcb2cc;
+        --accent: #df9bff;
+        --line: #382c47;
+        --display: "Sora", sans-serif;
+        --body: "Manrope", sans-serif;
+      }
+      main {
+        max-width: 1480px;
+        margin: auto;
+        padding: 52px 32px;
+      }
+      h1 {
+        font-size: clamp(30px, 4vw, 54px);
+        line-height: 1.1;
+        letter-spacing: -2px;
+        max-width: 900px;
+      }
+      main > p {
+        max-width: 780px;
+        color: var(--muted);
+        margin-top: 20px;
+        font-size: 13px;
+        line-height: 1.8;
+      }
+      .directions {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 24px;
+        margin-top: 36px;
+      }
+      .direction {
+        min-width: 0;
+      }
+      .direction h2 {
+        font-size: 20px;
+      }
+      .direction a {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 44px;
+        margin-bottom: 8px;
+      }
+      .direction p {
+        font-size: 11px;
+        color: var(--muted);
+        min-height: 36px;
+        max-width: 330px;
+        margin-bottom: 16px;
+      }
+      .direction img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border: 1px solid var(--line);
+        background: var(--surface);
+      }
+      .tag {
+        font-size: 9px;
+        letter-spacing: 1px;
+        border: 1px solid var(--line);
+        padding: 5px 7px;
+        color: var(--muted);
+      }
+      .swatches {
+        display: flex;
+        gap: 5px;
+        margin-bottom: 16px;
+      }
+      .swatches i {
+        display: block;
+        width: 36px;
+        height: 5px;
+      }
+      @media (max-width: 900px) {
+        .directions {
+          grid-template-columns: 1fr;
+        }
+        .direction p {
+          min-height: 0;
+        }
+        .direction img {
+          max-height: 660px;
+          object-fit: cover;
+          object-position: top;
+        }
+        main {
+          padding: 32px 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="study-strip">
+      <span>YOKKAI COLLEC’ / PHASE 01 / A NEW START</span
+      ><a href="DIRECTION.md">Direction document ↗</a>
+    </div>
+    <main>
+      <div class="eyebrow">The collection is the attraction.</div>
+      <h1>A world you want to enter.<br />Cards you want to keep.</h1>
+      <p>
+        Three distinct graphic identities. No opening animation. No sound. The
+        same portraits, the same rarities: judge the desire created by the
+        identity itself. Open each study for its full responsive collection
+        screen.
+      </p>
+      <div class="directions">
+        <article class="direction">
+          <a href="obsidian.html"
+            ><h2>01 / Obsidian Ritual</h2>
+            <span class="tag">RECOMMENDED ↗</span></a
+          >
+          <p>
+            A dark sanctum. Sculpted metal, electric orchid, a magnetic visual
+            signature.
+          </p>
+          <div class="swatches">
+            <i style="background: #08070d"></i
+            ><i style="background: #7d369b"></i
+            ><i style="background: #df9bff"></i
+            ><i style="background: #ffe1a1"></i>
+          </div>
+          <a href="obsidian.html" aria-label="Open Obsidian Ritual"
+            ><img
+              src="assets/obsidian-desktop.png"
+              alt="Obsidian Ritual collection interface, dark violet lighting and precious framed cards"
+              width="1440"
+              height="1000"
+          /></a>
+        </article>
+        <article class="direction">
+          <a href="scarlet.html"
+            ><h2>02 / Scarlet Court</h2>
+            <span class="tag">EXPLORE ↗</span></a
+          >
+          <p>A private salon. Scarlet lacquer, champagne, typographic drama.</p>
+          <div class="swatches">
+            <i style="background: #0c0709"></i
+            ><i style="background: #8c253c"></i
+            ><i style="background: #ff9b99"></i
+            ><i style="background: #efd3a0"></i>
+          </div>
+          <a href="scarlet.html" aria-label="Open Scarlet Court"
+            ><img
+              src="assets/scarlet-desktop.png"
+              alt="Scarlet Court collection interface, scarlet velvet and champagne frames"
+              width="1440"
+              height="1000"
+          /></a>
+        </article>
+        <article class="direction">
+          <a href="astral.html"
+            ><h2>03 / Astral Vault</h2>
+            <span class="tag">EXPLORE ↗</span></a
+          >
+          <p>
+            A vault of light. Orbital geometry, midnight blue, charged silver.
+          </p>
+          <div class="swatches">
+            <i style="background: #060b16"></i
+            ><i style="background: #23619b"></i
+            ><i style="background: #8adfff"></i
+            ><i style="background: #f0d8a2"></i>
+          </div>
+          <a href="astral.html" aria-label="Open Astral Vault"
+            ><img
+              src="assets/astral-desktop.png"
+              alt="Astral Vault collection interface, optical blue geometry and silver frames"
+              width="1440"
+              height="1000"
+          /></a>
+        </article>
+      </div>
+    </main>
+  </body>
+</html>

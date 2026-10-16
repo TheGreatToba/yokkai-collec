@@ -1,0 +1,74 @@
+[
+  {
+    "columns": "128.5px 128.5px",
+    "direction": "obsidian",
+    "scroll": 305,
+    "width": 320
+  },
+  {
+    "columns": "128.5px 128.5px",
+    "direction": "scarlet",
+    "scroll": 305,
+    "width": 320
+  },
+  {
+    "columns": "128.5px 128.5px",
+    "direction": "astral",
+    "scroll": 305,
+    "width": 320
+  },
+  {
+    "columns": "161.25px 161.25px 161.25px 161.25px",
+    "direction": "obsidian",
+    "scroll": 753,
+    "width": 768
+  },
+  {
+    "columns": "161.25px 161.25px 161.25px 161.25px",
+    "direction": "scarlet",
+    "scroll": 753,
+    "width": 768
+  },
+  {
+    "columns": "161.25px 161.25px 161.25px 161.25px",
+    "direction": "astral",
+    "scroll": 753,
+    "width": 768
+  },
+  {
+    "columns": "185.25px 185.25px 185.25px 185.25px",
+    "direction": "obsidian",
+    "scroll": 1009,
+    "width": 1024
+  },
+  {
+    "columns": "215.25px 215.25px 215.25px 215.25px",
+    "direction": "scarlet",
+    "scroll": 1009,
+    "width": 1024
+  },
+  {
+    "columns": "205.25px 205.25px 205.25px 205.25px",
+    "direction": "astral",
+    "scroll": 1009,
+    "width": 1024
+  },
+  {
+    "columns": "152.422px 152.422px 152.438px 152.422px 152.438px 152.422px 152.438px",
+    "direction": "obsidian",
+    "scroll": 1425,
+    "width": 1440
+  },
+  {
+    "columns": "170.844px 170.859px 170.859px 170.859px 170.859px 170.859px 170.859px",
+    "direction": "scarlet",
+    "scroll": 1425,
+    "width": 1440
+  },
+  {
+    "columns": "168.703px 168.719px 168.719px 168.703px 168.719px 168.719px 168.703px",
+    "direction": "astral",
+    "scroll": 1425,
+    "width": 1440
+  }
+]
