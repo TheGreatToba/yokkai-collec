@@ -1332,7 +1332,12 @@ export function CollectionView({
                         </div>
                         <p>
                           {selectedAlbum?.owned ?? selectedLicenseOwned} /{" "}
-                          {selectedAlbum?.total ?? paniniCards.total} cards
+                          {(
+                            selectedAlbum?.total ?? paniniCards.total
+                          ).toLocaleString("en-US")}{" "}
+                          {(selectedAlbum?.total ?? paniniCards.total) === 1
+                            ? "card"
+                            : "cards"}
                         </p>
                       </div>
                       <div className="yk-panini-controls">
@@ -1571,12 +1576,14 @@ export function CollectionView({
                                   setQuery("");
                                   setPaniniPage(1);
                                 }}
-                                aria-label={`View ${item.license}, ${item.owned} cards of ${item.total}`}
+                                aria-label={`View ${item.license}, ${item.owned.toLocaleString("en-US")} of ${item.total.toLocaleString("en-US")} ${item.total === 1 ? "card" : "cards"}`}
                               >
                                 <span className="yk-panini-details">
                                   <strong>{item.license}</strong>
                                   <span className="yk-panini-count">
-                                    <b>{item.owned}</b> / {item.total} cards
+                                    <b>{item.owned.toLocaleString("en-US")}</b>{" "}
+                                    / {item.total.toLocaleString("en-US")}{" "}
+                                    {item.total === 1 ? "card" : "cards"}
                                   </span>
                                   <span className="yk-panini-progress">
                                     <i style={{ width: `${item.percent}%` }} />

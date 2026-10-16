@@ -1616,7 +1616,7 @@ export function ProfileExperience({
                 <button
                   type="button"
                   onClick={() => void openFriendCollection()}
-                  aria-label={`View ${profile.cardCount} cards from ${profile.pseudo}`}
+                  aria-label={`View ${profile.cardCount.toLocaleString("en-US")} ${profile.cardCount === 1 ? "card" : "cards"} from ${profile.pseudo}`}
                 >
                   <p>Cards</p>
                   <strong>{profile.cardCount}</strong>
