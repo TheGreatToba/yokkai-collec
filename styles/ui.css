@@ -12,7 +12,7 @@ body {
   background:
     radial-gradient(
       1200px 600px at 50% -10%,
-      var(--color-veil) 0%,
+      color-mix(in srgb, var(--color-accent-neon) 5%, transparent) 0%,
       transparent 60%
     ),
     var(--color-night);
@@ -91,13 +91,29 @@ a[aria-current="page"] {
 .yk-button-primary:hover:not(:disabled),
 .primary:hover:not(:disabled),
 .yk-button-primary[data-demo-state="hover"] {
-  background: var(--color-veil-strong);
   box-shadow: var(--shadow-interactive);
+}
+.yk-button-primary,
+.primary {
+  border-color: var(--color-accent-neon);
+  color: var(--color-void);
+  background: var(--color-accent-neon);
+}
+.yk-button-primary:hover:not(:disabled),
+.primary:hover:not(:disabled),
+.yk-button-primary[data-demo-state="hover"] {
+  background: var(--color-focus-ring);
+  border-color: var(--color-focus-ring);
 }
 .yk-button:active:not(:disabled),
 .yk-button[data-demo-state="pressed"] {
   transform: scale(0.97);
   background: var(--color-elevated);
+}
+.yk-button-primary:active:not(:disabled),
+.primary:active:not(:disabled) {
+  background: var(--color-focus-ring);
+  color: var(--color-void);
 }
 .yk-button[data-demo-state="focus"] {
   outline: 2px solid var(--color-focus-ring);

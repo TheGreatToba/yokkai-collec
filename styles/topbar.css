@@ -17,7 +17,7 @@
 }
 .yk-brand {
   display: flex;
-  width: 104px;
+  width: 156px;
   flex-shrink: 0;
   align-items: center;
 }
@@ -414,7 +414,7 @@
     font-size: 12px;
   }
   .yk-brand {
-    width: 82px;
+    width: 120px;
   }
 }
 @media (max-width: 900px) {
@@ -468,7 +468,7 @@
 }
 @media (max-width: 620px) {
   .yk-brand {
-    width: 68px;
+    width: 104px;
   }
   .yk-topbar-actions {
     gap: 5px;

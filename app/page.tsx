@@ -69,10 +69,10 @@ export default async function Home() {
         >
           <Image
             className="yk-landing-brand-image"
-            src="/assets/header-logo-gold.png"
+            src="/assets/brand-logo-pink.png"
             alt=""
-            width={1774}
-            height={887}
+            width={2164}
+            height={726}
             priority
           />
         </Link>

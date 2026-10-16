@@ -6,22 +6,24 @@ const config = {
   theme: {
     extend: {
       colors: {
-        void: "#04000B",
-        night: "#090714",
-        surface: "#0F0C1D",
-        elevated: "#16122B",
-        veil: "#1D1844",
-        "veil-strong": "#2E276D",
-        focus: "#5244B5",
-        "focus-ring": "#A77BFF",
-        ink: "#F2F0FF",
-        "ink-2": "#A29DBE",
-        "ink-3": "#8A84AB",
-        disabled: "#3E385D",
-        "accent-gold": "#E8C26A",
-        "accent-neon": "#A77BFF",
-        "accent-cyan": "#3FE0D0",
-        karas: "#FFCC33",
+        void: "#000000",
+        night: "#050506",
+        surface: "#101013",
+        elevated: "#19161C",
+        veil: "#2B2029",
+        "veil-strong": "#513344",
+        focus: "#BC326C",
+        "focus-ring": "#FF80B5",
+        ink: "#FFF5FA",
+        "ink-2": "#CBBBC4",
+        "ink-3": "#A89AA5",
+        disabled: "#493842",
+        // Keep legacy utility names for compatibility; brand accents are pink.
+        // Rarity and status colors below remain independent of the brand.
+        "accent-gold": "#FF80B5",
+        "accent-neon": "#F94D95",
+        "accent-cyan": "#FEA4C9",
+        karas: "#FF91C1",
         success: "#00E699",
         warning: "#FF9900",
         danger: "#FF3355",
@@ -41,19 +43,19 @@ const config = {
         pill: "24px"
       },
       boxShadow: {
-        card: "0 8px 24px -4px rgba(4,0,11,.8),0 0 0 1px #1D1844",
-        hover: "0 12px 32px -4px rgba(4,0,11,.95),0 0 12px rgba(82,68,181,.4)",
+        card: "0 8px 24px -4px rgba(0,0,0,.8),0 0 0 1px #2B2029",
+        hover: "0 12px 32px -4px rgba(0,0,0,.95),0 0 16px rgba(249,77,149,.16)",
         modal: "0 20px 50px rgba(0,0,0,.9)",
-        gold: "0 0 30px rgba(232,194,106,.35)",
+        gold: "0 0 30px rgba(249,77,149,.18)",
         inset: "inset 0 2px 6px rgba(0,0,0,.6)",
-        interactive: "0 0 16px rgba(82,68,181,.5)",
-        focus: "0 0 10px rgba(82,68,181,.3)",
+        interactive: "0 0 20px rgba(249,77,149,.2)",
+        focus: "0 0 10px rgba(249,77,149,.16)",
         tab: "0 2px 8px rgba(0,0,0,.5)",
         toast: "0 10px 25px rgba(0,0,0,.8)",
-        chip: "0 0 8px rgba(82,68,181,.4)"
+        chip: "0 0 8px rgba(249,77,149,.18)"
       },
       backgroundImage: {
-        karas: "linear-gradient(135deg,#FFF3C4,#E8C26A 55%,#9A7420)"
+        karas: "linear-gradient(135deg,#FFE0EE,#F94D95 55%,#92224F)"
       },
       transitionTimingFunction: { yokkai: "cubic-bezier(.2,.8,.2,1)" }
     }

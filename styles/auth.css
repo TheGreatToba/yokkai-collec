@@ -20,7 +20,7 @@
   width: min(62vw, 760px);
   aspect-ratio: 1;
   top: -42%;
-  left: -18%;
+  left: 0;
   background: radial-gradient(
     circle,
     color-mix(in srgb, var(--color-focus) 16%, transparent),
@@ -30,7 +30,7 @@
 .yk-auth-shell::after {
   width: min(48vw, 620px);
   aspect-ratio: 1;
-  right: -16%;
+  right: 0;
   bottom: -38%;
   background: radial-gradient(
     circle,
@@ -48,7 +48,7 @@
 }
 .yk-auth-brand {
   display: flex;
-  width: 112px;
+  width: 156px;
   align-items: center;
 }
 .yk-auth-brand-image {

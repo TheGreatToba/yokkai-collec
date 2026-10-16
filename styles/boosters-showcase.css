@@ -11,8 +11,8 @@
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse at 18% 40%, #8050cf16, transparent 48%),
-    radial-gradient(ellipse at 85% 45%, #96aaff10, transparent 45%);
+    radial-gradient(ellipse at 18% 40%, #f94d9510, transparent 48%),
+    radial-gradient(ellipse at 85% 45%, #ff9bc30a, transparent 45%);
 }
 .yk-pack-page-heading .eyebrow {
   font-size: 10px;
@@ -29,70 +29,70 @@
   margin-top: 30px;
 }
 .yk-pack-panel {
-  --pack-accent: #b28af0;
-  --pack-rgb: 178, 138, 240;
+  --pack-accent: #ff91c1;
+  --pack-rgb: 249, 77, 149;
   display: flex;
   flex-direction: column;
   min-width: 0;
   border-radius: 22px;
   border-color: rgba(var(--pack-rgb), 0.22);
-  background: linear-gradient(150deg, #181226, #0e0c17 58%);
+  background: linear-gradient(150deg, #191219, #101013 58%);
   box-shadow:
     0 18px 55px #0003,
     inset 0 1px 0 #ffffff07;
 }
 .yk-pack-grid .yk-pack-panel {
-  --pack-accent: #c0c5ff;
-  --pack-rgb: 180, 185, 255;
-  border-color: #a6aceb42;
-  color: #eeebff;
+  --pack-accent: #ff91c1;
+  --pack-rgb: 249, 77, 149;
+  border-color: #ed84af38;
+  color: #fff5fa;
   background:
-    radial-gradient(ellipse at 90% 0%, #9cb5f512, transparent 54%),
-    radial-gradient(ellipse at 0% 50%, #ba9be61a, transparent 62%),
-    linear-gradient(155deg, #1b1d35, #151424 55%, #1c1830);
+    radial-gradient(ellipse at 90% 0%, #f94d950d, transparent 54%),
+    radial-gradient(ellipse at 0% 50%, #ff9bc308, transparent 62%),
+    linear-gradient(155deg, #171117, #111013 55%, #19121a);
   box-shadow:
     0 18px 55px #0003,
-    0 0 35px #a2abff0a,
-    inset 0 1px 0 #dfe5ff0d;
+    0 0 35px #f94d9508,
+    inset 0 1px 0 #ffd7e90d;
 }
 .yk-pack-grid .yk-pack-panel::after {
   background: linear-gradient(
     125deg,
     transparent 30%,
-    #c9d2ff0d,
-    #a4baff0a,
+    #ff9bc30a,
+    #f94d9508,
     transparent 72%
   );
 }
 .yk-pack-grid .yk-pack-panel .yk-pack-art-stage {
   background:
-    radial-gradient(ellipse at 50% 38%, #d5ddff18, transparent 58%),
-    radial-gradient(ellipse at 24% 78%, #a78ae824, transparent 58%),
-    radial-gradient(ellipse at 85% 58%, #87b4ee21, transparent 55%);
+    radial-gradient(ellipse at 50% 38%, #ffb3d50c, transparent 58%),
+    radial-gradient(ellipse at 24% 78%, #f94d9514, transparent 58%),
+    radial-gradient(ellipse at 85% 58%, #bc326c0e, transparent 55%);
 }
 .yk-pack-grid .yk-pack-panel .yk-pack-image {
-  filter: drop-shadow(0 16px 15px #07061780) drop-shadow(0 0 18px #acbfff26);
+  filter: drop-shadow(0 16px 15px #00000080) drop-shadow(0 0 18px #f94d951a);
 }
 .yk-pack-grid .yk-pack-panel .yk-pack-badge > span,
 .yk-pack-grid .yk-pack-panel .yk-pack-title > span {
-  border-color: #9b9edb38;
-  color: #c8c6f8;
-  background: #151425d9;
+  border-color: #ed84af38;
+  color: #ffb3d5;
+  background: #190f16d9;
 }
 .yk-pack-grid .yk-pack-panel .yk-pack-info {
-  color: #c0c5ff;
-  border-color: #9b9edb42;
-  background: #151425d9;
+  color: #ff91c1;
+  border-color: #ed84af42;
+  background: #190f16d9;
 }
 .yk-pack-grid .yk-pack-panel .yk-pack-body > p,
 .yk-pack-grid .yk-pack-panel .yk-pack-status dt {
-  color: #afa9c3;
+  color: #b9a9b3;
 }
 .yk-pack-grid .yk-pack-panel .yk-pack-status {
-  border-top-color: #a6aceb29;
+  border-top-color: #ed84af29;
 }
 .yk-pack-grid .yk-pack-panel .yk-pack-status .text-karas {
-  color: #c0c5ff;
+  color: #ff91c1;
 }
 .yk-pack-grid .yk-pack-panel .yk-pack-status .text-success {
   color: #72d6bc;
@@ -101,20 +101,20 @@
   color: #dbc695;
 }
 .yk-pack-grid .yk-pack-panel .yk-pack-status .text-ink-3 {
-  color: #afa9c3;
+  color: #b9a9b3;
 }
 .yk-pack-grid .yk-pack-panel .yk-pack-body > .yk-button {
-  border-color: #9b9edb73;
-  color: #eeeaff;
-  background: linear-gradient(110deg, #4a436f, #36476d 55%, #4c406c);
+  border-color: #ed84af73;
+  color: #fff5fa;
+  background: linear-gradient(110deg, #642741, #482033 55%, #5a233e);
   box-shadow:
-    inset 0 1px 0 #dfe5ff0f,
-    0 4px 14px #07061726;
+    inset 0 1px 0 #ffd7e90f,
+    0 4px 14px #00000026;
 }
 .yk-pack-grid .yk-pack-panel .yk-pack-body > .yk-button:disabled {
   opacity: 0.65;
-  color: #aaa1bf;
-  background: #242335;
+  color: #b5a6b0;
+  background: #262027;
   box-shadow: none;
 }
 .yk-pack-panel .yk-pack-art-stage {
@@ -194,7 +194,7 @@
   border: 1px solid rgba(var(--pack-rgb), 0.17);
   border-radius: 7px;
   color: var(--pack-accent);
-  background: #0c0a12c9;
+  background: #0c0a0dc9;
   font-size: 10px;
   letter-spacing: 0.025em;
 }
@@ -233,7 +233,7 @@
 }
 .yk-pack-panel .yk-pack-body > p {
   margin-top: 10px;
-  color: #a29bb5;
+  color: var(--color-ink-2);
   font-size: 12px;
   line-height: 1.8;
 }
@@ -250,7 +250,7 @@
   font-size: 11px;
 }
 .yk-pack-panel .yk-pack-status dt {
-  color: #a29bb5;
+  color: var(--color-ink-2);
 }
 .yk-pack-panel .yk-pack-status dd {
   max-width: 70%;
@@ -274,7 +274,7 @@
     rgba(var(--pack-rgb), 0.1)
   );
   box-shadow: inset 0 1px 0 #ffffff08;
-  color: #f6efff;
+  color: var(--color-ink);
   font-size: 13px;
 }
 .yk-pack-panel .yk-pack-body > .yk-button:disabled {
@@ -300,16 +300,16 @@
     box-shadow: 0 0 22px rgba(var(--pack-rgb), 0.12);
   }
   .yk-pack-grid .yk-pack-panel:hover {
-    border-color: #b2b7f380;
+    border-color: #ed84af80;
     box-shadow:
       0 24px 65px #0004,
-      0 0 30px #b9bfff17;
+      0 0 30px #f94d9514;
   }
   .yk-pack-grid .yk-pack-panel .yk-pack-body > .yk-button:not(:disabled):hover {
-    border-color: #a8aceb;
-    color: #fbfaff;
-    background: linear-gradient(110deg, #575084, #42557a 55%, #594c7e);
-    box-shadow: 0 0 18px #a8b4f526;
+    border-color: #ff91c1;
+    color: #fff5fa;
+    background: linear-gradient(110deg, #78314f, #5d2941 55%, #6e2c4b);
+    box-shadow: 0 0 18px #f94d9526;
   }
 }
 /* Fit desktop selection to the available height, not the monitor resolution.

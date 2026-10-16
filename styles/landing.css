@@ -4,12 +4,12 @@
   background:
     radial-gradient(
       900px 600px at 78% 25%,
-      rgba(167, 123, 255, 0.13),
+      rgba(249, 77, 149, 0.055),
       transparent 65%
     ),
     radial-gradient(
       700px 440px at 12% 8%,
-      rgba(232, 194, 106, 0.08),
+      rgba(249, 77, 149, 0.025),
       transparent 68%
     ),
     var(--color-night);
@@ -28,7 +28,7 @@
 }
 .yk-landing-brand {
   display: inline-flex;
-  width: 112px;
+  width: 164px;
   flex-shrink: 0;
   align-items: center;
 }
@@ -93,7 +93,7 @@
 .yk-landing-copy h1 em {
   color: var(--color-accent-gold);
   font-style: normal;
-  text-shadow: 0 0 50px rgba(232, 194, 106, 0.16);
+  text-shadow: 0 0 50px rgba(249, 77, 149, 0.12);
 }
 .yk-landing-lead {
   max-width: 600px;
@@ -147,8 +147,8 @@
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    rgba(232, 194, 106, 0.13),
-    rgba(167, 123, 255, 0.09) 35%,
+    rgba(249, 77, 149, 0.09),
+    rgba(249, 77, 149, 0.025) 35%,
     transparent 68%
   );
   filter: blur(6px);
