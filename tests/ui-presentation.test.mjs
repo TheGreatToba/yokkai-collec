@@ -917,7 +917,7 @@ test("une carte d'ami ouvre une proposition d'échange présélectionnée et ext
   );
   assert.match(
     normalizeWhitespace(community),
-    normalizeWhitespace(/initialRequestedCardId=\{searchParams\.get\("card"\)/)
+    normalizeWhitespace(/initialRequestedCardId=\{searchParams\.get\("carte"\)/)
   );
   assert.match(
     normalizeWhitespace(trades),
@@ -2247,7 +2247,7 @@ test("la modale de détail hiérarchise verrouillage, progression et actions ava
   );
   assert.doesNotMatch(
     normalizeWhitespace(modal),
-    normalizeWhitespace(/Une card verrouillée ne peut pas être vendue/)
+    normalizeWhitespace(/Une carte verrouillée ne peut pas être vendue/)
   );
   assert.doesNotMatch(
     normalizeWhitespace(modal),
@@ -2575,7 +2575,7 @@ test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
   assert.match(search, /<header class="yk-market-heading">/);
   assert.equal((search.match(/<h1(?:\s|>)/g) ?? []).length, 1);
   assert.equal((html.match(/<h1(?:\s|>)/g) ?? []).length, 0);
-  assert.doesNotMatch(search, /Vendre une card|All active auctions/);
+  assert.doesNotMatch(search, /Vendre une carte|All active auctions/);
   assert.match(
     normalizeWhitespace(search),
     normalizeWhitespace(/<span>Manga<\/span>/)
