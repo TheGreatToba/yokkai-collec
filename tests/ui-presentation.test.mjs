@@ -416,9 +416,12 @@ test("les nouveaux visuels distinguent le booster régulier du Decision Pack", (
   assert.match(
     normalizeWhitespace(cards),
     normalizeWhitespace(
-      /\.yk-card-back \{[^}]*background: #050507 url\(["']\/assets\/[a-zA-Z0-9_-]+\.png["']\)[^}]*color-accent-gold/
+      /\.yk-card-back \{[^}]*background: (?:#050507|transparent) url\(["']\/assets\/[a-zA-Z0-9_-]+\.png["']\) center \/ cover no-repeat;/
     )
   );
+  assert.match(backRule, /width:\s*100%;/);
+  assert.match(backRule, /aspect-ratio:\s*5\s*\/\s*7;/);
+  assert.match(backRule, /border-radius:\s*12px;/);
   for (const asset of [back, regular, decision])
     assert.ok(
       existsSync(path.join(root, "public", asset.slice(1))),
