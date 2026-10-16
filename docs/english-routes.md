@@ -2,7 +2,7 @@
 
 ## Mapping livré
 
-Base : origin/master 8eac19b9, après #275 et #276. Inventaire historique : [english-migration.md, section 9](english-migration.md#9-toutes-les-routes-actuelles-et-propositions). Les paramètres dynamiques et identifiants restent identiques. 13 dossiers renommés, **16 routes** concernées ; aucune redirection ni alias vers les anciens chemins.
+Base initiale : origin/master 8eac19b9, après #275 et #276 ; rebase sur 3edea27d incluant #279/#281/#282. Leurs ajouts de bannières et animations sont conservés. Inventaire historique : [english-migration.md, section 9](english-migration.md#9-toutes-les-routes-actuelles-et-propositions). Les paramètres dynamiques et identifiants restent identiques. 13 dossiers renommés, **16 routes** concernées ; aucune redirection ni alias vers les anciens chemins.
 
 | Ancienne route               | Nouvelle route             | Fichier actuel                         |
 | ---------------------------- | -------------------------- | -------------------------------------- |
@@ -60,6 +60,8 @@ Lecture seule de GoTrue au 16 octobre 2026 :
 
 Fichiers de la stack : /data/coolify/services/gawq4yyxiise96wens0dt1ex/.env et docker-compose.yml. **Ne pas les éditer dans cette PR.** Passer par l’interface Coolify lors de l’intervention autorisée. Le wildcard actif couvre déjà les deux chemins ; il n’est ni supprimé ni resserré ici. La [documentation Supabase](https://supabase.com/docs/guides/auth/redirect-urls) distingue Site URL et allowlist et décrit ces wildcards.
 
+**Chemins externes anciens constatés :** /opt/yokkai-ops/current/ops/storage_maintenance.py:263 contrôle encore /connexion et /inscription sur le VPS ; release active /opt/yokkai-ops/revisions/1f5163ef85568928b35263632f93695fc83986cb. La version suivie dans cette PR contrôle désormais /login et /signup, mais la copie installée n’est pas modifiée. Walid devra coordonner sa mise à jour avec la bascule applicative ; ne pas lancer le contrôle aux nouvelles URLs avant que l’application soit disponible. Le timer ne doit pas déclencher une intervention sur la seule disparition prévue des anciennes routes. Préparer cette mise à jour et sa restauration avant le déploiement, sans la réaliser ici.
+
 Aucune liste complète des règles Cloudflare/Turnstile/Search Console/liens externes n’est accessible dans cette session. Ne pas en deviner les valeurs ; Walid doit relever toute référence d’ancien format et la valider avant la bascule.
 
 - Supabase auto-hébergé / GoTrue : Site URL reste https://yokkai-collec.com/ ; vérifier Redirect URLs dans la stack active. Un éventuel dashboard Supabase Cloud n’est pas l’instance à modifier pour ce site.
@@ -107,7 +109,28 @@ Suspendre la bascule si Auth ne redémarre pas sainement ou si l’allowlist/rè
 
 ## Preuves et grep
 
-Contrôles navigateur et CI à compléter avant sortie du brouillon. Les tests Auth/partage existants sont adaptés aux chemins anglais ; un test couvre les 16 fichiers renommés, l’absence d’alias, les deux exceptions design-system, sitemap/robots et noindex. Les métadonnées de partage et liens de notification ont des assertions ciblées supplémentaires. Aucune assertion de sécurité, droits SQL, taux de drop ou qualité d’image affaiblie.
+Parcours E2E réels dans le navigateur sur Next local (localhost:3002) et une API Auth/partage simulée isolée :
+
+- /signup → formulaire soumis → « Check your inbox » ; callback envoyé à /auth/confirm ; retour de confirmation token-hash → accueil avec session.
+- Déconnexion → /login ; connexion via le formulaire → accueil avec session.
+- /forgot-password → demande de récupération → « Check your inbox » ; callback observé exactement /auth/confirm?next=/reset-password ; retour recovery → /reset-password et formulaire « Choose a new password ».
+- Contre-test sans session avec token expiré → /forgot-password?lien=erreur et message anglais sûr. Aucun nouveau mot de passe réel défini, aucun SMTP/boîte/CAPTCHA de production testé ; ces contrôles restent dans la recette autorisée par Walid au déploiement.
+- Depuis la collection, création du lien → /share/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ; ouverture après déconnexion → carte publique et lien /signup. canonical, og:url et image OG sous /share, robots noindex/nofollow observés dans le DOM.
+- Les trois images sans pseudo (og, story, square) répondent **200 image/png** ; X-Robots-Tag noindex/nofollow présent. Les anciens /connexion et /partage/[id] répondent **404 sans redirection** en HTTP local. sitemap.xml contient accueil/login/signup et robots.txt exclut /share/.
+
+**Défaut préexistant relevé hors périmètre :** avec un pseudo affiché, le moteur PNG inchangé renvoie 204 ; diagnostic reproduit : Satori exige display explicite sur le div à plusieurs enfants du bloc « Shared by … » (lib/server/card-share-image.tsx, bloc card.pseudo). Ce fichier et le gestionnaire/cache de rendu sont strictement identiques à origin/master. Le partage sans pseudo passe ; le cas avec pseudo doit être corrigé dans une PR distincte et revalidé avant de considérer la recette complète. Aucun correctif de rendu ni instrumentation temporaire conservé dans cette PR.
+
+Un titre résiduel du partage, « Partager … », constaté pendant ce parcours, devient « Share … » ; constante d’interface uniquement. Le rebase conserve intégralement les nouveaux écrans et animations de master.
+
+CI GitHub verte sur le premier commit, puis relancée après rebase et documentation des preuves ; seul le vert du dernier commit fait foi avant sortie du brouillon. Les tests Auth/partage existants sont adaptés aux chemins anglais ; un test couvre les 16 fichiers renommés, l’absence d’alias, les deux exceptions design-system, sitemap/robots et noindex. Les métadonnées de partage et liens de notification ont des assertions ciblées supplémentaires. Aucune assertion de sécurité, droits SQL, taux de drop ou qualité d’image affaiblie.
+
+Grep final exécuté sur les fichiers suivis du code, tests, scripts et documentation :
+
+```powershell
+rg -n '/(connexion|inscription|mot-de-passe-oublie|reinitialiser-mot-de-passe|compte-supprime|marche|echanges|amis|parametres|profil|recherche|succes|partage)\b' app components lib hooks utils proxy.ts tests scripts ops docs
+```
+
+Résultat : **aucun ancien chemin dans le code applicatif, les scripts ou les docs opératoires**. Seuls docs/english-routes.md, docs/english-migration.md, docs/english-sweep.md et tests/english-routes.test.mjs restent, pour les exceptions ci-dessous. Les références à une route admin/design-system conservée ne sont pas des anciens chemins joueur à remplacer.
 
 Les anciens chemins restent volontairement dans ce document (mapping/rollback), dans docs/english-migration.md et docs/english-sweep.md (preuves historiques avec références de commit), ainsi que dans le test qui vérifie leur absence. Les anciennes migrations restent strictement intactes. Les routes design-system contenant catalogue-preview et enchere restent inchangées. Les clés de query et codes français restent des valeurs techniques, pas des chemins à renommer.
 

@@ -2,7 +2,7 @@
 
 ## Cause et correction
 
-#170 (`3316137d`) a abaissé la qualité de `YokaiCard` de 85 à 75 et introduit des sizes plus petits pour collection/profil. L’expérience facultative proposée après #165 n’a pas été adoptée par cette tâche ; ces sizes ont néanmoins été introduits ensuite par #170.
+#170 (`3316137d`) a abaissé la qualité de `YokaiCard` de 85 à 75 et introduit des sizes plus petits pour collection/profile. L’expérience facultative proposée après #165 n’a pas été adoptée par cette tâche ; ces sizes ont néanmoins été introduits ensuite par #170.
 
 Toutes les illustrations de `YokaiCard` utilisent maintenant l’URL originale : même source, résolution, format et octets en grille, détail et révélation. Aucun resize ni réencodage, quelle que soit la densité. Lazy loading, decoding async et repli des images personnelles vers le catalogue sont conservés. Aucun changement SQL, aucune modification BIZ-08.
 
