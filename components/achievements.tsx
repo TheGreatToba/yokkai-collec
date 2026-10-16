@@ -12,19 +12,20 @@ import {
 import { subscribePlayerSnapshotInvalidation } from "@/lib/data/player-state";
 
 function progressText(item: Achievement) {
-  const value = `${item.progressCurrent.toLocaleString("fr-FR")}/${item.progressTarget.toLocaleString("fr-FR")}`;
+  const value = `${item.progressCurrent.toLocaleString("en-US")}/${item.progressTarget.toLocaleString("en-US")}`;
+  const plural = item.progressTarget === 1 ? "" : "s";
   const suffix: Record<string, string> = {
-    regular_packs_opened: "packs ouverts",
-    decision_packs_completed: "Decision Packs finalisés",
-    unique_cards_collected: "cartes différentes",
-    first_lr_card: "carte LR",
-    shiny_cards_collected: "carte Shiny",
-    auctions_won: "enchère gagnée",
-    trades_completed: "échange accepté",
-    ssr_evolved_to_lr: "évolution réalisée"
+    regular_packs_opened: `pack${plural} opened`,
+    decision_packs_completed: `Decision Pack${plural} completed`,
+    unique_cards_collected: `different card${plural}`,
+    first_lr_card: `LR card${plural}`,
+    shiny_cards_collected: `Shiny card${plural}`,
+    auctions_won: `auction${plural} won`,
+    trades_completed: `trade${plural} completed`,
+    ssr_evolved_to_lr: `evolution${plural} completed`
   };
   if (item.conditionType === "cards_collected_category_percent")
-    return `${value} cartes${item.progressLabel ? ` · ${item.progressLabel}` : ""}`;
+    return `${value} card${plural}${item.progressLabel ? ` · ${item.progressLabel}` : ""}`;
   return `${value} ${suffix[item.conditionType] || ""}`.trim();
 }
 
@@ -65,10 +66,10 @@ export function AchievementCard({
               }
             >
               {state === "claimed"
-                ? "Complété"
+                ? "Claimed"
                 : state === "completed"
-                  ? "À réclamer"
-                  : "En cours"}
+                  ? "Ready to claim"
+                  : "In progress"}
             </StatusPill>
           </div>
           <p>{item.description}</p>
@@ -82,7 +83,7 @@ export function AchievementCard({
         <div
           className="yk-achievement-track"
           role="progressbar"
-          aria-label={`Progression de ${item.title}`}
+          aria-label={`Progress for ${item.title}`}
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={Math.round(percent)}
@@ -96,23 +97,23 @@ export function AchievementCard({
       </div>
       <footer>
         <span>
-          Récompense <Karas amount={item.karasReward} />
+          Reward <Karas amount={item.karasReward} />
         </span>
         {state === "completed" ? (
           <Button disabled={busy} onClick={() => void onClaim(item)}>
             {busy
-              ? "Réclamation…"
-              : `Réclamer ${item.karasReward.toLocaleString("fr-FR")} Karas`}
+              ? "Claiming…"
+              : `Claim ${item.karasReward.toLocaleString("en-US")} Karas`}
           </Button>
         ) : state === "claimed" ? (
-          <StatusPill tone="success">Complété</StatusPill>
+          <StatusPill tone="success">Claimed</StatusPill>
         ) : (
           <span className="yk-achievement-pending">
-            Encore{" "}
+            Remaining:{" "}
             {Math.max(
               0,
               item.progressTarget - item.progressCurrent
-            ).toLocaleString("fr-FR")}
+            ).toLocaleString("en-US")}
           </span>
         )}
       </footer>
@@ -135,12 +136,12 @@ export function AchievementsGallery({
     <>
       <section className="yk-achievement-summary">
         <div>
-          <p className="eyebrow">Progression globale</p>
+          <p className="eyebrow">Overall progress</p>
           <p>
             <strong>
               {unlocked}/{items.length}
             </strong>{" "}
-            succès débloqués
+            achievements unlocked
           </p>
         </div>
         <div className="yk-achievement-global-track">
@@ -152,7 +153,7 @@ export function AchievementsGallery({
         </div>
         <span>{Math.round(percent)}%</span>
       </section>
-      <section aria-label="Liste des succès" className="yk-achievement-grid">
+      <section aria-label="Achievements" className="yk-achievement-grid">
         {items.map(item => (
           <AchievementCard
             key={item.id}
@@ -204,7 +205,7 @@ export function AchievementsPage({ account }: { account?: ReactNode }) {
           setError(
             reason instanceof Error
               ? reason.message
-              : "Impossible de charger les succès."
+              : "Couldn't load achievements."
           );
       }
     );
@@ -227,13 +228,11 @@ export function AchievementsPage({ account }: { account?: ReactNode }) {
         )
       );
       setToast(
-        `Récompense réclamée : ${result.reward.toLocaleString("fr-FR")} Karas`
+        `Reward claimed: ${result.reward.toLocaleString("en-US")} Karas`
       );
     } catch (reason) {
       setError(
-        reason instanceof Error
-          ? reason.message
-          : "Impossible de réclamer la récompense."
+        reason instanceof Error ? reason.message : "Couldn't claim this reward."
       );
     } finally {
       setBusy(null);
@@ -248,11 +247,10 @@ export function AchievementsPage({ account }: { account?: ReactNode }) {
         karas={balance}
       />
       <main id="main-content" className="mx-auto w-full max-w-6xl px-6 py-10">
-        <p className="eyebrow">Votre parcours de collectionneur</p>
-        <h1 className="yk-title mt-3">Succès</h1>
+        <p className="eyebrow">Your collecting journey</p>
+        <h1 className="yk-title mt-3">Achievements</h1>
         <p className="mt-4 max-w-xl text-sm leading-6 text-ink-2">
-          Ouvrez, collectionnez et échangez. Chaque étape franchie débloque une
-          récompense à réclamer.
+          Open, collect, and trade. Reach each milestone to unlock a reward.
         </p>
         {error && (
           <p role="alert" className="yk-social-alert mt-6">
@@ -261,7 +259,7 @@ export function AchievementsPage({ account }: { account?: ReactNode }) {
         )}
         {!items.length && !error ? (
           <p role="status" className="mt-10 text-sm text-ink-2">
-            Chargement des succès…
+            Loading achievements…
           </p>
         ) : (
           <AchievementsGallery items={items} busyId={busy} onClaim={claim} />

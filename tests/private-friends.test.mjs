@@ -188,7 +188,7 @@ test("profil rendu : propriétaire sans ami voit 0, visiteurs sans tuile ni colo
         html,
         />Friends<\/(?:p|h3)>|\/profil\/Bob|yk-profile-columns/
       );
-      assert.match(html, /Voir la collection/);
+      assert.match(html, /View collection/);
     }
 });
 test("les quatre états du bouton d'amitié restent disponibles", () => {

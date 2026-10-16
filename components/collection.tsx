@@ -72,7 +72,7 @@ const LOCKED_FOLDER = "__locked__";
 const COLLECTION_CARD_IMAGE_SIZES =
   "(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 190px";
 const formatDate = (value: string, long = false) =>
-  new Date(value).toLocaleDateString("fr-FR", {
+  new Date(value).toLocaleDateString("en-US", {
     dateStyle: long ? "long" : "medium"
   });
 
@@ -433,7 +433,7 @@ export function CollectionView({
               setPaniniError(
                 error instanceof Error
                   ? error.message
-                  : "Impossible de charger les classeurs."
+                  : "Couldn't load binders."
               );
           }
         )
@@ -483,7 +483,7 @@ export function CollectionView({
       setFavoriteError(
         error instanceof Error
           ? error.message
-          : "Impossible de modifier ce favori."
+          : "Couldn't update this favorite."
       );
     } finally {
       setFavoriteLicenseBusy(null);
@@ -515,7 +515,7 @@ export function CollectionView({
               setPaniniError(
                 error instanceof Error
                   ? error.message
-                  : "Impossible de charger les cartes de ce classeur."
+                  : "Couldn't load this binder's cards."
               );
           }
         )
@@ -645,9 +645,7 @@ export function CollectionView({
       setSelectedId(evolved.instanceId);
     } catch (error) {
       setEvolutionError(
-        error instanceof Error
-          ? error.message
-          : "Impossible d’effectuer l’évolution."
+        error instanceof Error ? error.message : "Couldn't evolve this card."
       );
     } finally {
       setEvolving(false);
@@ -663,9 +661,7 @@ export function CollectionView({
       setShowFolderCreator(false);
     } catch (error) {
       setFolderError(
-        error instanceof Error
-          ? error.message
-          : "Impossible de créer le dossier."
+        error instanceof Error ? error.message : "Couldn't create this folder."
       );
     } finally {
       setFolderBusy(false);
@@ -685,9 +681,7 @@ export function CollectionView({
       setAuctionDone(true);
     } catch (error) {
       setAuctionError(
-        error instanceof Error
-          ? error.message
-          : "Impossible de créer l’enchère."
+        error instanceof Error ? error.message : "Couldn't create this auction."
       );
     } finally {
       setAuctionBusy(false);
@@ -737,7 +731,7 @@ export function CollectionView({
       setImageError(
         error instanceof Error
           ? error.message
-          : "Impossible de personnaliser l'image."
+          : "Couldn't customize this image."
       );
     } finally {
       setImageBusy(false);
@@ -753,7 +747,7 @@ export function CollectionView({
       setLockError(
         error instanceof Error
           ? error.message
-          : "Impossible de modifier le verrouillage de cette carte."
+          : "Couldn't change this card's lock."
       );
     } finally {
       setLockBusy(false);
@@ -778,9 +772,7 @@ export function CollectionView({
       closeDetail();
     } catch (error) {
       setDiscardError(
-        error instanceof Error
-          ? error.message
-          : "Impossible de détruire cette carte."
+        error instanceof Error ? error.message : "Couldn't destroy this card."
       );
     } finally {
       setDiscardBusy(false);
@@ -799,7 +791,7 @@ export function CollectionView({
       setBulkDiscardError(
         error instanceof Error
           ? error.message
-          : "Impossible de détruire la sélection."
+          : "Couldn't destroy the selected cards."
       );
     } finally {
       setBulkDiscardBusy(false);
@@ -827,7 +819,7 @@ export function CollectionView({
       setBulkFolderError(
         error instanceof Error
           ? error.message
-          : "Impossible de ranger la sélection."
+          : "Couldn't move the selected cards."
       );
     } finally {
       setBulkFolderBusy(false);
@@ -859,7 +851,7 @@ export function CollectionView({
           <path d="m20 20-4-4" />
         </svg>
         <label className="sr-only" htmlFor="collection-query">
-          Rechercher dans la collection
+          Search collection
         </label>
         <input
           id="collection-query"
@@ -869,10 +861,10 @@ export function CollectionView({
             setQuery(event.target.value);
             setPage(1);
           }}
-          placeholder="Rechercher…"
+          placeholder="Search…"
         />
       </div>
-      <FilterSection title="Rareté">
+      <FilterSection title="Rarity">
         <button
           type="button"
           className="yk-filter-option"
@@ -884,7 +876,7 @@ export function CollectionView({
           }}
         >
           <span className="yk-filter-check" />
-          <span>Toutes</span>
+          <span>All</span>
           <strong>{groupCollection(cards).length}</strong>
         </button>
         {rarityOrder.map(r => (
@@ -908,7 +900,7 @@ export function CollectionView({
           </button>
         ))}
       </FilterSection>
-      <FilterSection title="Catégorie">
+      <FilterSection title="Category">
         <button
           type="button"
           className="yk-filter-option"
@@ -921,7 +913,7 @@ export function CollectionView({
           }}
         >
           <span className="yk-filter-check" />
-          <span>Toutes les catégories</span>
+          <span>All categories</span>
           <strong>{groupCollection(cards).length}</strong>
         </button>
         {categories.map(item => (
@@ -949,7 +941,7 @@ export function CollectionView({
         ))}
       </FilterSection>
       {!readOnly && (
-        <FilterSection title="Statut">
+        <FilterSection title="Status">
           <button
             type="button"
             className="yk-filter-option yk-filter-option-icon"
@@ -961,7 +953,7 @@ export function CollectionView({
           >
             <span className="yk-filter-check" />
             <AuctionIcon />
-            <span>En enchères</span>
+            <span>In auctions</span>
             <strong>
               {
                 groupCollection(
@@ -973,7 +965,7 @@ export function CollectionView({
         </FilterSection>
       )}
       {!readOnly && (
-        <FilterSection title="Dossier">
+        <FilterSection title="Folder">
           <button
             type="button"
             className="yk-filter-option"
@@ -984,7 +976,7 @@ export function CollectionView({
             }}
           >
             <span className="yk-filter-check" />
-            <span>Tous les dossiers</span>
+            <span>All folders</span>
             <strong>{groupCollection(cards).length}</strong>
           </button>
           <button
@@ -998,7 +990,7 @@ export function CollectionView({
           >
             <span className="yk-filter-check" />
             <ProtectedIcon />
-            <span>Cartes verrouillées</span>
+            <span>Locked cards</span>
             <strong>
               {groupCollection(cards.filter(card => card.locked)).length}
             </strong>
@@ -1013,7 +1005,7 @@ export function CollectionView({
             }}
           >
             <span className="yk-filter-check" />
-            <span>Sans dossier</span>
+            <span>No folder</span>
             <strong>
               {groupCollection(cards.filter(card => !card.folderId)).length}
             </strong>
@@ -1050,7 +1042,7 @@ export function CollectionView({
                 setFolderError("");
               }}
             >
-              + Créer un dossier
+              + New folder
             </button>
           )}
           {onCreateFolder && showFolderCreator && (
@@ -1070,15 +1062,15 @@ export function CollectionView({
                     setFolderName("");
                   }
                 }}
-                placeholder="Nouveau dossier"
-                aria-label="Nom du nouveau dossier"
+                placeholder="New folder"
+                aria-label="New folder name"
               />
               <Button
                 variant="secondary"
                 disabled={folderBusy || !folderName.trim()}
                 onClick={() => void addFolder()}
               >
-                {folderBusy ? "Création…" : "Créer"}
+                {folderBusy ? "Creating…" : "Create"}
               </Button>
             </div>
           )}
@@ -1091,7 +1083,7 @@ export function CollectionView({
                 className="yk-folder-delete"
                 onClick={() => void onDeleteFolder(folder)}
               >
-                Supprimer ce dossier
+                Delete this folder
               </button>
             )}
           {folderError && (
@@ -1121,13 +1113,13 @@ export function CollectionView({
           <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
           <path d="M3 3v5h5" />
         </svg>
-        Réinitialiser les filtres
+        Reset filters
       </button>
     </>
   );
   return (
     <section
-      aria-label={detailOnly ? "Détail d’une carte" : "Collection de cartes"}
+      aria-label={detailOnly ? "Card details" : "Card collection"}
       className={
         detailOnly ? undefined : `yk-collection ${selecting ? "pb-28" : ""}`
       }
@@ -1138,7 +1130,7 @@ export function CollectionView({
             <button
               type="button"
               className="yk-filter-backdrop"
-              aria-label="Fermer les filtres"
+              aria-label="Close filters"
               onClick={() => setFiltersOpen(false)}
             />
           )}
@@ -1146,13 +1138,13 @@ export function CollectionView({
             <aside
               id="collection-filters"
               className={`yk-collection-sidebar ${filtersOpen ? "yk-sidebar-open" : ""}`}
-              aria-label="Filtres de la collection"
+              aria-label="Collection filters"
             >
               <div className="yk-sidebar-mobile-head">
-                <strong>Filtres</strong>
+                <strong>Filters</strong>
                 <button
                   type="button"
-                  aria-label="Fermer les filtres"
+                  aria-label="Close filters"
                   onClick={() => setFiltersOpen(false)}
                 >
                   ×
@@ -1180,7 +1172,7 @@ export function CollectionView({
                   >
                     <path d="M4 6h16M7 12h10M10 18h4" />
                   </svg>
-                  Filtres
+                  Filters
                   {query || rarity || category || folder || auctionOnly ? (
                     <span>•</span>
                   ) : null}
@@ -1188,7 +1180,7 @@ export function CollectionView({
                 <div className="yk-collection-toolbar-actions">
                   {!readOnly && <MyCardShares />}
                   <label className="yk-sort-control">
-                    <span>Trier par :</span>
+                    <span>Sort by:</span>
                     <strong aria-hidden="true">
                       {
                         COLLECTION_SORTS.find(option => option.value === sort)
@@ -1207,7 +1199,7 @@ export function CollectionView({
                       <path d="m7 10 5 5 5-5" />
                     </svg>
                     <select
-                      aria-label="Trier la collection"
+                      aria-label="Sort collection"
                       value={sort}
                       onChange={e => {
                         if (isCollectionSort(e.target.value)) {
@@ -1257,7 +1249,7 @@ export function CollectionView({
                       <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v17H6.5A2.5 2.5 0 0 0 4 22V5.5Z" />
                       <path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v17h4.5A2.5 2.5 0 0 1 20 22V5.5Z" />
                     </svg>
-                    <span>Classeur</span>
+                    <span>Binder</span>
                   </Button>
                 </div>
                 <button
@@ -1270,13 +1262,13 @@ export function CollectionView({
                     setPage(1);
                   }}
                 >
-                  <span>Shiny uniquement</span>
+                  <span>Shiny only</span>
                   <i />
                 </button>
-                <div className="yk-view-toggle" aria-label="Mode d’affichage">
+                <div className="yk-view-toggle" aria-label="Display mode">
                   <button
                     type="button"
-                    aria-label="Vue grille"
+                    aria-label="Grid view"
                     aria-pressed={viewMode === "grid"}
                     onClick={() => setViewMode("grid")}
                   >
@@ -1297,7 +1289,7 @@ export function CollectionView({
                   </button>
                   <button
                     type="button"
-                    aria-label="Vue liste"
+                    aria-label="List view"
                     aria-pressed={viewMode === "list"}
                     onClick={() => setViewMode("list")}
                   >
@@ -1319,10 +1311,7 @@ export function CollectionView({
                 </div>
               </div>
               {viewMode === "panini" ? (
-                <section
-                  className="yk-panini"
-                  aria-label="Classeurs par licence"
-                >
+                <section className="yk-panini" aria-label="License binders">
                   {selectedLicense ? (
                     <>
                       <div className="yk-panini-album-head">
@@ -1335,21 +1324,26 @@ export function CollectionView({
                             setPaniniPage(1);
                           }}
                         >
-                          ← Tous les classeurs
+                          ← All binders
                         </button>
                         <div>
-                          <p className="yk-section-title">Classeur</p>
+                          <p className="yk-section-title">Binder</p>
                           <h2>{selectedLicense}</h2>
                         </div>
                         <p>
                           {selectedAlbum?.owned ?? selectedLicenseOwned} /{" "}
-                          {selectedAlbum?.total ?? paniniCards.total} cartes
+                          {(
+                            selectedAlbum?.total ?? paniniCards.total
+                          ).toLocaleString("en-US")}{" "}
+                          {(selectedAlbum?.total ?? paniniCards.total) === 1
+                            ? "card"
+                            : "cards"}
                         </p>
                       </div>
                       <div className="yk-panini-controls">
                         <label className="yk-panini-search">
                           <span className="sr-only">
-                            Rechercher une carte dans cette licence
+                            Search cards in this license
                           </span>
                           <svg
                             aria-hidden="true"
@@ -1370,7 +1364,7 @@ export function CollectionView({
                               setQuery(event.target.value);
                               setPaniniPage(1);
                             }}
-                            placeholder="Rechercher une carte…"
+                            placeholder="Search cards…"
                           />
                         </label>
                         <button
@@ -1386,32 +1380,32 @@ export function CollectionView({
                             {hideMissingCards ? "✓" : "○"}
                           </span>
                           {hideMissingCards
-                            ? "Afficher les cartes manquantes"
-                            : "Cacher les cartes non possédées"}
+                            ? "Show missing cards"
+                            : "Hide missing cards"}
                         </button>
                       </div>
                       {paniniError && (
                         <div className="yk-panini-empty" role="alert">
-                          <strong>Chargement impossible</strong>
+                          <strong>Couldn&apos;t load</strong>
                           <p>{paniniError}</p>
                         </div>
                       )}
                       {paniniBusy && (
                         <div className="yk-panini-empty" role="status">
-                          <strong>Chargement du classeur…</strong>
+                          <strong>Loading binder…</strong>
                         </div>
                       )}
                       {!paniniBusy &&
                         !paniniError &&
                         paniniCards.total === 0 && (
                           <div className="yk-panini-empty">
-                            <strong>Aucune carte trouvée</strong>
-                            <p>Essaie un autre nom de personnage.</p>
+                            <strong>No cards found</strong>
+                            <p>Try another character name.</p>
                           </div>
                         )}
                       <ul
                         className="yk-panini-slots"
-                        aria-label={`Cartes de la licence ${selectedLicense}`}
+                        aria-label={`Cards from ${selectedLicense}`}
                       >
                         {paniniCards.items.map(card => {
                           const owned = ownedByCardId.get(card.id);
@@ -1424,7 +1418,7 @@ export function CollectionView({
                                   onClick={() =>
                                     setSelectedId(owned.instanceId)
                                   }
-                                  aria-label={`Voir ${owned.name}`}
+                                  aria-label={`View ${owned.name}`}
                                 >
                                   <CardShell>
                                     <YokaiCard
@@ -1440,7 +1434,7 @@ export function CollectionView({
                                   type="button"
                                   className="yk-panini-missing"
                                   onClick={() => setSelectedMissingCard(card)}
-                                  aria-label={`${card.name}, carte non obtenue`}
+                                  aria-label={`${card.name}, card not owned`}
                                   aria-haspopup="dialog"
                                 >
                                   <CardShell interactive={false}>
@@ -1463,10 +1457,10 @@ export function CollectionView({
                             page={activePaniniPage}
                             pageCount={paniniPageCount}
                             onPageChange={setPaniniPage}
-                            label={`Pagination du classeur ${selectedLicense}`}
+                            label={`Binder pages ${selectedLicense}`}
                           />
                           <label>
-                            Cartes par page
+                            Cards per page
                             <select
                               value={paniniPageSize}
                               onChange={event => {
@@ -1488,20 +1482,18 @@ export function CollectionView({
                     <>
                       <div className="yk-panini-heading">
                         <div>
-                          <p className="yk-section-title">Classeur</p>
-                          <h2>Mes classeurs par licence</h2>
+                          <p className="yk-section-title">Binder</p>
+                          <h2>My license binders</h2>
                         </div>
                         <p>
-                          {paniniAlbums.total} licence
-                          {paniniAlbums.total > 1 ? "s" : ""} affichée
-                          {paniniAlbums.total > 1 ? "s" : ""}
+                          {paniniAlbums.total.toLocaleString("en-US")}{" "}
+                          {paniniAlbums.total === 1 ? "license" : "licenses"}{" "}
+                          shown
                         </p>
                       </div>
                       <div className="yk-panini-album-filters">
                         <label className="yk-panini-search">
-                          <span className="sr-only">
-                            Rechercher une licence
-                          </span>
+                          <span className="sr-only">Search licenses</span>
                           <svg
                             aria-hidden="true"
                             width="16"
@@ -1521,7 +1513,7 @@ export function CollectionView({
                               setQuery(event.target.value);
                               setPaniniAlbumPage(1);
                             }}
-                            placeholder="Rechercher une licence…"
+                            placeholder="Search licenses…"
                           />
                         </label>
                         {onSetPaniniAlbumFavorite && (
@@ -1537,19 +1529,19 @@ export function CollectionView({
                             <span aria-hidden="true">
                               {favoritesOnly ? "✓" : "○"}
                             </span>
-                            ★ Favoris uniquement
+                            ★ Favorites only
                           </button>
                         )}
                       </div>
                       {paniniError && (
                         <div className="yk-panini-empty" role="alert">
-                          <strong>Chargement impossible</strong>
+                          <strong>Couldn&apos;t load</strong>
                           <p>{paniniError}</p>
                         </div>
                       )}
                       {paniniBusy && (
                         <div className="yk-panini-empty" role="status">
-                          <strong>Chargement des classeurs…</strong>
+                          <strong>Loading binders…</strong>
                         </div>
                       )}
                       {favoriteError && (
@@ -1561,8 +1553,8 @@ export function CollectionView({
                       !paniniError &&
                       paniniAlbums.total === 0 ? (
                         <div className="yk-panini-empty">
-                          <strong>Aucune licence trouvée</strong>
-                          <p>Essaie un autre nom dans la barre de recherche.</p>
+                          <strong>No licenses found</strong>
+                          <p>Try another name in the search bar.</p>
                         </div>
                       ) : !paniniBusy && !paniniError ? (
                         <ul className="yk-panini-grid">
@@ -1584,24 +1576,26 @@ export function CollectionView({
                                   setQuery("");
                                   setPaniniPage(1);
                                 }}
-                                aria-label={`Voir ${item.license}, ${item.owned} cartes sur ${item.total}`}
+                                aria-label={`View ${item.license}, ${item.owned.toLocaleString("en-US")} of ${item.total.toLocaleString("en-US")} ${item.total === 1 ? "card" : "cards"}`}
                               >
                                 <span className="yk-panini-details">
                                   <strong>{item.license}</strong>
                                   <span className="yk-panini-count">
-                                    <b>{item.owned}</b> / {item.total} cartes
+                                    <b>{item.owned.toLocaleString("en-US")}</b>{" "}
+                                    / {item.total.toLocaleString("en-US")}{" "}
+                                    {item.total === 1 ? "card" : "cards"}
                                   </span>
                                   <span className="yk-panini-progress">
                                     <i style={{ width: `${item.percent}%` }} />
                                   </span>
-                                  <small>{item.percent}% complété</small>
+                                  <small>{item.percent}% complete</small>
                                 </span>
                               </button>
                               {onSetPaniniAlbumFavorite && (
                                 <button
                                   type="button"
                                   className="yk-panini-favorite"
-                                  aria-label={`${item.favorite ? "Retirer" : "Ajouter"} ${item.license} ${item.favorite ? "des" : "aux"} favoris`}
+                                  aria-label={`${item.favorite ? "Remove" : "Add"} ${item.license} ${item.favorite ? "from" : "to"} favorites`}
                                   aria-pressed={item.favorite}
                                   disabled={favoriteLicenseBusy !== null}
                                   onPointerDown={event =>
@@ -1640,10 +1634,10 @@ export function CollectionView({
                             page={activePaniniAlbumPage}
                             pageCount={paniniAlbumPageCount}
                             onPageChange={setPaniniAlbumPage}
-                            label="Pagination des classeurs"
+                            label="Binder pages"
                           />
                           <span className="yk-panini-page-limit">
-                            72 collections par page
+                            72 binders per page
                           </span>
                         </div>
                       )}
@@ -1654,19 +1648,19 @@ export function CollectionView({
                 <div className="rounded-panel border border-dashed border-veil-strong px-6 py-16 text-center">
                   <p className="font-display text-xl">
                     {cards.length === 0
-                      ? "Ta collection est vide pour l’instant — ouvre ton premier booster."
-                      : "Aucune carte ne correspond à ces filtres."}
+                      ? "Your collection is empty — open your first pack."
+                      : "No cards match these filters."}
                   </p>
                   {cards.length === 0 ? (
                     <Link
                       href="/boosters"
                       className="yk-button yk-button-primary mt-6"
                     >
-                      Ouvrir mon premier booster
+                      Open my first pack
                     </Link>
                   ) : (
                     <p className="mt-3 text-sm text-ink-2">
-                      Essaie une autre rareté ou catégorie.
+                      Try another rarity or category.
                     </p>
                   )}
                 </div>
@@ -1674,7 +1668,7 @@ export function CollectionView({
               {viewMode !== "panini" && (
                 <ul
                   className={`yk-card-grid yk-collection-grid ${viewMode === "list" ? "yk-collection-grid-list" : ""}`}
-                  aria-label="Groupes de cartes obtenues"
+                  aria-label="Owned card groups"
                 >
                   {visibleGroups.map(group => {
                     const card = group.representative;
@@ -1702,7 +1696,7 @@ export function CollectionView({
                           type="button"
                           disabled={selecting && eligible.length === 0}
                           className={`yk-collection-card ${selecting && (checked || partial) ? "yk-selected-card" : ""}`}
-                          aria-label={`${selecting ? "Sélectionner" : "Voir"} ${card.name}, ${card.rarity}, ${group.cards.length} exemplaires`}
+                          aria-label={`${selecting ? "Select" : "View"} ${card.name}, ${card.rarity}, ${group.cards.length.toLocaleString("en-US")} ${group.cards.length === 1 ? "copy" : "copies"}`}
                           aria-pressed={selecting ? checked : undefined}
                           aria-haspopup={selecting ? undefined : "dialog"}
                           onClick={() =>
@@ -1742,27 +1736,27 @@ export function CollectionView({
                           {lockedCount > 0 && (
                             <span
                               className="yk-group-locked"
-                              aria-label="Carte protégée"
-                              title="Carte protégée"
+                              aria-label="Protected card"
+                              title="Protected card"
                             >
                               <ProtectedIcon size={16} />
                             </span>
                           )}
                           {lockedCount === 0 && frozenCount > 0 && (
                             <span className="yk-group-frozen">
-                              {frozenCount} en enchère
+                              {frozenCount} in auction
                             </span>
                           )}
                         </button>
                         <div className="yk-collection-card-meta">
                           {historyGroup.isFirstOwner ? (
                             <p className="text-[11px] font-semibold text-rarity-lr">
-                              Premier propriétaire, obtenu le{" "}
+                              First owner, obtained on{" "}
                               {formatDate(historyGroup.firstObtainedAt)}
                             </p>
                           ) : (
                             <p className="text-[11px] tracking-wider text-ink-3 uppercase">
-                              Obtenu le{" "}
+                              Obtained on{" "}
                               <time dateTime={historyGroup.firstObtainedAt}>
                                 {formatDate(historyGroup.firstObtainedAt)}
                               </time>
@@ -1780,10 +1774,10 @@ export function CollectionView({
                     page={activePage}
                     pageCount={pageCount}
                     onPageChange={setPage}
-                    label="Pagination de la collection"
+                    label="Collection pages"
                   />
                   <label>
-                    Cartes par page
+                    Cards per page
                     <select
                       value={pageSize}
                       onChange={event => {
@@ -1811,7 +1805,7 @@ export function CollectionView({
                     onMoveCards ? (
                       <div className="yk-selection-folder">
                         <label htmlFor="selection-folder" className="sr-only">
-                          Dossier de destination
+                          Destination folder
                         </label>
                         <select
                           id="selection-folder"
@@ -1822,8 +1816,8 @@ export function CollectionView({
                             setBulkFolderError("");
                           }}
                         >
-                          <option value="">Choisir un dossier…</option>
-                          <option value="unfiled">Sans dossier</option>
+                          <option value="">Choose a folder…</option>
+                          <option value="unfiled">No folder</option>
                           {folders.map(item => (
                             <option key={item.id} value={item.id}>
                               {item.name}
@@ -1840,7 +1834,7 @@ export function CollectionView({
                           }
                           onClick={() => void moveSelection()}
                         >
-                          {bulkFolderBusy ? "Rangement…" : "Ranger"}
+                          {bulkFolderBusy ? "Moving…" : "Move"}
                         </Button>
                       </div>
                     ) : undefined
@@ -1879,7 +1873,7 @@ export function CollectionView({
       <Modal
         open={!!selected && !discardConfirm && !auctionOpen && !evolveConfirm}
         onClose={closeDetail}
-        title="Détail de la carte"
+        title="Card details"
         className="yk-card-detail-modal"
       >
         {selected && (
@@ -1899,7 +1893,7 @@ export function CollectionView({
                     htmlFor="detail-card-folder"
                     className="yk-section-title"
                   >
-                    Dossier
+                    Folder
                   </label>
                   <select
                     id="detail-card-folder"
@@ -1911,7 +1905,7 @@ export function CollectionView({
                       )
                     }
                   >
-                    <option value="">Sans dossier</option>
+                    <option value="">No folder</option>
                     {folders.map(item => (
                       <option key={item.id} value={item.id}>
                         {item.name}
@@ -1932,7 +1926,7 @@ export function CollectionView({
                   </span>
                   {selected.isEvolved && (
                     <span className="text-[10px] font-semibold tracking-wider text-accent-gold">
-                      ÉVOLUÉE
+                      EVOLVED
                     </span>
                   )}
                 </div>
@@ -1944,16 +1938,12 @@ export function CollectionView({
                     <button
                       type="button"
                       className="yk-detail-lock-toggle"
-                      aria-label={
-                        selected.locked
-                          ? "Déverrouiller la carte"
-                          : "Verrouiller la carte"
-                      }
+                      aria-label={selected.locked ? "Unlock card" : "Lock card"}
                       aria-pressed={!!selected.locked}
                       title={
                         selected.locked
-                          ? "Verrouillée : incassable et non échangeable"
-                          : "Verrouiller cette carte"
+                          ? "Locked: can't be destroyed or traded"
+                          : "Lock this card"
                       }
                       disabled={lockBusy || !!selectedMeta?.frozen}
                       onClick={() => void toggleSelectedLock()}
@@ -1970,13 +1960,13 @@ export function CollectionView({
               </header>
               {(selectedGroup?.cards.length ?? 0) > 1 && (
                 <div className="yk-copy-picker">
-                  <span className="yk-section-title">Exemplaire affiché</span>
+                  <span className="yk-section-title">Displayed copy</span>
                   <div>
                     {selectedGroup?.cards.map((card, index) => (
                       <button
                         type="button"
                         key={card.instanceId}
-                        aria-label={`Exemplaire ${index + 1}${card.locked ? ", protégé" : ""}`}
+                        aria-label={`Copy ${index + 1}${card.locked ? ", protected" : ""}`}
                         aria-pressed={card.instanceId === selected.instanceId}
                         onClick={() => setSelectedId(card.instanceId)}
                       >
@@ -1998,20 +1988,20 @@ export function CollectionView({
               )}
               <dl className="yk-detail-facts">
                 <div>
-                  <dt>Catégorie</dt>
+                  <dt>Category</dt>
                   <dd>{selected.category}</dd>
                 </div>
                 <div>
-                  <dt>Obtenue le</dt>
+                  <dt>Obtained on</dt>
                   <dd>{formatDate(selected.obtainedAt, true)}</dd>
                 </div>
                 <div>
-                  <dt>Exemplaires</dt>
+                  <dt>Copies</dt>
                   <dd>{selectedGroup?.cards.length ?? 1}</dd>
                 </div>
                 {selectedMeta?.marketValue != null && (
                   <div>
-                    <dt>Valeur de marché</dt>
+                    <dt>Market value</dt>
                     <dd>
                       <Karas amount={selectedMeta.marketValue} />
                     </dd>
@@ -2040,10 +2030,9 @@ export function CollectionView({
                     remboursera automatiquement le meilleur enchérisseur.
                   </Feedback>
                 ) : (
-                  <Feedback tone="error" title="Carte gelée car en enchère">
-                    Cette carte ne peut pas être remise aux enchères ni
-                    supprimée jusqu’à ce que la vente soit terminée ou que la
-                    carte soit retirée des enchères.
+                  <Feedback tone="error" title="Card frozen while in auction">
+                    This card can&apos;t be listed again or destroyed until the
+                    auction ends or the card is withdrawn.
                   </Feedback>
                 ))}
               {resolvedTradeHref && !selected.locked && (
@@ -2051,7 +2040,7 @@ export function CollectionView({
                   className="yk-button yk-button-primary mt-6 flex w-full justify-center"
                   href={resolvedTradeHref(selected)}
                 >
-                  Proposer un échange
+                  Offer a trade
                 </Link>
               )}
               {!readOnly &&
@@ -2065,22 +2054,22 @@ export function CollectionView({
                         onClick={() => void openAuction()}
                       >
                         {selected.locked
-                          ? "Carte verrouillée"
+                          ? "Card locked"
                           : selectedGroupFrozen
-                            ? "Carte gelée car en enchère"
-                            : "Mettre aux enchères"}
+                            ? "Card frozen while in auction"
+                            : "List for auction"}
                       </Button>
                     )}
                     {selected.rarity === "SSR" && !selected.shiny && (
                       <div className="yk-detail-evolve">
                         <div className="yk-detail-progress-copy">
-                          <strong>Progression Shiny</strong>
-                          <span>{evolvableCopies}/5 exemplaires</span>
+                          <strong>Shiny progress</strong>
+                          <span>{evolvableCopies}/5 copies</span>
                         </div>
                         <div
                           className="yk-detail-progress"
                           role="progressbar"
-                          aria-label="Progression vers l’évolution Shiny"
+                          aria-label="Progress toward Shiny evolution"
                           aria-valuemin={0}
                           aria-valuemax={5}
                           aria-valuenow={Math.min(evolvableCopies, 5)}
@@ -2108,7 +2097,7 @@ export function CollectionView({
                             setEvolveConfirm(true);
                           }}
                         >
-                          Évoluer en Shiny
+                          Evolve to Shiny
                         </Button>
                       </div>
                     )}
@@ -2122,7 +2111,7 @@ export function CollectionView({
               {!readOnly && onSetCustomImage && (
                 <details className="yk-detail-image">
                   <summary>
-                    Personnaliser l'image
+                    Customize image
                     <svg
                       aria-hidden="true"
                       width="14"
@@ -2146,7 +2135,7 @@ export function CollectionView({
                           setImageError("");
                         }}
                         placeholder="https://i.imgur.com/image.jpg"
-                        aria-label="Lien Imgur personnalisé"
+                        aria-label="Custom Imgur link"
                         className="auth-input"
                       />
                       <Button
@@ -2156,11 +2145,11 @@ export function CollectionView({
                           void saveCustomImage(customImageUrl.trim())
                         }
                       >
-                        {imageBusy ? "Enregistrement…" : "Appliquer"}
+                        {imageBusy ? "Saving…" : "Apply"}
                       </Button>
                     </div>
                     <p className="yk-detail-hint">
-                      Lien https://i.imgur.com/… ou https://imgur.com/…
+                      Link: https://i.imgur.com/… or https://imgur.com/…
                       {selected.customImageUrl && (
                         <>
                           {" "}
@@ -2171,7 +2160,7 @@ export function CollectionView({
                             disabled={imageBusy}
                             onClick={() => void saveCustomImage(null)}
                           >
-                            Revenir à l’image d’origine
+                            Restore original image
                           </button>
                         </>
                       )}
@@ -2197,7 +2186,7 @@ export function CollectionView({
                   >
                     {adminRemoval
                       ? "Retirer de la collection"
-                      : "Détruire des exemplaires"}
+                      : "Destroy copies"}
                   </Button>
                 </div>
               )}
@@ -2213,14 +2202,13 @@ export function CollectionView({
             setEvolutionError("");
           }
         }}
-        title="Confirmer l’évolution Shiny"
+        title="Confirm Shiny evolution"
       >
         {selected && (
           <>
             <p className="text-sm leading-6 text-ink-2">
-              Choisis précisément cinq exemplaires à consommer (
-              {evolutionCards.length}/5). La sélection proposée préserve les
-              images personnalisées si possible.
+              Choose exactly five copies to consume ({evolutionCards.length}/5).
+              The suggested selection preserves custom images where possible.
             </p>
             <ul className="mt-4 grid gap-3">
               {evolvableCards.map(card => {
@@ -2234,19 +2222,19 @@ export function CollectionView({
                       onClick={() => toggleEvolutionCard(card.instanceId)}
                     >
                       <strong className="text-ink">
-                        {checked ? "✓ Sélectionné" : "Sélectionner"}
+                        {checked ? "✓ Selected" : "Select"}
                       </strong>
                       <span className="mt-1 block text-ink-2">
-                        Obtenu le {formatDate(card.obtainedAt, true)}
+                        Obtained on {formatDate(card.obtainedAt, true)}
                       </span>
                       <span className="mt-1 block text-ink-3">
-                        Dossier :{" "}
+                        Folder:{" "}
                         {folders.find(folder => folder.id === card.folderId)
-                          ?.name ?? "Sans dossier"}{" "}
-                        · Image :{" "}
+                          ?.name ?? "No folder"}{" "}
+                        · Image:{" "}
                         {card.customImageUrl
-                          ? "personnalisée (sera perdue)"
-                          : "d’origine"}
+                          ? "custom (will be lost)"
+                          : "original"}
                       </span>
                     </button>
                   </li>
@@ -2254,8 +2242,8 @@ export function CollectionView({
               })}
             </ul>
             <p className="mt-4 text-xs leading-5 text-ink-3">
-              L’évolution créée sera une nouvelle SSR Shiny, sans dossier et
-              avec l’image d’origine.
+              The result is a new Shiny SSR card, with no folder and its
+              original image.
             </p>
             {evolutionError && (
               <p role="alert" className="mt-4 text-sm text-danger">
@@ -2268,13 +2256,13 @@ export function CollectionView({
                 disabled={evolving}
                 onClick={() => setEvolveConfirm(false)}
               >
-                Annuler
+                Cancel
               </Button>
               <Button
                 disabled={evolving || evolutionCards.length !== 5}
                 onClick={() => void evolveSelected()}
               >
-                {evolving ? "Évolution…" : "Confirmer l’évolution"}
+                {evolving ? "Evolving…" : "Confirm evolution"}
               </Button>
             </div>
           </>
@@ -2286,17 +2274,17 @@ export function CollectionView({
           onClose={() => {
             if (!bulkDiscardBusy) setBulkDiscardConfirm(false);
           }}
-          title="Détruire la sélection ?"
+          title="Destroy selected cards?"
         >
           <p className="text-sm leading-6 text-ink-2">
-            Détruire{" "}
+            Destroy{" "}
             <strong className="text-ink">
-              {selectedCards.length} exemplaire
-              {selectedCards.length > 1 ? "s" : ""}
+              {selectedCards.length.toLocaleString("en-US")}{" "}
+              {selectedCards.length === 1 ? "copy" : "copies"}
             </strong>{" "}
-            pour{" "}
+            for{" "}
             <strong className="text-karas">{selectedValue ?? "…"} Karas</strong>{" "}
-            ? Action irréversible.
+            ? This can&apos;t be undone.
           </p>
           {bulkDiscardError && (
             <p role="alert" className="mt-4 text-sm text-danger">
@@ -2309,14 +2297,14 @@ export function CollectionView({
               disabled={bulkDiscardBusy}
               onClick={() => setBulkDiscardConfirm(false)}
             >
-              Annuler
+              Cancel
             </Button>
             <Button
               variant="danger"
               disabled={bulkDiscardBusy || selectedValue == null}
               onClick={() => void discardSelection()}
             >
-              {bulkDiscardBusy ? "Destruction…" : "Confirmer la destruction"}
+              {bulkDiscardBusy ? "Destroying…" : "Confirm destruction"}
             </Button>
           </div>
         </Modal>
@@ -2329,9 +2317,7 @@ export function CollectionView({
             setDiscardError("");
           }
         }}
-        title={
-          adminRemoval ? "Retirer cette carte ?" : "Détruire des exemplaires ?"
-        }
+        title={adminRemoval ? "Retirer cette carte ?" : "Destroy copies?"}
       >
         {selected && (
           <>
@@ -2345,15 +2331,15 @@ export function CollectionView({
             ) : (
               <>
                 <p className="text-sm leading-6 text-ink-2">
-                  Choisis combien d’exemplaires de{" "}
-                  <strong className="text-ink">{selected.name}</strong>{" "}
-                  détruire. Les copies sans image personnalisée sont consommées
-                  en premier, puis les plus anciennes.
+                  Choose how many copies of{" "}
+                  <strong className="text-ink">{selected.name}</strong> to
+                  destroy. Copies with no custom image are used first, followed
+                  by the oldest copies.
                 </p>
                 <div className="yk-quantity-picker">
                   <button
                     type="button"
-                    aria-label="Détruire un exemplaire de moins"
+                    aria-label="Destroy one fewer copy"
                     disabled={discardQuantity <= 1 || discardBusy}
                     onClick={() =>
                       setDiscardQuantity(value => Math.max(1, value - 1))
@@ -2364,7 +2350,7 @@ export function CollectionView({
                   <output aria-live="polite">{discardQuantity}</output>
                   <button
                     type="button"
-                    aria-label="Détruire un exemplaire de plus"
+                    aria-label="Destroy one more copy"
                     disabled={
                       discardQuantity >= destructibleCards.length || discardBusy
                     }
@@ -2384,18 +2370,18 @@ export function CollectionView({
                     }
                     onClick={() => setDiscardQuantity(destructibleCards.length)}
                   >
-                    Tout détruire
+                    Destroy all
                   </button>
                 </div>
                 <p className="mt-4 text-sm text-ink-2">
-                  Tu détruiras{" "}
+                  You&apos;ll destroy{" "}
                   <strong className="text-ink">
-                    {discardCards.length} exemplaire
-                    {discardCards.length > 1 ? "s" : ""}
+                    {discardCards.length.toLocaleString("en-US")}{" "}
+                    {discardCards.length === 1 ? "copy" : "copies"}
                   </strong>{" "}
-                  et recevras{" "}
+                  and receive{" "}
                   <strong className="text-karas">
-                    {discardValue} Kara{discardValue > 1 ? "s" : ""}
+                    {discardValue?.toLocaleString("en-US")} Karas
                   </strong>
                   .
                 </p>
@@ -2403,8 +2389,8 @@ export function CollectionView({
             )}
             {destructibleCards.length < (selectedGroup?.cards.length ?? 0) && (
               <p className="mt-2 text-xs text-ink-3">
-                {(selectedGroup?.cards.length ?? 0) - destructibleCards.length}{" "}
-                exemplaire(s) en enchère sont exclus.
+                Excluded copies in auctions:{" "}
+                {(selectedGroup?.cards.length ?? 0) - destructibleCards.length}.
               </p>
             )}
             {discardError && (
@@ -2418,7 +2404,7 @@ export function CollectionView({
                 disabled={discardBusy}
                 onClick={() => setDiscardConfirm(false)}
               >
-                Annuler
+                Cancel
               </Button>
               <Button
                 variant="danger"
@@ -2428,10 +2414,10 @@ export function CollectionView({
                 {discardBusy
                   ? adminRemoval
                     ? "Retrait…"
-                    : "Destruction…"
+                    : "Destroying…"
                   : adminRemoval
                     ? "Retirer la carte"
-                    : `Détruire ${discardCards.length}`}
+                    : `Destroy ${discardCards.length}`}
               </Button>
             </div>
           </>
@@ -2440,7 +2426,7 @@ export function CollectionView({
       <Modal
         open={auctionOpen && !!selected}
         onClose={closeAuction}
-        title={auctionDone ? "Carte mise aux enchères" : "Mettre aux enchères"}
+        title={auctionDone ? "Card listed for auction" : "List for auction"}
         className="yk-auction-modal"
       >
         {selected &&
@@ -2448,16 +2434,16 @@ export function CollectionView({
             <>
               <Feedback
                 tone="success"
-                title="Carte mise aux enchères — verrouillée jusqu’à la fin de la vente"
+                title="Card listed for auction — locked until the auction ends"
               >
-                Elle apparaît dès maintenant sur le marché.
+                It&apos;s now listed on the market.
               </Feedback>
               <div className="mt-6 flex flex-wrap justify-end gap-3">
                 <Button variant="secondary" onClick={closeAuction}>
-                  Fermer
+                  Close
                 </Button>
                 <Link href="/marche" className="yk-button yk-button-primary">
-                  Voir le marché
+                  View market
                 </Link>
               </div>
             </>
@@ -2490,7 +2476,7 @@ export function CollectionView({
                     className="mt-5 block text-xs font-semibold tracking-wider text-ink-3 uppercase"
                     htmlFor="auction-price"
                   >
-                    Prix de départ
+                    Starting bid
                   </label>
                   <input
                     id="auction-price"
@@ -2505,16 +2491,16 @@ export function CollectionView({
                   <p
                     className={`mt-2 text-xs ${Number(auctionPrice) < 10 ? "text-danger-ink" : "text-ink-3"}`}
                   >
-                    Minimum 10 Karas.
+                    Minimum: 10 Karas.
                   </p>
                   {auctionSuggestionBusy ? (
                     <p className="mt-3 text-xs text-ink-3">
-                      Recherche de la valeur de marché…
+                      Looking up market value…
                     </p>
                   ) : auctionSuggestion != null ? (
                     <div className="yk-auction-suggestion">
                       <span>
-                        Suggestion : <Karas amount={auctionSuggestion} />
+                        Suggested: <Karas amount={auctionSuggestion} />
                       </span>
                       <button
                         type="button"
@@ -2522,13 +2508,13 @@ export function CollectionView({
                           setAuctionPrice(String(auctionSuggestion))
                         }
                       >
-                        Utiliser cette valeur
+                        Use this value
                       </button>
                     </div>
                   ) : null}
                   <fieldset className="mt-5">
                     <legend className="mb-2 text-xs font-semibold tracking-wider text-ink-3 uppercase">
-                      Durée
+                      Duration
                     </legend>
                     <div className="grid grid-cols-3 gap-2">
                       {[
@@ -2554,13 +2540,11 @@ export function CollectionView({
               </div>
               <ul className="yk-auction-modal-notes">
                 <li>
-                  La carte sera verrouillée jusqu’à la fin de la vente :
-                  impossible de l’échanger ou de la détruire.
+                  This card will be locked until the auction ends. You
+                  won&apos;t be able to trade or destroy it.
                 </li>
                 {selected.customImageUrl && (
-                  <li>
-                    L’image personnalisée de cette carte sera réinitialisée.
-                  </li>
+                  <li>This card&apos;s custom image will be reset.</li>
                 )}
               </ul>
               {auctionError && (
@@ -2574,14 +2558,14 @@ export function CollectionView({
                   disabled={auctionBusy}
                   onClick={closeAuction}
                 >
-                  Annuler
+                  Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={auctionBusy || Number(auctionPrice) < 10}
                   aria-busy={auctionBusy || undefined}
                 >
-                  {auctionBusy ? "Publication…" : "Mettre en vente"}
+                  {auctionBusy ? "Listing…" : "List for auction"}
                 </Button>
               </div>
             </form>

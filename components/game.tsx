@@ -118,7 +118,7 @@ export function Game({
                 [key]:
                   failure instanceof Error
                     ? failure.message
-                    : "Impossible de charger ces données."
+                    : "Couldn't load this data."
               }));
           }
         )
@@ -231,9 +231,7 @@ export function Game({
         );
         return cards;
       } catch (e) {
-        setError(
-          e instanceof Error ? e.message : "Impossible d’ouvrir le pack."
-        );
+        setError(e instanceof Error ? e.message : "Couldn't open this pack.");
         throw e;
       } finally {
         setBusy(false);
@@ -241,7 +239,8 @@ export function Game({
     });
   }
   async function evolve(instanceIds: string[]) {
-    if (previewData) throw new Error("Action indisponible dans la simulation.");
+    if (previewData)
+      throw new Error("This action is unavailable in the simulation.");
     const evolved = await evolveSsrCard(instanceIds);
     setCollection(await getUserCollection());
     return evolved;
@@ -317,7 +316,8 @@ export function Game({
     setCollection(cards);
   }
   async function moveCard(instanceId: string, folderId: string | null) {
-    if (previewData) throw new Error("Action indisponible dans la simulation.");
+    if (previewData)
+      throw new Error("This action is unavailable in the simulation.");
     await moveCardToFolder(instanceId, folderId);
     setCollection(await getUserCollection());
   }
@@ -326,7 +326,8 @@ export function Game({
     setCollection(await getUserCollection());
   }
   async function lockCard(instanceId: string, locked: boolean) {
-    if (previewData) throw new Error("Action indisponible dans la simulation.");
+    if (previewData)
+      throw new Error("This action is unavailable in the simulation.");
     await setCollectionCardLocked(instanceId, locked);
     setCollection(await getUserCollection());
   }
@@ -335,7 +336,8 @@ export function Game({
     price: number,
     duration: number
   ) {
-    if (previewData) throw new Error("Action indisponible dans la simulation.");
+    if (previewData)
+      throw new Error("This action is unavailable in the simulation.");
     await createAuction(instanceId, price, duration);
     const [cards, auctions] = await Promise.all([
       getUserCollection(),
@@ -345,7 +347,8 @@ export function Game({
     setActiveAuctionCards(auctions);
   }
   async function customizeCard(instanceId: string, imageUrl: string | null) {
-    if (previewData) throw new Error("Action indisponible dans la simulation.");
+    if (previewData)
+      throw new Error("This action is unavailable in the simulation.");
     await setCardCustomImage(instanceId, imageUrl);
     setCollection(await getUserCollection());
   }
@@ -398,7 +401,7 @@ export function Game({
           </header>
         ) : (
           <h1 className="text-2xl font-semibold tracking-tight text-ink">
-            Ma collection
+            My collection
           </h1>
         )}
         {error && (
@@ -419,14 +422,14 @@ export function Game({
               {key === "collection"
                 ? "Collection"
                 : key === "folders"
-                  ? "Dossiers"
-                  : "Enchères"}{" "}
+                  ? "Folders"
+                  : "Auctions"}{" "}
               : {message}{" "}
               <button
                 className="yk-button yk-button-secondary"
                 onClick={() => retries.current[key]?.()}
               >
-                Réessayer
+                Try again
               </button>
             </p>
           ))}
@@ -438,12 +441,12 @@ export function Game({
         {previewData && loadErrors.info && (
           <p data-proof="info-error" role="alert">
             {loadErrors.info}{" "}
-            <button onClick={() => retries.current.info?.()}>Réessayer</button>
+            <button onClick={() => retries.current.info?.()}>Try again</button>
           </p>
         )}
         {!status && !error && !loadErrors.regular && (
           <p role="status" className="mt-10">
-            Chargement…
+            Loading…
           </p>
         )}
         {view === "packs" && (

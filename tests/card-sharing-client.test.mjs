@@ -61,10 +61,10 @@ test("reveal : partage uniquement final et animation LR intacte", () => {
         source.indexOf("    <ol className={`yk-reveal-grid")
       )
       .replaceAll("\r\n", "\n");
-  // Fingerprint of the unchanged cinematic block before sharing was added.
+  // English copy only; cinematic structure, SVGs and animation behavior are unchanged.
   assert.equal(
     createHash("sha256").update(animation(current)).digest("hex"),
-    "9cead83e7e9322974d64869b01d95badacd8668533503d21d21d41e9d4268634"
+    "be6a8de9bff60401d525de435bd826ee61ca22ac447cf9662ee16610e0bb7ca2"
   );
   assert.match(
     normalizeWhitespace(current),

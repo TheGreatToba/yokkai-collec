@@ -58,20 +58,20 @@ const PROFILE_CARD_IMAGE_SIZES =
 
 function widgetLabel(category: string) {
   const labels: Record<string, string> = {
-    "ANIME/MANGA": "Animes & mangas favoris",
-    "VIDEO GAMES": "Jeux préférés",
-    KPOP: "Groupes de K-pop",
-    FILM: "Films préférés",
-    SERIE: "Séries préférées",
-    KDRAMA: "K-dramas favoris",
-    COMICS: "Comics favoris",
-    ARTIST: "Artistes préférés",
-    VOCALOID: "Vocaloid favoris",
-    MANWHA: "Manhwas favoris",
-    SPORT: "Sports préférés",
+    "ANIME/MANGA": "Favorite anime & manga",
+    "VIDEO GAMES": "Favorite games",
+    KPOP: "K-pop groups",
+    FILM: "Favorite movies",
+    SERIE: "Favorite series",
+    KDRAMA: "Favorite K-dramas",
+    COMICS: "Favorite comics",
+    ARTIST: "Favorite artists",
+    VOCALOID: "Favorite Vocaloids",
+    MANWHA: "Favorite manhwa",
+    SPORT: "Favorite sports",
     "DISNEY CHANNEL": "Disney Channel",
-    MEME: "Mèmes favoris",
-    BRAINROT: "Brainrot favoris"
+    MEME: "Favorite memes",
+    BRAINROT: "Favorite brainrot"
   };
   return labels[category] ?? category;
 }
@@ -79,8 +79,8 @@ function widgetLabel(category: string) {
 function ProfilePrivate() {
   return (
     <p className="yk-profile-empty">
-      Cette collection est privée. Son activité et ses classeurs sont réservés
-      aux personnes autorisées.
+      This collection is private. Only authorized players can view its activity
+      and binders.
     </p>
   );
 }
@@ -114,7 +114,7 @@ function PreferencesEditor({
         if (busy) return;
         const next = values;
         if (next.some(widget => widget.entries.length > 12)) {
-          setError("Maximum 12 licences par catégorie.");
+          setError("Choose up to 12 licenses per category.");
           return;
         }
         setBusy(true);
@@ -123,9 +123,7 @@ function PreferencesEditor({
           onSaved(await save(next));
         } catch (reason) {
           setError(
-            reason instanceof Error
-              ? reason.message
-              : "Enregistrement impossible."
+            reason instanceof Error ? reason.message : "Couldn't save changes."
           );
         } finally {
           setBusy(false);
@@ -133,12 +131,12 @@ function PreferencesEditor({
       }}
     >
       <p className="yk-profile-muted">
-        Choisis une catégorie, puis jusqu’à 12 licences du catalogue à mettre en
-        avant. Aucune saisie libre.
+        Choose a category, then pick up to 12 catalog licenses to feature.
+        Custom entries aren&apos;t available.
       </p>
       <div
         className="yk-profile-widget-picker"
-        aria-label="Catégories disponibles"
+        aria-label="Available categories"
       >
         {categories.map(category => {
           const selected = values.some(widget => widget.category === category);
@@ -160,9 +158,7 @@ function PreferencesEditor({
         })}
       </div>
       {!categories.length && (
-        <p className="yk-profile-empty">
-          Aucune catégorie disponible pour le moment.
-        </p>
+        <p className="yk-profile-empty">No categories available yet.</p>
       )}
       {values.map((widget, index) => (
         <section
@@ -182,7 +178,7 @@ function PreferencesEditor({
                     index + direction < 0 ||
                     index + direction >= values.length
                   }
-                  aria-label={`${direction < 0 ? "Monter" : "Descendre"} le widget ${widget.category}`}
+                  aria-label={`${direction < 0 ? "Move up" : "Move down"} widget ${widget.category}`}
                   onClick={() =>
                     setValues(current => {
                       const next = [...current];
@@ -200,7 +196,7 @@ function PreferencesEditor({
               <button
                 type="button"
                 disabled={busy}
-                aria-label={`Retirer le widget ${widget.category}`}
+                aria-label={`Remove widget ${widget.category}`}
                 onClick={() =>
                   setValues(current =>
                     current.filter(value => value.category !== widget.category)
@@ -213,14 +209,14 @@ function PreferencesEditor({
           </div>
           <div
             className="yk-profile-selected-licenses"
-            aria-label={`Licences choisies · ${widget.category}`}
+            aria-label={`Selected licenses · ${widget.category}`}
           >
             {widget.entries.map(license => (
               <button
                 key={license}
                 type="button"
                 disabled={busy}
-                aria-label={`Retirer ${license} des favoris ${widget.category}`}
+                aria-label={`Remove ${license} from favorites ${widget.category}`}
                 onClick={() =>
                   setValues(current =>
                     current.map(value =>
@@ -240,7 +236,7 @@ function PreferencesEditor({
               </button>
             ))}
             {!widget.entries.length && (
-              <p className="yk-profile-muted">Aucune licence sélectionnée.</p>
+              <p className="yk-profile-muted">No licenses selected.</p>
             )}
           </div>
           <Button
@@ -254,8 +250,8 @@ function PreferencesEditor({
             }
           >
             {activeCategory === widget.category
-              ? "Masquer les licences"
-              : "Choisir les licences"}
+              ? "Hide licenses"
+              : "Choose licenses"}
           </Button>
           {activeCategory === widget.category && (
             <ProfileLicensePicker
@@ -290,7 +286,7 @@ function PreferencesEditor({
         </p>
       )}
       <Button disabled={busy} type="submit">
-        {busy ? "Enregistrement…" : "Enregistrer mon tableau"}
+        {busy ? "Saving…" : "Save my board"}
       </Button>
     </form>
   );
@@ -310,7 +306,7 @@ function Featured({
   const label =
     emptyLabel ??
     (publicPseudo
-      ? `${publicPseudo} n’a pas encore choisi de cartes à mettre en avant`
+      ? `${publicPseudo} hasn't featured any cards yet`
       : undefined);
   if (!cards.length && label)
     return (
@@ -331,7 +327,7 @@ function Featured({
         (_, i) => (
           <div key={`empty-${i}`} className="yk-featured-empty">
             <span aria-hidden="true">✦</span>
-            <small>Emplacement libre</small>
+            <small>Empty slot</small>
           </div>
         )
       )}
@@ -440,7 +436,7 @@ function Editor({
     try {
       setAvatar(await (adapter.uploadAvatar ?? uploadAvatar)(file, profile.id));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Envoi impossible.");
+      setError(e instanceof Error ? e.message : "Couldn't upload this image.");
     } finally {
       setBusy(false);
     }
@@ -471,7 +467,7 @@ function Editor({
       onSaved(updated);
       onClose();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Enregistrement impossible.");
+      setError(e instanceof Error ? e.message : "Couldn't save changes.");
     } finally {
       setBusy(false);
     }
@@ -487,7 +483,7 @@ function Editor({
               size={80}
             />
             <label className="yk-button yk-button-secondary cursor-pointer">
-              Choisir une photo
+              Choose photo
               <input
                 className="sr-only"
                 type="file"
@@ -507,7 +503,7 @@ function Editor({
               maxLength={300}
               value={bio}
               onChange={e => setBio(e.target.value)}
-              placeholder="Présentez votre collection…"
+              placeholder="Tell us about your collection…"
             />
             <span className="mt-1 block text-right text-xs text-ink-3">
               {bio.length}/300
@@ -635,16 +631,16 @@ function Editor({
       {mode === "showcase" && (
         <section>
           <div className="flex items-center justify-between gap-3">
-            <h3 className="font-display text-lg">Cartes mises en avant</h3>
+            <h3 className="font-display text-lg">Featured cards</h3>
             <span className="text-xs text-ink-3">
               {selected.size}/{FEATURED_CARD_LIMIT}
             </span>
           </div>
           <p className="mt-2 text-xs text-ink-3">
-            Choisissez jusqu’à cinq cartes différentes de votre collection.
+            Choose up to five different cards from your collection.
           </p>
           <label className="sr-only" htmlFor="featured-query">
-            Rechercher une carte à mettre en avant
+            Search for a card to feature
           </label>
           <input
             id="featured-query"
@@ -652,7 +648,7 @@ function Editor({
             type="search"
             value={featuredQuery}
             onChange={e => setFeaturedQuery(e.target.value)}
-            placeholder="Rechercher une carte…"
+            placeholder="Search cards…"
           />
           <div className="yk-featured-picker mt-4">
             {featuredChoices.map(card => {
@@ -671,7 +667,7 @@ function Editor({
                     animated={false}
                     imageSizes={PROFILE_CARD_IMAGE_SIZES}
                   />
-                  <span>{featured ? "Sélectionnée" : "Choisir"}</span>
+                  <span>{featured ? "Selected" : "Choose"}</span>
                 </button>
               );
             })}
@@ -685,10 +681,10 @@ function Editor({
       )}
       <div className="flex justify-end gap-3">
         <Button variant="secondary" onClick={onClose}>
-          Annuler
+          Cancel
         </Button>
         <Button disabled={busy} onClick={() => void submit()}>
-          {busy ? "Enregistrement…" : "Enregistrer"}
+          {busy ? "Saving…" : "Save"}
         </Button>
       </div>
       {crop && (
@@ -958,8 +954,15 @@ function ProfileCompletion({
               }
             </strong>
             <span>
-              classeurs favoris complétés{" "}
-              <small>sur {details.favoriteAlbums.length} favoris</small>
+              {details.favoriteAlbums.filter(
+                album => album.owned === album.total
+              ).length === 1
+                ? "favorite binder completed"
+                : "favorite binders completed"}{" "}
+              <small>
+                of {details.favoriteAlbums.length}{" "}
+                {details.favoriteAlbums.length === 1 ? "favorite" : "favorites"}
+              </small>
             </span>
           </div>
           <ul className="yk-profile-album-progress">
@@ -976,9 +979,9 @@ function ProfileCompletion({
                 <progress
                   max={album.total}
                   value={album.owned}
-                  aria-label={`Complétion de ${album.license}`}
+                  aria-label={`Completion for ${album.license}`}
                 />
-                <small>{album.percent}% complété</small>
+                <small>{album.percent}% complete</small>
               </li>
             ))}
           </ul>
@@ -986,20 +989,17 @@ function ProfileCompletion({
       ) : !details ? (
         <p className="yk-profile-empty">
           {detailsError
-            ? "La progression des classeurs est temporairement indisponible."
-            : "Chargement de la progression…"}
+            ? "Binder progress is temporarily unavailable."
+            : "Loading progress…"}
         </p>
       ) : (
         <div className="yk-profile-surface yk-profile-completion-empty">
           <span aria-hidden="true">☆</span>
-          <h3>Aucun classeur favori pour le moment</h3>
-          <p>
-            Les classeurs marqués d’une étoile apparaîtront ici avec leur
-            progression.
-          </p>
+          <h3>No favorite binders yet</h3>
+          <p>Starred binders will appear here with their progress.</p>
           {isMe && (
             <Link className="yk-button yk-button-secondary" href="/collection">
-              Choisir mes classeurs favoris
+              Choose my favorite binders
             </Link>
           )}
         </div>
@@ -1093,8 +1093,7 @@ export function ProfileExperience({
         }
       },
       () => {
-        if (active)
-          setEngagementError("Les likes sont temporairement indisponibles.");
+        if (active) setEngagementError("Likes are temporarily unavailable.");
       }
     );
     return () => {
@@ -1110,9 +1109,7 @@ export function ProfileExperience({
         },
         () => {
           if (active)
-            setDetailsError(
-              "Les statistiques et le tableau sont temporairement indisponibles."
-            );
+            setDetailsError("Stats and board are temporarily unavailable.");
         }
       );
     return () => {
@@ -1121,7 +1118,7 @@ export function ProfileExperience({
   }, [identifier, adapter]);
   const loadFriendPaniniAlbums = useCallback(
     (options: Parameters<typeof getFriendPaniniAlbumsPage>[1]) => {
-      if (!profile) return Promise.reject(new Error("Profil indisponible."));
+      if (!profile) return Promise.reject(new Error("Profile unavailable."));
       if (adapter.friendAlbums)
         return adapter.friendAlbums(profile.id, options);
       return getFriendPaniniAlbumsPage(profile.id, options);
@@ -1130,7 +1127,7 @@ export function ProfileExperience({
   );
   const loadFriendPaniniAlbumCards = useCallback(
     (options: Parameters<typeof getFriendPaniniAlbumCardsPage>[1]) => {
-      if (!profile) return Promise.reject(new Error("Profil indisponible."));
+      if (!profile) return Promise.reject(new Error("Profile unavailable."));
       if (adapter.friendAlbumCards)
         return adapter.friendAlbumCards(profile.id, options);
       return getFriendPaniniAlbumCardsPage(profile.id, options);
@@ -1153,7 +1150,7 @@ export function ProfileExperience({
       },
       e => {
         if (active)
-          setError(e instanceof Error ? e.message : "Profil indisponible.");
+          setError(e instanceof Error ? e.message : "Profile unavailable.");
       }
     );
     return () => {
@@ -1169,7 +1166,7 @@ export function ProfileExperience({
   if (!profile)
     return (
       <div className="yk-empty-state">
-        <p>Chargement du profil…</p>
+        <p>Loading profile…</p>
       </div>
     );
   const isMe = profile.friendshipStatus === "self";
@@ -1190,7 +1187,7 @@ export function ProfileExperience({
       setEngagement(await adapter.like(profile.id, !engagement.likedByMe));
     } catch (reason) {
       setEngagementError(
-        reason instanceof Error ? reason.message : "Like indisponible."
+        reason instanceof Error ? reason.message : "Like unavailable."
       );
     } finally {
       likePending.current = false;
@@ -1208,14 +1205,14 @@ export function ProfileExperience({
     );
     void adapter
       .profile(identifier)
-      .then(setProfile, () => setError("Profil indisponible."));
+      .then(setProfile, () => setError("Profile unavailable."));
   }
   function afterUnblock() {
     if (!profile) return;
     setBlocked(current => current.filter(player => player.id !== profile.id));
     void adapter
       .profile(identifier)
-      .then(setProfile, () => setError("Profil indisponible."));
+      .then(setProfile, () => setError("Profile unavailable."));
   }
   async function openFriendCollection() {
     if (!profile || !profile.canViewCollection) return;
@@ -1231,7 +1228,7 @@ export function ProfileExperience({
       );
     } catch (reason) {
       setCollectionError(
-        reason instanceof Error ? reason.message : "Collection indisponible."
+        reason instanceof Error ? reason.message : "Collection unavailable."
       );
     }
   }
@@ -1249,11 +1246,11 @@ export function ProfileExperience({
     <>
       <div className="yk-profile-hub" data-profile-tab={tab}>
         <section className="yk-profile-main">
-          <nav className="yk-profile-tabs" aria-label="Sections du profil">
+          <nav className="yk-profile-tabs" aria-label="Profile sections">
             {[
-              ["tableau", "Tableau"],
+              ["tableau", "Board"],
               ["wall", "Wall"],
-              ["activity", "Activité"],
+              ["activity", "Activity"],
               ...(profile.friendsVisible ? [["friends", "Friends"]] : [])
             ].map(([key, label]) => (
               <button
@@ -1282,7 +1279,7 @@ export function ProfileExperience({
           <div hidden={tab !== "tableau"} className="yk-profile-panel">
             <section className="yk-profile-surface yk-profile-showcase">
               <div className="yk-profile-section-heading">
-                <h3 className="yk-section-title">Cartes mises en avant</h3>
+                <h3 className="yk-section-title">Featured cards</h3>
                 {isMe ? (
                   <Button
                     variant="secondary"
@@ -1294,7 +1291,7 @@ export function ProfileExperience({
                     Edit showcase
                   </Button>
                 ) : (
-                  <span className="yk-profile-muted">Sa vitrine</span>
+                  <span className="yk-profile-muted">Their showcase</span>
                 )}
               </div>
               <Featured cards={profile.featuredCards} />
@@ -1303,8 +1300,8 @@ export function ProfileExperience({
               <section className="yk-profile-universe">
                 <div className="yk-profile-section-heading">
                   <div>
-                    <p className="eyebrow">Son univers</p>
-                    <h2>Le tableau de {profile.pseudo}</h2>
+                    <p className="eyebrow">Their world</p>
+                    <h2>Board for {profile.pseudo}</h2>
                   </div>
                   {isMe && (
                     <Button
@@ -1312,7 +1309,7 @@ export function ProfileExperience({
                       disabled={!details}
                       onClick={() => setPreferencesOpen(true)}
                     >
-                      Personnaliser mon tableau
+                      Customize my board
                     </Button>
                   )}
                 </div>
@@ -1346,8 +1343,8 @@ export function ProfileExperience({
                       ) : (
                         <p className="yk-profile-empty">
                           {isMe
-                            ? "Ajoute tes favoris pour partager ce que tu aimes."
-                            : "Ses favoris apparaîtront ici."}
+                            ? "Add your favorites to share what you love."
+                            : "Their favorites will appear here."}
                         </p>
                       )}
                     </section>
@@ -1356,16 +1353,16 @@ export function ProfileExperience({
                 {details && !details.widgets.length && (
                   <p className="yk-profile-surface yk-profile-empty">
                     {isMe
-                      ? "Personnalise ton tableau en ajoutant les widgets de tes catégories préférées."
-                      : "Ses widgets favoris apparaîtront ici."}
+                      ? "Make your board your own with widgets for your favorite categories."
+                      : "Their favorite widgets will appear here."}
                   </p>
                 )}
               </section>
             ) : (
               <section className="yk-profile-completion">
                 <div className="yk-profile-section-heading">
-                  <h2>Complétion</h2>
-                  <span className="yk-profile-muted">Classeurs favoris</span>
+                  <h2>Completion</h2>
+                  <span className="yk-profile-muted">Favorite binders</span>
                 </div>
                 <ProfileCompletion
                   profile={profile}
@@ -1386,10 +1383,10 @@ export function ProfileExperience({
             )}
             <div className="yk-profile-section-heading">
               <div>
-                <p className="eyebrow">Le fil du collectionneur</p>
-                <h2>Activité récente</h2>
+                <p className="eyebrow">The collector&apos;s feed</p>
+                <h2>Recent activity</h2>
               </div>
-              <span className="yk-profile-muted">20 dernières activités</span>
+              <span className="yk-profile-muted">Last 20 activities</span>
             </div>
             {!profile.canViewCollection ? (
               <ProfilePrivate />
@@ -1414,10 +1411,10 @@ export function ProfileExperience({
                     <div>
                       <p className={`yk-profile-event-label is-${event.kind}`}>
                         {event.kind === "sold"
-                          ? "Carte vendue"
+                          ? "Card sold"
                           : event.kind === "bought"
-                            ? "Carte achetée"
-                            : "Carte obtenue"}
+                            ? "Card bought"
+                            : "Card obtained"}
                       </p>
                       <Link href={`/recherche?carte=${event.card.id}`}>
                         <h3>{event.card.name}</h3>
@@ -1432,12 +1429,12 @@ export function ProfileExperience({
                       </p>
                       {event.price !== undefined && (
                         <p className="yk-profile-event-price">
-                          {event.price.toLocaleString("fr-FR")} Karas
+                          {event.price.toLocaleString("en-US")} Karas
                         </p>
                       )}
                     </div>
                     <time dateTime={event.at}>
-                      {new Date(event.at).toLocaleDateString("fr-FR", {
+                      {new Date(event.at).toLocaleDateString("en-US", {
                         day: "numeric",
                         month: "short"
                       })}
@@ -1448,10 +1445,10 @@ export function ProfileExperience({
             ) : (
               <p className="yk-profile-empty">
                 {details
-                  ? "Aucune activité à afficher pour le moment."
+                  ? "No activity to show yet."
                   : detailsError
-                    ? "L’activité est temporairement indisponible."
-                    : "Chargement de l’activité…"}
+                    ? "Activity is temporarily unavailable."
+                    : "Loading activity…"}
               </p>
             )}
           </div>
@@ -1555,7 +1552,7 @@ export function ProfileExperience({
                 size={96}
               />
             </div>
-            <span className="yk-profile-identity-label">COLLECTIONNEUR</span>
+            <span className="yk-profile-identity-label">COLLECTOR</span>
             <div className="yk-profile-name-row">
               <h2>{profile.pseudo}</h2>
               {!isMe && (
@@ -1568,9 +1565,7 @@ export function ProfileExperience({
                 />
               )}
             </div>
-            <p className="yk-profile-bio">
-              {profile.bio || "Aucune bio pour le moment."}
-            </p>
+            <p className="yk-profile-bio">{profile.bio || "No bio yet."}</p>
             <div className="yk-profile-actions">
               {isMe ? (
                 <Button
@@ -1580,7 +1575,7 @@ export function ProfileExperience({
                     setEditing(true);
                   }}
                 >
-                  Modifier le profil
+                  Edit profile
                 </Button>
               ) : (
                 <>
@@ -1605,10 +1600,10 @@ export function ProfileExperience({
                 onClick={() => void likeProfile()}
               >
                 {likeBusy
-                  ? "Enregistrement…"
+                  ? "Saving…"
                   : engagement?.likedByMe
-                    ? "♥ Profil aimé"
-                    : "♡ Aimer ce profil"}
+                    ? "♥ Profile liked"
+                    : "♡ Like this profile"}
               </Button>
             )}
             {engagementError && (
@@ -1621,26 +1616,26 @@ export function ProfileExperience({
                 <button
                   type="button"
                   onClick={() => void openFriendCollection()}
-                  aria-label={`Voir les ${profile.cardCount} cartes de ${profile.pseudo}`}
+                  aria-label={`View ${profile.cardCount?.toLocaleString("en-US") ?? "—"} ${profile.cardCount === 1 ? "card" : "cards"} from ${profile.pseudo}`}
                 >
-                  <p>Cartes</p>
+                  <p>Cards</p>
                   <strong>{profile.cardCount}</strong>
-                  <span>Voir la collection →</span>
+                  <span>View collection →</span>
                 </button>
               ) : (
                 <Link href="/collection">
-                  <p>Cartes</p>
+                  <p>Cards</p>
                   <strong>
-                    {profile.canViewCollection ? profile.cardCount : "Privée"}
+                    {profile.canViewCollection ? profile.cardCount : "Private"}
                   </strong>
                 </Link>
               )}
               <div>
-                <p>Différentes</p>
+                <p>Unique</p>
                 <strong>
                   {profile.canViewCollection
                     ? profile.distinctCardCount
-                    : "Privée"}
+                    : "Private"}
                 </strong>
               </div>
               <button
@@ -1662,42 +1657,42 @@ export function ProfileExperience({
               <div>
                 <p>Likes</p>
                 <strong data-profile-likes>
-                  {engagement?.likes.toLocaleString("fr-FR") ?? "—"}
+                  {engagement?.likes.toLocaleString("en-US") ?? "—"}
                 </strong>
               </div>
             </div>
             <div className="yk-profile-side-stats">
               <div>
-                <p>Boosters ouverts</p>
+                <p>Packs opened</p>
                 <strong>
                   {profile.canViewCollection
-                    ? (details?.boostersOpened?.toLocaleString("fr-FR") ?? "—")
-                    : "Privé"}
+                    ? (details?.boostersOpened?.toLocaleString("en-US") ?? "—")
+                    : "Private"}
                 </strong>
               </div>
               <div className="is-lr">
                 <p>✦ LR</p>
                 <strong>
                   {profile.canViewCollection
-                    ? (details?.lrCount?.toLocaleString("fr-FR") ?? "—")
-                    : "Privé"}
+                    ? (details?.lrCount?.toLocaleString("en-US") ?? "—")
+                    : "Private"}
                 </strong>
               </div>
               <div className="is-ssr">
                 <p>✦ SSR</p>
                 <strong>
                   {profile.canViewCollection
-                    ? (details?.ssrCount?.toLocaleString("fr-FR") ?? "—")
-                    : "Privé"}
+                    ? (details?.ssrCount?.toLocaleString("en-US") ?? "—")
+                    : "Private"}
                 </strong>
               </div>
             </div>
             <div className="yk-profile-member">
-              <p>Membre depuis</p>
+              <p>Member since</p>
               <strong>
                 {details?.joinedAt || (isMe && joined)
                   ? new Date(details?.joinedAt || joined!).toLocaleDateString(
-                      "fr-FR",
+                      "en-US",
                       { dateStyle: "long" }
                     )
                   : "—"}
@@ -1709,7 +1704,7 @@ export function ProfileExperience({
       <Modal
         open={preferencesOpen}
         onClose={() => setPreferencesOpen(false)}
-        title="Personnaliser mon tableau"
+        title="Customize my board"
       >
         {details && (
           <PreferencesEditor
@@ -1720,7 +1715,7 @@ export function ProfileExperience({
             onSaved={widgets => {
               setDetails({ ...details, widgets });
               setPreferencesOpen(false);
-              setToast("Tableau mis à jour");
+              setToast("Board updated");
             }}
           />
         )}
@@ -1728,7 +1723,7 @@ export function ProfileExperience({
       <Modal
         open={collectionOpen}
         onClose={() => setCollectionOpen(false)}
-        title={`Collection de ${profile.pseudo}`}
+        title={`Collection for ${profile.pseudo}`}
         className="yk-friend-collection-modal yk-friend-card-grid-modal"
       >
         {collectionError ? (
@@ -1741,7 +1736,7 @@ export function ProfileExperience({
                 void openFriendCollection();
               }}
             >
-              Réessayer
+              Try again
             </Button>
           </div>
         ) : friendCards ? (
@@ -1754,7 +1749,7 @@ export function ProfileExperience({
           />
         ) : (
           <div className="yk-empty-state">
-            <p>Chargement de la collection…</p>
+            <p>Loading collection…</p>
           </div>
         )}
       </Modal>
@@ -1793,9 +1788,7 @@ export function ProfileExperience({
       <Modal
         open={editing}
         onClose={() => setEditing(false)}
-        title={
-          editingMode === "showcase" ? "Edit showcase" : "Modifier mon profil"
-        }
+        title={editingMode === "showcase" ? "Edit showcase" : "Edit my profile"}
         className="max-w-4xl"
       >
         {isMe && collection && details ? (
@@ -1822,13 +1815,13 @@ export function ProfileExperience({
               setToast(
                 editingMode === "showcase"
                   ? "Showcase updated"
-                  : "Profil mis à jour"
+                  : "Profile updated"
               );
             }}
           />
         ) : (
           <p className="yk-profile-empty">
-            {detailsError || "Chargement de l’éditeur du profil…"}
+            {detailsError || "Loading profile editor…"}
           </p>
         )}
       </Modal>
