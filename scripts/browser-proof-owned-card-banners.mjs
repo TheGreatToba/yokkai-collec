@@ -103,7 +103,7 @@ try {
   const run = fn => evaluate("(" + fn.toString() + ")()");
   const click = text =>
     evaluate(
-      "Array.from(document.querySelectorAll('dialog[open] button')).find(b=>b.textContent.trim()===" +
+      "Array.from(Array.from(document.querySelectorAll('dialog[open]')).at(-1).querySelectorAll('button')).find(b=>b.textContent.trim()===" +
         JSON.stringify(text) +
         ")?.click()"
     );
