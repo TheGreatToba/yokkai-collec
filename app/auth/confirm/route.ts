@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
   const type = params.get("type");
   const code = params.get("code");
   const recoveryRequested =
-    params.get("next") === "/reinitialiser-mot-de-passe" || type === "recovery";
+    params.get("next") === "/reset-password" || type === "recovery";
   let confirmed = false;
   let failure = "erreur";
   try {
@@ -58,11 +58,11 @@ export async function GET(request: NextRequest) {
     new URL(
       confirmed
         ? recoveryRequested
-          ? "/reinitialiser-mot-de-passe"
+          ? "/reset-password"
           : "/"
         : recoveryRequested
-          ? `/mot-de-passe-oublie?lien=${failure}`
-          : `/connexion?confirmation=${failure}`,
+          ? `/forgot-password?lien=${failure}`
+          : `/login?confirmation=${failure}`,
       publicOrigin(request)
     )
   );

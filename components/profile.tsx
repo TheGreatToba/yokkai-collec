@@ -303,8 +303,8 @@ function Featured({
   emptyLabel?: string;
 }) {
   const pathname = usePathname();
-  const publicPseudo = pathname.startsWith("/profil/")
-    ? decodeURIComponent(pathname.slice("/profil/".length))
+  const publicPseudo = pathname.startsWith("/profile/")
+    ? decodeURIComponent(pathname.slice("/profile/".length))
     : undefined;
   const label =
     emptyLabel ??
@@ -982,7 +982,7 @@ function FriendWishlist({
           <div className="yk-card-grid yk-wishlist-grid">
             {shown.map(card => (
               <Link
-                href={`/recherche?carte=${card.id}`}
+                href={`/catalog?carte=${card.id}`}
                 key={card.id}
                 onClick={openCard(card)}
                 aria-haspopup="dialog"
@@ -1479,7 +1479,7 @@ export function ProfileExperience({
                     className="yk-profile-surface"
                   >
                     <Link
-                      href={`/recherche?carte=${event.card.id}`}
+                      href={`/catalog?carte=${event.card.id}`}
                       className="yk-profile-activity-image"
                     >
                       <img
@@ -1497,7 +1497,7 @@ export function ProfileExperience({
                             ? "Card bought"
                             : "Card obtained"}
                       </p>
-                      <Link href={`/recherche?carte=${event.card.id}`}>
+                      <Link href={`/catalog?carte=${event.card.id}`}>
                         <h3>{event.card.name}</h3>
                       </Link>
                       <p className="yk-profile-muted">
@@ -1558,7 +1558,7 @@ export function ProfileExperience({
                     friend => (
                       <li key={friend.id}>
                         <Link
-                          href={`/profil/${encodeURIComponent(friend.pseudo)}`}
+                          href={`/profile/${encodeURIComponent(friend.pseudo)}`}
                         >
                           <Avatar
                             name={friend.pseudo}

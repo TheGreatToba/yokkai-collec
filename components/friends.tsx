@@ -214,7 +214,7 @@ function Person({
         image={person.avatarUrl ?? undefined}
         online={showPresence ? person.isOnline : undefined}
       />
-      <Link href={`/profil/${encodeURIComponent(person.pseudo)}`}>
+      <Link href={`/profile/${encodeURIComponent(person.pseudo)}`}>
         <strong>{person.pseudo}</strong>
         <small
           className={

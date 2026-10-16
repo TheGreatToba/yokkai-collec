@@ -126,7 +126,7 @@ function renderProfile(profile) {
     },
     "next/link": link,
     "next/navigation": {
-      usePathname: () => "/profil/Alice",
+      usePathname: () => "/profile/Alice",
       useSearchParams: () => new URLSearchParams()
     },
     "@/components/ui": ui,
@@ -176,7 +176,7 @@ test("profil rendu : propriétaire sans ami voit 0, visiteurs sans tuile ni colo
     friends: [friend],
     friendsVisible: true
   });
-  assert.match(own, /href="\/profil\/Bob"/);
+  assert.match(own, /href="\/profile\/Bob"/);
   for (const status of ["accepted", "none"])
     for (const friends of [undefined, null, [], [friend]]) {
       const html = renderProfile({
@@ -187,7 +187,7 @@ test("profil rendu : propriétaire sans ami voit 0, visiteurs sans tuile ni colo
       });
       assert.doesNotMatch(
         html,
-        />Friends<\/(?:p|h3)>|\/profil\/Bob|yk-profile-columns/
+        />Friends<\/(?:p|h3)>|\/profile\/Bob|yk-profile-columns/
       );
       assert.match(html, /View collection/);
     }

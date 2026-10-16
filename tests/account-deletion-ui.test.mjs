@@ -100,7 +100,7 @@ function actionHarness({
     }
   };
   const { deleteAccountAction, reconnectForDeletion } = load(
-    "app/parametres/actions.ts",
+    "app/settings/actions.ts",
     {
       "next/headers": {
         cookies: async () => ({
@@ -143,7 +143,7 @@ test("action verifies JWT and live user, compares own pseudo, deletes, signs out
   form.set("userId", "another-player");
   await assert.rejects(
     h.deleteAccountAction({}, form),
-    /REDIRECT:\/compte-supprime/
+    /REDIRECT:\/account-deleted/
   );
   assert.deepEqual(JSON.parse(JSON.stringify(h.calls)), [
     "verify",
@@ -153,7 +153,7 @@ test("action verifies JWT and live user, compares own pseudo, deletes, signs out
     ["signOut", { scope: "local" }],
     ["cookie", "sb-example-auth-token"],
     ["cookie", "sb-example-auth-token.0"],
-    ["redirect", "/compte-supprime"]
+    ["redirect", "/account-deleted"]
   ]);
 });
 
@@ -199,7 +199,7 @@ test("failure is safe and a logout failure after deletion never repeats deletion
   const loggedOut = actionHarness({ signOutError: {} });
   await assert.rejects(
     loggedOut.deleteAccountAction({}, form),
-    /REDIRECT:\/compte-supprime/
+    /REDIRECT:\/account-deleted/
   );
   assert.equal(
     loggedOut.calls.filter(c => Array.isArray(c) && c[0] === "delete").length,
@@ -226,10 +226,10 @@ test("reconnection clears only this session before returning to login", async ()
   const h = actionHarness();
   await assert.rejects(
     h.reconnectForDeletion({}, new FormData()),
-    /REDIRECT:\/connexion/
+    /REDIRECT:\/login/
   );
   assert.deepEqual(JSON.parse(JSON.stringify(h.calls)), [
     ["signOut", { scope: "local" }],
-    ["redirect", "/connexion"]
+    ["redirect", "/login"]
   ]);
 });

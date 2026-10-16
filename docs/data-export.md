@@ -1,7 +1,7 @@
 # Export personnel
 
 Migration : `20261014000005_data_export.sql`, **non appliquée au VPS**.
-Le bouton `/parametres` télécharge directement un JSON UTF-8 version 1 ; aucune
+Le bouton `/settings` télécharge directement un JSON UTF-8 version 1 ; aucune
 copie persistante, URL publique ou donnée d’export dans les journaux.
 
 ## Catalogue vérifié en production le 14 octobre 2026

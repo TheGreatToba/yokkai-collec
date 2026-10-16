@@ -35,7 +35,7 @@ Cette procédure utilise uniquement Supabase local. Elle ne modifie ni le VPS ni
    npm run dev
    ```
 
-7. Créer un compte sur `http://localhost:3000/inscription`, puis lui accorder le rôle admin :
+7. Créer un compte sur `http://localhost:3000/signup`, puis lui accorder le rôle admin :
 
    ```powershell
    npm run admin:grant -- --email ton-email@example.com

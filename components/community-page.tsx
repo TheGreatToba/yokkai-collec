@@ -19,7 +19,7 @@ export async function CommunityPage({
   auctionId?: string;
 }) {
   const user = await getCurrentUser();
-  if (!user) redirect("/connexion");
+  if (!user) redirect("/login");
   const isMe = !playerId || playerId === user.id;
   const name = isMe ? await getCurrentPseudo(user.id) : undefined;
   return (

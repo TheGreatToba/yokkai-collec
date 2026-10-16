@@ -67,7 +67,7 @@ export function notificationItem(
       ...common,
       title: "New friend request",
       text: `${notification.actorPseudo ?? "Deleted player"} sent you a friend request.`,
-      href: "/amis",
+      href: "/friends",
       kind: "friend"
     };
   if (notification.type === "outbid")
@@ -75,7 +75,7 @@ export function notificationItem(
       ...common,
       title: "You've been outbid",
       text: `You've been outbid on ${notification.cardName ?? "a card"}.`,
-      href: `/marche/${notification.referenceId}`,
+      href: `/market/${notification.referenceId}`,
       kind: "outbid"
     };
   if (notification.type === "trade_offer_received")
@@ -83,7 +83,7 @@ export function notificationItem(
       ...common,
       title: "New trade offer",
       text: `${notification.actorPseudo ?? "Deleted player"} sent you a trade offer.`,
-      href: `/echanges?offre=${notification.referenceId}`,
+      href: `/trades?offre=${notification.referenceId}`,
       kind: "trade"
     };
   if (notification.type === "trade_counter_offer_received")
@@ -91,7 +91,7 @@ export function notificationItem(
       ...common,
       title: "New counteroffer",
       text: `${notification.actorPseudo ?? "Deleted player"} sent you a counteroffer.`,
-      href: `/echanges?offre=${notification.referenceId}`,
+      href: `/trades?offre=${notification.referenceId}`,
       kind: "trade-counter"
     };
   if (notification.type === "trade_offer_accepted")
@@ -99,7 +99,7 @@ export function notificationItem(
       ...common,
       title: "Offer accepted",
       text: `${notification.actorPseudo ?? "Deleted player"} accepted your trade offer.`,
-      href: `/echanges?offre=${notification.referenceId}`,
+      href: `/trades?offre=${notification.referenceId}`,
       kind: "trade-accepted"
     };
   if (notification.type === "trade_offer_declined")
@@ -107,7 +107,7 @@ export function notificationItem(
       ...common,
       title: "Offer declined",
       text: `${notification.actorPseudo ?? "Deleted player"} declined your trade offer.`,
-      href: `/echanges?offre=${notification.referenceId}`,
+      href: `/trades?offre=${notification.referenceId}`,
       kind: "trade-declined"
     };
   if (notification.type === "trade_offer_cancelled")
@@ -115,7 +115,7 @@ export function notificationItem(
       ...common,
       title: "Offer canceled",
       text: `${notification.actorPseudo ?? "Deleted player"} canceled their trade offer.`,
-      href: `/echanges?offre=${notification.referenceId}`,
+      href: `/trades?offre=${notification.referenceId}`,
       kind: "trade-cancelled"
     };
   if (notification.type === "auction_won")
@@ -123,7 +123,7 @@ export function notificationItem(
       ...common,
       title: "Auction won",
       text: `You won ${notification.cardName ?? "a card"}!`,
-      href: `/marche/${notification.referenceId}`,
+      href: `/market/${notification.referenceId}`,
       kind: "won"
     };
   if (notification.type === "auction_sold")
@@ -131,7 +131,7 @@ export function notificationItem(
       ...common,
       title: "Card sold",
       text: `You sold ${notification.cardName ?? "a character"} for ${(notification.karaAmount ?? 0).toLocaleString("en-US")} Karas.`,
-      href: `/marche/${notification.referenceId}`,
+      href: `/market/${notification.referenceId}`,
       kind: "sold"
     };
   if (notification.type === "auction_chat_mention")
@@ -139,7 +139,7 @@ export function notificationItem(
       ...common,
       title: "Auction mention",
       text: `${notification.actorPseudo ?? "Deleted player"} mentioned you in the chat for ${notification.cardName ?? "an auction"}.`,
-      href: `/marche/${notification.referenceId}#chat-enchere`,
+      href: `/market/${notification.referenceId}#chat-enchere`,
       kind: "mention"
     };
   if (notification.type === "achievement_completed")
@@ -147,7 +147,7 @@ export function notificationItem(
       ...common,
       title: "Achievement unlocked",
       text: `New achievement: ${notification.achievementName ?? "an achievement"}.`,
-      href: `/succes#${notification.referenceId}`,
+      href: `/achievements#${notification.referenceId}`,
       kind: "mission"
     };
   if (notification.type === "wishlist_card_on_auction")
@@ -155,7 +155,7 @@ export function notificationItem(
       ...common,
       title: "Wishlist card up for auction",
       text: `${notification.cardName ?? "A card"} on your wishlist is now up for auction. Take a look!`,
-      href: `/marche/${notification.referenceId}`,
+      href: `/market/${notification.referenceId}`,
       kind: "wishlist"
     };
   return {
@@ -313,7 +313,7 @@ export function Topbar({
             Collection
           </Link>
           <Link
-            href="/marche"
+            href="/market"
             aria-current={
               view === "market" || view === "auction" ? "page" : undefined
             }
@@ -321,13 +321,13 @@ export function Topbar({
             Market
           </Link>
           <Link
-            href="/echanges"
+            href="/trades"
             aria-current={view === "trades" ? "page" : undefined}
           >
             Trades
           </Link>
           <Link
-            href="/amis"
+            href="/friends"
             aria-current={view === "friends" ? "page" : undefined}
           >
             Friends
@@ -339,7 +339,7 @@ export function Topbar({
             Wishlist
           </Link>
           <Link
-            href="/recherche"
+            href="/catalog"
             aria-current={view === "search" ? "page" : undefined}
           >
             Catalog
@@ -406,7 +406,7 @@ export function Topbar({
             </svg>
           </button>
           <Link
-            href="/recherche"
+            href="/catalog"
             className="yk-icon-button"
             aria-label="Open catalog"
           >
@@ -657,7 +657,7 @@ export function Topbar({
                     className="yk-account-actions"
                   >
                     <Link
-                      href="/profil"
+                      href="/profile"
                       className="yk-account-action"
                       onClick={() => setPanel(null)}
                     >
@@ -676,7 +676,7 @@ export function Topbar({
                       View my profile
                     </Link>
                     <Link
-                      href="/profil?edition=1"
+                      href="/profile?edition=1"
                       className="yk-account-action"
                       onClick={() => setPanel(null)}
                     >
@@ -695,7 +695,7 @@ export function Topbar({
                       Settings
                     </Link>
                     <Link
-                      href="/succes"
+                      href="/achievements"
                       className="yk-account-action"
                       onClick={() => setPanel(null)}
                     >

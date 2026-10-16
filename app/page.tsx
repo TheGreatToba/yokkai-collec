@@ -58,7 +58,7 @@ const steps = [
 
 export default async function Home() {
   const user = await getCurrentUser();
-  const primaryHref = user ? "/boosters" : "/inscription";
+  const primaryHref = user ? "/boosters" : "/signup";
   return (
     <div className="yk-landing">
       <header className="yk-landing-header">
@@ -83,7 +83,7 @@ export default async function Home() {
               Play now
             </Link>
           ) : (
-            <Link href="/connexion" className="yk-landing-login">
+            <Link href="/login" className="yk-landing-login">
               Sign in
             </Link>
           )}
@@ -113,10 +113,7 @@ export default async function Home() {
                 <span aria-hidden="true">✦</span>
               </Link>
               {!user && (
-                <Link
-                  href="/connexion"
-                  className="yk-button yk-button-secondary"
-                >
+                <Link href="/login" className="yk-button yk-button-secondary">
                   I already have an account
                 </Link>
               )}

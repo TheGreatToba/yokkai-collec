@@ -21,7 +21,7 @@ export async function reconnectForDeletion(
   } catch {
     return { error: "Couldn't sign out. Please try again." };
   }
-  redirect("/connexion");
+  redirect("/login");
 }
 
 export async function deleteAccountAction(
@@ -97,5 +97,5 @@ export async function deleteAccountAction(
       cookieStore.delete(cookie.name);
   }
   revalidatePath("/", "layout");
-  redirect("/compte-supprime");
+  redirect("/account-deleted");
 }

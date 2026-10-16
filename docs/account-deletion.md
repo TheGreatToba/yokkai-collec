@@ -44,4 +44,4 @@ Configurer la clé privée dans l’environnement serveur de l’application (ja
 dans une variable `NEXT_PUBLIC_`). Le bouton ne peut pas supprimer de compte sans
 cette configuration ; aucun secret ne doit être envoyé dans une conversation.
 Après succès, l’action déconnecte, efface les cookies Auth et redirige vers la
-page publique `/compte-supprime`.
+page publique `/account-deleted`.

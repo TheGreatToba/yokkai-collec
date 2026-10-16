@@ -36,7 +36,7 @@ export function PasswordResetRequestForm({
             </p>
           </div>
         </div>
-        <Link href="/connexion" className="yk-auth-link">
+        <Link href="/login" className="yk-auth-link">
           Back to sign in →
         </Link>
       </div>
@@ -97,7 +97,7 @@ export function PasswordResetRequestForm({
         </button>
       </fieldset>
       <p className="yk-auth-switch">
-        <Link href="/connexion" className="yk-auth-link">
+        <Link href="/login" className="yk-auth-link">
           Back to sign in
         </Link>
       </p>

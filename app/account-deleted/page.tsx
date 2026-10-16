@@ -15,7 +15,7 @@ export default function AccountDeletedPage() {
         Your cards, Karas, avatar, and sign-in identity have been deleted. Your
         sessions have been revoked. Retained history will show “Deleted player”.
       </p>
-      <Link href="/connexion" className="mt-8 inline-block underline">
+      <Link href="/login" className="mt-8 inline-block underline">
         Back to sign in
       </Link>
     </main>

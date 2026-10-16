@@ -33,5 +33,5 @@ export function cardShareUrl(id: string) {
   if (!/^[0-9a-f]{32}$/.test(id)) throw new Error("Invalid share link.");
   const origin = process.env.NEXT_PUBLIC_SITE_URL;
   if (!origin) throw new Error("The site's public address is unavailable.");
-  return new URL(`/partage/${id}`, origin).href;
+  return new URL(`/share/${id}`, origin).href;
 }

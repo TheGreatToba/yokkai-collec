@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { Button } from "@/components/ui";
-import { reconnectForDeletion } from "@/app/parametres/actions";
+import { reconnectForDeletion } from "@/app/settings/actions";
 
 export function DataExportForm() {
   const [pending, setPending] = useState(false);

@@ -27,7 +27,7 @@ function CardOwnerList({
         <ul>
           {owners.map(owner => (
             <li key={owner.id}>
-              <Link href={`/profil/${owner.id}`} title={owner.pseudo}>
+              <Link href={`/profile/${owner.id}`} title={owner.pseudo}>
                 <span className="yk-catalogue-owner-name">{owner.pseudo}</span>
                 <span className="yk-catalogue-owner-copies">
                   {owner.copies.toLocaleString("en-US")}{" "}
@@ -173,7 +173,7 @@ export function CatalogueCardModal({
             {detail?.activeAuctionId ? (
               <Link
                 className="yk-button mt-5 flex w-full justify-center"
-                href={`/marche/${detail.activeAuctionId}`}
+                href={`/market/${detail.activeAuctionId}`}
               >
                 View auction
               </Link>

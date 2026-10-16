@@ -252,7 +252,7 @@ export async function requestPasswordReset(
     const supabase = createClient(await cookies());
     const result = await supabase.auth.resetPasswordForEmail(email, {
       ...captcha,
-      redirectTo: `${siteOrigin}/auth/confirm?next=/reinitialiser-mot-de-passe`
+      redirectTo: `${siteOrigin}/auth/confirm?next=/reset-password`
     });
     if (result.error && result.error.code !== "user_not_found") {
       return {
@@ -322,7 +322,7 @@ export async function updateRecoveredPassword(
     return { error: authError() };
   }
   revalidatePath("/", "layout");
-  redirect("/connexion?mot-de-passe=modifie");
+  redirect("/login?mot-de-passe=modifie");
 }
 
 export async function changePassword(
@@ -384,5 +384,5 @@ export async function signOut(): Promise<AuthState> {
     return { error: "Couldn't sign out. Please try again." };
   }
   revalidatePath("/", "layout");
-  redirect("/connexion");
+  redirect("/login");
 }

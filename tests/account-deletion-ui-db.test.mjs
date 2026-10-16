@@ -173,7 +173,7 @@ test("verified deletion action anonymizes auctions/trade/avatar on a disposable 
       };
     }
   };
-  const { deleteAccountAction } = load("app/parametres/actions.ts", {
+  const { deleteAccountAction } = load("app/settings/actions.ts", {
     "next/headers": {
       cookies: async () => ({
         getAll: () => [{ name: "sb-example-auth-token" }],
@@ -202,9 +202,9 @@ test("verified deletion action anonymizes auctions/trade/avatar on a disposable 
     deleteAccountAction({}, form).then(state =>
       assert.fail(JSON.stringify(state))
     ),
-    /REDIRECT:\/compte-supprime/
+    /REDIRECT:\/account-deleted/
   );
-  assert.deepEqual(events, ["signOut", "cookie", "/compte-supprime"]);
+  assert.deepEqual(events, ["signOut", "cookie", "/account-deleted"]);
   await db.exec("reset role");
   for (const [sql, args] of [
     ["select count(*)::int n from auth.users where id=$1", [id]],

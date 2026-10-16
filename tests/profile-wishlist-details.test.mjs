@@ -79,7 +79,7 @@ test("une carte de wishlist ouvre son détail sur place et conserve un lien de s
   });
   const [card] = links(tree);
   assert.ok(card);
-  assert.equal(card.props.href, "/recherche?carte=wishlist-card-1");
+  assert.equal(card.props.href, "/catalog?carte=wishlist-card-1");
   assert.equal(card.props["aria-haspopup"], "dialog");
   card.props.onClick({ button: 0, preventDefault: () => prevented++ });
   assert.equal(selected, cards[0]);

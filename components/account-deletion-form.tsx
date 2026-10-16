@@ -5,7 +5,7 @@ import { Button } from "@/components/ui";
 import {
   deleteAccountAction,
   reconnectForDeletion
-} from "@/app/parametres/actions";
+} from "@/app/settings/actions";
 
 export function AccountDeletionForm({ pseudo }: { pseudo: string }) {
   const [state, action, pending] = useActionState(deleteAccountAction, {});
