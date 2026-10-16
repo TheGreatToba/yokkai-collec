@@ -994,7 +994,7 @@ function AuctionOutcome({ auction }: { auction: AuctionPresentation }) {
       <div role="status" className="yk-auction-outcome yk-outcome-won">
         <p className="yk-outcome-badge">Card sold</p>
         <p className="mt-2 text-sm text-ink-2">
-          Sold to {auction.winner ?? "un joueur"} for{" "}
+          Sold to {auction.winner ?? "a player"} for{" "}
           {formatKaras(auction.amount)}.
         </p>
       </div>

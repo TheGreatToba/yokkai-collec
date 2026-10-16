@@ -64,3 +64,4 @@ Rules:
 - Formats (dates, nombres, pluriels) en-US ; noms propres de cartes/personnages/franchises inchangés.
 - PR, commits et docs internes peuvent rester en français ; seul ce que voient les joueurs doit être en anglais.
 - Avant chaque PR : grep des textes visibles ajoutés, aucun mot de français dans l'interface.
+- Toute nouvelle fonctionnalité ou modification doit écrire directement en anglais ses textes destinés aux joueurs, y compris les états d’erreur et les textes accessibles, sans attendre une PR de traduction.
