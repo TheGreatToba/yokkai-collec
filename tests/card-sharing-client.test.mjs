@@ -40,7 +40,7 @@ test("partage client : consentement explicite, erreurs sûres et URL absolue", a
   assert.equal(calls[0].args.p_instance_id, "owned-instance");
   assert.equal(
     api.cardShareUrl("a".repeat(32)),
-    `https://yokkai.example/partage/${"a".repeat(32)}`
+    `https://yokkai.example/share/${"a".repeat(32)}`
   );
   assert.throws(() => api.cardShareUrl("bad"));
   failure = { message: "private SQL details" };

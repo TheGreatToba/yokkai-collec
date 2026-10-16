@@ -247,14 +247,14 @@ export function CollectionView({
   ) => Promise<{ marketValue: number | null }>;
 }) {
   const pathname = usePathname();
-  const profileIdentifier = pathname?.startsWith("/profil/")
-    ? decodeURIComponent(pathname.slice("/profil/".length))
+  const profileIdentifier = pathname?.startsWith("/profile/")
+    ? decodeURIComponent(pathname.slice("/profile/".length))
     : undefined;
   const resolvedTradeHref =
     tradeHref ??
     (readOnly && profileIdentifier
       ? (card: CollectedCard) =>
-          `/echanges?ami=${encodeURIComponent(profileIdentifier)}&carte=${encodeURIComponent(card.instanceId)}`
+          `/trades?ami=${encodeURIComponent(profileIdentifier)}&carte=${encodeURIComponent(card.instanceId)}`
       : undefined);
   const [category, setCategory] = useState("");
   const [query, setQuery] = useState("");
@@ -2442,7 +2442,7 @@ export function CollectionView({
                 <Button variant="secondary" onClick={closeAuction}>
                   Close
                 </Button>
-                <Link href="/marche" className="yk-button yk-button-primary">
+                <Link href="/market" className="yk-button yk-button-primary">
                   View market
                 </Link>
               </div>

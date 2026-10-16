@@ -147,11 +147,11 @@ test("une panne de rendu ne devient jamais une erreur 500", async () => {
 
 test("la page et ses métadonnées restent strictement publiques", () => {
   const page = readFileSync(
-    new URL("../app/partage/[id]/page.tsx", import.meta.url),
+    new URL("../app/share/[id]/page.tsx", import.meta.url),
     "utf8"
   );
   assert.match(page, /Join Yokkai Collec/);
-  assert.match(page, /href="\/inscription"/);
+  assert.match(page, /href="\/signup"/);
   assert.match(page, /robots:\s*\{\s*index:\s*false,\s*follow:\s*false/);
   assert.match(page, /summary_large_image/);
   assert.match(page, /NEXT_PUBLIC_SITE_URL/);
@@ -212,7 +212,7 @@ test("page publique : validation partagée et cadre nommé pour un autre hôte",
     ["invalid", false]
   ]) {
     assert.equal(isShareImageUrl(url), valid);
-    const page = load("app/partage/[id]/page.tsx", {
+    const page = load("app/share/[id]/page.tsx", {
       require(name) {
         if (name === "@/lib/server/card-sharing")
           return {
@@ -258,4 +258,40 @@ test("changer l’illustration produit un nouveau PNG malgré un cache mémoire 
   const again = await cardShareImageResponse(id, "og", dependencies);
   assert.deepEqual([...new Uint8Array(await again.arrayBuffer())], [2]);
   assert.equal(renders, 2);
+});
+
+test("shared metadata uses the English canonical URL and keeps the same opaque ID", async () => {
+  const page = load("app/share/[id]/page.tsx", {
+    process: {
+      env: {
+        NEXT_PUBLIC_SITE_URL: "https://yokkai.example",
+        NODE_ENV: "production"
+      }
+    },
+    require(name) {
+      if (name === "@/lib/server/card-sharing")
+        return {
+          getSharedCard: async () => card,
+          isShareImageUrl: () => false
+        };
+      if (name === "next/link") return { __esModule: true, default: "a" };
+      if (name === "next/navigation")
+        return { notFound: () => assert.fail("share exists") };
+      return require(name);
+    }
+  });
+  const metadata = await page.generateMetadata({
+    params: Promise.resolve({ id })
+  });
+  assert.equal(
+    metadata.alternates.canonical,
+    `https://yokkai.example/share/${id}`
+  );
+  assert.equal(metadata.openGraph.url, metadata.alternates.canonical);
+  assert.equal(
+    metadata.openGraph.images[0].url,
+    `${metadata.alternates.canonical}/image/og`
+  );
+  assert.equal(metadata.robots.index, false);
+  assert.equal(metadata.robots.follow, false);
 });

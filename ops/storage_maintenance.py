@@ -260,7 +260,7 @@ def health(rows=None, current=None):
 
 
 def check_http(base):
-    for path in ("/", "/connexion", "/inscription"):
+    for path in ("/", "/login", "/signup"):
         code = run(["curl", "-fsSL", "--max-time", "20", "-o", "/dev/null",
                     "-w", "%{http_code}", base + path])
         if code != "200":

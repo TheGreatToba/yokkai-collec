@@ -3,7 +3,7 @@
 ## Comportement et limites
 
 - Chaque statut est publié indépendamment ; les infos joueur ont leur propre erreur et reprise.
-- Priorité (a) : statuts Régulier/Décisif et infos joueur. (b) : collection/dossiers/enchères après les statuts, ou après 1 s. (c) : notifications/profil/admin/présence après le lancement de (b), ou après 2 s.
+- Priorité (a) : statuts Régulier/Décisif et infos joueur. (b) : collection/dossiers/enchères après les statuts, ou après 1 s. (c) : notifications/profile/admin/présence après le lancement de (b), ou après 2 s.
 - Les lectures HTTP initiales sont annulées après 15 s par requête. L’attente locale de session des lectures est également bornée ; le SDK Auth ne fournit pas de signal d’annulation pour cette attente. Aucune limite globale ne couvre la collection paginée.
 - Les pages reçues restent dans un checkpoint privé. Réessayer reprend le curseur de la page échouée ; aucune collection partielle n’est publiée. Les invalidations et changements de compte effacent ces checkpoints.
 - `PGRST_DB_MAX_ROWS=1000` vérifié en lecture seule sur le conteneur `supabase-rest-gawq4yyxiise96wens0dt1ex`. Pages conservées à 500 ; fin immédiate lorsque la réponse contient moins de 500 lignes.
@@ -56,7 +56,7 @@ Migrations : aucune ; rien à appliquer sur le VPS.
 
 ## Validation locale
 
-Suite complète : 403 tests réussis, aucun échec, un test PostgreSQL optionnel ignoré. Lint sans erreur (7 avertissements préexistants), types et build vérifiés. Preconnect dans le HTML servi de `/connexion` : `https://build-supabase.example.invalid`, même avec une origine différente au démarrage du serveur ; il provient donc bien du build.
+Suite complète : 403 tests réussis, aucun échec, un test PostgreSQL optionnel ignoré. Lint sans erreur (7 avertissements préexistants), types et build vérifiés. Preconnect dans le HTML servi de `/login` : `https://build-supabase.example.invalid`, même avec une origine différente au démarrage du serveur ; il provient donc bien du build.
 
 ## Mise à jour après fusion de #167
 

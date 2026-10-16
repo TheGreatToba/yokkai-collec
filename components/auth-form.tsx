@@ -71,7 +71,7 @@ export function AuthForm({
           email={state.values?.email}
           initialDelay={state.retryAfter}
         />
-        <Link href="/connexion" className="yk-auth-link">
+        <Link href="/login" className="yk-auth-link">
           Sign in →
         </Link>
       </div>
@@ -241,16 +241,13 @@ export function AuthForm({
         </fieldset>
         <p className="yk-auth-switch">
           {signup ? "Already have an account? " : "New here? "}
-          <Link
-            href={signup ? "/connexion" : "/inscription"}
-            className="yk-auth-link"
-          >
+          <Link href={signup ? "/login" : "/signup"} className="yk-auth-link">
             {signup ? "Sign in" : "Join the hunt"}
           </Link>
         </p>
         {!signup && (
           <p className="yk-auth-switch">
-            <Link href="/mot-de-passe-oublie" className="yk-auth-link">
+            <Link href="/forgot-password" className="yk-auth-link">
               Forgot password?
             </Link>
           </p>

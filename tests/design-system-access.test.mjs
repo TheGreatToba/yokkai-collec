@@ -44,7 +44,7 @@ test("design-system denies production requests before session refresh and retain
         assert.equal(sessions, 0);
       } else assert.equal(response.passed, true);
     }
-    for (const pathname of ["/connexion", "/design-system-other"]) {
+    for (const pathname of ["/login", "/design-system-other"]) {
       assert.equal(
         (await context.exports.proxy({ nextUrl: { pathname } })).passed,
         true

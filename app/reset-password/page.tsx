@@ -26,7 +26,7 @@ export default async function ResetPasswordPage() {
             Collec’
           </span>
         </Link>
-        <Link href="/connexion" className="yk-auth-return">
+        <Link href="/login" className="yk-auth-return">
           <span aria-hidden="true">←</span> Sign in
         </Link>
       </header>
@@ -44,7 +44,7 @@ export default async function ResetPasswordPage() {
               <p role="alert" className="auth-error">
                 This password reset link is invalid or has expired.
               </p>
-              <Link href="/mot-de-passe-oublie" className="yk-auth-link">
+              <Link href="/forgot-password" className="yk-auth-link">
                 Request a new link →
               </Link>
             </div>

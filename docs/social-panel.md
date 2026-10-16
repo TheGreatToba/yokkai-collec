@@ -15,7 +15,7 @@
 - Tout joueur connecté peut liker un profil, avec un seul like par joueur et un plafond quotidien.
 - L'historique des likes n'est visible que par le propriétaire du profil.
 - Chaque joueur règle la visibilité de sa liste d’amis. Actuellement ce choix utilise le réglage de profil public : un profil public expose sa liste, un profil privé la réserve au propriétaire, y compris face à un ami.
-- Le propriétaire conserve l’accès à sa liste sur son profil et sur /amis.
+- Le propriétaire conserve l’accès à sa liste sur son profil et sur /friends.
 - Une future PR ajoutera un compteur de likes sur le profil public.
 - La présence en ligne est déjà livrée : la RPC ne renvoie les statuts et dernières activités que pour les amitiés acceptées du joueur connecté, sans compteur global.
 - Un réglage permet d'« apparaître hors ligne ».

@@ -11,7 +11,7 @@ export default function SharedCardNotFound() {
         </p>
         <Link
           className="yk-button yk-button-primary mt-8 inline-flex"
-          href="/inscription"
+          href="/signup"
         >
           Join Yokkai Collec&apos;
         </Link>

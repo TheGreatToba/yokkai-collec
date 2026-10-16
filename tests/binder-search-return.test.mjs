@@ -50,7 +50,7 @@ function collection(readOnly = false) {
       return { jsx, jsxs: jsx, Fragment: "fragment" };
     if (name === "next/navigation")
       return {
-        usePathname: () => (readOnly ? "/profil/other" : "/collection")
+        usePathname: () => (readOnly ? "/profile/other" : "/collection")
       };
     if (name === "@/hooks/use-collection-sort")
       return { useCollectionSort: () => useState("rarity") };

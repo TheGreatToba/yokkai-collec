@@ -30,12 +30,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!card) notFound();
   const owner = card.pseudo ? ` by ${card.pseudo}` : "";
   const description = `${card.cardName}, a ${card.rarity}${card.shiny ? " Shiny" : ""} card from ${card.franchise}, shared${owner} on Yokkai Collec'.`;
-  const image = `${siteOrigin()}/partage/${id}/image/og`;
+  const url = `${siteOrigin()}/share/${id}`;
+  const image = `${url}/image/og`;
   return {
     title: `${card.cardName} · Yokkai Collec'`,
     description,
     robots: { index: false, follow: false },
+    alternates: { canonical: url },
     openGraph: {
+      url,
       locale: "en_US",
       title: `${card.cardName} · Yokkai Collec'`,
       description,
@@ -82,7 +85,7 @@ export default async function SharedCardPage({ params }: Props) {
         ) : null}
         <Link
           className="yk-button yk-button-primary mt-8 inline-flex"
-          href="/inscription"
+          href="/signup"
         >
           Join Yokkai Collec&apos;
         </Link>

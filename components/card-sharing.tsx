@@ -26,11 +26,7 @@ export function CardShareButton({
       <Button variant="secondary" onClick={() => setOpen(true)}>
         Share
       </Button>
-      <Modal
-        open={open}
-        onClose={() => setOpen(false)}
-        title={`Partager ${name}`}
-      >
+      <Modal open={open} onClose={() => setOpen(false)} title={`Share ${name}`}>
         {open && (
           <ShareSheet key={instanceId} instanceId={instanceId} name={name} />
         )}

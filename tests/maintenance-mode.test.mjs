@@ -67,8 +67,8 @@ test("une valeur autre que true laisse fonctionner l'application", async () => {
 test("seules les routes publiques de partage contournent le rafraîchissement de session", async () => {
   const id = "a".repeat(32);
   for (const path of [
-    `/partage/${id}`,
-    ...["og", "story", "square"].map(format => `/partage/${id}/image/${format}`)
+    `/share/${id}`,
+    ...["og", "story", "square"].map(format => `/share/${id}/image/${format}`)
   ]) {
     const loaded = loadProxy("false");
     const response = await loaded.proxy(
@@ -79,9 +79,9 @@ test("seules les routes publiques de partage contournent le rafraîchissement de
   }
   for (const path of [
     "/collection",
-    `/partage/${id}x`,
-    `/partage/${id}/image/raw`,
-    "/partage/not-hex"
+    `/share/${id}x`,
+    `/share/${id}/image/raw`,
+    "/share/not-hex"
   ]) {
     const loaded = loadProxy("false");
     await loaded.proxy(new NextRequest(`http://localhost${path}`));

@@ -197,7 +197,7 @@ test("réinitialisation : demande non énumérable et retour canonique", async (
   assert.equal(sent.email, "joueur@example.com");
   assert.equal(
     sent.options.redirectTo,
-    "https://yokkai.example/auth/confirm?next=/reinitialiser-mot-de-passe"
+    "https://yokkai.example/auth/confirm?next=/reset-password"
   );
   assert.equal(JSON.stringify(result).includes("user_not_found"), false);
 });
@@ -224,7 +224,7 @@ test("réinitialisation : changement authentifié, fermeture globale et retour c
       {},
       form({ password: validPassword, confirmPassword: validPassword })
     ),
-    /REDIRECT:\/connexion\?mot-de-passe=modifie/
+    /REDIRECT:\/login\?mot-de-passe=modifie/
   );
   assert.equal(calls.length, 2);
   assert.equal(calls[0][0], "update");
@@ -512,7 +512,7 @@ test("déconnexion locale, propagation des erreurs et redirection après succès
       return { error: null };
     }
   });
-  await assert.rejects(api.signOut(), /REDIRECT:\/connexion/);
+  await assert.rejects(api.signOut(), /REDIRECT:\/login/);
   const failed = await actions({
     signOut: async () => ({ error: { message: "network" } })
   }).signOut();
@@ -563,7 +563,7 @@ test("confirmation : lien absent, expiré ou refusé", async () => {
     );
     assert.equal(
       response.headers.get("location"),
-      "https://yokkai.example/connexion?confirmation=erreur"
+      "https://yokkai.example/login?confirmation=erreur"
     );
   }
   const expired = await confirm({
@@ -581,7 +581,7 @@ test("confirmation : récupération par code ou token vers la page de nouveau mo
     }
   });
   for (const query of [
-    "code=valid&next=/reinitialiser-mot-de-passe",
+    "code=valid&next=/reset-password",
     "token_hash=hash&type=recovery"
   ]) {
     const response = await handler(
@@ -589,7 +589,7 @@ test("confirmation : récupération par code ou token vers la page de nouveau mo
     );
     assert.equal(
       response.headers.get("location"),
-      "https://yokkai.example/reinitialiser-mot-de-passe"
+      "https://yokkai.example/reset-password"
     );
   }
 });
@@ -603,12 +603,12 @@ test("confirmation : utilise le domaine public configuré derrière le proxy", a
   );
   const response = await handler(
     new NextRequest(
-      "https://localhost:3000/auth/confirm?code=valid&next=/reinitialiser-mot-de-passe"
+      "https://localhost:3000/auth/confirm?code=valid&next=/reset-password"
     )
   );
   assert.equal(
     response.headers.get("location"),
-    "https://yokkai-collec.com/reinitialiser-mot-de-passe"
+    "https://yokkai-collec.com/reset-password"
   );
 });
 
@@ -745,9 +745,7 @@ test("renvoi : erreur levée ou refus opérationnel ne devient jamais un succès
 
 test("confirmation : indisponibilité Auth distincte d’un lien expiré ou consommé", async () => {
   for (const recovery of [false, true]) {
-    const path = recovery
-      ? "mot-de-passe-oublie?lien="
-      : "connexion?confirmation=";
+    const path = recovery ? "forgot-password?lien=" : "login?confirmation=";
     const query = recovery
       ? "token_hash=hash&type=recovery"
       : "token_hash=hash&type=signup";

@@ -145,7 +145,7 @@ function CardOwnerList({
         <ul>
           {owners.map(owner => (
             <li key={owner.id}>
-              <Link href={`/profil/${owner.id}`} title={owner.pseudo}>
+              <Link href={`/profile/${owner.id}`} title={owner.pseudo}>
                 <span className="yk-catalogue-owner-name">{owner.pseudo}</span>
                 <span className="yk-catalogue-owner-copies">
                   {owner.copies.toLocaleString("en-US")}{" "}
@@ -293,7 +293,7 @@ export function CatalogueCardModal({
             {detail?.activeAuctionId ? (
               <Link
                 className="yk-button mt-5 flex w-full justify-center"
-                href={`/marche/${detail.activeAuctionId}`}
+                href={`/market/${detail.activeAuctionId}`}
               >
                 View auction
               </Link>
@@ -503,7 +503,7 @@ function AuctionTile({
   return (
     <li className="yk-market-tile">
       <Link
-        href={`/marche/${a.id}`}
+        href={`/market/${a.id}`}
         className="yk-market-tile-link"
         aria-label={`View auction for ${a.card.name}, ${formatKaras(a.amount)}, ${a.finished ? "ended" : `ends in ${a.remaining}`}`}
       >
@@ -981,7 +981,7 @@ function AuctionOutcome({ auction }: { auction: AuctionPresentation }) {
             : "Another bid won."}{" "}
           Your bid has been refunded.
         </p>
-        <Link href="/marche" className="yk-button yk-button-secondary mt-4">
+        <Link href="/market" className="yk-button yk-button-secondary mt-4">
           Back to market
         </Link>
       </div>
@@ -1253,7 +1253,7 @@ export function AuctionChatPanel({
               />
               <div>
                 <p>
-                  <Link href={`/profil/${encodeURIComponent(item.pseudo)}`}>
+                  <Link href={`/profile/${encodeURIComponent(item.pseudo)}`}>
                     {item.mine ? "You" : item.pseudo}
                   </Link>
                   <time dateTime={item.createdAt}>
@@ -1496,7 +1496,7 @@ export function AuctionView({
                 <span className="font-semibold">Deleted player</span>
               ) : (
                 <Link
-                  href={`/profil/${encodeURIComponent(auction.seller)}`}
+                  href={`/profile/${encodeURIComponent(auction.seller)}`}
                   className="font-semibold hover:text-accent-gold"
                 >
                   {auction.seller}
@@ -1717,7 +1717,7 @@ export function AuctionView({
                     <strong>Deleted player</strong>
                   ) : (
                     <Link
-                      href={`/profil/${encodeURIComponent(h.name)}`}
+                      href={`/profile/${encodeURIComponent(h.name)}`}
                       className="font-semibold hover:text-accent-gold"
                     >
                       {h.name}
@@ -2304,7 +2304,7 @@ export function WishlistView({
               Get an alert when one of these cards is listed for auction.
             </p>
           </div>
-          <Link href="/recherche" className="yk-button yk-button-secondary">
+          <Link href="/catalog" className="yk-button yk-button-secondary">
             Discover cards
           </Link>
         </div>
@@ -2323,7 +2323,7 @@ export function WishlistView({
           <p>
             Add cards from the catalog or your collection to find them here.
           </p>
-          <Link href="/recherche" className="yk-button yk-button-secondary">
+          <Link href="/catalog" className="yk-button yk-button-secondary">
             Explore catalog
           </Link>
         </div>
@@ -2793,7 +2793,7 @@ export function CommunityView({
         {screen !== "market" && (
           <div>
             {screen === "auction" && (
-              <Link href="/marche" className="yk-back-link">
+              <Link href="/market" className="yk-back-link">
                 ← Back to market
               </Link>
             )}

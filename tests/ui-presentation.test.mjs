@@ -161,7 +161,7 @@ test("les routes consommatrices de MarketView ont exactement un h1 sans saut de 
   const { MarketView } = load("components/community-views.tsx");
   const exports = {};
   const code = ts.transpileModule(
-    readFileSync(path.join(root, "app/marche/page.tsx"), "utf8"),
+    readFileSync(path.join(root, "app/market/page.tsx"), "utf8"),
     {
       compilerOptions: {
         module: ts.ModuleKind.CommonJS,
@@ -221,7 +221,7 @@ test("deleted avatars and auction participants render safely without profile lin
   );
   const html = render(AuctionView, { auction });
   assert.match(html, /Joueur supprimé/);
-  assert.doesNotMatch(html, /\/profil\/(?:Joueur|undefined|null)/);
+  assert.doesNotMatch(html, /\/profile\/(?:Joueur|undefined|null)/);
 });
 
 test("offscreen avatars defer loading and decode asynchronously without losing their alt text", () => {
@@ -855,7 +855,7 @@ test("le compteur wishlist d'un ami ouvre toute sa wishlist et chaque carte rest
   assert.match(
     normalizeWhitespace(profile),
     normalizeWhitespace(
-      /shown\.map\(card=>\(?<Link href=\{`\/recherche\?carte=\$\{card\.id\}`\}/
+      /shown\.map\(card=>\(?<Link href=\{`\/catalog\?carte=\$\{card\.id\}`\}/
     )
   );
   assert.match(
@@ -909,7 +909,7 @@ test("une carte d'ami ouvre une proposition d'échange présélectionnée et ext
   );
   assert.match(
     normalizeWhitespace(collection),
-    normalizeWhitespace(/\/echanges\?ami=.*&carte=/)
+    normalizeWhitespace(/\/trades\?ami=.*&carte=/)
   );
   assert.match(
     normalizeWhitespace(collection),
@@ -1548,7 +1548,7 @@ test("l’avatar ouvre un menu profil compact avec résumé et actions", () => {
       normalizeWhitespace('href="/wishlist"')
     ) <
       normalizeWhitespace(topbar).indexOf(
-        normalizeWhitespace('href="/recherche" aria-current')
+        normalizeWhitespace('href="/catalog" aria-current')
       )
   );
   assert.match(
@@ -3052,7 +3052,12 @@ test("les notifications connues ont un texte et une redirection, les inconnues u
     assert.match(source, new RegExp(glyph));
   assert.match(source, /New achievement/);
   assert.match(source, /sent you a friend request/);
-  for (const href of ["/marche/", "/amis", "/echanges?offre=", "/succes#"]) {
+  for (const href of [
+    "/market/",
+    "/friends",
+    "/trades?offre=",
+    "/achievements#"
+  ]) {
     assert.match(source, new RegExp(href.replace("?", "\\?")));
   }
   const { notificationItem } = load("components/topbar.tsx");
@@ -3082,6 +3087,7 @@ test("les notifications connues ont un texte et une redirection, les inconnues u
   assert.equal(sold.title, "Card sold");
   assert.equal(sold.text, "You sold Kitsune for 1,250 Karas.");
   assert.equal(sold.kind, "sold");
+  assert.equal(sold.href, "/market/auction");
   const mention = notificationItem({
     id: "mention",
     type: "auction_chat_mention",
@@ -3093,7 +3099,7 @@ test("les notifications connues ont un texte et une redirection, les inconnues u
     achievementName: null
   });
   assert.equal(mention.text, "Bob mentioned you in the chat for Kitsune.");
-  assert.equal(mention.href, "/marche/auction#chat-enchere");
+  assert.equal(mention.href, "/market/auction#chat-enchere");
   assert.equal(mention.kind, "mention");
 });
 
@@ -3156,7 +3162,7 @@ test("les notifications se relisent à l'ouverture du panneau et au retour sur l
 test("les pages Paramètres et Admin transmettent le solde de Karas à la Topbar", () => {
   const session = readFileSync(path.join(root, "lib/auth/session.ts"), "utf8");
   const settings = readFileSync(
-    path.join(root, "app/parametres/page.tsx"),
+    path.join(root, "app/settings/page.tsx"),
     "utf8"
   );
   const admin = readFileSync(

@@ -16,7 +16,7 @@ export async function getAdminUser() {
 
 export async function requireAdminPage() {
   const result = await getAdminUser();
-  if (result.kind === "anonymous") redirect("/connexion?next=/admin/cards");
+  if (result.kind === "anonymous") redirect("/login?next=/admin/cards");
   if (result.kind === "forbidden") notFound();
   return result.user;
 }

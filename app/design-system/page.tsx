@@ -14,7 +14,7 @@ const previewNotifications: NotificationItem[] = [
     text: "Une carte suivie vient d’arriver sur le marché.",
     time: "À l’instant",
     read: false,
-    href: "/marche",
+    href: "/market",
     kind: "wishlist"
   },
   {
@@ -23,7 +23,7 @@ const previewNotifications: NotificationItem[] = [
     text: "Ta collection continue de grandir.",
     time: "Il y a 5 min",
     read: false,
-    href: "/succes",
+    href: "/achievements",
     kind: "mission"
   }
 ];

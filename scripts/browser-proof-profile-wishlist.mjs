@@ -169,9 +169,9 @@ try {
       "Array.from(document.querySelectorAll('dialog[open] .yk-wishlist-grid a')).map(a=>a.getAttribute('href'))"
     ),
     [
-      "/recherche?carte=preview-0",
-      "/recherche?carte=preview-1",
-      "/recherche?carte=preview-2"
+      "/catalog?carte=preview-0",
+      "/catalog?carte=preview-1",
+      "/catalog?carte=preview-2"
     ]
   );
   await evaluate(

@@ -12,7 +12,7 @@ import {
 
 export default async function SettingsPage() {
   const user = await getCurrentUser();
-  if (!user) redirect("/connexion");
+  if (!user) redirect("/login");
   const [name, karas] = await Promise.all([
     getCurrentPseudo(user.id),
     getCurrentKarasBalance()

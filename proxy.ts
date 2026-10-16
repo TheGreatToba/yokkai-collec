@@ -71,7 +71,7 @@ export async function proxy(request: NextRequest) {
     });
   }
   if (
-    /^\/partage\/[0-9a-f]{32}(?:\/image\/(?:og|story|square))?$/.test(pathname)
+    /^\/share\/[0-9a-f]{32}(?:\/image\/(?:og|story|square))?$/.test(pathname)
   ) {
     return NextResponse.next();
   }

@@ -66,6 +66,10 @@ const nextConfig: NextConfig = {
               "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
           }
         ]
+      },
+      {
+        source: "/share/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }]
       }
     ];
   }

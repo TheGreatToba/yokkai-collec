@@ -6,6 +6,6 @@ export default async function Page({
 }: {
   searchParams: Promise<{ edition?: string }>;
 }) {
-  if ((await searchParams).edition === "1") redirect("/parametres");
+  if ((await searchParams).edition === "1") redirect("/settings");
   return <CommunityPage screen="profile" />;
 }

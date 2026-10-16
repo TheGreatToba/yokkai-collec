@@ -58,7 +58,7 @@ try {
       `${route} must be inaccessible in production`
     );
   }
-  const login = await fetch(`http://127.0.0.1:${port}/connexion`);
+  const login = await fetch(`http://127.0.0.1:${port}/login`);
   await login.text();
   assert.equal(
     login.status,
