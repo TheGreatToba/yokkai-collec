@@ -503,7 +503,7 @@ function Editor({
           <label className="block text-sm text-ink-2">
             Bio
             <textarea
-              className="auth-input mt-2 min-h-28 resize-y py-3"
+              className="auth-input mt-2 min-h-28 resize-none overflow-y-auto py-3"
               maxLength={300}
               value={bio}
               onChange={e => setBio(e.target.value)}

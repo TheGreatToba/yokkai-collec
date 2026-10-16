@@ -64,6 +64,16 @@ test("the showcase editor contains only the existing bounded card picker", () =>
   );
 });
 
+test("the profile bio cannot be resized and keeps its text scrollable and bounded", () => {
+  const profile = guards.get("profile");
+  const bio = profile.match(/<textarea\b[\s\S]*?\/>/)?.[0];
+  assert.ok(bio);
+  assert.match(bio, /resize-none/);
+  assert.match(bio, /overflow-y-auto/);
+  assert.doesNotMatch(bio, /\bresize-y\b|\bresize-x\b/);
+  assert.match(bio, /maxLength=\{300\}/);
+});
+
 test("the owner-only showcase header uses the same secondary button as profile editing", () => {
   const showcase = source.slice(
     source.indexOf('className="yk-profile-surface yk-profile-showcase"'),

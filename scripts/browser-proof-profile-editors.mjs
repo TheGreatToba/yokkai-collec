@@ -187,6 +187,47 @@ try {
     ).set.call(bio, "Showcase separation bio");
     bio.dispatchEvent(new Event("input", { bubbles: true }));
   });
+  const bioBox = await run(() => {
+    const bio = document.querySelector("dialog[open] textarea");
+    const box = bio.getBoundingClientRect();
+    return {
+      x: box.right - 3,
+      y: box.bottom - 3,
+      height: bio.offsetHeight,
+      resize: getComputedStyle(bio).resize,
+      overflow: getComputedStyle(bio).overflowY
+    };
+  });
+  assert.equal(bioBox.resize, "none");
+  assert.equal(bioBox.overflow, "auto");
+  await send("Input.dispatchMouseEvent", {
+    type: "mousePressed",
+    x: bioBox.x,
+    y: bioBox.y,
+    button: "left",
+    clickCount: 1
+  });
+  await send("Input.dispatchMouseEvent", {
+    type: "mouseMoved",
+    x: bioBox.x,
+    y: bioBox.y + 100,
+    button: "left",
+    buttons: 1
+  });
+  await send("Input.dispatchMouseEvent", {
+    type: "mouseReleased",
+    x: bioBox.x,
+    y: bioBox.y + 100,
+    button: "left",
+    clickCount: 1
+  });
+  assert.equal(
+    await evaluate(
+      "document.querySelector('dialog[open] textarea').offsetHeight"
+    ),
+    bioBox.height,
+    "dragging the bio corner cannot change its height"
+  );
   await click("Enregistrer");
   await until("!document.querySelector('[data-profile-editor]')");
   const bio = await evaluate(
