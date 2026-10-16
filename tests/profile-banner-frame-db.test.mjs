@@ -1,9 +1,21 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readdirSync } from "node:fs";
 import { replayMigrations } from "../scripts/replay-migrations.mjs";
 
 test("banner crops persist atomically, bind to their source and keep profile/storage/privacy permissions", async t => {
-  const { db } = await replayMigrations();
+  // Historical contract: uploads/catalogue choices were allowed before owned-only banners.
+  // Keep every original assertion; the current policy is tested on the full replay separately.
+  const migrations = readdirSync(
+    new URL("../supabase/migrations/", import.meta.url)
+  )
+    .filter(
+      name =>
+        name.endsWith(".sql") &&
+        name <= "20261016000000_profile_banner_frame.sql"
+    )
+    .sort();
+  const { db } = await replayMigrations({ migrations });
   t.after(() => db.close());
   const owner = "78000000-0000-4000-8000-000000000001";
   const viewer = "78000000-0000-4000-8000-000000000002";

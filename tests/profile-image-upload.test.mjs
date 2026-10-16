@@ -110,7 +110,12 @@ test("profile editor and previews advertise the new 4 MB limit", () => {
   const read = name =>
     readFileSync(new URL(`../components/${name}.tsx`, import.meta.url), "utf8");
   assert.match(read("profile"), /Up to 4 MB/);
-  assert.match(read("profile"), /up to 4 MB/);
+  if (read("profile").includes("data-owned-banner-picker")) {
+    assert.match(read("profile"), /Choose a card from your collection/);
+    assert.doesNotMatch(read("profile"), /Importer une bannière/);
+  } else {
+    assert.match(read("profile"), /up to 4 MB/);
+  }
   assert.doesNotMatch(read("profile"), /2 Mo|2 MB/);
   assert.match(read("profile-preview"), /file.size > PROFILE_IMAGE_MAX_BYTES/);
   assert.match(read("social-preview"), /Up to 4 MB/);

@@ -1,9 +1,21 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readdirSync } from "node:fs";
 import { replayMigrations } from "../scripts/replay-migrations.mjs";
 
 test("profile widgets use real categories and banner saves remain owner-scoped and atomic", async t => {
-  const { db } = await replayMigrations();
+  // Retain the complete historical upload contract on its last schema.
+  // Owned-only banners have separate full-replay coverage in the product PR.
+  const migrations = readdirSync(
+    new URL("../supabase/migrations/", import.meta.url)
+  )
+    .filter(
+      name =>
+        name.endsWith(".sql") &&
+        name <= "20261016000000_profile_banner_frame.sql"
+    )
+    .sort();
+  const { db } = await replayMigrations({ migrations });
   t.after(() => db.close());
   const owner = "72000000-0000-4000-8000-000000000001";
   const other = "72000000-0000-4000-8000-000000000002";

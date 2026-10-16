@@ -108,9 +108,27 @@ test("the editor checks migration availability before uploading a cropped image"
     source.indexOf("return (", source.indexOf("async function submit()"))
   );
   assert.match(submit, /if \(bannerFrame && !framingAvailable\)/);
-  assert.ok(
-    submit.indexOf("!framingAvailable") < submit.indexOf("adapter.uploadBanner")
-  );
+  if (source.includes("data-owned-banner-picker")) {
+    assert.ok(
+      submit.indexOf("!framingAvailable") <
+        submit.indexOf("adapter.saveAppearance")
+    );
+    assert.doesNotMatch(submit, /uploadBanner|bannerFile/);
+    const editor = source.slice(
+      source.indexOf("function Editor("),
+      source.indexOf("const wishlistRarities")
+    );
+    assert.doesNotMatch(
+      editor,
+      /adapter\.search|searchCards|createObjectURL|Importer une bannière/
+    );
+    assert.match(editor, /ownedBannerChoices/);
+  } else {
+    assert.ok(
+      submit.indexOf("!framingAvailable") <
+        submit.indexOf("adapter.uploadBanner")
+    );
+  }
   assert.match(
     source,
     /framingAvailable=\{\s*!!adapter\.saveAppearance\s*\|\|\s*details\.bannerFrame !== undefined\s*\}/
