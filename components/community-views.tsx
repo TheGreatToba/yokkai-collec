@@ -73,12 +73,12 @@ export type CommunityScreen =
   | "search"
   | "wishlist";
 const headings = {
-  profile: ["Collectionneur", "Mon profil"],
+  profile: ["Collector", "My profile"],
   friends: ["Between collectors", "My friends"],
   market: ["The auction house", "Market"],
   auction: ["Market · Auction", "Auction details"],
   trades: ["Between collectors", "Offer a trade"],
-  search: ["Toutes les cartes du jeu", "Catalogue"],
+  search: ["Every card in the game", "Catalog"],
   wishlist: ["Cards you're looking for", "My wishlist"]
 };
 function Unavailable({ children }: { children: ReactNode }) {
@@ -1814,7 +1814,7 @@ export function SearchView({
             },
             () => {
               if (active)
-                setSearchError("Le catalogue est momentanément indisponible.");
+                setSearchError("The catalog is temporarily unavailable.");
             }
           )
           .finally(() => {
@@ -1855,7 +1855,7 @@ export function SearchView({
           <path d="m20 20-4-4" />
         </svg>
         <label className="sr-only" htmlFor="catalogue-query">
-          Rechercher dans le catalogue
+          Search catalog
         </label>
         <input
           id="catalogue-query"
@@ -1865,10 +1865,10 @@ export function SearchView({
             setQuery(e.target.value);
             resetPage();
           }}
-          placeholder="Rechercher…"
+          placeholder="Search…"
         />
       </div>
-      <CatalogueFilterSection title="Rareté">
+      <CatalogueFilterSection title="Rarity">
         <button
           type="button"
           className="yk-filter-option"
@@ -1879,7 +1879,7 @@ export function SearchView({
           }}
         >
           <span className="yk-filter-check" />
-          <span>Toutes</span>
+          <span>All</span>
         </button>
         {catalogueRarities.map(item => (
           <button
@@ -1898,7 +1898,7 @@ export function SearchView({
           </button>
         ))}
       </CatalogueFilterSection>
-      <CatalogueFilterSection title="Catégorie">
+      <CatalogueFilterSection title="Category">
         <button
           type="button"
           className="yk-filter-option"
@@ -1909,7 +1909,7 @@ export function SearchView({
           }}
         >
           <span className="yk-filter-check" />
-          <span>Toutes les catégories</span>
+          <span>All categories</span>
         </button>
         {categories.map(item => (
           <button
@@ -1945,7 +1945,7 @@ export function SearchView({
           <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
           <path d="M3 3v5h5" />
         </svg>
-        Réinitialiser les filtres
+        Reset filters
       </button>
     </>
   );
@@ -1955,13 +1955,13 @@ export function SearchView({
         <div>
           <p role="status" className="font-display text-xl">
             {searching
-              ? "Chargement du catalogue…"
-              : `${total.toLocaleString("fr-FR")} carte${total > 1 ? "s" : ""}`}
+              ? "Loading catalog…"
+              : `${total.toLocaleString("en-US")} ${total === 1 ? "card" : "cards"}`}
           </p>
           <p className="mt-1 text-xs text-ink-3">
             {query || category || rarity
-              ? "Résultats correspondant à vos filtres"
-              : "Toutes les cartes du jeu"}
+              ? "Results matching your filters"
+              : "Every card in the game"}
           </p>
         </div>
         <button
@@ -1982,14 +1982,14 @@ export function SearchView({
           >
             <path d="M4 6h16M7 12h10M10 18h4" />
           </svg>
-          Filtres{query || category || rarity ? <span>•</span> : null}
+          Filters{query || category || rarity ? <span>•</span> : null}
         </button>
       </div>
       {filtersOpen && (
         <button
           type="button"
           className="yk-filter-backdrop"
-          aria-label="Fermer les filtres"
+          aria-label="Close filters"
           onClick={() => setFiltersOpen(false)}
         />
       )}
@@ -1997,13 +1997,13 @@ export function SearchView({
         <aside
           id="catalogue-filters"
           className={`yk-collection-sidebar ${filtersOpen ? "yk-sidebar-open" : ""}`}
-          aria-label="Filtres du catalogue"
+          aria-label="Catalog filters"
         >
           <div className="yk-sidebar-mobile-head">
-            <strong>Filtres</strong>
+            <strong>Filters</strong>
             <button
               type="button"
-              aria-label="Fermer les filtres"
+              aria-label="Close filters"
               onClick={() => setFiltersOpen(false)}
             >
               ×
@@ -2018,11 +2018,11 @@ export function SearchView({
             </p>
           )}
           {!searching && results.length === 0 && (
-            <Unavailable>Aucune carte ne correspond à ces filtres.</Unavailable>
+            <Unavailable>No cards match these filters.</Unavailable>
           )}
           <ul
             className="yk-card-grid yk-catalogue-grid"
-            aria-label="Cartes du catalogue"
+            aria-label="Catalog cards"
           >
             {results.map(card => (
               <li key={card.id}>
@@ -2030,7 +2030,7 @@ export function SearchView({
                   type="button"
                   className="yk-catalogue-card"
                   onClick={() => setSelected(card)}
-                  aria-label={`Voir ${card.name}, ${card.rarity}`}
+                  aria-label={`View ${card.name}, ${card.rarity}`}
                   aria-haspopup="dialog"
                 >
                   <CardShell>
@@ -2044,7 +2044,7 @@ export function SearchView({
             <Pagination
               page={page}
               pageCount={pageCount}
-              label="Pagination du catalogue"
+              label="Catalog pages"
               onPageChange={number => {
                 setPage(number);
                 setSearching(true);
@@ -2052,7 +2052,7 @@ export function SearchView({
               }}
             />
             <label>
-              Cartes par page
+              Cards per page
               <select
                 value={pageSize}
                 onChange={event => {
@@ -2625,9 +2625,7 @@ export function CommunityView({
         },
         () => {
           if (active)
-            setError(
-              "Impossible de charger votre collection. Réessayez plus tard."
-            );
+            setError("Couldn't load your collection. Please try again later.");
         }
       );
     if (screen === "market")
@@ -2801,7 +2799,7 @@ export function CommunityView({
             )}
             <p className="eyebrow">{overline}</p>
             <h1 className="yk-title mt-3">
-              {screen === "profile" && !isMe ? "Profil du joueur" : title}
+              {screen === "profile" && !isMe ? "Player profile" : title}
             </h1>
           </div>
         )}

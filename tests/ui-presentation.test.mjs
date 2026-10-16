@@ -378,7 +378,9 @@ test("les nouveaux visuels distinguent le booster régulier du Decision Pack", (
   const styles = readFileSync(path.join(root, "styles/boosters.css"), "utf8");
   assert.match(
     normalizeWhitespace(boosters),
-    normalizeWhitespace(/src="\/assets\/booster-pack\.png" alt="Regular Pack/)
+    normalizeWhitespace(
+      /src="\/assets\/booster-pack\.png" alt="Yokkai Collec’ Regular Pack/
+    )
   );
   assert.match(
     normalizeWhitespace(boosters),
@@ -807,7 +809,7 @@ test("le compteur de cartes ouvre toute collection autorisée en lecture seule",
   );
   assert.match(
     normalizeWhitespace(profile),
-    normalizeWhitespace(/Voir la collection/)
+    normalizeWhitespace(/View collection/)
   );
   assert.match(
     normalizeWhitespace(profile),
@@ -853,7 +855,7 @@ test("le compteur wishlist d'un ami ouvre toute sa wishlist et chaque carte rest
   assert.match(
     normalizeWhitespace(profile),
     normalizeWhitespace(
-      /shown\.map\(card=>\(?<Link href=\{`\/recherche\?card=\$\{card\.id\}`\}/
+      /shown\.map\(card=>\(?<Link href=\{`\/recherche\?carte=\$\{card\.id\}`\}/
     )
   );
   assert.match(
@@ -907,7 +909,7 @@ test("une carte d'ami ouvre une proposition d'échange présélectionnée et ext
   );
   assert.match(
     normalizeWhitespace(collection),
-    normalizeWhitespace(/\/echanges\?ami=.*&card=/)
+    normalizeWhitespace(/\/echanges\?ami=.*&carte=/)
   );
   assert.match(
     normalizeWhitespace(collection),
@@ -1610,7 +1612,7 @@ test("la destruction groupée demande une confirmation chiffrée", () => {
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/Action irréversible\./)
+    normalizeWhitespace(/This can&apos;t be undone\./)
   );
   assert.match(
     normalizeWhitespace(source),
@@ -1715,7 +1717,7 @@ test("la collection annonce l'évolution de cinq SSR non-Shiny en Shiny", () => 
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/évolution Shiny/i)
+    normalizeWhitespace(/Shiny evolution/i)
   );
   assert.match(
     normalizeWhitespace(source),
@@ -1727,7 +1729,7 @@ test("la collection annonce l'évolution de cinq SSR non-Shiny en Shiny", () => 
   );
   assert.doesNotMatch(
     normalizeWhitespace(source),
-    normalizeWhitespace(/Évolution LR|Évoluer en LR/)
+    normalizeWhitespace(/LR evolution|Evolve to LR/)
   );
   assert.match(
     normalizeWhitespace(source),
@@ -1736,7 +1738,7 @@ test("la collection annonce l'évolution de cinq SSR non-Shiny en Shiny", () => 
   assert.match(
     normalizeWhitespace(source),
     normalizeWhitespace(
-      /Image: \{card\.customImageUrl\?"personnalisée \(sera perdue\)":"original"\}/
+      /Image: \{card\.customImageUrl\?"custom \(will be lost\)":"original"\}/
     )
   );
   assert.match(
@@ -1771,7 +1773,7 @@ test("le Decision Pack confirmé affiche une carte gardée et quatre perdues", (
   assert.doesNotMatch(html, />Destroy</);
   assert.match(
     html,
-    /Carte ajoutée à ta collection · \+0 Karas from the cards you didn't keep/
+    /Card added to your collection · \+0 Karas from the cards you didn&#x27;t keep/
   );
   assert.match(html, />SSR ×(?:<!-- -->)?1</);
   assert.doesNotMatch(html, />SSR ×(?:<!-- -->)?5</);
@@ -1953,7 +1955,11 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
     normalizeWhitespace(/Available tomorrow at 12:30 AM/)
   );
   assert.equal(
-    (selection.match(/aria-label="View taux du Booster/g) || []).length,
+    (
+      selection.match(
+        /aria-label="View (?:Regular|Decision) Pack drop rates/g
+      ) || []
+    ).length,
     2
   );
   assert.match(
@@ -2101,7 +2107,7 @@ test("les boosters annoncent les gains autoritaires avant confirmation", () => {
   assert.match(
     normalizeWhitespace(source),
     normalizeWhitespace(
-      /You'll receive <strong className="text-karas">\{selectedValue\}/
+      /You&apos;ll receive <strong className="text-karas">\{selectedValue\.toLocaleString\("en-US"\)\}/
     )
   );
   assert.match(
@@ -2257,7 +2263,7 @@ test("la modale de détail hiérarchise verrouillage, progression et actions ava
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/\{discardValue\} Kara/)
+    normalizeWhitespace(/\{discardValue\?\.toLocaleString\("en-US"\)\} Karas/)
   );
 });
 
@@ -2716,7 +2722,7 @@ test("le Marché trie par favoris_count puis fin et identifiant", () => {
     path.join(root, "supabase/migrations/20261001000001_market_popularity.sql"),
     "utf8"
   );
-  assert.match(migration, /'popularity',coalesce\(c\.favorites_count,0\)/);
+  assert.match(migration, /'popularity',coalesce\(c\.favoris_count,0\)/);
   assert.doesNotMatch(migration, /join public\.auction_watchers/);
   assert.ok(
     existsSync(
@@ -2946,7 +2952,7 @@ test("Phase 6 : la mise en vente confirme le verrouillage et signale la réiniti
   assert.match(
     normalizeWhitespace(source),
     normalizeWhitespace(
-      /selected\.customImageUrl&&\(?<li>L’image personnalisée de this card sera réinitialisée\.<\/li>/
+      /selected\.customImageUrl&&\(?<li>This card&apos;s custom image will be reset\.<\/li>/
     )
   );
   assert.match(

@@ -957,8 +957,15 @@ function ProfileCompletion({
               }
             </strong>
             <span>
-              favorite binders completed{" "}
-              <small>of {details.favoriteAlbums.length} favorites</small>
+              {details.favoriteAlbums.filter(
+                album => album.owned === album.total
+              ).length === 1
+                ? "favorite binder completed"
+                : "favorite binders completed"}{" "}
+              <small>
+                of {details.favoriteAlbums.length}{" "}
+                {details.favoriteAlbums.length === 1 ? "favorite" : "favorites"}
+              </small>
             </span>
           </div>
           <ul className="yk-profile-album-progress">

@@ -1381,7 +1381,7 @@ export function CollectionView({
                       </div>
                       {paniniError && (
                         <div className="yk-panini-empty" role="alert">
-                          <strong>Couldn't load</strong>
+                          <strong>Couldn&apos;t load</strong>
                           <p>{paniniError}</p>
                         </div>
                       )}
@@ -1530,7 +1530,7 @@ export function CollectionView({
                       </div>
                       {paniniError && (
                         <div className="yk-panini-empty" role="alert">
-                          <strong>Couldn't load</strong>
+                          <strong>Couldn&apos;t load</strong>
                           <p>{paniniError}</p>
                         </div>
                       )}
@@ -2024,7 +2024,7 @@ export function CollectionView({
                   </Feedback>
                 ) : (
                   <Feedback tone="error" title="Card frozen while in auction">
-                    This card can't be listed again or destroyed until the
+                    This card can&apos;t be listed again or destroyed until the
                     auction ends or the card is withdrawn.
                   </Feedback>
                 ))}
@@ -2277,7 +2277,7 @@ export function CollectionView({
             </strong>{" "}
             for{" "}
             <strong className="text-karas">{selectedValue ?? "…"} Karas</strong>{" "}
-            ? This can't be undone.
+            ? This can&apos;t be undone.
           </p>
           {bulkDiscardError && (
             <p role="alert" className="mt-4 text-sm text-danger">
@@ -2367,7 +2367,7 @@ export function CollectionView({
                   </button>
                 </div>
                 <p className="mt-4 text-sm text-ink-2">
-                  You'll destroy{" "}
+                  You&apos;ll destroy{" "}
                   <strong className="text-ink">
                     {discardCards.length.toLocaleString("en-US")}{" "}
                     {discardCards.length === 1 ? "copy" : "copies"}
@@ -2429,7 +2429,7 @@ export function CollectionView({
                 tone="success"
                 title="Card listed for auction — locked until the auction ends"
               >
-                It's now listed on the market.
+                It&apos;s now listed on the market.
               </Feedback>
               <div className="mt-6 flex flex-wrap justify-end gap-3">
                 <Button variant="secondary" onClick={closeAuction}>
@@ -2533,11 +2533,11 @@ export function CollectionView({
               </div>
               <ul className="yk-auction-modal-notes">
                 <li>
-                  This card will be locked until the auction ends. You won't be
-                  able to trade or destroy it.
+                  This card will be locked until the auction ends. You
+                  won&apos;t be able to trade or destroy it.
                 </li>
                 {selected.customImageUrl && (
-                  <li>This card's custom image will be reset.</li>
+                  <li>This card&apos;s custom image will be reset.</li>
                 )}
               </ul>
               {auctionError && (
