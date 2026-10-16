@@ -1,4 +1,9 @@
 import { normalizeWhitespace } from "./helpers/normalize-whitespace.mjs";
+import {
+  assertPngAsset,
+  assertTearAssets,
+  imageAsset
+} from "./helpers/visual-assets.mjs";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -322,12 +327,15 @@ test("les titres H1 utilisent la police locale HYWenHei-85W", () => {
   );
 });
 
-test("la page d’accueil utilise le logo doré de la navigation", () => {
+test("la page d’accueil utilise le même logo que la navigation", () => {
   const landing = readFileSync(path.join(root, "app/page.tsx"), "utf8");
   const css = readFileSync(path.join(root, "styles/landing.css"), "utf8");
-  assert.match(
-    normalizeWhitespace(landing),
-    normalizeWhitespace(/header-logo-gold\.png/)
+  assert.equal(
+    imageAsset(landing, "yk-landing-brand-image"),
+    imageAsset(
+      readFileSync(path.join(root, "components/topbar.tsx"), "utf8"),
+      "yk-brand-image"
+    )
   );
   assert.match(
     normalizeWhitespace(landing),
@@ -341,10 +349,16 @@ test("la page d’accueil utilise le logo doré de la navigation", () => {
   );
 });
 
-test("les pages d’authentification utilisent le nouveau logo doré", () => {
+test("les pages d’authentification utilisent le même logo que la navigation", () => {
   const layout = readFileSync(path.join(root, "app/(auth)/layout.tsx"), "utf8");
   const css = readFileSync(path.join(root, "styles/auth.css"), "utf8");
-  assert.match(layout, /src="\/assets\/header-logo-gold\.png"/);
+  assert.equal(
+    imageAsset(layout, "yk-auth-brand-image"),
+    imageAsset(
+      readFileSync(path.join(root, "components/topbar.tsx"), "utf8"),
+      "yk-brand-image"
+    )
+  );
   assert.match(layout, /className="yk-auth-brand-image"/);
   assert.doesNotMatch(layout, /className="yk-auth-logo"/);
   assert.match(css, /\.yk-auth-brand-image\s*\{/);
@@ -376,24 +390,14 @@ test("les nouveaux visuels distinguent le booster régulier du Decision Pack", (
   );
   const cards = readFileSync(path.join(root, "styles/cards.css"), "utf8");
   const styles = readFileSync(path.join(root, "styles/boosters.css"), "utf8");
-  assert.match(
-    normalizeWhitespace(boosters),
-    normalizeWhitespace(
-      /src="\/assets\/booster-pack\.png" alt="Yokkai Collec’ Regular Pack/
-    )
+  const regular = imageAsset(boosters, "yk-pack-image");
+  const decision = imageAsset(boosters, "yk-pack-image yk-decision-image");
+  assert.notEqual(regular, decision);
+  assert.ok(
+    boosters.includes(`src="${regular}" alt="Yokkai Collec’ Regular Pack`)
   );
-  assert.match(
-    normalizeWhitespace(boosters),
-    normalizeWhitespace(
-      /src="\/assets\/decision-booster-pack\.png" alt="Decision Pack/
-    )
-  );
-  assert.match(
-    normalizeWhitespace(boosters),
-    normalizeWhitespace(
-      /drawKind === "decision" \? "\/assets\/decision-booster-pack\.png" : "\/assets\/booster-pack\.png"/
-    )
-  );
+  assert.ok(boosters.includes(`src="${decision}" alt="Decision Pack`));
+  assertTearAssets(boosters, decision, regular);
   assert.doesNotMatch(
     normalizeWhitespace(styles),
     normalizeWhitespace(/\.yk-decision-image \{[^}]*hue-rotate/)
@@ -404,23 +408,20 @@ test("les nouveaux visuels distinguent le booster régulier du Decision Pack", (
       /\.yk-decision-panel \.yk-pack-art-stage \{[^}]*var\(--color-karas\)/
     )
   );
-  assert.match(
-    normalizeWhitespace(cards),
-    normalizeWhitespace(/url\(["']\/assets\/card-back\.png["']\)/)
-  );
+  const backRule = cards.match(/\.yk-card-back\s*\{[^}]*\}/)?.[0];
+  assert.ok(backRule);
+  const back = assertPngAsset(backRule.match(/url\(["']([^"']+)["']\)/)?.[1]);
+  assert.notEqual(back, regular);
+  assert.notEqual(back, decision);
   assert.match(
     normalizeWhitespace(cards),
     normalizeWhitespace(
-      /\.yk-card-back \{[^}]*background: #050507 url\(["']\/assets\/card-back\.png["']\)[^}]*color-accent-gold/
+      /\.yk-card-back \{[^}]*background: #050507 url\(["']\/assets\/[a-zA-Z0-9_-]+\.png["']\)[^}]*color-accent-gold/
     )
   );
-  for (const asset of [
-    "card-back.png",
-    "booster-pack.png",
-    "decision-booster-pack.png"
-  ])
+  for (const asset of [back, regular, decision])
     assert.ok(
-      existsSync(path.join(root, "public/assets", asset)),
+      existsSync(path.join(root, "public", asset.slice(1))),
       `${asset} doit être présent`
     );
 });
@@ -1495,10 +1496,7 @@ test("l’avatar ouvre un menu profil compact avec résumé et actions", () => {
     "utf8"
   );
   const css = readFileSync(path.join(root, "styles/topbar.css"), "utf8");
-  assert.match(
-    normalizeWhitespace(topbar),
-    normalizeWhitespace(/header-logo-gold\.png/)
-  );
+  imageAsset(topbar, "yk-brand-image");
   assert.match(
     normalizeWhitespace(css),
     normalizeWhitespace(/\.yk-brand \{ display: flex; width: 104px;/)

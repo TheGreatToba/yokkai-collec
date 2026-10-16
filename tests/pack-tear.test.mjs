@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import postcss from "postcss";
+import { assertTearAssets, imageAsset } from "./helpers/visual-assets.mjs";
 
 const read = file =>
   readFileSync(new URL(`../${file}`, import.meta.url), "utf8");
@@ -21,11 +22,11 @@ test("native tear uses two copies of the active pack and decorative gold sparks,
       )
     );
   }
-  assert.equal(
-    (opening.match(/\/assets\/decision-booster-pack\.png/g) ?? []).length,
-    2
+  assertTearAssets(
+    opening,
+    imageAsset(source, "yk-pack-image yk-decision-image"),
+    imageAsset(source, "yk-pack-image")
   );
-  assert.equal((opening.match(/\/assets\/booster-pack\.png/g) ?? []).length, 2);
   assert.match(opening, /yk-pack-tear-sparks/);
   assert.match(opening, /yk-pack-tear-glow/);
   assert.match(opening, /yk-pack-tear" aria-hidden="true"/);
