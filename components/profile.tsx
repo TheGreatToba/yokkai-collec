@@ -483,7 +483,6 @@ function Editor({
               size={80}
             />
             <label className="yk-button yk-button-secondary cursor-pointer">
-              
               Choose photo
               <input
                 className="sr-only"
@@ -638,11 +637,9 @@ function Editor({
             </span>
           </div>
           <p className="mt-2 text-xs text-ink-3">
-            
             Choose up to five different cards from your collection.
           </p>
           <label className="sr-only" htmlFor="featured-query">
-            
             Search for a card to feature
           </label>
           <input
@@ -1578,7 +1575,6 @@ export function ProfileExperience({
                     setEditing(true);
                   }}
                 >
-                  
                   Edit profile
                 </Button>
               ) : (
@@ -1792,9 +1788,7 @@ export function ProfileExperience({
       <Modal
         open={editing}
         onClose={() => setEditing(false)}
-        title={
-          editingMode === "showcase" ? "Edit showcase" : "Edit my profile"
-        }
+        title={editingMode === "showcase" ? "Edit showcase" : "Edit my profile"}
         className="max-w-4xl"
       >
         {isMe && collection && details ? (

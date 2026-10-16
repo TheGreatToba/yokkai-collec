@@ -83,5 +83,5 @@ test("the owner-only showcase header uses the same secondary button as profile e
   assert.match(showcase, /<Button\s+variant="secondary"/);
   assert.match(showcase, /setEditingMode\("showcase"\)/);
   assert.match(showcase, /Edit showcase/);
-  assert.match(showcase, /Sa vitrine/);
+  assert.match(showcase, /Their showcase/);
 });
