@@ -67,7 +67,7 @@ export async function saveProfileAppearance(bio: string, avatarUrl: string | nul
   if (error?.code === "PGRST202" && bannerFrame !== undefined) throw new Error("Banner framing is not available yet. Please try again after the update.");
   if (error?.message === "BANNER_FRAME_INVALID") throw new Error("This banner crop is invalid. Adjust the image and try again.");
   if (error?.message === "BANNER_CARD_NOT_OWNED" || error?.message === "BANNER_URL_DISABLED") throw new Error("Choose a card you own from your collection for your banner.");
-  if (error) throw error.message === "BANNER_URL_INVALID" ? new Error("This banner is not allowed. Choose a card from your collection.") : fail(error);
+  if (error) throw error.message === "BANNER_URL_INVALID" ? new Error("This banner is not allowed. Upload a JPG, PNG, WebP or GIF image using the banner button.") : fail(error);
   const profile = await hydrateProfile(data as Profile & {bannerUrl: string | null; bannerFrame?: BannerFrame | null});
   publishPlayerSnapshotInvalidation(["profile"]);
   return profile as Profile & {bannerUrl: string | null};
