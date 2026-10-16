@@ -12,7 +12,7 @@
   pointer-events: none;
   background:
     radial-gradient(ellipse at 18% 40%, #8050cf16, transparent 48%),
-    radial-gradient(ellipse at 85% 45%, #d1a84c0d, transparent 45%);
+    radial-gradient(ellipse at 85% 45%, #b9c9ff20, transparent 45%);
 }
 .yk-pack-page-heading .eyebrow {
   font-size: 10px;
@@ -42,10 +42,80 @@
     inset 0 1px 0 #ffffff07;
 }
 .yk-pack-panel.yk-decision-panel {
-  --pack-accent: #e8c26a;
-  --pack-rgb: 232, 194, 106;
-  border-color: rgba(var(--pack-rgb), 0.23);
-  background: linear-gradient(150deg, #201a19, #100e16 58%);
+  --pack-accent: #6352a3;
+  --pack-rgb: 123, 112, 194;
+  border-color: #e0dcff;
+  color: #302747;
+  background:
+    radial-gradient(ellipse at 90% 0%, #d9e8ff, transparent 54%),
+    radial-gradient(ellipse at 0% 50%, #e6dbff, transparent 62%),
+    linear-gradient(155deg, #fbfaff, #e9e7f8 55%, #f5f2ff);
+  box-shadow:
+    0 18px 55px #35245c33,
+    0 0 45px #c2c5ff12,
+    inset 0 1px 0 #ffffff;
+}
+.yk-pack-panel.yk-decision-panel::after {
+  background: linear-gradient(
+    125deg,
+    transparent 30%,
+    #ffffff70,
+    #d9e8ff38,
+    transparent 72%
+  );
+}
+.yk-pack-panel.yk-decision-panel .yk-pack-art-stage {
+  background:
+    radial-gradient(ellipse at 50% 38%, #ffffffdb, transparent 58%),
+    radial-gradient(ellipse at 24% 78%, #c9b3ff80, transparent 58%),
+    radial-gradient(ellipse at 85% 58%, #b6d5ff94, transparent 55%);
+}
+.yk-pack-panel.yk-decision-panel .yk-pack-image {
+  filter: drop-shadow(0 16px 15px #61579e40) drop-shadow(0 0 22px #ffffffa6);
+}
+.yk-pack-panel.yk-decision-panel .yk-pack-badge > span,
+.yk-pack-panel.yk-decision-panel .yk-pack-title > span {
+  border-color: #afa0d47a;
+  color: #574586;
+  background: #ffffffab;
+}
+.yk-pack-panel.yk-decision-panel .yk-pack-info {
+  color: #6352a3;
+  border-color: #a99bce8c;
+  background: #ffffffa6;
+}
+.yk-pack-panel.yk-decision-panel .yk-pack-body > p,
+.yk-pack-panel.yk-decision-panel .yk-pack-status dt {
+  color: #655c7b;
+}
+.yk-pack-panel.yk-decision-panel .yk-pack-status {
+  border-top-color: #a99bce66;
+}
+.yk-pack-panel.yk-decision-panel .yk-pack-status .text-karas {
+  color: #6352a3;
+}
+.yk-pack-panel.yk-decision-panel .yk-pack-status .text-success {
+  color: #176454;
+}
+.yk-pack-panel.yk-decision-panel .yk-pack-status .text-warning {
+  color: #805800;
+}
+.yk-pack-panel.yk-decision-panel .yk-pack-status .text-ink-3 {
+  color: #655c7b;
+}
+.yk-pack-panel.yk-decision-panel .yk-pack-body > .yk-button {
+  border-color: #a18ad1;
+  color: #3e2f66;
+  background: linear-gradient(110deg, #d7c7fa, #e1eaff 55%, #f1e7ff);
+  box-shadow:
+    inset 0 1px 0 #ffffffcc,
+    0 4px 14px #8e7bbb1a;
+}
+.yk-pack-panel.yk-decision-panel .yk-pack-body > .yk-button:disabled {
+  opacity: 0.65;
+  color: #635b77;
+  background: #dcd8eb;
+  box-shadow: none;
 }
 .yk-pack-panel .yk-pack-art-stage {
   height: 330px;
@@ -228,6 +298,20 @@
     border-color: var(--pack-accent);
     background: rgba(var(--pack-rgb), 0.26);
     box-shadow: 0 0 22px rgba(var(--pack-rgb), 0.12);
+  }
+  .yk-pack-panel.yk-decision-panel:hover {
+    border-color: #f5f2ff;
+    box-shadow:
+      0 24px 65px #35245c40,
+      0 0 36px #c9c9ff33;
+  }
+  .yk-pack-panel.yk-decision-panel
+    .yk-pack-body
+    > .yk-button:not(:disabled):hover {
+    border-color: #7a62ab;
+    color: #302347;
+    background: linear-gradient(110deg, #cbb7f4, #d4e4ff 55%, #e9dbff);
+    box-shadow: 0 0 22px #b5a1dc4d;
   }
 }
 /* Fit desktop selection to the available height, not the monitor resolution.
