@@ -20,16 +20,30 @@ test("banner choices are deduplicated owned catalogue images, searched locally w
   assert.match(editor, /matchesCardSearch\(bannerQuery/);
   assert.match(editor, /ownedBannerChoices\.slice\(0, 36\)\.map/);
   assert.match(editor, /data-owned-banner-picker/);
-  assert.match(editor, /Collect a card to unlock a profile banner/);
-  assert.doesNotMatch(
+  const galleryEnabled = editor.includes("data-banner-upload");
+  assert.match(
     editor,
-    /searchCards|adapter\.search|uploadBanner|createObjectURL|bannerFile/
+    galleryEnabled
+      ? /Collect a card to use it as a profile banner/
+      : /Collect a card to unlock a profile banner/
   );
-  assert.equal(
-    (editor.match(/type="file"/g) ?? []).length,
-    1,
-    "only avatar upload remains"
-  );
+  assert.doesNotMatch(editor, /searchCards|adapter\.search/);
+  if (galleryEnabled) {
+    assert.match(editor, /adapter\.uploadBanner/);
+    assert.match(editor, /URL\.createObjectURL/);
+    assert.match(editor, /URL\.revokeObjectURL/);
+    assert.equal((editor.match(/type="file"/g) ?? []).length, 2);
+  } else {
+    assert.doesNotMatch(
+      editor,
+      /searchCards|adapter\.search|uploadBanner|createObjectURL|bannerFile/
+    );
+    assert.equal(
+      (editor.match(/type="file"/g) ?? []).length,
+      1,
+      "only avatar upload remains"
+    );
+  }
   assert.match(editor, /<BannerCrop/);
   assert.match(editor, /setBannerCard\(crop\.card\)/);
 });
