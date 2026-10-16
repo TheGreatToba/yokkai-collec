@@ -198,7 +198,24 @@ test("all profile entry points require an owned banner card, reject uploads and 
   );
   await save("update_profile_appearance_framed", cards[0]);
   await db.exec("reset role");
+  await db.exec("begin");
   await db.query("delete from public.user_cards where id=$1", [copies[1]]);
+  const replacement = (
+    await db.query(
+      "insert into public.user_cards(user_id,card_id,rarity,is_shiny) values ($1,$2,'SSR',true) returning id",
+      [other, cards[0]]
+    )
+  ).rows[0].id;
+  await db.exec("commit");
+  await login(other);
+  assert.equal(
+    (await profile()).bannerCard.id,
+    cards[0],
+    "an evolution replacing copies in one transaction preserves the banner"
+  );
+  assert.deepEqual((await details()).bannerFrame, frame);
+  await db.exec("reset role");
+  await db.query("delete from public.user_cards where id=$1", [replacement]);
   await login(other);
   assert.equal(
     (await profile()).bannerCard,

@@ -4,7 +4,7 @@
 - La bannière utilise l’image catalogue, jamais une image personnalisée de copie. Le cadrage, le zoom et la rotation restent disponibles.
 - Plus d’import de bannière ni de recherche globale. L’import de la photo de profil reste disponible (4 Mo).
 - Les RPC `update_profile`, `update_profile_appearance` et `update_profile_appearance_framed` appliquent la même possession côté serveur. Toute URL non vide de bannière est refusée, même pour un ancien client.
-- La perte de la dernière copie retire sa bannière ; supprimer un doublon ne la retire pas. Le trigger n’est pas appelable par les joueurs et n’accorde aucun droit d’inventaire.
+- La perte de la dernière copie retire sa bannière ; supprimer un doublon ne la retire pas. Le contrôle différé observe l’état final de la transaction : une évolution consommant des copies puis créant leur remplacement conserve la bannière. Le trigger n’est pas appelable par les joueurs et n’accorde aucun droit d’inventaire.
 - Pas de modification massive des anciennes bannières et aucun fichier Storage supprimé. Elles sont remplacées lors du prochain enregistrement d’apparence ; le formulaire l’annonce. Les migrations restent non appliquées en production.
 
 ## Livraison

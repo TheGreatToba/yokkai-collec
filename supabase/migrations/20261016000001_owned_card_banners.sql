@@ -79,8 +79,11 @@ begin
   return null;
 end; $$;
 revoke all on function public.clear_unowned_profile_banner() from public, anon, authenticated;
-create trigger clear_unowned_profile_banner
-  after delete or update of user_id,card_id on public.user_cards
+-- Check final transaction state: an SSR evolution can consume every duplicate
+-- and create a replacement copy in the same transaction without losing its banner.
+create constraint trigger clear_unowned_profile_banner
+  after delete or update on public.user_cards
+  deferrable initially deferred
   for each row execute function public.clear_unowned_profile_banner();
 
 -- Deliberately no bulk rewrite of existing banners or deletion of stored files.
