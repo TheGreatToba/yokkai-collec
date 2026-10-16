@@ -1453,6 +1453,55 @@
   text-shadow: 0 0 24px var(--holo-glow);
   animation: yk-rise 0.7s var(--ease-yokkai);
 }
+/* Keep cinematic labels near the card, not at the top of the viewport. */
+.yk-reveal-ssr,
+.yk-reveal-lr {
+  --reveal-cinematic-width: min(190px, 28svh);
+  --reveal-card-half-height: calc(var(--reveal-cinematic-width) * 0.91);
+}
+.yk-reveal-lr {
+  --reveal-card-half-height: calc(var(--reveal-cinematic-width) * 0.975);
+}
+.yk-reveal-ssr .yk-deck,
+.yk-reveal-lr .yk-deck {
+  width: var(--reveal-cinematic-width);
+}
+.yk-reveal-ssr > .yk-callout,
+.yk-reveal-lr > .yk-callout {
+  top: max(12px, calc(50% - var(--reveal-card-half-height) - 68px));
+  right: 16px;
+  left: 16px;
+  z-index: 7;
+  margin: 0;
+  font-size: clamp(16px, 3vw, 22px);
+  line-height: 1.25;
+  text-align: center;
+  pointer-events: none;
+}
+.yk-reveal-lr > .yk-callout {
+  color: var(--color-rarity-lr);
+}
+.yk-reveal-stage:is(.yk-reveal-ssr, .yk-reveal-lr).yk-reveal-shiny
+  > .yk-callout {
+  top: max(12px, calc(50% - var(--reveal-card-half-height) - 98px));
+}
+.yk-reveal-stage:is(.yk-reveal-ssr, .yk-reveal-lr) > .yk-shiny-callout {
+  top: max(40px, calc(50% - var(--reveal-card-half-height) - 64px));
+  right: 16px;
+  left: 16px;
+  z-index: 7;
+  margin: 0;
+  font-size: clamp(13px, 2.4vw, 17px);
+  line-height: 1.25;
+  text-align: center;
+  pointer-events: none;
+}
+@media (max-height: 420px) {
+  .yk-reveal-ssr,
+  .yk-reveal-lr {
+    --reveal-cinematic-width: min(190px, 24svh);
+  }
+}
 .yk-reveal-shiny::after {
   content: "";
   position: absolute;
