@@ -9,13 +9,7 @@
   --ease-yokkai: var(--ease-standard);
 }
 body {
-  background:
-    radial-gradient(
-      1200px 600px at 50% -10%,
-      var(--color-veil) 0%,
-      transparent 60%
-    ),
-    var(--color-night);
+  background: #000;
   color: var(--color-ink);
   font-family: var(--font-sans);
 }

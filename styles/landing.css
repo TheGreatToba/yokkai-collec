@@ -1,18 +1,7 @@
 .yk-landing {
   min-height: 100dvh;
   overflow: hidden;
-  background:
-    radial-gradient(
-      900px 600px at 78% 25%,
-      rgba(167, 123, 255, 0.13),
-      transparent 65%
-    ),
-    radial-gradient(
-      700px 440px at 12% 8%,
-      rgba(232, 194, 106, 0.08),
-      transparent 68%
-    ),
-    var(--color-night);
+  background: #000;
 }
 .yk-landing-header {
   position: relative;
