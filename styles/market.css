@@ -278,7 +278,7 @@
   width: 44px;
   min-height: 44px;
   padding: 0;
-  background: color-mix(in srgb, var(--color-void) 75%, transparent);
+  background: color-mix(in srgb, var(--color-void) 10%, transparent);
   color: var(--color-ink);
 }
 .yk-market-tile-watch.yk-watching {
