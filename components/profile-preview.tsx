@@ -456,18 +456,19 @@ export function ProfilePreview() {
         };
       },
       uploadAvatar: upload,
-      uploadBanner: upload,
-      search: async query =>
-        collection.filter(card =>
-          `${card.name} ${card.anime}`
-            .toLowerCase()
-            .includes(query.toLowerCase())
-        ),
-      saveAppearance: async (bio, avatarUrl, ids, bannerCardId, bannerUrl) => ({
+      saveAppearance: async (
+        bio,
+        avatarUrl,
+        ids,
+        bannerCardId,
+        bannerUrl,
+        bannerFrame
+      ) => ({
         ...profile(),
         bio,
         avatarUrl,
         bannerUrl,
+        bannerFrame,
         bannerCard: collection.find(card => card.id === bannerCardId) ?? null,
         featuredCards: collection.filter(card => ids.includes(card.instanceId))
       }),
@@ -486,6 +487,7 @@ export function ProfilePreview() {
           ],
           widgetCategories: previewWidgets ? Object.keys(licenses) : [],
           bannerUrl: null,
+          bannerFrame: null,
           boostersOpened: hiddenCollection ? null : 824,
           lrCount: hiddenCollection ? null : 12,
           ssrCount: hiddenCollection ? null : 86,
@@ -542,7 +544,13 @@ export function ProfilePreview() {
           <ProfileExperience
             key={`${visitor}:${privateProfile}:${demoCatalogue}`}
             adapter={adapter}
-            collection={collection}
+            collection={
+              params.get("bannerCards") === "empty"
+                ? []
+                : params.get("bannerCards") === "duplicates"
+                  ? [...collection, ...collection]
+                  : collection
+            }
           />
         </div>
       </main>

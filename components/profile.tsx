@@ -19,6 +19,9 @@ import { PlayerModeration } from "@/components/player-moderation";
 import { ProfileLicensePicker } from "@/components/profile-license-picker";
 import { ProfileWall } from "@/components/profile-wall";
 import { ProfileSales } from "@/components/profile-sales";
+import { BannerCrop } from "@/components/banner-crop";
+import { BannerImage } from "@/components/banner-image";
+import type { BannerFrame } from "@/lib/ui/banner-frame";
 import {
   CatalogueCardModal,
   type CatalogueCardAdapter
@@ -28,12 +31,7 @@ import type { ProfileMarketAdapter } from "@/lib/data/profile-market";
 import { listBlockedUsers, type BlockedUser } from "@/lib/data/moderation";
 import { type ModerationAdapter } from "@/lib/data/moderation";
 import { FriendAction, type FriendActionAdapter } from "@/components/friends";
-import {
-  searchCards,
-  type Card,
-  type CollectedCard,
-  type Rarity
-} from "@/lib/data/cards";
+import { type Card, type CollectedCard, type Rarity } from "@/lib/data/cards";
 import {
   getFriendCollection,
   getFriendPaniniAlbumCardsPage,
@@ -45,7 +43,6 @@ import {
   getProfileWidgetLicenses,
   saveProfileAppearance,
   saveProfileWidgets,
-  uploadBanner,
   uploadAvatar,
   type ProfileDetails,
   type ProfileEngagement,
@@ -343,42 +340,74 @@ function Featured({
 }
 
 function Editor({
+  mode,
   profile,
   collection,
   initialBannerUrl,
+  initialBannerFrame,
+  framingAvailable,
   adapter,
   onSaved,
   onClose
 }: {
+  mode: "profile" | "showcase";
   profile: Profile;
   collection: CollectedCard[];
   initialBannerUrl: string | null;
+  initialBannerFrame: BannerFrame | null;
+  framingAvailable: boolean;
   adapter: ProfileAdapter;
-  onSaved: (p: Profile & { bannerUrl: string | null }) => void;
+  onSaved: (
+    p: Profile & { bannerUrl: string | null; bannerFrame?: BannerFrame | null }
+  ) => void;
   onClose: () => void;
 }) {
   const [bio, setBio] = useState(profile.bio);
   const [avatar, setAvatar] = useState(profile.avatarUrl);
-  const [bannerUrl, setBannerUrl] = useState(initialBannerUrl);
+  const ownedBannerCards = useMemo(() => {
+    const cards = new Map<string, Card>();
+    for (const card of collection) {
+      if (card.catalogueImage?.trim() && !cards.has(card.id))
+        cards.set(card.id, { ...card, image: card.catalogueImage });
+    }
+    return [...cards.values()];
+  }, [collection]);
+  const eligibleBanner =
+    ownedBannerCards.find(card => card.id === profile.bannerCard?.id) ?? null;
+  const [bannerCard, setBannerCard] = useState<Card | null>(eligibleBanner);
+  const [bannerFrame, setBannerFrame] = useState(
+    eligibleBanner && !initialBannerUrl ? initialBannerFrame : null
+  );
+  const [crop, setCrop] = useState<{
+    src: string;
+    frame: BannerFrame | null;
+    card: Card;
+  } | null>(null);
   const [selected, setSelected] = useState(
     () => new Set(profile.featuredCards.map(c => c.instanceId))
   );
   const [featuredQuery, setFeaturedQuery] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [bannerResults, setBannerResults] = useState<Card[]>([]);
-  const [bannerQuery, setBannerQuery] = useState(
-    profile.bannerCard?.name ?? ""
+  const [bannerQuery, setBannerQuery] = useState("");
+  const ownedBannerChoices = useMemo(
+    () =>
+      ownedBannerCards
+        .filter(card =>
+          matchesCardSearch(bannerQuery, [card.name, card.category, card.anime])
+        )
+        .toSorted((a, b) => a.name.localeCompare(b.name, "en-US")),
+    [ownedBannerCards, bannerQuery]
   );
-  const [bannerCard, setBannerCard] = useState<Card | null>(profile.bannerCard);
   const unique = useMemo(() => {
+    if (mode !== "showcase") return [];
     const byCard = new Map<string, CollectedCard>();
     for (const card of collection) {
       if (!byCard.has(card.id) || selected.has(card.instanceId))
         byCard.set(card.id, card);
     }
     return [...byCard.values()];
-  }, [collection, selected]);
+  }, [collection, selected, mode]);
   const featuredChoices = useMemo(
     () =>
       unique
@@ -396,26 +425,6 @@ function Editor({
         ),
     [unique, featuredQuery, selected]
   );
-  useEffect(() => {
-    if (bannerQuery.trim().length < 2 || bannerCard) return;
-    let active = true;
-    const timer = window.setTimeout(
-      () =>
-        void (adapter.search ?? searchCards)(bannerQuery, 8).then(
-          cards => {
-            if (active) setBannerResults(cards);
-          },
-          () => {
-            if (active) setError("Impossible de rechercher dans le catalogue.");
-          }
-        ),
-      250
-    );
-    return () => {
-      active = false;
-      window.clearTimeout(timer);
-    };
-  }, [bannerQuery, bannerCard, adapter]);
   function toggle(id: string) {
     setSelected(current => {
       const next = new Set(current);
@@ -436,34 +445,28 @@ function Editor({
       setBusy(false);
     }
   }
-  async function banner(file?: File) {
-    if (!file || busy) return;
-    setBusy(true);
-    setError("");
-    try {
-      setBannerUrl(
-        await (adapter.uploadBanner ?? uploadBanner)(file, profile.id)
-      );
-      setBannerCard(null);
-      setBannerQuery("");
-      setBannerResults([]);
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Envoi impossible.");
-    } finally {
-      setBusy(false);
-    }
-  }
   async function submit() {
     if (busy) return;
     setBusy(true);
     setError("");
     try {
+      if (bannerFrame && !framingAvailable) {
+        throw new Error(
+          "Banner framing is not available yet. Please try again after the update."
+        );
+      }
+      if (
+        bannerCard &&
+        !ownedBannerCards.some(card => card.id === bannerCard.id)
+      )
+        throw new Error("Choose a card you own for your banner.");
       const updated = await (adapter.saveAppearance ?? saveProfileAppearance)(
         bio,
         avatar,
         [...selected],
         bannerCard?.id ?? null,
-        bannerUrl
+        null,
+        bannerFrame ?? undefined
       );
       onSaved(updated);
       onClose();
@@ -474,186 +477,207 @@ function Editor({
     }
   }
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Avatar name={profile.pseudo} image={avatar ?? undefined} size={80} />
-        <label className="yk-button yk-button-secondary cursor-pointer">
-          Choisir une photo
-          <input
-            className="sr-only"
-            type="file"
-            disabled={busy}
-            accept="image/jpeg,image/png,image/webp,image/gif"
-            onChange={e => void photo(e.target.files?.[0])}
-          />
-        </label>
-      </div>
-      <p className="text-xs text-ink-3">JPG, PNG, WebP or GIF · Up to 4 MB.</p>
-      <label className="block text-sm text-ink-2">
-        Bio
-        <textarea
-          className="auth-input mt-2 min-h-28 resize-y py-3"
-          maxLength={300}
-          value={bio}
-          onChange={e => setBio(e.target.value)}
-          placeholder="Présentez votre collection…"
-        />
-        <span className="mt-1 block text-right text-xs text-ink-3">
-          {bio.length}/300
-        </span>
-      </label>
-      <section className="yk-profile-banner-editor">
-        <h3 className="font-display text-lg">Bannière personnalisée</h3>
-        <p className="yk-profile-muted">
-          Upload an image from your computer or phone. JPG, PNG, WebP or GIF,
-          <strong>up to 4 MB</strong>. The image is centered and cropped to fit
-          your banner.
-        </p>
-        {bannerUrl && (
-          <img
-            className="yk-profile-banner-preview"
-            src={bannerUrl}
-            alt="Aperçu de la bannière"
-          />
-        )}
-        <div className="yk-profile-widget-tools">
-          <label className="yk-button yk-button-secondary cursor-pointer">
-            Importer une bannière
-            <input
-              className="sr-only"
-              aria-label="Importer une bannière"
-              type="file"
-              disabled={busy}
-              accept="image/jpeg,image/png,image/webp,image/gif"
-              onChange={event => {
-                void banner(event.target.files?.[0]);
-                event.target.value = "";
-              }}
+    <div className="space-y-6" data-profile-editor={mode}>
+      {mode === "profile" && (
+        <>
+          <div className="flex items-center gap-4">
+            <Avatar
+              name={profile.pseudo}
+              image={avatar ?? undefined}
+              size={80}
             />
-          </label>
-          {bannerUrl && (
-            <Button
-              variant="secondary"
-              disabled={busy}
-              onClick={() => setBannerUrl(null)}
-            >
-              Retirer la bannière
-            </Button>
-          )}
-        </div>
-      </section>
-      <section>
-        <h3 className="font-display text-lg">Personnage de bannière</h3>
-        <p className="mt-2 text-xs text-ink-3">
-          Ou choisis un personnage du catalogue à la place de l’image importée.
-        </p>
-        {bannerCard && (
-          <div className="yk-banner-choice mt-4">
-            <div>
-              <img src={bannerCard.image} alt="" decoding="async" />
-              <strong>{bannerCard.name}</strong>
-              <small>{bannerCard.anime ?? bannerCard.category}</small>
-            </div>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setBannerCard(null);
-                setBannerQuery("");
-                setBannerResults([]);
-              }}
-            >
-              Retirer
-            </Button>
+            <label className="yk-button yk-button-secondary cursor-pointer">
+              Choisir une photo
+              <input
+                className="sr-only"
+                type="file"
+                disabled={busy}
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={e => void photo(e.target.files?.[0])}
+              />
+            </label>
           </div>
-        )}
-        <div className="relative mt-4">
+          <p className="text-xs text-ink-3">
+            JPG, PNG, WebP or GIF · Up to 4 MB.
+          </p>
+          <label className="block text-sm text-ink-2">
+            Bio
+            <textarea
+              className="auth-input mt-2 min-h-28 resize-none overflow-y-auto py-3"
+              maxLength={300}
+              value={bio}
+              onChange={e => setBio(e.target.value)}
+              placeholder="Présentez votre collection…"
+            />
+            <span className="mt-1 block text-right text-xs text-ink-3">
+              {bio.length}/300
+            </span>
+          </label>
+          <section
+            className="yk-profile-banner-editor"
+            data-owned-banner-picker
+          >
+            <h3 className="font-display text-lg">Profile banner</h3>
+            <p className="yk-profile-muted">
+              Choose a card from your collection. Adjust its position, zoom and
+              rotation before saving.
+            </p>
+            {(initialBannerUrl || (profile.bannerCard && !eligibleBanner)) && (
+              <p className="mt-2 text-xs text-ink-3" role="status">
+                Your previous banner is no longer eligible. Saving will replace
+                it with your selected card, or remove it if no card is selected.
+              </p>
+            )}
+            {bannerCard && bannerFrame && (
+              <div className="yk-banner-framed-preview">
+                <BannerImage src={bannerCard.image} frame={bannerFrame} />
+              </div>
+            )}
+            <div className="yk-profile-widget-tools">
+              {bannerCard && (
+                <Button
+                  variant="secondary"
+                  disabled={busy}
+                  onClick={() => {
+                    setBannerCard(null);
+                    setBannerFrame(null);
+                  }}
+                >
+                  Remove banner
+                </Button>
+              )}
+              {bannerCard && (
+                <Button
+                  variant="secondary"
+                  disabled={busy}
+                  onClick={() =>
+                    setCrop({
+                      src: bannerCard.image,
+                      frame: bannerFrame,
+                      card: bannerCard
+                    })
+                  }
+                >
+                  Adjust banner
+                </Button>
+              )}
+            </div>
+            {bannerCard && (
+              <div className="yk-banner-choice mt-4">
+                <div>
+                  <img src={bannerCard.image} alt="" decoding="async" />
+                  <strong>{bannerCard.name}</strong>
+                  <small>{bannerCard.anime ?? bannerCard.category}</small>
+                </div>
+              </div>
+            )}
+            <div className="relative mt-4">
+              <input
+                className="auth-input"
+                type="search"
+                aria-label="Search your collection for a banner"
+                disabled={busy}
+                value={bannerQuery}
+                onChange={e => {
+                  const value = e.target.value;
+                  setBannerQuery(value);
+                  setError("");
+                }}
+                placeholder="Search your cards or franchises…"
+              />
+              {ownedBannerChoices.length > 0 ? (
+                <ul className="yk-banner-results">
+                  {ownedBannerChoices.slice(0, 36).map(card => (
+                    <li key={card.id}>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => {
+                          setCrop({
+                            src: card.image,
+                            frame: null,
+                            card
+                          });
+                        }}
+                      >
+                        <img
+                          src={card.image}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                        />
+                        <span>
+                          <strong>{card.name}</strong>
+                          <small>{card.anime ?? card.category}</small>
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-3 text-sm text-ink-3" role="status">
+                  {ownedBannerCards.length
+                    ? "No matching cards in your collection."
+                    : "Collect a card to unlock a profile banner."}
+                </p>
+              )}
+              {ownedBannerChoices.length > 36 && (
+                <p className="mt-2 text-xs text-ink-3">
+                  Showing 36 of{" "}
+                  {ownedBannerChoices.length.toLocaleString("en-US")} cards.
+                  Search to find a specific card.
+                </p>
+              )}
+            </div>
+          </section>
+        </>
+      )}
+      {mode === "showcase" && (
+        <section>
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="font-display text-lg">Cartes mises en avant</h3>
+            <span className="text-xs text-ink-3">
+              {selected.size}/{FEATURED_CARD_LIMIT}
+            </span>
+          </div>
+          <p className="mt-2 text-xs text-ink-3">
+            Choisissez jusqu’à cinq cartes différentes de votre collection.
+          </p>
+          <label className="sr-only" htmlFor="featured-query">
+            Rechercher une carte à mettre en avant
+          </label>
           <input
-            className="auth-input"
+            id="featured-query"
+            className="auth-input mt-4"
             type="search"
-            value={bannerQuery}
-            onChange={e => {
-              const value = e.target.value;
-              setBannerQuery(value);
-              setBannerResults([]);
-              setError("");
-              if (value !== bannerCard?.name) setBannerCard(null);
-            }}
-            placeholder="Nom du personnage ou de la série…"
+            value={featuredQuery}
+            onChange={e => setFeaturedQuery(e.target.value)}
+            placeholder="Rechercher une carte…"
           />
-          {bannerResults.length > 0 && !bannerCard && (
-            <ul className="yk-banner-results">
-              {bannerResults.map(card => (
-                <li key={card.id}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setBannerCard(card);
-                      setBannerUrl(null);
-                      setBannerQuery(card.name);
-                      setBannerResults([]);
-                    }}
-                  >
-                    <img
-                      src={card.image}
-                      alt=""
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <span>
-                      <strong>{card.name}</strong>
-                      <small>{card.anime ?? card.category}</small>
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </section>
-      <section>
-        <div className="flex items-center justify-between gap-3">
-          <h3 className="font-display text-lg">Cartes mises en avant</h3>
-          <span className="text-xs text-ink-3">
-            {selected.size}/{FEATURED_CARD_LIMIT}
-          </span>
-        </div>
-        <p className="mt-2 text-xs text-ink-3">
-          Choisissez jusqu’à cinq cartes différentes de votre collection.
-        </p>
-        <label className="sr-only" htmlFor="featured-query">
-          Rechercher une carte à mettre en avant
-        </label>
-        <input
-          id="featured-query"
-          className="auth-input mt-4"
-          type="search"
-          value={featuredQuery}
-          onChange={e => setFeaturedQuery(e.target.value)}
-          placeholder="Rechercher une carte…"
-        />
-        <div className="yk-featured-picker mt-4">
-          {featuredChoices.map(card => {
-            const featured = selected.has(card.instanceId);
-            return (
-              <button
-                type="button"
-                key={card.instanceId}
-                aria-pressed={featured}
-                className={featured ? "is-selected" : ""}
-                onClick={() => toggle(card.instanceId)}
-              >
-                <YokaiCard
-                  {...card}
-                  image={featured ? card.image : card.catalogueImage}
-                  animated={false}
-                  imageSizes={PROFILE_CARD_IMAGE_SIZES}
-                />
-                <span>{featured ? "Sélectionnée" : "Choisir"}</span>
-              </button>
-            );
-          })}
-        </div>
-      </section>
+          <div className="yk-featured-picker mt-4">
+            {featuredChoices.map(card => {
+              const featured = selected.has(card.instanceId);
+              return (
+                <button
+                  type="button"
+                  key={card.instanceId}
+                  aria-pressed={featured}
+                  className={featured ? "is-selected" : ""}
+                  onClick={() => toggle(card.instanceId)}
+                >
+                  <YokaiCard
+                    {...card}
+                    image={featured ? card.image : card.catalogueImage}
+                    animated={false}
+                    imageSizes={PROFILE_CARD_IMAGE_SIZES}
+                  />
+                  <span>{featured ? "Sélectionnée" : "Choisir"}</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
       {error && (
         <p role="alert" className="text-sm text-danger">
           {error}
@@ -667,6 +691,19 @@ function Editor({
           {busy ? "Enregistrement…" : "Enregistrer"}
         </Button>
       </div>
+      {crop && (
+        <BannerCrop
+          key={crop.src}
+          src={crop.src}
+          initial={crop.frame}
+          onCancel={() => setCrop(null)}
+          onApply={frame => {
+            setBannerCard(crop.card);
+            setBannerFrame(frame);
+            setCrop(null);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -992,8 +1029,6 @@ export type ProfileAdapter = {
   widgetLicenses?: typeof getProfileWidgetLicenses;
   saveAppearance?: typeof saveProfileAppearance;
   uploadAvatar?: typeof uploadAvatar;
-  uploadBanner?: typeof uploadBanner;
-  search?: typeof searchCards;
 };
 const liveProfile: ProfileAdapter = {
   profile: getProfile,
@@ -1020,6 +1055,9 @@ export function ProfileExperience({
   const [wishlist, setWishlist] = useState<WishlistCard[]>([]);
   const [error, setError] = useState("");
   const [editing, setEditing] = useState(searchParams.get("edition") === "1");
+  const [editingMode, setEditingMode] = useState<"profile" | "showcase">(
+    "profile"
+  );
   const [toast, setToast] = useState("");
   const [blocked, setBlocked] = useState<BlockedUser[]>([]);
   const [collectionOpen, setCollectionOpen] = useState(false);
@@ -1038,6 +1076,9 @@ export function ProfileExperience({
   const likePending = useRef(false);
   const [savedBannerUrl, setSavedBannerUrl] = useState<
     string | null | undefined
+  >();
+  const [savedBannerFrame, setSavedBannerFrame] = useState<
+    BannerFrame | null | undefined
   >();
   const profileId = profile?.id;
   const profileBlocked = blocked.some(player => player.id === profileId);
@@ -1202,6 +1243,8 @@ export function ProfileExperience({
   const bannerImage =
     (savedBannerUrl === undefined ? details?.bannerUrl : savedBannerUrl) ||
     profile.bannerCard?.image;
+  const bannerFrame =
+    savedBannerFrame === undefined ? details?.bannerFrame : savedBannerFrame;
   return (
     <>
       <div className="yk-profile-hub" data-profile-tab={tab}>
@@ -1240,7 +1283,19 @@ export function ProfileExperience({
             <section className="yk-profile-surface yk-profile-showcase">
               <div className="yk-profile-section-heading">
                 <h3 className="yk-section-title">Cartes mises en avant</h3>
-                <span className="yk-profile-muted">Sa vitrine</span>
+                {isMe ? (
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setEditingMode("showcase");
+                      setEditing(true);
+                    }}
+                  >
+                    Edit showcase
+                  </Button>
+                ) : (
+                  <span className="yk-profile-muted">Sa vitrine</span>
+                )}
               </div>
               <Featured cards={profile.featuredCards} />
             </section>
@@ -1474,16 +1529,20 @@ export function ProfileExperience({
         </section>
         <aside className="yk-profile-identity">
           <div
-            className={`yk-profile-banner ${bannerImage ? "has-image" : ""}`}
+            className={`yk-profile-banner ${bannerImage ? "has-image" : ""} ${bannerFrame ? "has-frame" : ""}`}
           >
             {bannerImage && (
               <>
-                <img
-                  src={bannerImage}
-                  alt=""
-                  aria-hidden="true"
-                  decoding="async"
-                />
+                {bannerFrame ? (
+                  <BannerImage src={bannerImage} frame={bannerFrame} />
+                ) : (
+                  <img
+                    src={bannerImage}
+                    alt=""
+                    aria-hidden="true"
+                    decoding="async"
+                  />
+                )}
                 <span className="yk-profile-banner-shade" />
               </>
             )}
@@ -1514,7 +1573,13 @@ export function ProfileExperience({
             </p>
             <div className="yk-profile-actions">
               {isMe ? (
-                <Button variant="secondary" onClick={() => setEditing(true)}>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setEditingMode("profile");
+                    setEditing(true);
+                  }}
+                >
                   Modifier le profil
                 </Button>
               ) : (
@@ -1728,11 +1793,15 @@ export function ProfileExperience({
       <Modal
         open={editing}
         onClose={() => setEditing(false)}
-        title="Modifier mon profil"
+        title={
+          editingMode === "showcase" ? "Edit showcase" : "Modifier mon profil"
+        }
         className="max-w-4xl"
       >
         {isMe && collection && details ? (
           <Editor
+            key={editingMode}
+            mode={editingMode}
             profile={profile}
             collection={collection}
             initialBannerUrl={
@@ -1740,12 +1809,21 @@ export function ProfileExperience({
                 ? details?.bannerUrl
                 : savedBannerUrl) ?? null
             }
+            initialBannerFrame={bannerFrame ?? null}
+            framingAvailable={
+              !!adapter.saveAppearance || details.bannerFrame !== undefined
+            }
             adapter={adapter}
             onClose={() => setEditing(false)}
             onSaved={p => {
               setProfile(p);
               setSavedBannerUrl(p.bannerUrl);
-              setToast("Profil mis à jour");
+              setSavedBannerFrame(p.bannerFrame ?? null);
+              setToast(
+                editingMode === "showcase"
+                  ? "Showcase updated"
+                  : "Profil mis à jour"
+              );
             }}
           />
         ) : (

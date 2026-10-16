@@ -69,6 +69,8 @@ const allowlist = {
     "authenticated"
   ], // Reuses update_profile checks atomically; banner URL limited to the caller's avatars/banner raster file on the API origin.
   "public.get_profile_privacy()": ["authenticated"], // Reads the current player's privacy setting.
+  "public.update_profile_appearance_framed(text, text, uuid[], uuid, text, jsonb)":
+    ["authenticated"], // Own bounded crop metadata only; reuses atomic appearance/URL/deletion checks, no inventory or storage grant. Validated with Walid.
   "public.get_public_profile(uuid)": ["authenticated"], // Exposes the permitted public profile projection.
   "public.get_regular_pack_status()": ["authenticated"], // Reads the current player's pack timers.
   "public.get_shared_card(text)": ["anon", "authenticated"], // Public share token intentionally exposes the shared card projection.

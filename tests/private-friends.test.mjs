@@ -135,6 +135,16 @@ function renderProfile(profile) {
     "@/components/player-moderation": { PlayerModeration: () => null },
     "@/components/profile-wall": { ProfileWall: () => null },
     "@/components/profile-sales": { ProfileSales: () => null },
+    "@/components/banner-crop": load("components/banner-crop.tsx", {
+      "@/components/ui": ui,
+      "@/components/banner-image": load("components/banner-image.tsx", {
+        "@/lib/ui/banner-frame": load("lib/ui/banner-frame.ts", {})
+      }),
+      "@/lib/ui/banner-frame": load("lib/ui/banner-frame.ts", {})
+    }),
+    "@/components/banner-image": load("components/banner-image.tsx", {
+      "@/lib/ui/banner-frame": load("lib/ui/banner-frame.ts", {})
+    }),
     "@/components/community-views": { CatalogueCardModal: () => null },
     "@/components/profile-license-picker": load(
       "components/profile-license-picker.tsx",
