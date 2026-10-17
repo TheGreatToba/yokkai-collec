@@ -113,7 +113,6 @@
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: calc(var(--spacing) * 2);
   container-type: inline-size;
   border-radius: var(--radius-card);
   transition:

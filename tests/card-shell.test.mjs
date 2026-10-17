@@ -6,6 +6,22 @@ import test from "node:test";
 
 const root = path.resolve(import.meta.dirname, "..");
 
+test("le cœur du marché partage le plan animé de la carte sans être imbriqué dans son lien", () => {
+  const source = readFileSync(
+    path.join(root, "components/community-views.tsx"),
+    "utf8"
+  );
+  const tile = source.slice(
+    source.indexOf("function AuctionTile("),
+    source.indexOf("const marketEmptyStates")
+  );
+  assert.match(
+    tile,
+    /<CardShell>[\s\S]*?<Link[\s\S]*?<YokaiCard[\s\S]*?<\/Link>\s*<WatchButton[\s\S]*?className="yk-market-tile-watch"[\s\S]*?<\/CardShell>/
+  );
+  assert.equal((tile.match(/<WatchButton/g) ?? []).length, 1);
+});
+
 test("le shell conserve le ratio 5:7 et ne modifie pas la face", () => {
   const card = readFileSync(
     path.join(root, "components/yokai-card.tsx"),

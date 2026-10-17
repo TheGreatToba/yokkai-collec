@@ -502,14 +502,26 @@ function AuctionTile({
 }) {
   return (
     <li className="yk-market-tile">
+      <CardShell>
+        <Link
+          href={`/market/${a.id}`}
+          className="yk-market-tile-link"
+          aria-label={`View auction for ${a.card.name}, ${formatKaras(a.amount)}, ${a.finished ? "ended" : `ends in ${a.remaining}`}`}
+        >
+          <YokaiCard {...a.card} imageSizes="100vw" />
+        </Link>
+        <WatchButton
+          watched={a.wishlist}
+          onToggle={onToggleWatch ? () => onToggleWatch(a.id) : undefined}
+          className="yk-market-tile-watch"
+        />
+      </CardShell>
       <Link
         href={`/market/${a.id}`}
         className="yk-market-tile-link"
+        tabIndex={-1}
         aria-label={`View auction for ${a.card.name}, ${formatKaras(a.amount)}, ${a.finished ? "ended" : `ends in ${a.remaining}`}`}
       >
-        <CardShell>
-          <YokaiCard {...a.card} imageSizes="100vw" />
-        </CardShell>
         <div className="yk-market-tile-meta">
           <span className="yk-market-seller">
             <Avatar
@@ -533,11 +545,6 @@ function AuctionTile({
           </div>
         </div>
       </Link>
-      <WatchButton
-        watched={a.wishlist}
-        onToggle={onToggleWatch ? () => onToggleWatch(a.id) : undefined}
-        className="yk-market-tile-watch"
-      />
     </li>
   );
 }
