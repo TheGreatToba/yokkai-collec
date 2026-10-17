@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { PremiumBannerPreview } from "@/components/premium-banner-preview";
+import { PremiumCardArtworkPreview } from "@/components/premium-card-artwork-preview";
 import { PremiumCheckout } from "@/components/premium-checkout";
 import {
   PROPOSED_PLAN_RULES as rules,
@@ -92,7 +93,10 @@ export function PremiumOffer({
           stay the same for everyone.
         </p>
       </section>
-      <PremiumBannerPreview />
+      <div className="yk-pro-personalization-examples">
+        <PremiumBannerPreview />
+        <PremiumCardArtworkPreview />
+      </div>
       <section
         id="pro-benefits"
         className="yk-pro-feature-section"

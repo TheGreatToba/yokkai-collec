@@ -6,6 +6,8 @@
 - Comparatif **sans droits réels** : Regular Pack 10 → 5 minutes, Decision Pack 24 → 12 heures, enchères simultanées 3 → 6, vitrine 5 → 10. Aucun changement des probabilités par carte.
 - Page de présentation uniquement : avantages Pro, comparatif Basic/Pro, bannière GIF du compte **BBDOU** et abonnement mensuel. Ni démo interactive, ni activation simulée, ni sélecteur de thèmes, ni sauvegarde de style dans la page.
 - Les médias sont une copie locale du 17 octobre 2026 dans `public/assets/premium-examples/`. GIF original non converti (498 × 281, 23 images) ; image fixe extraite pour la pause et `prefers-reduced-motion`. Aucun bouton « Pause GIF » visible sous la bannière : elle démarre automatiquement et reste activable au clic ou au clavier pour l’accessibilité. Aucun appel de profil ou de média de production pendant l’affichage, aucun accès Pro conféré au compte d’exemple.
+- À côté de « Animated banners », exemple d’illustration personnalisée : la vraie carte **SATORU GOJOU**, **JUJUTSU KAISEN**, LR (`60c0cdbe-2ed5-43f9-aac3-c2bdfa5e4867`), puis exactement la même carte avec le GIF `gojo-satoru.gif` fourni par l’utilisateur. Le composant commun `YokaiCard` conserve cadre, nom, licence, catégorie et rareté ; seule l’image change. Les deux blocs sont côte à côte sur ordinateur et empilés sous 960 px.
+- Illustration originale copiée depuis le catalogue local (PNG 230 × 345) ; GIF fourni copié sans modification (498 × 281, 29 images, boucle infinie). Image fixe pour la réduction des mouvements, contrôle accessible au clic/clavier sur la carte. Aucun formulaire d’édition, mutation de collection ou changement de droit Pro.
 - Liste complète des 13 avantages fournie par le produit dans `lib/premium/offer.ts`. Le bandeau local précise que les avantages ne sont pas encore actifs. Les règles Basic décrivent l’offre cible, pas un audit des droits actuels.
 - Stripe Checkout hébergé en mode abonnement, portail client, webhook signé et vérification serveur de l’abonnement. Le prix est affiché depuis la configuration serveur/partagée ; le client n’envoie ni prix, ni identité dans ses requêtes de paiement.
 - Sans configuration Stripe, le bouton d’abonnement connecté est désactivé et indique la cause. Aucun bouton de configuration technique ou alternative de démo n’est affiché.
@@ -17,14 +19,14 @@
 
 Branche `ad/local-premium-subscription`, dossier `.worktrees/local-premium-subscription`.
 
-Configurer `.env.local` avec le Supabase **local existant** et les valeurs de `.env.premium.example`, puis :
+Configurer `.env.local` avec le Supabase **local existant**, `NEXT_PUBLIC_SITE_URL=http://localhost:3000` et les valeurs Stripe de `.env.premium.example`, puis :
 
 ```powershell
 npm.cmd install
-npm.cmd run dev -- --port 3001
+npm.cmd run dev -- --port 3000
 ```
 
-Ouvrir `http://localhost:3001/premium`. La présentation de l’offre est accessible sans connexion. Le bouton **Sign in to subscribe** mène à la connexion ; un joueur connecté voit **Subscribe — €4.99/month**. Sans clés Stripe de test, ce bouton reste désactivé. La consultation de la page ne crée aucun client ni abonnement Stripe.
+Ouvrir `http://localhost:3000/premium`. La présentation de l’offre est accessible sans connexion. Le bouton **Sign in to subscribe** mène à la connexion ; un joueur connecté voit **Subscribe — €4.99/month**. Sans clés Stripe de test, ce bouton reste désactivé. La consultation de la page ne crée aucun client ni abonnement Stripe.
 
 La page et toutes les API renvoient 404 sauf en `NODE_ENV=development`, avec `LOCAL_PREMIUM_ENABLED=true`, origine du site loopback et Supabase loopback. Une clé Stripe réelle est refusée. Les mutations authentifiées exigent la même origine et n’acceptent aucun identifiant joueur, prix ou client fourni par le navigateur.
 
@@ -35,7 +37,7 @@ La page et toutes les API renvoient 404 sauf en `NODE_ENV=development`, avec `LO
 3. Installer/authentifier Stripe CLI et lancer :
 
 ```text
-stripe listen --events checkout.session.completed,checkout.session.async_payment_succeeded,checkout.session.async_payment_failed,customer.subscription.created,customer.subscription.updated,customer.subscription.deleted,invoice.paid,invoice.payment_failed --forward-to http://localhost:3001/api/premium/webhook
+stripe listen --events checkout.session.completed,checkout.session.async_payment_succeeded,checkout.session.async_payment_failed,customer.subscription.created,customer.subscription.updated,customer.subscription.deleted,invoice.paid,invoice.payment_failed --forward-to http://localhost:3000/api/premium/webhook
 ```
 
 4. Reporter le secret `whsec_…` affiché par CLI dans `STRIPE_WEBHOOK_SECRET` puis redémarrer Next. Le serveur refuse d’ouvrir Checkout sans cette configuration.

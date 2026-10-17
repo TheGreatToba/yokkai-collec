@@ -749,6 +749,115 @@
   color: #a198b2;
   font-size: 10px;
 }
+.yk-pro-personalization-examples {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px 36px;
+  padding: 48px 0;
+  border-top: 1px solid #ffffff10;
+}
+.yk-pro-personalization-examples > section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  align-items: start;
+  gap: 28px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+}
+@supports (grid-template-rows: subgrid) {
+  .yk-pro-personalization-examples > section {
+    grid-row: span 2;
+    grid-template-rows: subgrid;
+  }
+}
+.yk-pro-artwork-preview {
+  padding: 22px 18px;
+  border: 1px solid #b69aff30;
+  border-radius: 17px;
+  background: linear-gradient(150deg, #181225, #100d19);
+}
+.yk-pro-artwork-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+.yk-pro-artwork-pair figure {
+  min-width: 0;
+  max-width: 210px;
+  width: 100%;
+  margin: 0 auto;
+}
+.yk-pro-artwork-pair figcaption {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 15px;
+  min-height: 22px;
+  font-size: 11px;
+  color: #c6bed4;
+  text-align: center;
+}
+.yk-pro-artwork-pair figcaption span {
+  padding: 3px 5px;
+  color: #d6c4ff;
+  border: 1px solid #b69aff40;
+  border-radius: 4px;
+  font-size: 8px;
+}
+.yk-pro-artwork-arrow {
+  color: #c5afff;
+  font-size: 22px;
+}
+.yk-pro-custom-card-toggle {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  cursor: pointer;
+  text-align: initial;
+}
+.yk-pro-custom-card-toggle:focus-visible {
+  outline: 2px solid var(--plus-accent);
+  outline-offset: 5px;
+}
+.yk-pro-artwork-caption {
+  margin-top: 22px;
+  font-size: 11px;
+  line-height: 1.6;
+  text-align: center;
+  color: #aaa2b9;
+}
+@media (max-width: 960px) {
+  .yk-pro-personalization-examples {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 42px;
+  }
+  .yk-pro-personalization-examples > section {
+    grid-row: auto;
+    grid-template-rows: auto 1fr;
+  }
+}
+@media (max-width: 420px) {
+  .yk-pro-artwork-preview {
+    padding: 20px 12px;
+  }
+  .yk-pro-artwork-pair {
+    gap: 8px;
+  }
+  .yk-pro-artwork-pair figcaption {
+    font-size: 10px;
+    flex-wrap: wrap;
+  }
+  .yk-pro-artwork-arrow {
+    font-size: 17px;
+  }
+}
 .yk-pro-comparison,
 .yk-pro-simulator,
 .yk-pro-feature-section {
