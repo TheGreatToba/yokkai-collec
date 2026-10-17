@@ -94,3 +94,14 @@ test("the routed Pro page shows the offer and checkout, with no interactive lab"
     /setState\([^)]*active:\s*true|searchParams|URLSearchParams/
   );
 });
+
+test("deferred Pro achievements stay in the offer and are visibly marked coming soon", () => {
+  const offer = source("components/premium-offer.tsx");
+  const benefits = source("lib/premium/offer.ts");
+  assert.match(benefits, /id: "achievements"/);
+  assert.match(benefits, /Additional achievements and Karas/);
+  assert.match(
+    offer,
+    /feature\.id === "achievements" && <span>Coming soon<\/span>/
+  );
+});
