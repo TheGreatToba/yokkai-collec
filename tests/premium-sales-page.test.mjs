@@ -95,6 +95,19 @@ test("the routed Pro page shows the offer and checkout, with no interactive lab"
   );
 });
 
+test("commercial copy keeps availability honest without demo annotations", () => {
+  const offer = source("components/premium-offer.tsx");
+  const artwork = source("components/premium-card-artwork-preview.tsx");
+  const page = source("app/premium/page.tsx");
+  assert.match(offer, /COMING SOON/);
+  assert.match(offer, /not available yet/);
+  assert.match(offer, /Subscriptions will open once/);
+  assert.match(artwork, /Your collection, reimagined/);
+  assert.doesNotMatch(artwork, /Artwork example only/);
+  assert.doesNotMatch(page, /Local preview/);
+  assert.match(page, /if \(!localPremiumEnabled\(\)\) notFound\(\)/);
+});
+
 test("deferred Pro achievements stay in the offer and are visibly marked coming soon", () => {
   const offer = source("components/premium-offer.tsx");
   const benefits = source("lib/premium/offer.ts");

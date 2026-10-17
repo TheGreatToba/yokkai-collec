@@ -69,6 +69,11 @@ test("preview preserves the GIF and uses shared profile framing with motion cont
   assert.match(preview, /<button[^>]*className="yk-pro-live-banner"/);
   assert.match(preview, /"Pause GIF" : "Play GIF"/);
   assert.match(preview, /Banner preview unavailable/);
-  assert.match(preview, /No profile changes or Pro access are applied/);
+  assert.match(preview, /A profile that feels like you/);
+  assert.match(preview, /Your profile. Your signature/);
+  assert.doesNotMatch(
+    preview,
+    /Featuring |A preview using |No profile changes or Pro access are applied|PRO STYLE PREVIEW/
+  );
   assert.doesNotMatch(preview, /fetch\(|\.rpc\(|localStorage|https?:\/\//);
 });
