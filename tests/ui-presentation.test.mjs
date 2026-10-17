@@ -1941,7 +1941,7 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
   });
   assert.match(
     normalizeWhitespace(selection),
-    normalizeWhitespace(/0\/5 in reserve/)
+    normalizeWhitespace(/aria-label="0 of 5 packs in reserve"/)
   );
   assert.match(
     normalizeWhitespace(selection),
@@ -1949,7 +1949,7 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
   );
   assert.match(
     normalizeWhitespace(selection),
-    normalizeWhitespace(/Keep 1 of 5 cards/)
+    normalizeWhitespace(/Daily · Keep 1 of 5/)
   );
   assert.match(
     normalizeWhitespace(selection),

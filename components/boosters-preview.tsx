@@ -41,6 +41,20 @@ export function BoostersPreview() {
     <Boosters
       status={{ available: reserve, maximum: 5, nextPackAt: 4_102_444_800_000 }}
       countdown="42:00"
+      // Demo probabilities only; the live page gets these from the server.
+      dropRates={[
+        { rarity: "C", percent: 71.9 },
+        { rarity: "R", percent: 20 },
+        { rarity: "SR", percent: 7 },
+        { rarity: "SSR", percent: 1 },
+        { rarity: "LR", percent: 0.1 }
+      ]}
+      decisionDropRates={[
+        { rarity: "SR", percent: 96.5 },
+        { rarity: "SSR", percent: 3 },
+        { rarity: "LR", percent: 0.5 }
+      ]}
+      shinyRate={0.1}
       decisionStatus={{
         available: !decisionUsed,
         pending: [],
