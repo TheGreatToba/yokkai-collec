@@ -2,6 +2,7 @@ import "server-only";
 import { timingSafeEqual } from "node:crypto";
 import { getCurrentUser } from "@/lib/auth/session";
 import { billingConfig, BillingError } from "./config";
+import { BillingRateLimitError } from "./rate-limit";
 
 export function billingReply(body: object, status = 200) {
   return Response.json(body, {
@@ -15,7 +16,7 @@ export function billingReply(body: object, status = 200) {
 export function billingFailure(error: unknown) {
   const known = error instanceof BillingError;
   const status = known ? error.status : 503;
-  return billingReply(
+  const response = billingReply(
     {
       code: known ? error.code : "BILLING_UNAVAILABLE",
       error:
@@ -23,10 +24,15 @@ export function billingFailure(error: unknown) {
           ? "Sign in to continue."
           : status === 404
             ? "Not found."
-            : "Billing is temporarily unavailable. Please try again."
+            : status === 429
+              ? "Too many requests. Please try again shortly."
+              : "Billing is temporarily unavailable. Please try again."
     },
     status
   );
+  if (error instanceof BillingRateLimitError)
+    response.headers.set("Retry-After", String(error.retryAfterSeconds));
+  return response;
 }
 export async function billingUser(request: Request, mutate = false) {
   const config = billingConfig();

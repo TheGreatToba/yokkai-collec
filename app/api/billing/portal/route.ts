@@ -1,4 +1,5 @@
 import { configuredBillingService } from "@/lib/billing/server";
+import { consumeBillingRequest } from "@/lib/billing/rate-limit";
 import {
   billingUser,
   emptyBillingInput,
@@ -10,6 +11,7 @@ export async function POST(request: Request) {
   try {
     const user = await billingUser(request, true);
     await emptyBillingInput(request);
+    await consumeBillingRequest(user.id, "portal");
     return billingReply({
       url: await configuredBillingService().portal(user.id)
     });

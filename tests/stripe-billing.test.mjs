@@ -678,9 +678,16 @@ test("HTTP derives the account from Auth, rejects cross-site posts and forged pr
 
 test("actual route handlers enforce Auth/Origin and never select billing accounts from query strings or request bodies", async () => {
   const calls = [];
+  const quotaCalls = [];
   const routeLoad = loader({
     mocks: {
       "@/lib/auth/session": { getCurrentUser: async () => ({ id: userId }) },
+      "@/lib/billing/rate-limit": {
+        BillingRateLimitError: class extends BillingError {},
+        consumeBillingRequest: async (id, action) => {
+          quotaCalls.push([action, id]);
+        }
+      },
       "@/lib/billing/server": {
         configuredBillingService: () => ({
           checkout: async id => {
@@ -718,13 +725,16 @@ test("actual route handlers enforce Auth/Origin and never select billing account
     const handler = routeLoad(`app/api/billing/${route}/route.ts`).POST;
     assert.equal((await handler(post())).status, 200);
     assert.deepEqual(calls.at(-1), [route, userId]);
+    assert.deepEqual(quotaCalls.at(-1), [route, userId]);
     const count = calls.length;
+    const quotaCount = quotaCalls.length;
     assert.equal((await handler(post('{"userId":"other"}'))).status, 400);
     assert.equal(
       (await handler(post("{}", "https://evil.invalid"))).status,
       403
     );
     assert.equal(calls.length, count);
+    assert.equal(quotaCalls.length, quotaCount);
   }
   assert.equal(
     (
@@ -735,6 +745,7 @@ test("actual route handlers enforce Auth/Origin and never select billing account
     200
   );
   assert.deepEqual(calls.at(-1), ["status", userId]);
+  assert.deepEqual(quotaCalls.at(-1), ["status", userId]);
   const hook = routeLoad("app/api/billing/webhook/route.ts").POST;
   assert.equal(
     (
@@ -768,4 +779,60 @@ test("actual route handlers enforce Auth/Origin and never select billing account
     (await routeLoad("app/api/billing/reconcile/route.ts").POST(post())).status,
     401
   );
+});
+
+test("quota denial returns a safe retry delay and stops the actual billing route before Stripe", async () => {
+  const local = loader();
+  const { BillingRateLimitError } = local("lib/billing/rate-limit.ts");
+  const { billingFailure } = local("lib/billing/http.ts");
+  const response = billingFailure(new BillingRateLimitError(60));
+  assert.equal(response.status, 429);
+  assert.equal(response.headers.get("Retry-After"), "60");
+  assert.equal(response.headers.get("Cache-Control"), "private, no-store");
+  assert.deepEqual(await response.json(), {
+    code: "BILLING_RATE_LIMITED",
+    error: "Too many requests. Please try again shortly."
+  });
+  let providerCalls = 0;
+  const routeLoad = loader({
+    mocks: {
+      "./config": local("lib/billing/config.ts"),
+      "./rate-limit": { BillingRateLimitError },
+      "@/lib/auth/session": { getCurrentUser: async () => ({ id: userId }) },
+      "@/lib/billing/rate-limit": {
+        BillingRateLimitError,
+        consumeBillingRequest: async () => {
+          throw new BillingRateLimitError(60);
+        }
+      },
+      "@/lib/billing/server": {
+        configuredBillingService: () => {
+          providerCalls++;
+          throw new Error("must not reach Stripe");
+        }
+      }
+    }
+  });
+  for (const action of ["checkout", "portal", "status"]) {
+    const route = routeLoad(`app/api/billing/${action}/route.ts`);
+    const request = new Request(
+      `http://localhost:3000/api/billing/${action}`,
+      action === "status"
+        ? {}
+        : {
+            method: "POST",
+            headers: {
+              origin: env.NEXT_PUBLIC_SITE_URL,
+              "content-type": "application/json"
+            },
+            body: "{}"
+          }
+    );
+    const result = await (action === "status"
+      ? route.GET(request)
+      : route.POST(request));
+    assert.equal(result.status, 429);
+    assert.equal(result.headers.get("Retry-After"), "60");
+  }
+  assert.equal(providerCalls, 0);
 });
