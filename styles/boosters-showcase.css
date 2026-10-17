@@ -249,6 +249,15 @@
     min-height: 44px;
   }
 }
+/* Let only the error state use the taller panel's available space. */
+@media (min-width: 701px) {
+  .yk-pack-grid:has(.yk-pack-body > [role="alert"]) .yk-pack-body {
+    flex: 1;
+  }
+  .yk-pack-grid:has(.yk-pack-body > [role="alert"]) .yk-pack-body > .yk-button {
+    margin-top: auto;
+  }
+}
 @media (max-width: 700px) {
   .yk-game-main:has(.yk-pack-grid) {
     padding-top: 32px;

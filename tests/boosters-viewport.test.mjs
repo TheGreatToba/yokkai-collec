@@ -105,3 +105,18 @@ test("pack lighting stays decorative and buttons follow a reserved info line", (
     /var\(--color-accent-gold\)/
   );
 });
+
+test("a retry alert in either desktop panel keeps both actions bottom-aligned", () => {
+  const root = postcss.parse(css);
+  const desktop = root.nodes.find(
+    node => node.type === "atrule" && node.params === "(min-width: 701px)"
+  );
+  assert.ok(desktop);
+  const selector = '.yk-pack-grid:has(.yk-pack-body > [role="alert"])';
+  const value = (suffix, prop) =>
+    desktop.nodes
+      .find(node => node.selector === `${selector} ${suffix}`)
+      ?.nodes.find(node => node.prop === prop)?.value;
+  assert.equal(value(".yk-pack-body", "flex"), "1");
+  assert.equal(value(".yk-pack-body > .yk-button", "margin-top"), "auto");
+});
