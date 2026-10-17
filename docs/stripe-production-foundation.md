@@ -110,7 +110,11 @@ Contrôle réel local/Sandbox : Auth local jetable, prix forgé refusé (400), O
 
 Le propriétaire a ensuite finalisé un paiement fictif : vérification API d’une facture Sandbox payée **499 centimes EUR** et d’un abonnement `active` ; vérification SQL locale du miroir `active`, d’un webhook traité et du prédicat interne `billing_has_pro` admissible. Aucun paiement réel ni avantage de jeu de production accordé.
 
-**Restent à tester avant vente** : carte refusée/3DS, renouvellement, résiliation et échéance, remboursement/litige. Préparer ces scénarios n’est pas équivalent à les avoir exécutés ; la recette ne couvre pas encore tout le cycle d’abonnement.
+Recette complémentaire sur deux comptes jetables indépendants du compte du propriétaire : moyen de paiement Stripe de test refusé (`card_declined`), facture impayée, abonnement `incomplete`, webhook signé traité, accès refusé par l’API et `billing_has_pro`. Le paiement refusé est provoqué par le SDK Sandbox ; cela ne remplace pas une recette visuelle du formulaire Checkout hébergé.
+
+Sur le second compte, facture fictive de 499 centimes payée, accès activé par webhook et vérifié dans l’API et SQL. Échéance raccourcie à 90 secondes, uniquement pour ce compte Sandbox, via `cancel_at` sans prorata ; accès payé conservé avant l’échéance. Après l’échéance, `billing_has_pro` refuse déjà l’accès même si le miroir conserve temporairement `active` en attendant Stripe : expiration SQL fermée indépendamment de la livraison du webhook. Stripe passe ensuite à `canceled` ; le webhook signé retire l’accès et actualise le miroir SQL **avant** tout rafraîchissement manuel. L’API et `billing_has_pro` refusent ensuite l’accès. Les deux clients Stripe et comptes Auth jetables ont été nettoyés après annulation des seuls abonnements créés pour cette recette ; aucun changement sur le compte du propriétaire ni en production.
+
+**Restent à tester avant vente** : refus/3DS dans Checkout hébergé, renouvellement mensuel, remboursement/litige. L’échéance courte ne remplace pas une simulation de renouvellement mensuel par horloge Stripe. Préparer ces scénarios n’est pas équivalent à les avoir exécutés ; la recette ne couvre pas encore tout le cycle d’abonnement.
 
 ## Conditions obligatoires avant vente — lots suivants
 
