@@ -37,6 +37,10 @@ import { matchesCardSearch } from "@/lib/ui/card-search";
 import { useCollectionSort } from "@/hooks/use-collection-sort";
 import { getCardDiscovery } from "@/lib/data/wishlist";
 import {
+  useCardCustomizationAccess,
+  PRO_CARD_CUSTOMIZATION_MESSAGE
+} from "@/components/card-customization-access";
+import {
   collectionGroupKey,
   consumableCopies,
   consumptionPlan,
@@ -247,6 +251,7 @@ export function CollectionView({
   ) => Promise<{ marketValue: number | null }>;
 }) {
   const pathname = usePathname();
+  const canCustomizeImages = useCardCustomizationAccess();
   const profileIdentifier = pathname?.startsWith("/profile/")
     ? decodeURIComponent(pathname.slice("/profile/".length))
     : undefined;
@@ -722,6 +727,7 @@ export function CollectionView({
   }
   async function saveCustomImage(imageUrl: string | null) {
     if (!selected || !onSetCustomImage || imageBusy) return;
+    if (imageUrl !== null && !canCustomizeImages) return;
     setImageBusy(true);
     setImageError("");
     try {
@@ -2136,11 +2142,20 @@ export function CollectionView({
                         }}
                         placeholder="https://i.imgur.com/image.jpg"
                         aria-label="Custom Imgur link"
+                        aria-describedby={
+                          !canCustomizeImages
+                            ? "detail-custom-image-pro-notice"
+                            : undefined
+                        }
                         className="auth-input"
                       />
                       <Button
                         variant="secondary"
-                        disabled={imageBusy || !customImageUrl.trim()}
+                        disabled={
+                          !canCustomizeImages ||
+                          imageBusy ||
+                          !customImageUrl.trim()
+                        }
                         onClick={() =>
                           void saveCustomImage(customImageUrl.trim())
                         }
@@ -2148,6 +2163,17 @@ export function CollectionView({
                         {imageBusy ? "Saving…" : "Apply"}
                       </Button>
                     </div>
+                    {!canCustomizeImages && (
+                      <p
+                        id="detail-custom-image-pro-notice"
+                        className="yk-detail-hint"
+                      >
+                        {PRO_CARD_CUSTOMIZATION_MESSAGE}{" "}
+                        <Link href="/premium" className="yk-detail-link">
+                          Discover Yokkai Pro
+                        </Link>
+                      </p>
+                    )}
                     <p className="yk-detail-hint">
                       Link: https://i.imgur.com/… or https://imgur.com/…
                       {selected.customImageUrl && (

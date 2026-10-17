@@ -12,7 +12,7 @@
 - Stripe Checkout hébergé en mode abonnement, portail client, webhook signé et vérification serveur de l’abonnement. Le prix est affiché depuis la configuration serveur/partagée ; le client n’envoie ni prix, ni identité dans ses requêtes de paiement.
 - Sans configuration Stripe, le bouton d’abonnement connecté est désactivé et indique la cause. Aucun bouton de configuration technique ou alternative de démo n’est affiché.
 - L’ancien studio `components/premium-experience.tsx`, le simulateur et leurs tests restent conservés pour la régression du prototype, mais ne sont importés par aucune route. La page utilise `PremiumOffer` et `PremiumCheckout` ; le code de la démo n’entre pas dans son parcours.
-- Aucun changement des fonctionnalités gratuites existantes ; pas de restriction rétroactive de la personnalisation du profil. Les imports, GIFs, images Imgur/Pinterest et autres avantages sont décrits mais pas encore reliés aux profils réels.
+- Aucun changement des fonctionnalités gratuites en production ; pas de restriction rétroactive de la personnalisation du profil. L’essai local verrouille désormais l’application d’images de cartes pour les comptes Basic, sans retirer leurs anciennes images.
 - Aucun changement de base Supabase, aucune migration. Rien appliqué sur le VPS.
 
 ## Personnalisation du profil — aperçu local
@@ -24,6 +24,13 @@
 - L’état reste uniquement en mémoire dans l’onglet local : il suit la navigation client entre pages, mais un rechargement complet le réinitialise. Le pseudo (police, couleurs, effet), le badge Pro de démonstration et les badges décoratifs sont repris dans les auteurs des messages d’enchères et des posts du mur. L’association utilise l’identifiant du compte, jamais le pseudo. Aucun style n’est attribué à un autre joueur portant le même nom.
 - Le lien **Preview chat & wall** ouvre `/design-system/profile-style-sharing-preview`, protégé par le garde local et une connexion, avec les vrais composants UI et des adaptateurs fictifs en lecture seule (y compris signalements et blocages). Les autres joueurs et navigateurs ne voient pas cet essai. Aucune persistance navigateur, requête d’écriture, migration ni changement de droits SQL. Le branchement aux vrais comptes Pro et la sauvegarde sont une étape distincte.
 - Aperçu mobile empilé ; modale commune conservée pour le focus, le clavier et le blocage du défilement de fond. Shimmer désactivé avec `prefers-reduced-motion`.
+
+## Personnalisation des cartes — verrouillage d’interface local
+
+- Dans les modales de collection et de cartes obtenues dans les packs, **Apply** est désactivé pour Basic, y compris avec une URL remplie. Message anglais explicite et lien **Discover Yokkai Pro**. L’URL reste saisissable ; aucune prévisualisation distante ni application n’est lancée.
+- Le statut provient de `getPremiumState` côté serveur sur les routes connectées, et non du badge Pro de démonstration. Sans configuration, sans abonnement actif ou en cas d’erreur, l’interface locale reste verrouillée. Un abonnement test configuré et actif conserve l’action. Le gestionnaire d’application contrôle aussi l’accès avant l’appel existant de sauvegarde.
+- **Restore original image** reste possible pour Basic : ce n’est pas l’ajout d’une nouvelle personnalisation. Aucun média existant n’est supprimé automatiquement.
+- Ce garde est activé uniquement par `localPremiumEnabled()`. Aucun droit existant n’est changé en production. C’est un verrouillage d’interface de prototype, pas encore une protection de l’accès SQL : avant livraison publique, persister/réconcilier les abonnements et protéger `set_card_custom_image` côté serveur/SQL avec les tests de droits appropriés. Aucun abonnement réel, migration ni droit de base modifié ici.
 
 ## Démarrer
 

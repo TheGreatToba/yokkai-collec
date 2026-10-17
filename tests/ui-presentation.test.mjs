@@ -142,6 +142,42 @@ function load(relative) {
 const render = (component, props) =>
   renderToStaticMarkup(React.createElement(component, props));
 
+test("local Basic members cannot apply card artwork while Pro members retain the action", () => {
+  const { CollectionView } = load("components/collection.tsx");
+  const { CardCustomizationAccessProvider } = load(
+    "components/card-customization-access.tsx"
+  );
+  const selected = {
+    ...card,
+    instanceId: "pro-access-card",
+    customImageUrl: "https://i.imgur.com/old.png"
+  };
+  for (const allowed of [false, true]) {
+    const html = render(CardCustomizationAccessProvider, {
+      allowed,
+      children: React.createElement(CollectionView, {
+        cards: [selected],
+        categories: [],
+        detailOnly: true,
+        initialSelectedId: selected.instanceId,
+        async onSetCustomImage() {
+          assert.fail("Rendering must never save an image");
+        }
+      })
+    });
+    assert.equal(
+      html.includes("Card customization is available to Pro members only."),
+      !allowed
+    );
+    if (!allowed) {
+      assert.match(html, /<button[^>]*disabled=""[^>]*>Apply<\/button>/);
+      assert.match(html, /aria-describedby="detail-custom-image-pro-notice"/);
+      assert.match(html, /href="\/premium"[^>]*>Discover Yokkai Pro/);
+    }
+    assert.match(html, /Restore original image/);
+  }
+});
+
 test("les routes consommatrices de MarketView ont exactement un h1 sans saut de niveau", async () => {
   for (const route of [
     "market-preview",

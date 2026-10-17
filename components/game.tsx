@@ -43,6 +43,10 @@ import { useSfx } from "@/hooks/use-sfx";
 import { runPackOpeningOnce } from "@/lib/ui/pack-opening";
 import { releaseBoostersBackground } from "@/components/boosters-load-priority";
 import { startVisiblePolling } from "@/lib/ui/visible-polling";
+import {
+  useCardCustomizationAccess,
+  PRO_CARD_CUSTOMIZATION_MESSAGE
+} from "@/components/card-customization-access";
 
 // Share initial/polling reads, while post-mutation reconciliation still requests
 // a fresh server status even when a previous initial read is pending.
@@ -65,6 +69,7 @@ export function Game({
   previewData?: typeof gameReads;
 }) {
   const [info, setInfo] = useState<Info | null>(null);
+  const canCustomizeImages = useCardCustomizationAccess();
   const [status, setStatus] = useState<PackStatus | null>(null);
   const [decisionStatus, setDecisionStatus] =
     useState<DecisionPackStatus | null>(null);
@@ -349,6 +354,8 @@ export function Game({
   async function customizeCard(instanceId: string, imageUrl: string | null) {
     if (previewData)
       throw new Error("This action is unavailable in the simulation.");
+    if (imageUrl !== null && !canCustomizeImages)
+      throw new Error(PRO_CARD_CUSTOMIZATION_MESSAGE);
     await setCardCustomImage(instanceId, imageUrl);
     setCollection(await getUserCollection());
   }
