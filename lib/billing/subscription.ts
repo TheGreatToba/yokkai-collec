@@ -118,7 +118,12 @@ export function subscriptionState(
     endsAt: Number.isSafeInteger(item.current_period_end)
       ? item.current_period_end
       : null,
-    cancelAtPeriodEnd: current.cancel_at_period_end
+    // The portal may schedule the same cancellation using cancel_at instead.
+    cancelAtPeriodEnd:
+      current.cancel_at_period_end ||
+      (Number.isSafeInteger(current.cancel_at) &&
+        current.cancel_at! > 0 &&
+        current.cancel_at === item.current_period_end)
   };
 }
 

@@ -15,6 +15,7 @@ export function BillingSandboxPreview({ signedIn }: { signedIn: boolean }) {
   const [status, setStatus] = useState<Status | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [refreshedAt, setRefreshedAt] = useState<number | null>(null);
   const pending = useRef(false);
 
   async function refresh() {
@@ -22,6 +23,7 @@ export function BillingSandboxPreview({ signedIn }: { signedIn: boolean }) {
     pending.current = true;
     setBusy(true);
     setError("");
+    setRefreshedAt(null);
     try {
       const response = await fetch("/api/billing/status", {
         cache: "no-store"
@@ -29,6 +31,7 @@ export function BillingSandboxPreview({ signedIn }: { signedIn: boolean }) {
       if (!response.ok) throw new Error("Status unavailable");
       const state = (await response.json()) as Status;
       setStatus(state);
+      setRefreshedAt(Date.now());
     } catch {
       setError(
         "Unable to verify test billing. Check the local server and test-key permissions, then retry."
@@ -146,9 +149,18 @@ export function BillingSandboxPreview({ signedIn }: { signedIn: boolean }) {
                 disabled={busy}
                 onClick={() => void refresh()}
               >
-                Refresh status
+                {busy ? "Please wait…" : "Refresh status"}
               </button>
             </div>
+            {refreshedAt !== null && (
+              <p role="status">
+                Status refreshed at{" "}
+                {new Intl.DateTimeFormat("en-US", {
+                  timeStyle: "medium"
+                }).format(refreshedAt)}
+                .
+              </p>
+            )}
           </section>
           {error && <p role="alert">{error}</p>}
         </>

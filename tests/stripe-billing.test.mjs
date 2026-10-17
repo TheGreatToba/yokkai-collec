@@ -274,6 +274,58 @@ function fixture(config = billingConfig(env)) {
   return { service, stripe, store, row, state, calls, webhook, events };
 }
 
+test("portal cancellation timestamps at the paid period end are displayed without revoking paid access", () => {
+  const s = subscription();
+  const end = s.items.data[0].current_period_end;
+  const get = changes =>
+    subscriptionState(
+      { data: [{ ...s, ...changes }], has_more: false },
+      "price_example",
+      false
+    );
+  assert.equal(get({ cancel_at: end }).cancelAtPeriodEnd, true);
+  assert.equal(get({ cancel_at: end }).active, true);
+  assert.equal(get({ cancel_at: end }).endsAt, end);
+  assert.equal(
+    get({ cancel_at_period_end: true, cancel_at: null }).cancelAtPeriodEnd,
+    true
+  );
+  for (const cancel_at of [
+    null,
+    undefined,
+    0,
+    -1,
+    NaN,
+    end + 86400,
+    end - 86400
+  ]) {
+    assert.equal(get({ cancel_at }).cancelAtPeriodEnd, false);
+  }
+  assert.equal(
+    get({ cancel_at: null, canceled_at: Math.floor(Date.now() / 1000) })
+      .cancelAtPeriodEnd,
+    false
+  );
+  assert.equal(get({ cancel_at: end, status: "canceled" }).active, false);
+});
+
+test("refresh persists portal cancellation and clears it when Stripe removes the scheduled date", async () => {
+  const { service, row, state } = fixture();
+  row.stripe_customer_id = "cus_example";
+  const s = subscription();
+  s.cancel_at = s.items.data[0].current_period_end;
+  state.subs = [s];
+  const canceled = await service.status(userId);
+  assert.equal(canceled.cancelAtPeriodEnd, true);
+  assert.equal(canceled.active, true);
+  assert.equal(state.saves.at(-1).state.cancelAtPeriodEnd, true);
+  s.cancel_at = null;
+  const resumed = await service.status(userId);
+  assert.equal(resumed.cancelAtPeriodEnd, false);
+  assert.equal(resumed.active, true);
+  assert.equal(state.saves.at(-1).state.cancelAtPeriodEnd, false);
+});
+
 test("billing is closed by default and strictly separates local test and live production configuration", () => {
   assert.throws(() => billingConfig({}), /BILLING_DISABLED/);
   assert.equal(billingConfig(env).live, false);
