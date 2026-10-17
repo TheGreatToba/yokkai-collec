@@ -108,7 +108,9 @@ Portail Sandbox créé : `bpc_1URfFDIQHbfFctSIt9k0DO25`, confirmé `livemode: fa
 
 Contrôle réel local/Sandbox : Auth local jetable, prix forgé refusé (400), Origin tiers refusée (403), Checkout mensuel à 499 centimes créé puis réutilisé au second clic, expiration du Checkout suivie d’un webhook signé réellement traité et enregistré en SQL, aucun accès accordé sans paiement. Le compte Auth et le customer Stripe jetables ont été nettoyés ; aucun débit effectué. Le webhook non signé est refusé et une requête de statut sans session reçoit 401.
 
-**Restent à tester avant vente** : paiement fictif finalisé, carte refusée/3DS, activation après facture payée, renouvellement, résiliation et échéance, remboursement/litige. Préparer ces scénarios n’est pas équivalent à les avoir exécutés. La preuve d’expiration confirme le relais signé et le stockage, pas encore tout le cycle d’abonnement.
+Le propriétaire a ensuite finalisé un paiement fictif : vérification API d’une facture Sandbox payée **499 centimes EUR** et d’un abonnement `active` ; vérification SQL locale du miroir `active`, d’un webhook traité et du prédicat interne `billing_has_pro` admissible. Aucun paiement réel ni avantage de jeu de production accordé.
+
+**Restent à tester avant vente** : carte refusée/3DS, renouvellement, résiliation et échéance, remboursement/litige. Préparer ces scénarios n’est pas équivalent à les avoir exécutés ; la recette ne couvre pas encore tout le cycle d’abonnement.
 
 ## Conditions obligatoires avant vente — lots suivants
 

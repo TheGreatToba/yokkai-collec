@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
+import { randomBytes } from "node:crypto";
 import { PassThrough } from "node:stream";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
@@ -25,7 +26,8 @@ const env = Object.freeze({
 });
 const local =
   'API_URL="http://127.0.0.1:54321"\nPUBLISHABLE_KEY="sb_publishable_example"\nSECRET_KEY="sb_secret_example"';
-const signingSecret = "whsec_12345678901234567890123456789012";
+// Synthetic per-run fixture; never a credential issued by Stripe.
+const signingSecret = "whsec_" + randomBytes(32).toString("hex");
 const createStripe = () => ({
   accounts: { retrieve: async () => ({ id: env.STRIPE_ACCOUNT_ID }) },
   prices: {
