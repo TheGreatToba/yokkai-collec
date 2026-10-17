@@ -29,7 +29,7 @@ export async function checkStripeSetup(
     env.STRIPE_BILLING_ENABLED !== "false" ||
     env.STRIPE_CHECKOUT_ENABLED !== "false" ||
     env.STRIPE_BILLING_MODE !== "live" ||
-    !/^sk_live_[A-Za-z0-9]+$/.test(env.STRIPE_SECRET_KEY ?? "") ||
+    !/^(?:sk|rk)_live_[A-Za-z0-9]+$/.test(env.STRIPE_SECRET_KEY ?? "") ||
     !/^acct_[A-Za-z0-9]+$/.test(env.STRIPE_ACCOUNT_ID ?? "") ||
     !/^price_[A-Za-z0-9]+$/.test(env.STRIPE_PRO_PRICE_ID ?? "")
   )

@@ -67,6 +67,50 @@ const { subscriptionState, validateProPrice, stripeDestination } = load(
 );
 const { billingService } = load("lib/billing/server.ts");
 const userId = "00000000-0000-0000-0000-000000000001";
+test("restricted billing keys remain mode-bound and public or organization keys are rejected", () => {
+  const live = {
+    ...env,
+    NODE_ENV: "production",
+    STRIPE_BILLING_MODE: "live",
+    NEXT_PUBLIC_SITE_URL: "https://yokkai-collec.com",
+    NEXT_PUBLIC_SUPABASE_URL: "https://database.invalid"
+  };
+  for (const prefix of ["sk", "rk"]) {
+    assert.equal(
+      billingConfig({ ...env, STRIPE_SECRET_KEY: `${prefix}_test_example` })
+        .live,
+      false
+    );
+    assert.equal(
+      billingConfig({ ...live, STRIPE_SECRET_KEY: `${prefix}_live_example` })
+        .live,
+      true
+    );
+    assert.throws(
+      () =>
+        billingConfig({ ...env, STRIPE_SECRET_KEY: `${prefix}_live_example` }),
+      /BILLING_CONFIGURATION/
+    );
+    assert.throws(
+      () =>
+        billingConfig({ ...live, STRIPE_SECRET_KEY: `${prefix}_test_example` }),
+      /BILLING_CONFIGURATION/
+    );
+  }
+  for (const secret of [
+    "pk_live_example",
+    "pk_test_example",
+    "sk_org_example",
+    "rk_org_example",
+    "rk_live_",
+    "rk_live_example\n"
+  ]) {
+    assert.throws(
+      () => billingConfig({ ...live, STRIPE_SECRET_KEY: secret }),
+      /BILLING_CONFIGURATION/
+    );
+  }
+});
 function subscription(changes = {}) {
   return {
     id: "sub_example",

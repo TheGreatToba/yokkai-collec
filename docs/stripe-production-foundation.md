@@ -49,6 +49,12 @@ L’identifiant de compte `acct_1UQSidIuXkg5OZqm` a été fourni par le proprié
 
 ### Vérification serveur sans activation
 
+La variable `STRIPE_SECRET_KEY` accepte une clé restreinte `rk_test_…` / `rk_live_…`, recommandée pour une nouvelle intégration, ou une clé secrète classique du même mode. Les clés publiques `pk_…`, de l’autre mode et d’organisation ne sont pas acceptées. Conserver les mêmes précautions de stockage pour les clés restreintes ; ne jamais les partager dans le chat. Dans Coolify, configurer le secret disponible **au runtime uniquement**, pas comme argument de build, et conserver les deux flags d’activation à false. Ne pas redéployer simplement pour préparer les valeurs.
+
+Le précontrôle ne requiert que la lecture du compte et des tarifs. Pour le service complet, prévoir ensuite les droits minimaux correspondant aux appels SDK : lecture compte/tarifs/abonnements/factures/charges ; écriture customers, sessions Checkout et sessions du portail client. Tester ces permissions en sandbox, puis reproduire uniquement les droits nécessaires en réel. Aucune permission de versement, virement ou remboursement n’est utilisée par ce socle ; ne pas accorder « tout en écriture ». Les futurs parcours de suppression/résiliation nécessiteront une revue distincte des droits.
+
+Références : [clés restreintes Stripe](https://docs.stripe.com/keys/restricted-api-keys) et [portée runtime Coolify](https://coolify.io/docs/applications/configuration/environment-variables).
+
 Après installation des variables dans le gestionnaire de secrets du serveur, et lorsque ce script est disponible dans le conteneur de la branche de préparation, lancer `node scripts/check-stripe-setup.mjs`. Ne pas copier une clé live dans l’environnement local pour cette vérification.
 
 Ce script refuse de démarrer hors `NODE_ENV=production`, avec une autre origine ou si un des flags n’est pas explicitement `false`. Il appelle uniquement `GET /v1/account` et `GET /v1/prices/<id>` via le SDK officiel, vérifie le compte, le mode réel et le tarif actif 499 centimes EUR mensuel récurrent. Aucun client, Checkout, abonnement ou paiement créé, aucune écriture SQL. La sortie ne contient pas la clé, de réponse fournisseur brute ou d’identifiant financier. Un succès confirme ces contrôles uniquement, **pas** la préparation du webhook ou des avantages, ni l’autorisation d’ouvrir les achats.

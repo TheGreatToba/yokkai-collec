@@ -22,6 +22,34 @@ const price = {
   recurring: { interval: "month", interval_count: 1, usage_type: "licensed" }
 };
 
+test("read-only setup accepts a live restricted key and rejects test, public and organization keys before SDK construction", async () => {
+  const checked = await checkStripeSetup(
+    { ...env, STRIPE_SECRET_KEY: "rk_live_example" },
+    key => {
+      assert.equal(key, "rk_live_example");
+      return {
+        accounts: { retrieve: async () => ({ id: env.STRIPE_ACCOUNT_ID }) },
+        prices: { retrieve: async () => price }
+      };
+    }
+  );
+  assert.equal(checked.verified, true);
+  for (const secret of [
+    "rk_test_example",
+    "pk_live_example",
+    "sk_org_example",
+    "rk_org_example",
+    "rk_live_"
+  ]) {
+    await assert.rejects(
+      checkStripeSetup({ ...env, STRIPE_SECRET_KEY: secret }, () =>
+        assert.fail("No SDK for invalid key")
+      ),
+      /STRIPE_SETUP_CONFIGURATION_INVALID/
+    );
+  }
+});
+
 test("Stripe setup uses only two read operations and leaves purchases disabled without exposing secrets", async () => {
   const calls = [];
   const result = await checkStripeSetup(env, key => {

@@ -53,9 +53,9 @@ export function billingConfig(
   const webhookSecret = env.STRIPE_PRO_WEBHOOK_SECRET ?? "";
   const serviceKey = env.SUPABASE_SECRET_KEY || env.SUPABASE_SERVICE_ROLE_KEY;
   if (
-    !(live ? /^sk_live_[A-Za-z0-9]+$/ : /^sk_test_[A-Za-z0-9]+$/).test(
-      secret
-    ) ||
+    !(
+      live ? /^(?:sk|rk)_live_[A-Za-z0-9]+$/ : /^(?:sk|rk)_test_[A-Za-z0-9]+$/
+    ).test(secret) ||
     !/^price_[A-Za-z0-9]+$/.test(price) ||
     !/^acct_[A-Za-z0-9]+$/.test(account) ||
     !/^whsec_[A-Za-z0-9]+$/.test(webhookSecret) ||
