@@ -15,6 +15,7 @@ import {
 } from "@/lib/ui/local-profile-style";
 import { localPlayerStyles } from "@/lib/ui/local-player-style-store";
 import { useLocalPlayerStyle } from "@/components/use-local-player-style";
+import { useCardCustomizationAccess } from "@/components/card-customization-access";
 
 const LocalStyleContext = createContext<{
   style: LocalProfileStyle;
@@ -46,16 +47,22 @@ export function LocalProfileStyleProvider({
 export function useLocalProfileStyle(ownerId?: string) {
   const preview = useContext(LocalStyleContext);
   const saved = useLocalPlayerStyle(ownerId);
+  const canStyleProfile = useCardCustomizationAccess();
   return preview
     ? {
         style: saved ?? preview.style,
-        apply: (next: LocalProfileStyle) => preview.apply(next, ownerId)
+        apply: (next: LocalProfileStyle) => {
+          if (!canStyleProfile) return;
+          preview.apply(next, ownerId);
+        }
       }
     : null;
 }
 
 export function useLocalNameStyle(ownerId?: string) {
   const preview = useLocalProfileStyle(ownerId);
+  const allowed = useCardCustomizationAccess();
+  if (!allowed) return undefined;
   return preview
     ? {
         effect: preview.style.effect,

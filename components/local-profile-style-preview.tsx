@@ -7,6 +7,10 @@ import { Avatar, Button, Modal } from "@/components/ui";
 import { LocalProProfileBadge } from "@/components/local-pro-badge-preview";
 import { useLocalProfileStyle } from "@/components/local-profile-style-context";
 import {
+  useCardCustomizationAccess,
+  PRO_PROFILE_STYLE_MESSAGE
+} from "@/components/card-customization-access";
+import {
   DEFAULT_LOCAL_PROFILE_STYLE,
   NAME_COLORS,
   NAME_EFFECTS,
@@ -111,6 +115,8 @@ export function LocalProfileCosmeticBadges({
   ownerId: string;
 }) {
   const preview = useLocalProfileStyle(ownerId);
+  const canStyleProfile = useCardCustomizationAccess();
+  if (!canStyleProfile) return null;
   if (!isMe || !preview || !preview.style.badges.length) return null;
   return <CosmeticBadges badges={preview.style.badges} />;
 }
@@ -125,21 +131,39 @@ type EditorProps = {
 
 export function LocalProfileStyleEditor(props: EditorProps) {
   const preview = useLocalProfileStyle(props.ownerId);
+  const canStyleProfile = useCardCustomizationAccess();
   const [open, setOpen] = useState(false);
   if (!preview || !props.isMe) return null;
   return (
     <>
-      <Button variant="secondary" onClick={() => setOpen(true)}>
+      <Button
+        variant="secondary"
+        disabled={!canStyleProfile}
+        aria-describedby={
+          !canStyleProfile ? "profile-style-pro-notice" : undefined
+        }
+        onClick={() => {
+          if (canStyleProfile) setOpen(true);
+        }}
+      >
         <span aria-hidden="true">✦ </span>Style profile
       </Button>
-      <Link
-        href="/design-system/profile-style-sharing-preview"
-        className="yk-style-sharing-link"
-      >
-        Preview chat &amp; wall
-      </Link>
+      {!canStyleProfile && (
+        <p id="profile-style-pro-notice" className="yk-style-pro-notice">
+          {PRO_PROFILE_STYLE_MESSAGE}{" "}
+          <Link href="/premium">Discover Yokkai Pro</Link>
+        </p>
+      )}
+      {canStyleProfile && (
+        <Link
+          href="/design-system/profile-style-sharing-preview"
+          className="yk-style-sharing-link"
+        >
+          Preview chat &amp; wall
+        </Link>
+      )}
       <Modal
-        open={open}
+        open={open && canStyleProfile}
         onClose={() => setOpen(false)}
         title="Make your profile yours"
         className="yk-style-editor"
@@ -148,6 +172,7 @@ export function LocalProfileStyleEditor(props: EditorProps) {
           {...props}
           initial={preview.style}
           onApply={style => {
+            if (!canStyleProfile) return;
             preview.apply(style);
             setOpen(false);
           }}

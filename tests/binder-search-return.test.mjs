@@ -56,6 +56,9 @@ function collection(readOnly = false) {
       return { useCollectionSort: () => useState("rarity") };
     if (name === "@/components/card-customization-access")
       return { useCardCustomizationAccess: () => true };
+    if (name === "@/components/local-auction-quota")
+      return { useLocalAuctionQuota: () => null };
+    if (name === "@/lib/premium/offer") return load("lib/premium/offer.ts");
     if (name.startsWith("@/lib/ui/")) {
       if (!modules.has(name)) modules.set(name, load(`${name.slice(2)}.ts`));
       return modules.get(name);

@@ -36,6 +36,8 @@ import {
 import { matchesCardSearch } from "@/lib/ui/card-search";
 import { useCollectionSort } from "@/hooks/use-collection-sort";
 import { getCardDiscovery } from "@/lib/data/wishlist";
+import { useLocalAuctionQuota } from "@/components/local-auction-quota";
+import { auctionLimitMessage } from "@/lib/ui/local-auction-quota";
 import {
   useCardCustomizationAccess,
   PRO_CARD_CUSTOMIZATION_MESSAGE
@@ -252,6 +254,9 @@ export function CollectionView({
 }) {
   const pathname = usePathname();
   const canCustomizeImages = useCardCustomizationAccess();
+  const auctionQuota = useLocalAuctionQuota();
+  const auctionQuotaFull =
+    !!auctionQuota && auctionQuota.active >= auctionQuota.limit;
   const profileIdentifier = pathname?.startsWith("/profile/")
     ? decodeURIComponent(pathname.slice("/profile/".length))
     : undefined;
@@ -675,6 +680,7 @@ export function CollectionView({
   async function auctionSelected() {
     if (!selected || !onCreateAuction || auctionBusy || selectedGroupFrozen)
       return;
+    if (auctionQuotaFull) return;
     setAuctionBusy(true);
     setAuctionError("");
     try {
@@ -693,7 +699,7 @@ export function CollectionView({
     }
   }
   async function openAuction() {
-    if (!selected || selectedGroupFrozen) return;
+    if (!selected || selectedGroupFrozen || auctionQuotaFull) return;
     setAuctionPrice("10");
     setAuctionError("");
     setAuctionDone(false);
@@ -2056,7 +2062,14 @@ export function CollectionView({
                     {onCreateAuction && (
                       <Button
                         className="w-full"
-                        disabled={selected.locked || selectedGroupFrozen}
+                        disabled={
+                          selected.locked ||
+                          selectedGroupFrozen ||
+                          auctionQuotaFull
+                        }
+                        aria-describedby={
+                          auctionQuotaFull ? "auction-quota-notice" : undefined
+                        }
                         onClick={() => void openAuction()}
                       >
                         {selected.locked
@@ -2065,6 +2078,23 @@ export function CollectionView({
                             ? "Card frozen while in auction"
                             : "List for auction"}
                       </Button>
+                    )}
+                    {onCreateAuction && auctionQuota && (
+                      <p id="auction-quota-notice" className="yk-detail-hint">
+                        Active auctions: {auctionQuota.active} /{" "}
+                        {auctionQuota.limit}.
+                        {auctionQuotaFull && (
+                          <>
+                            {" "}
+                            {auctionLimitMessage(auctionQuota.limit)}{" "}
+                            {auctionQuota.limit === 3 && (
+                              <Link href="/premium" className="yk-detail-link">
+                                Discover Yokkai Pro
+                              </Link>
+                            )}
+                          </>
+                        )}
+                      </p>
                     )}
                     {selected.rarity === "SSR" && !selected.shiny && (
                       <div className="yk-detail-evolve">
@@ -2588,7 +2618,9 @@ export function CollectionView({
                 </Button>
                 <Button
                   type="submit"
-                  disabled={auctionBusy || Number(auctionPrice) < 10}
+                  disabled={
+                    auctionQuotaFull || auctionBusy || Number(auctionPrice) < 10
+                  }
                   aria-busy={auctionBusy || undefined}
                 >
                   {auctionBusy ? "Listing…" : "List for auction"}

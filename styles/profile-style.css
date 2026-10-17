@@ -548,6 +548,19 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+.yk-style-pro-notice {
+  flex-basis: 100%;
+  margin: 0;
+  max-width: 100%;
+  color: var(--ink-3, #a39bb9);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.yk-style-pro-notice a {
+  color: #b69aff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 .yk-style-sharing-preview {
   max-width: 1100px;
   margin: 32px auto;

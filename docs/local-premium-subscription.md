@@ -40,6 +40,14 @@
 - La bio, les photos fixes, la vitrine et la sauvegarde sans nouveau média restent utilisables ; aucun avatar ni bannière antérieurs ne sont retirés automatiquement. Vérification navigateur sans écriture de profil ou de Storage, et tests d’adaptateurs Basic/Pro, GIF renommés et conservation des médias existants.
 - Comme pour les cartes, ce verrou est limité à l’interface de l’essai local. Une véritable protection serveur/Storage/SQL sera nécessaire avant production. Aucune migration ni changement des droits existants de production.
 
+## Accès Basic/Pro — contrôles locaux
+
+- **Style profile** est désactivé pour Basic avec **Profile styling is available to Pro members only.** et un lien vers Pro. L’éditeur ne s’ouvre pas, son gestionnaire Apply refuse Basic et le hook partagé refuse aussi de publier un nouveau style. Le lien d’aperçu chat/mur n’est présenté qu’à Pro. Police, effets et badges décoratifs du profil ne sont pas affichés pour Basic ; le badge Pro de démonstration est également masqué pour Basic.
+- Dans la Collection et les détails des packs, le quota local est de **3 enchères actives Basic / 6 Pro**. Le bouton et la confirmation sont désactivés quand le quota connu est plein. Le gestionnaire relit les enchères du compte juste avant la création et refuse si la limite est atteinte ou si la lecture échoue ; verrou synchrone contre un double appel dans le même composant. Les enchères déjà en cours ne sont pas supprimées, même au-dessus du plafond. Annulation et participation restent disponibles.
+- Le quota déduplique les identifiants de vente et exclut les fins passées ; une date invalide ne libère pas de place. Le compteur suit les actualisations existantes. Les tests couvrent 3/6, lecture fraîche, erreur et concurrence locale ; la preuve navigateur simule uniquement la réponse de lecture, sans créer de vente.
+- Les limites de jeu restent un **essai d’interface**, pas un verrou SQL anti-contournement : plusieurs navigateurs ou un appel RPC direct ne sont pas protégés par ce prototype. Implémenter les contrôles atomiques en base et la réconciliation de l’abonnement avant production. Hors essai local, droits de production inchangés.
+- Audit des avantages : images de cartes, imports de bannière, avatars GIF, style et badges Pro ont un garde local. Basic conserve la vitrine de 5 et les délais de jeu existants ; les variantes Pro 10 places et délais 5 min/12 h ne sont pas encore activées. Fonds personnels, cadres exclusifs, thèmes complets, effets de vitrine et dos personnalisés restent non implémentés ; aucun accès réel n’est donc accordé à Basic. Les nouveaux succès Pro et leurs récompenses ne sont pas créés tant que les objectifs et montants ne sont pas définis.
+
 ## Démarrer
 
 Branche `ad/local-premium-subscription`, dossier `.worktrees/local-premium-subscription`.

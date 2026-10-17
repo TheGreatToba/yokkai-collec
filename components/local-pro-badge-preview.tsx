@@ -2,6 +2,7 @@
 
 import { createContext, useContext, type ReactNode } from "react";
 import { LocalProfileStyleProvider } from "@/components/local-profile-style-context";
+import { useCardCustomizationAccess } from "@/components/card-customization-access";
 
 // Visual preview only. This context never grants a subscription or game rights.
 const LocalBadgePreview = createContext(false);
@@ -16,7 +17,9 @@ export function LocalProBadgePreview({ children }: { children: ReactNode }) {
 
 export function LocalProProfileBadge({ isMe }: { isMe: boolean }) {
   const enabled = useContext(LocalBadgePreview);
+  const canUseProCosmetics = useCardCustomizationAccess();
   if (!enabled || !isMe) return null;
+  if (!canUseProCosmetics) return null;
   return (
     <span
       className="yk-profile-pro-badge"
