@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { useState, useSyncExternalStore } from "react";
-import { Button } from "@/components/ui";
 import { PREMIUM_BANNER_EXAMPLE as example } from "@/lib/premium/banner-example";
 import { bannerGeometry } from "@/lib/ui/banner-frame";
 
@@ -53,10 +52,12 @@ export function PremiumBannerPreview() {
       </div>
       <div className="yk-pro-banner-example">
         <div className="yk-pro-banner-card">
-          <div
+          <button
+            type="button"
             className="yk-pro-live-banner"
-            role="img"
-            aria-label={`${example.name}'s ${playing ? "animated" : "still"} profile banner`}
+            aria-label={`${playing ? "Pause GIF" : "Play GIF"}: ${example.name}'s profile banner`}
+            aria-pressed={playing}
+            onClick={() => setPlaybackOverride(!playing)}
           >
             <Image
               src={playing ? example.animated : example.still}
@@ -82,7 +83,7 @@ export function PremiumBannerPreview() {
                 Banner preview unavailable.
               </span>
             )}
-          </div>
+          </button>
           <div className="yk-pro-banner-card-body">
             <Image
               src={example.avatar}
@@ -100,13 +101,6 @@ export function PremiumBannerPreview() {
         </div>
         <div className="yk-pro-banner-controls">
           <span>Original GIF · Same profile framing</span>
-          <Button
-            variant="secondary"
-            aria-pressed={playing}
-            onClick={() => setPlaybackOverride(!playing)}
-          >
-            {playing ? "Pause GIF" : "Play GIF"}
-          </Button>
         </div>
       </div>
     </section>

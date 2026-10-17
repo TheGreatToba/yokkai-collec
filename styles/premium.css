@@ -588,11 +588,21 @@
   box-shadow: 0 20px 70px #00000030;
 }
 .yk-pro-live-banner {
+  display: block;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
   position: relative;
   isolation: isolate;
   aspect-ratio: 2.3;
   overflow: hidden;
   background: #100c1a;
+}
+.yk-pro-live-banner:focus-visible {
+  outline: 2px solid var(--plus-accent);
+  outline-offset: -3px;
 }
 .yk-pro-live-banner > .yk-pro-banner-image {
   position: absolute;
@@ -676,10 +686,6 @@
 .yk-pro-banner-controls > span {
   color: #a198b2;
   font-size: 10px;
-}
-.yk-pro-banner-controls .yk-button {
-  font-size: 11px;
-  min-height: 38px;
 }
 .yk-pro-comparison,
 .yk-pro-simulator,
