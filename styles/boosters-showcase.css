@@ -286,3 +286,62 @@
     animation: none;
   }
 }
+
+/* Give large, tall displays a proportionate selection without changing laptop layouts. */
+@media (min-width: 2000px) and (min-height: 1201px) {
+  .yk-game-main:has(.yk-pack-grid) {
+    max-width: min(80vw, 2400px);
+    padding-top: clamp(32px, 3dvh, 72px);
+  }
+  .yk-pack-page-heading .yk-title {
+    font-size: clamp(60px, 4vw, 120px);
+  }
+  .yk-pack-page-heading > p {
+    margin-top: 16px;
+    font-size: clamp(18px, 1vw, 32px);
+    line-height: 1.5;
+  }
+  .yk-pack-grid {
+    max-width: min(70vw, 2000px);
+    gap: clamp(96px, 5vw, 192px);
+    margin-top: 32px;
+  }
+  .yk-pack-grid .yk-pack-panel .yk-pack-art-stage {
+    height: clamp(520px, 52dvh, 1100px);
+  }
+  .yk-pack-floor {
+    width: min(100%, clamp(380px, 22vw, 800px));
+    height: clamp(48px, 3dvh, 88px);
+  }
+  .yk-pack-grid .yk-pack-panel .yk-pack-info {
+    width: clamp(44px, 2vw, 72px);
+    height: clamp(44px, 2vw, 72px);
+  }
+  .yk-pack-info svg {
+    width: 50%;
+    height: 50%;
+  }
+  .yk-pack-panel .yk-pack-body {
+    padding-top: 16px;
+  }
+  .yk-pack-panel .yk-pack-body h2 {
+    font-size: clamp(30px, 1.5vw, 56px);
+  }
+  .yk-pack-grid .yk-pack-panel .yk-pack-status {
+    min-height: calc(4.5em + 12px);
+    font-size: clamp(14px, 0.7vw, 24px);
+    margin-bottom: 16px;
+  }
+  .yk-pack-timing {
+    font-size: clamp(12px, 0.6vw, 22px);
+  }
+  .yk-pack-dots > span {
+    width: clamp(12px, 0.5vw, 20px);
+    height: clamp(12px, 0.5vw, 20px);
+  }
+  .yk-pack-grid .yk-pack-panel .yk-pack-body > .yk-button {
+    width: clamp(280px, 14vw, 480px);
+    min-height: clamp(52px, 4dvh, 88px);
+    font-size: clamp(15px, 1vw, 28px);
+  }
+}

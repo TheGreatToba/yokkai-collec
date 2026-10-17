@@ -394,8 +394,7 @@ export function Boosters({ statusError, decisionError, onRetryRegular, onRetryDe
         <img src="/assets/bubble-regular-booster-v1.png" alt="Yokkai Collec’ Regular Pack" width={220} height={330} className="yk-pack-image" /></div><div className="yk-pack-body"><h2 className="font-display text-[26px] font-semibold">Regular Pack</h2>
         <div className="yk-pack-status">
           {status ? <div className="yk-pack-reserve" role="img" aria-label={`${status.available} of ${status.maximum} packs in reserve`}><span className="yk-pack-dots" aria-hidden="true">{Array.from({length: status.maximum}, (_, index) => <span key={index} data-filled={index < status.available} />)}</span><span aria-hidden="true">{status.available}/{status.maximum}</span></div> : <p>{statusError ? "Unavailable" : "Loading reserve…"}</p>}
-          {status?.available !== 0 && <p className="yk-pack-timing">{status ? status.nextPackAt === null ? "Reserve full" : `Next in ${countdown}` : "5 cards per pack"}</p>}
-          {status && status.available > 0 && <p className="text-success">Available now</p>}
+          {status?.available !== 0 && <p className="yk-pack-timing">{status ? status.nextPackAt === null ? "Reserve full" : `Next in ${countdown}` : "5 cards per pack"}{status && status.available > 0 && <><span aria-hidden="true"> · </span><span className="text-success">Available now</span></>}</p>}
         </div>
         {statusError && <p role="alert" className="my-3 text-sm text-danger-ink">{statusError} <button className="yk-button yk-button-secondary" onClick={onRetryRegular}>Try again</button></p>}
         <Button className="w-full" disabled={!status || status.available === 0 || busy} onClick={event => start("regular", event.currentTarget)}>{status?.available === 0 ? `Next in ${countdown}` : "Open"}</Button></div></article>
