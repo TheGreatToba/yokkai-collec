@@ -13,11 +13,9 @@ export default function BoostersPreviewPage() {
       <Topbar view="packs" name="Kitsune" karas={4920} notifications={[]} />
       <main className="yk-game-main mx-auto w-full max-w-6xl flex-1 px-6 py-10">
         <header className="yk-pack-page-heading">
-          <p className="eyebrow">The summoning room</p>
           <h1 className="yk-title mt-3">Your next great pull.</h1>
           <p className="mt-4 max-w-xl text-sm leading-6 text-ink-2">
-            A sealed pack. A world of possibilities. Find the next card you’ll
-            never want to let go.
+            New Yokkai, new stories, always something to discover.
           </p>
         </header>
         <BoostersPreview />

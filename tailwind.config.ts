@@ -6,6 +6,17 @@ const config = {
   theme: {
     extend: {
       colors: {
+        // Existing Packs UI palette, preserved exactly from boosters-showcase.css.
+        "pack-shadow": "#07061780",
+        "pack-glow": "#acbfff26",
+        "pack-accent": "#c0c5ff",
+        "pack-ink": "#eeebff",
+        "pack-button-ink": "#eeeaff",
+        "pack-button-start": "#4a436f",
+        "pack-button-middle": "#36476d",
+        "pack-button-end": "#4c406c",
+        "pack-success": "#72d6bc",
+        "pack-warning": "#dbc695",
         void: "#04000B",
         night: "#090714",
         surface: "#0F0C1D",
