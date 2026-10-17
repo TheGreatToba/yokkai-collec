@@ -189,6 +189,11 @@
   }
 }
 @media (min-width: 701px) and (max-height: 1200px) {
+  .yk-game-main:has(.yk-pack-grid) + footer {
+    margin-top: 12px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
   .yk-pack-grid .yk-pack-panel .yk-pack-art-stage {
     height: clamp(220px, calc(100svh - 470px), 380px);
   }
