@@ -120,3 +120,32 @@ test("a retry alert in either desktop panel keeps both actions bottom-aligned", 
   assert.equal(value(".yk-pack-body", "flex"), "1");
   assert.equal(value(".yk-pack-body > .yk-button", "margin-top"), "auto");
 });
+
+test("large tall screens expand the Packs selection without changing laptop breakpoints", () => {
+  const root = postcss.parse(css);
+  const large = root.nodes.find(
+    node =>
+      node.type === "atrule" &&
+      node.params === "(min-width: 2000px) and (min-height: 1201px)"
+  );
+  assert.ok(large);
+  const value = (selector, prop) =>
+    large.nodes
+      .find(node => node.selector === selector)
+      ?.nodes.find(node => node.prop === prop)?.value;
+  assert.equal(
+    value(".yk-game-main:has(.yk-pack-grid)", "max-width"),
+    "min(80vw, 2400px)"
+  );
+  assert.equal(value(".yk-pack-grid", "max-width"), "min(70vw, 2000px)");
+  assert.match(
+    value(".yk-pack-grid .yk-pack-panel .yk-pack-art-stage", "height"),
+    /clamp\([^)]+52dvh/
+  );
+  large.walkRules(rule =>
+    assert.doesNotMatch(rule.selector, /footer|topbar|yk-reveal|yk-opening/)
+  );
+  large.walkDecls(({ prop }) =>
+    assert.ok(!["zoom", "transform", "overflow"].includes(prop))
+  );
+});
