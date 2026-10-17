@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { getCurrentUser, getCurrentPseudo } from "@/lib/auth/session";
 import { AccountMenu } from "@/components/account-menu";
+import { LocalCardCustomizationBoundary } from "@/components/local-card-customization-boundary";
 import {
   CommunityView,
   type CommunityScreen
@@ -22,7 +23,7 @@ export async function CommunityPage({
   if (!user) redirect("/login");
   const isMe = !playerId || playerId === user.id;
   const name = isMe ? await getCurrentPseudo(user.id) : undefined;
-  return (
+  const content = (
     <CommunityView
       key={`${screen}:${playerId ?? auctionId ?? user.id}`}
       screen={screen}
@@ -34,5 +35,12 @@ export async function CommunityPage({
       playerId={playerId}
       auctionId={auctionId}
     />
+  );
+  return screen === "profile" ? (
+    <LocalCardCustomizationBoundary userId={user.id}>
+      {content}
+    </LocalCardCustomizationBoundary>
+  ) : (
+    content
   );
 }

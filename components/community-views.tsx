@@ -52,6 +52,7 @@ import { type ModerationAdapter } from "@/lib/data/moderation";
 import { PlayerModeration } from "@/components/player-moderation";
 import { FriendsPanel } from "@/components/friends";
 import { ProfileExperience } from "@/components/profile";
+import { StyledPlayerName } from "@/components/styled-player-name";
 import {
   getCardDiscovery as liveGetCardDiscovery,
   getWishlist,
@@ -1261,7 +1262,11 @@ export function AuctionChatPanel({
               <div>
                 <p>
                   <Link href={`/profile/${encodeURIComponent(item.pseudo)}`}>
-                    {item.mine ? "You" : item.pseudo}
+                    <StyledPlayerName
+                      userId={item.userId}
+                      name={item.pseudo}
+                      fallbackLabel={item.mine ? "You" : item.pseudo}
+                    />
                   </Link>
                   <time dateTime={item.createdAt}>
                     {new Date(item.createdAt).toLocaleTimeString("en-US", {

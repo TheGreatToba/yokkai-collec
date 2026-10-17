@@ -109,6 +109,7 @@ function panel(adapter, componentSource = component) {
     GifPicker: "gif-picker",
     Button: "button",
     Link: "a",
+    StyledPlayerName: "styled-player-name",
     document: { visibilityState: "visible", getElementById: () => null },
     HTMLTextAreaElement: class {},
     window: {

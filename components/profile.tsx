@@ -21,6 +21,22 @@ import { ProfileWall } from "@/components/profile-wall";
 import { ProfileSales } from "@/components/profile-sales";
 import { BannerCrop } from "@/components/banner-crop";
 import { BannerImage } from "@/components/banner-image";
+import { LocalProProfileBadge } from "@/components/local-pro-badge-preview";
+import {
+  EmbeddedProfileStyleEditor,
+  LocalProfileCosmeticBadges
+} from "@/components/local-profile-style-preview";
+import {
+  useLocalNameStyle,
+  useLocalProfileStyle
+} from "@/components/local-profile-style-context";
+import type { LocalProfileStyle } from "@/lib/ui/local-profile-style";
+import { useCardCustomizationAccess } from "@/components/card-customization-access";
+import {
+  isGifProfilePhoto,
+  PRO_BANNER_MESSAGE,
+  PRO_AVATAR_GIF_MESSAGE
+} from "@/lib/ui/pro-profile-media";
 import type { BannerFrame } from "@/lib/ui/banner-frame";
 import {
   CatalogueCardModal,
@@ -362,6 +378,9 @@ function Editor({
   onClose: () => void;
 }) {
   const [bio, setBio] = useState(profile.bio);
+  const localStyle = useLocalProfileStyle(profile.id);
+  const [styleDraft, setStyleDraft] = useState<LocalProfileStyle | null>(null);
+  const canCustomizeMedia = useCardCustomizationAccess();
   const [avatar, setAvatar] = useState(profile.avatarUrl);
   const ownedBannerCards = useMemo(() => {
     const cards = new Map<string, Card>();
@@ -454,6 +473,10 @@ function Editor({
     setBusy(true);
     setError("");
     try {
+      if (!canCustomizeMedia && (await isGifProfilePhoto(file))) {
+        setError(PRO_AVATAR_GIF_MESSAGE);
+        return;
+      }
       setAvatar(await (adapter.uploadAvatar ?? uploadAvatar)(file, profile.id));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't upload this image.");
@@ -466,6 +489,7 @@ function Editor({
     setBusy(true);
     setError("");
     try {
+      if (bannerFile && !canCustomizeMedia) throw new Error(PRO_BANNER_MESSAGE);
       if (bannerFrame && !framingAvailable) {
         throw new Error(
           "Banner framing is not available yet. Please try again after the update."
@@ -487,6 +511,8 @@ function Editor({
         uploadedBannerUrl,
         bannerFrame ?? undefined
       );
+      if (mode === "profile" && canCustomizeMedia && styleDraft)
+        localStyle?.apply(styleDraft);
       onSaved(updated);
       onClose();
     } catch (e) {
@@ -498,207 +524,269 @@ function Editor({
   return (
     <div className="space-y-6" data-profile-editor={mode}>
       {mode === "profile" && (
-        <>
-          <div className="flex items-center gap-4">
-            <Avatar
-              name={profile.pseudo}
-              image={avatar ?? undefined}
-              size={80}
-            />
-            <label className="yk-button yk-button-secondary cursor-pointer">
-              Choose photo
-              <input
-                className="sr-only"
-                type="file"
-                disabled={busy}
-                accept="image/jpeg,image/png,image/webp,image/gif"
-                onChange={e => void photo(e.target.files?.[0])}
+        <div className="yk-profile-edit-columns">
+          <div className="yk-profile-edit-details space-y-6">
+            <div className="flex items-center gap-4">
+              <Avatar
+                name={profile.pseudo}
+                image={avatar ?? undefined}
+                size={80}
               />
-            </label>
-          </div>
-          <p className="text-xs text-ink-3">
-            JPG, PNG, WebP or GIF · Up to 4 MB.
-          </p>
-          <label className="block text-sm text-ink-2">
-            Bio
-            <textarea
-              className="auth-input mt-2 min-h-28 resize-none overflow-y-auto py-3"
-              maxLength={300}
-              value={bio}
-              onChange={e => setBio(e.target.value)}
-              placeholder="Tell us about your collection…"
-            />
-            <span className="mt-1 block text-right text-xs text-ink-3">
-              {bio.length}/300
-            </span>
-          </label>
-          <section
-            className="yk-profile-banner-editor"
-            data-owned-banner-picker
-          >
-            <h3 className="font-display text-lg">Profile banner</h3>
-            <p className="yk-profile-muted">
-              Choose a card from your collection or upload an image. Adjust its
-              position, zoom and rotation before saving.
-            </p>
-            {profile.bannerCard && !eligibleBanner && !initialBannerUrl && (
-              <p className="mt-2 text-xs text-ink-3" role="status">
-                Your previous banner is no longer eligible. Saving will replace
-                it with your selected card, or remove it if no card is selected.
-              </p>
-            )}
-            {bannerSource && (
-              <div className="yk-banner-framed-preview">
-                <BannerImage
-                  src={bannerSource}
-                  frame={bannerFrame ?? { x: 50, y: 50, zoom: 1, rotation: 0 }}
-                />
-              </div>
-            )}
-            <div className="yk-profile-widget-tools">
-              <label
-                className="yk-button yk-button-secondary cursor-pointer"
-                data-banner-upload
-              >
-                Upload banner
+              <label className="yk-button yk-button-secondary cursor-pointer">
+                Choose photo
                 <input
                   className="sr-only"
                   type="file"
                   disabled={busy}
-                  accept="image/jpeg,image/png,image/webp,image/gif"
-                  onChange={event => {
-                    const file = event.target.files?.[0];
-                    event.target.value = "";
-                    if (!file) return;
-                    if (file.size > PROFILE_IMAGE_MAX_BYTES) {
-                      setError("Your banner must be 4 MB or smaller.");
-                      return;
-                    }
-                    if (
-                      ![
-                        "image/jpeg",
-                        "image/png",
-                        "image/webp",
-                        "image/gif"
-                      ].includes(file.type)
-                    ) {
-                      setError("Use a JPG, PNG, WebP or GIF image.");
-                      return;
-                    }
-                    setError("");
-                    const src = URL.createObjectURL(file);
-                    setCrop({ src, frame: null, card: null, file });
+                  accept={
+                    canCustomizeMedia
+                      ? "image/jpeg,image/png,image/webp,image/gif"
+                      : "image/jpeg,image/png,image/webp"
+                  }
+                  aria-label="Profile photo"
+                  aria-describedby={
+                    !canCustomizeMedia ? "profile-avatar-pro-notice" : undefined
+                  }
+                  onChange={e => {
+                    const file = e.target.files?.[0];
+                    e.target.value = "";
+                    void photo(file);
                   }}
                 />
               </label>
-              {bannerSource && (
-                <Button
-                  variant="secondary"
-                  disabled={busy}
-                  onClick={() => {
-                    setBannerCard(null);
-                    setBannerFrame(null);
-                    setBannerUrl(null);
-                    setBannerFile(null);
-                    setBannerPreview(null);
-                  }}
-                >
-                  Remove banner
-                </Button>
-              )}
-              {bannerSource && (
-                <Button
-                  variant="secondary"
-                  disabled={busy}
-                  onClick={() =>
-                    setCrop({
-                      src: bannerSource,
-                      frame: bannerFrame,
-                      card: bannerCard
-                    })
-                  }
-                >
-                  Adjust banner
-                </Button>
-              )}
             </div>
-            <p className="mt-2 text-xs text-ink-3">
-              JPG, PNG, WebP or GIF · Up to 4 MB.
+            <p className="text-xs text-ink-3">
+              {canCustomizeMedia
+                ? "JPG, PNG, WebP or GIF · Up to 4 MB."
+                : "JPG, PNG or WebP · Up to 4 MB."}
             </p>
-            {bannerCard && (
-              <div className="yk-banner-choice mt-4">
-                <div>
-                  <img src={bannerCard.image} alt="" decoding="async" />
-                  <strong>{bannerCard.name}</strong>
-                  <small>{bannerCard.anime ?? bannerCard.category}</small>
-                </div>
-              </div>
-            )}
-            <div className="relative mt-4">
-              <input
-                className="auth-input"
-                type="search"
-                aria-label="Search your collection for a banner"
-                aria-describedby="banner-search-help"
-                disabled={busy}
-                value={bannerQuery}
-                onChange={e => {
-                  const value = e.target.value;
-                  setBannerQuery(value);
-                  setError("");
-                }}
-                placeholder="Search by character and franchise…"
-              />
-              <p id="banner-search-help" className="mt-2 text-xs text-ink-3">
-                Combine a character’s name with its franchise, e.g. Loki One
-                Piece.
+            {!canCustomizeMedia && (
+              <p id="profile-avatar-pro-notice" className="text-xs text-ink-3">
+                {PRO_AVATAR_GIF_MESSAGE}{" "}
+                <Link href="/premium" className="yk-detail-link">
+                  Discover Yokkai Pro
+                </Link>
               </p>
-              {ownedBannerChoices.length > 0 ? (
-                <ul className="yk-banner-results">
-                  {ownedBannerChoices.slice(0, 36).map(card => (
-                    <li key={card.id}>
-                      <button
-                        type="button"
-                        disabled={busy}
-                        onClick={() => {
-                          setCrop({
-                            src: card.image,
-                            frame: null,
-                            card
-                          });
-                        }}
-                      >
-                        <img
-                          src={card.image}
-                          alt=""
-                          loading="lazy"
-                          decoding="async"
-                        />
-                        <span>
-                          <strong>{card.name}</strong>
-                          <small>{card.anime ?? card.category}</small>
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="mt-3 text-sm text-ink-3" role="status">
-                  {ownedBannerCards.length
-                    ? "No matching cards in your collection."
-                    : "Collect a card to use it as a profile banner, or upload an image."}
+            )}
+            <label className="block text-sm text-ink-2">
+              Bio
+              <textarea
+                className="auth-input mt-2 min-h-28 resize-none overflow-y-auto py-3"
+                maxLength={300}
+                value={bio}
+                onChange={e => setBio(e.target.value)}
+                placeholder="Tell us about your collection…"
+              />
+              <span className="mt-1 block text-right text-xs text-ink-3">
+                {bio.length}/300
+              </span>
+            </label>
+            <section
+              className="yk-profile-banner-editor"
+              data-owned-banner-picker
+            >
+              <h3 className="font-display text-lg">Profile banner</h3>
+              <p className="yk-profile-muted">
+                {canCustomizeMedia
+                  ? "Choose a card from your collection or upload an image. Adjust its position, zoom and rotation before saving."
+                  : "Choose a card from your collection. Adjust its position, zoom and rotation before saving."}
+              </p>
+              {profile.bannerCard && !eligibleBanner && !initialBannerUrl && (
+                <p className="mt-2 text-xs text-ink-3" role="status">
+                  Your previous banner is no longer eligible. Saving will
+                  replace it with your selected card, or remove it if no card is
+                  selected.
                 </p>
               )}
-              {ownedBannerChoices.length > 36 && (
-                <p className="mt-2 text-xs text-ink-3">
-                  Showing 36 of{" "}
-                  {ownedBannerChoices.length.toLocaleString("en-US")} cards.
-                  Search to find a specific card.
+              {bannerSource && (
+                <div className="yk-banner-framed-preview">
+                  <BannerImage
+                    src={bannerSource}
+                    frame={
+                      bannerFrame ?? { x: 50, y: 50, zoom: 1, rotation: 0 }
+                    }
+                  />
+                </div>
+              )}
+              <div className="yk-profile-widget-tools">
+                <label
+                  className={`yk-button yk-button-secondary ${canCustomizeMedia ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}
+                  data-banner-upload
+                  aria-disabled={!canCustomizeMedia || busy}
+                >
+                  Upload banner
+                  <input
+                    className="sr-only"
+                    type="file"
+                    disabled={busy || !canCustomizeMedia}
+                    aria-label="Upload banner"
+                    aria-describedby={
+                      !canCustomizeMedia
+                        ? "profile-banner-pro-notice"
+                        : undefined
+                    }
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={event => {
+                      const file = event.target.files?.[0];
+                      event.target.value = "";
+                      if (!file) return;
+                      if (!canCustomizeMedia) {
+                        setError(PRO_BANNER_MESSAGE);
+                        return;
+                      }
+                      if (file.size > PROFILE_IMAGE_MAX_BYTES) {
+                        setError("Your banner must be 4 MB or smaller.");
+                        return;
+                      }
+                      if (
+                        ![
+                          "image/jpeg",
+                          "image/png",
+                          "image/webp",
+                          "image/gif"
+                        ].includes(file.type)
+                      ) {
+                        setError("Use a JPG, PNG, WebP or GIF image.");
+                        return;
+                      }
+                      setError("");
+                      const src = URL.createObjectURL(file);
+                      setCrop({ src, frame: null, card: null, file });
+                    }}
+                  />
+                </label>
+                {bannerSource && (
+                  <Button
+                    variant="secondary"
+                    disabled={busy}
+                    onClick={() => {
+                      setBannerCard(null);
+                      setBannerFrame(null);
+                      setBannerUrl(null);
+                      setBannerFile(null);
+                      setBannerPreview(null);
+                    }}
+                  >
+                    Remove banner
+                  </Button>
+                )}
+                {bannerSource && (
+                  <Button
+                    variant="secondary"
+                    disabled={busy || (!canCustomizeMedia && !bannerCard)}
+                    onClick={() => {
+                      if (!canCustomizeMedia && !bannerCard) return;
+                      setCrop({
+                        src: bannerSource,
+                        frame: bannerFrame,
+                        card: bannerCard
+                      });
+                    }}
+                  >
+                    Adjust banner
+                  </Button>
+                )}
+              </div>
+              {!canCustomizeMedia && (
+                <p
+                  id="profile-banner-pro-notice"
+                  className="mt-2 text-xs text-ink-3"
+                >
+                  {PRO_BANNER_MESSAGE}{" "}
+                  <Link href="/premium" className="yk-detail-link">
+                    Discover Yokkai Pro
+                  </Link>
                 </p>
               )}
-            </div>
-          </section>
-        </>
+              <p className="mt-2 text-xs text-ink-3">
+                JPG, PNG, WebP or GIF · Up to 4 MB.
+              </p>
+              {bannerCard && (
+                <div className="yk-banner-choice mt-4">
+                  <div>
+                    <img src={bannerCard.image} alt="" decoding="async" />
+                    <strong>{bannerCard.name}</strong>
+                    <small>{bannerCard.anime ?? bannerCard.category}</small>
+                  </div>
+                </div>
+              )}
+              <div className="relative mt-4">
+                <input
+                  className="auth-input"
+                  type="search"
+                  aria-label="Search your collection for a banner"
+                  aria-describedby="banner-search-help"
+                  disabled={busy}
+                  value={bannerQuery}
+                  onChange={e => {
+                    const value = e.target.value;
+                    setBannerQuery(value);
+                    setError("");
+                  }}
+                  placeholder="Search by character and franchise…"
+                />
+                <p id="banner-search-help" className="mt-2 text-xs text-ink-3">
+                  Combine a character’s name with its franchise, e.g. Loki One
+                  Piece.
+                </p>
+                {ownedBannerChoices.length > 0 ? (
+                  <ul className="yk-banner-results">
+                    {ownedBannerChoices.slice(0, 36).map(card => (
+                      <li key={card.id}>
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => {
+                            setCrop({
+                              src: card.image,
+                              frame: null,
+                              card
+                            });
+                          }}
+                        >
+                          <img
+                            src={card.image}
+                            alt=""
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <span>
+                            <strong>{card.name}</strong>
+                            <small>{card.anime ?? card.category}</small>
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-3 text-sm text-ink-3" role="status">
+                    {ownedBannerCards.length
+                      ? "No matching cards in your collection."
+                      : canCustomizeMedia
+                        ? "Collect a card to use it as a profile banner, or upload an image."
+                        : "Collect a card to use it as a profile banner."}
+                  </p>
+                )}
+                {ownedBannerChoices.length > 36 && (
+                  <p className="mt-2 text-xs text-ink-3">
+                    Showing 36 of{" "}
+                    {ownedBannerChoices.length.toLocaleString("en-US")} cards.
+                    Search to find a specific card.
+                  </p>
+                )}
+              </div>
+            </section>
+          </div>
+          <EmbeddedProfileStyleEditor
+            ownerId={profile.id}
+            isMe={true}
+            name={profile.pseudo}
+            avatarUrl={avatar}
+            bannerUrl={bannerSource}
+            busy={busy}
+            onDraftChange={setStyleDraft}
+          />
+        </div>
       )}
       {mode === "showcase" && (
         <section>
@@ -769,6 +857,12 @@ function Editor({
             setCrop(null);
           }}
           onApply={frame => {
+            if (crop.file && !canCustomizeMedia) {
+              setError(PRO_BANNER_MESSAGE);
+              URL.revokeObjectURL(crop.src);
+              setCrop(null);
+              return;
+            }
             setBannerCard(crop.card);
             if (crop.file) {
               setBannerFile(crop.file);
@@ -1138,6 +1232,9 @@ export function ProfileExperience({
 }) {
   const searchParams = useSearchParams();
   const [profile, setProfile] = useState<Profile>();
+  const localNameStyle = useLocalNameStyle(
+    profile?.friendshipStatus === "self" ? profile.id : undefined
+  );
   const [wishlist, setWishlist] = useState<WishlistCard[]>([]);
   const [error, setError] = useState("");
   const [editing, setEditing] = useState(searchParams.get("edition") === "1");
@@ -1639,8 +1736,15 @@ export function ProfileExperience({
               />
             </div>
             <span className="yk-profile-identity-label">COLLECTOR</span>
-            <div className="yk-profile-name-row">
-              <h2>{profile.pseudo}</h2>
+            <div
+              className="yk-profile-name-row"
+              data-name-effect={isMe ? localNameStyle?.effect : undefined}
+              style={isMe ? localNameStyle?.style : undefined}
+            >
+              <h2>
+                {profile.pseudo}
+                <LocalProProfileBadge isMe={isMe} />
+              </h2>
               {!isMe && (
                 <PlayerModeration
                   userId={profile.id}
@@ -1651,6 +1755,7 @@ export function ProfileExperience({
                 />
               )}
             </div>
+            <LocalProfileCosmeticBadges isMe={isMe} ownerId={profile.id} />
             <p className="yk-profile-bio">{profile.bio || "No bio yet."}</p>
             <div className="yk-profile-actions">
               {isMe ? (
@@ -1875,7 +1980,9 @@ export function ProfileExperience({
         open={editing}
         onClose={() => setEditing(false)}
         title={editingMode === "showcase" ? "Edit showcase" : "Edit my profile"}
-        className="max-w-4xl"
+        className={
+          editingMode === "profile" ? "yk-profile-edit-modal" : "max-w-4xl"
+        }
       >
         {isMe && collection && details ? (
           <Editor
