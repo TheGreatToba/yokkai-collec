@@ -4,7 +4,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getCurrentUser, getCurrentPseudo } from "@/lib/auth/session";
 import { localPremiumEnabled } from "@/lib/premium/plan";
-import { PremiumExperience } from "@/components/premium-experience";
+import { PremiumOffer } from "@/components/premium-offer";
 import "@/styles/premium.css";
 
 export const metadata: Metadata = {
@@ -29,16 +29,15 @@ export default async function PremiumPage() {
           />
         </Link>
         <span>
-          LOCAL LAB <i aria-hidden="true" />
+          YOKKAI PRO <i aria-hidden="true" />
         </span>
         <Link href="/settings">Back to settings ↗</Link>
       </header>
       <main className="yk-premium-main">
-        <PremiumExperience signedIn={!!user} name={name ?? "Collector"} />
+        <PremiumOffer signedIn={!!user} name={name ?? "Collector"} />
       </main>
       <footer className="yk-premium-footer">
-        Local prototype · Test payments only · Planned benefits are simulated,
-        not applied to your account.
+        Local preview · Stripe test payments only.
       </footer>
     </div>
   );

@@ -38,8 +38,8 @@ export default async function SettingsPage() {
             <p className="eyebrow">Local subscription lab</p>
             <h2 className="mt-3 text-xl">Yokkai Pro</h2>
             <p className="mt-2 text-sm text-ink-2">
-              Compare Basic and Pro, try the previews and manage your Stripe
-              test subscription. No real payments.
+              Discover Yokkai Pro and manage your Stripe test subscription. No
+              real payments.
             </p>
             <Link
               href="/premium"

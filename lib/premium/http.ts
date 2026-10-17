@@ -8,7 +8,7 @@ const messages: Record<string, string> = {
   REQUEST_DENIED: "Request denied.",
   INVALID_REQUEST: "Invalid request.",
   STRIPE_TEST_SETUP_REQUIRED:
-    "Stripe test mode is not configured yet. You can still try the interactive preview.",
+    "Checkout is not configured for this local preview yet.",
   PRICE_MUST_BE_EUR_499_MONTHLY:
     "Configure an active EUR 4.99 monthly Stripe test price.",
   USE_MANAGE_SUBSCRIPTION:

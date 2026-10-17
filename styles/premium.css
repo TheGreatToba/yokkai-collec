@@ -539,6 +539,68 @@
   background: #ffffff06;
   padding: 5px;
 }
+.yk-pro-offer-hero {
+  padding-top: 60px;
+  gap: 60px;
+}
+.yk-pro-offer-hero .yk-premium-copy h1 {
+  font-size: clamp(38px, 4.4vw, 61px);
+}
+.yk-pro-checkout {
+  scroll-margin-top: 30px;
+  min-width: 0;
+}
+.yk-pro-checkout-includes {
+  display: grid;
+  gap: 14px;
+  padding: 24px 0;
+  margin: 20px 0;
+  border-top: 1px solid #ffffff10;
+  border-bottom: 1px solid #ffffff10;
+  list-style: none;
+  font-size: 12px;
+  color: #c6bed4;
+  line-height: 1.6;
+}
+.yk-pro-checkout-includes li::before {
+  content: "✓";
+  color: var(--plus-accent);
+  margin-right: 9px;
+}
+.yk-pro-checkout .yk-pro-checkout-account {
+  font-size: 12px;
+  color: #c6bed4;
+  margin-bottom: 14px;
+}
+.yk-pro-checkout .yk-pro-checkout-unavailable,
+.yk-pro-offer-footnote {
+  font-size: 12px;
+  color: #aaa2b9;
+  line-height: 1.8;
+}
+.yk-pro-checkout .yk-pro-subscription-active {
+  font-size: 12px;
+  color: #a9d9bc;
+  margin-bottom: 14px;
+}
+.yk-pro-checkout .yk-pro-payment-error {
+  margin-top: 14px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.yk-pro-offer-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 32px 0;
+  border-top: 1px solid #ffffff10;
+}
+.yk-pro-offer-bottom p {
+  color: #c6bed4;
+  font-size: 14px;
+}
 .yk-pro-banner-showcase {
   display: grid;
   grid-template-columns: 0.8fr 1.2fr;
