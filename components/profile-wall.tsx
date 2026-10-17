@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Avatar, Button, Modal, Toast } from "@/components/ui";
 import { GifPicker } from "@/components/gif-picker";
+import { StyledPlayerName } from "@/components/styled-player-name";
 import {
   liveWall,
   type WallAdapter,
@@ -230,7 +231,9 @@ export function ProfileWall({
         >
           <div className="yk-wall-author">
             <Avatar name={pseudo} image={avatarUrl ?? undefined} size={38} />
-            <strong>{pseudo}</strong>
+            <strong>
+              <StyledPlayerName userId={ownerId} name={pseudo} />
+            </strong>
           </div>
           <label htmlFor="wall-text" className="sr-only">
             Your post
@@ -353,7 +356,9 @@ export function ProfileWall({
                   size={38}
                 />
                 <div>
-                  <strong>{pseudo}</strong>
+                  <strong>
+                    <StyledPlayerName userId={ownerId} name={pseudo} />
+                  </strong>
                   <time dateTime={post.createdAt}>
                     {new Date(post.createdAt).toLocaleString("en-US", {
                       dateStyle: "medium",

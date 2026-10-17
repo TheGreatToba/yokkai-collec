@@ -21,7 +21,8 @@
 - Modale inspirée du principe d’édition Discord, avec une présentation Yokkai sombre/lavande : huit styles de police, sept effets (Solid, Gradient, Neon, Outline, Pop, Shimmer, Prism), palette et deux couleurs personnalisées. Polices déjà chargées ou polices système ; aucune dépendance de police distante supplémentaire.
 - Aperçu immédiat du pseudo sur une fiche de profil et une conversation fictive. Le profil réel local ne change qu’après **Apply locally** ; Cancel, fermeture et Échap abandonnent les modifications. Réouverture avec le style appliqué, Reset et Surprise me disponibles.
 - Le badge Pro lavande reste distinct de six badges décoratifs (Comet, Bloom, Crystal, Orbit, Flame, Moon), limités à trois. Aucun choix de rôle administrateur/modérateur, de certification ni de succès débloqué.
-- L’état reste uniquement en mémoire dans le fournisseur React local : un rechargement complet réinitialise le style. Aucune persistance navigateur, requête d’écriture, migration ni changement de droits SQL. Le branchement aux vrais comptes Pro et la sauvegarde sont une étape distincte.
+- L’état reste uniquement en mémoire dans l’onglet local : il suit la navigation client entre pages, mais un rechargement complet le réinitialise. Le pseudo (police, couleurs, effet), le badge Pro de démonstration et les badges décoratifs sont repris dans les auteurs des messages d’enchères et des posts du mur. L’association utilise l’identifiant du compte, jamais le pseudo. Aucun style n’est attribué à un autre joueur portant le même nom.
+- Le lien **Preview chat & wall** ouvre `/design-system/profile-style-sharing-preview`, protégé par le garde local et une connexion, avec les vrais composants UI et des adaptateurs fictifs en lecture seule (y compris signalements et blocages). Les autres joueurs et navigateurs ne voient pas cet essai. Aucune persistance navigateur, requête d’écriture, migration ni changement de droits SQL. Le branchement aux vrais comptes Pro et la sauvegarde sont une étape distincte.
 - Aperçu mobile empilé ; modale commune conservée pour le focus, le clavier et le blocage du défilement de fond. Shimmer désactivé avec `prefers-reduced-motion`.
 
 ## Démarrer
@@ -86,4 +87,4 @@ La validation de Walid pour les nouvelles règles produit et une PR de tests sé
 
 ## Livraison
 
-Essai local, PR en brouillon uniquement. Ne pas merger ni déployer. Aucun test existant modifié ou affaibli. Pas de migration Supabase.
+Essai local, PR en brouillon uniquement. Ne pas merger ni déployer. Aucun test existant affaibli ; seul un mock du nouveau composant d’identité est ajouté au harnais des tests du chat, sans changer leurs assertions. Pas de migration Supabase.

@@ -71,6 +71,43 @@
   text-shadow: none;
   -webkit-text-stroke: 0;
 }
+.yk-styled-player-name {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  max-width: 100%;
+  vertical-align: middle;
+}
+.yk-styled-player-name > .yk-style-name {
+  min-width: 0;
+  line-height: 1.5;
+}
+.yk-styled-player-name > .yk-profile-pro-badge,
+.yk-styled-player-name .yk-profile-pro-badge {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  flex-shrink: 0;
+}
+.yk-styled-player-name .yk-profile-pro-badge svg {
+  width: 10px;
+  height: 10px;
+}
+.yk-styled-player-name .yk-style-badge-strip {
+  display: inline-flex;
+  gap: 3px;
+  margin: 0;
+}
+.yk-styled-player-name .yk-style-cosmetic-badge {
+  width: 19px;
+  height: 19px;
+  border-radius: 6px;
+}
+.yk-styled-player-name .yk-style-cosmetic-badge svg {
+  width: 12px;
+  height: 12px;
+}
 .yk-modal.yk-style-editor {
   width: min(980px, calc(100% - 32px));
   padding: 24px;
@@ -503,5 +540,30 @@
     .yk-style-name[data-name-effect]
   ) {
     animation: none;
+  }
+}
+.yk-style-sharing-link {
+  color: var(--text-muted, #aaa3be);
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.yk-style-sharing-preview {
+  max-width: 1100px;
+  margin: 32px auto;
+  padding: 24px;
+}
+.yk-style-sharing-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin-top: 28px;
+}
+.yk-style-sharing-grid section {
+  min-width: 0;
+}
+@media (max-width: 720px) {
+  .yk-style-sharing-grid {
+    grid-template-columns: 1fr;
   }
 }

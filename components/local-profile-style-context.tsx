@@ -13,10 +13,12 @@ import {
   normalizeLocalProfileStyle,
   type LocalProfileStyle
 } from "@/lib/ui/local-profile-style";
+import { localPlayerStyles } from "@/lib/ui/local-player-style-store";
+import { useLocalPlayerStyle } from "@/components/use-local-player-style";
 
 const LocalStyleContext = createContext<{
   style: LocalProfileStyle;
-  apply: (style: LocalProfileStyle) => void;
+  apply: (style: LocalProfileStyle, ownerId?: string) => void;
 } | null>(null);
 
 export function LocalProfileStyleProvider({
@@ -29,7 +31,11 @@ export function LocalProfileStyleProvider({
     <LocalStyleContext
       value={{
         style,
-        apply: next => setStyle(normalizeLocalProfileStyle(next))
+        apply: (next, ownerId) => {
+          const safe = normalizeLocalProfileStyle(next);
+          setStyle(safe);
+          if (ownerId) localPlayerStyles.publish(ownerId, safe);
+        }
       }}
     >
       {children}
@@ -37,12 +43,19 @@ export function LocalProfileStyleProvider({
   );
 }
 
-export function useLocalProfileStyle() {
-  return useContext(LocalStyleContext);
+export function useLocalProfileStyle(ownerId?: string) {
+  const preview = useContext(LocalStyleContext);
+  const saved = useLocalPlayerStyle(ownerId);
+  return preview
+    ? {
+        style: saved ?? preview.style,
+        apply: (next: LocalProfileStyle) => preview.apply(next, ownerId)
+      }
+    : null;
 }
 
-export function useLocalNameStyle() {
-  const preview = useLocalProfileStyle();
+export function useLocalNameStyle(ownerId?: string) {
+  const preview = useLocalProfileStyle(ownerId);
   return preview
     ? {
         effect: preview.style.effect,

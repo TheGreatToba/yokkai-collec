@@ -2,6 +2,7 @@
 
 import { useState, type CSSProperties } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Avatar, Button, Modal } from "@/components/ui";
 import { LocalProProfileBadge } from "@/components/local-pro-badge-preview";
 import { useLocalProfileStyle } from "@/components/local-profile-style-context";
@@ -70,9 +71,16 @@ function BadgeGlyph({ id }: { id: StyleBadge }) {
   );
 }
 
-function CosmeticBadges({ badges }: { badges: StyleBadge[] }) {
+export function CosmeticBadges({
+  badges,
+  inline = false
+}: {
+  badges: StyleBadge[];
+  inline?: boolean;
+}) {
+  const Tag = inline ? "span" : "div";
   return (
-    <div
+    <Tag
       className="yk-style-badge-strip"
       aria-label="Decorative profile badges"
     >
@@ -91,17 +99,24 @@ function CosmeticBadges({ badges }: { badges: StyleBadge[] }) {
           </span>
         );
       })}
-    </div>
+    </Tag>
   );
 }
 
-export function LocalProfileCosmeticBadges({ isMe }: { isMe: boolean }) {
-  const preview = useLocalProfileStyle();
+export function LocalProfileCosmeticBadges({
+  isMe,
+  ownerId
+}: {
+  isMe: boolean;
+  ownerId: string;
+}) {
+  const preview = useLocalProfileStyle(ownerId);
   if (!isMe || !preview || !preview.style.badges.length) return null;
   return <CosmeticBadges badges={preview.style.badges} />;
 }
 
 type EditorProps = {
+  ownerId: string;
   name: string;
   avatarUrl?: string | null;
   bannerUrl?: string | null;
@@ -109,7 +124,7 @@ type EditorProps = {
 };
 
 export function LocalProfileStyleEditor(props: EditorProps) {
-  const preview = useLocalProfileStyle();
+  const preview = useLocalProfileStyle(props.ownerId);
   const [open, setOpen] = useState(false);
   if (!preview || !props.isMe) return null;
   return (
@@ -117,6 +132,12 @@ export function LocalProfileStyleEditor(props: EditorProps) {
       <Button variant="secondary" onClick={() => setOpen(true)}>
         <span aria-hidden="true">✦ </span>Style profile
       </Button>
+      <Link
+        href="/design-system/profile-style-sharing-preview"
+        className="yk-style-sharing-link"
+      >
+        Preview chat &amp; wall
+      </Link>
       <Modal
         open={open}
         onClose={() => setOpen(false)}

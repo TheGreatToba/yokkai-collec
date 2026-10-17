@@ -1143,8 +1143,10 @@ export function ProfileExperience({
   adapter?: ProfileAdapter;
 }) {
   const searchParams = useSearchParams();
-  const localNameStyle = useLocalNameStyle();
   const [profile, setProfile] = useState<Profile>();
+  const localNameStyle = useLocalNameStyle(
+    profile?.friendshipStatus === "self" ? profile.id : undefined
+  );
   const [wishlist, setWishlist] = useState<WishlistCard[]>([]);
   const [error, setError] = useState("");
   const [editing, setEditing] = useState(searchParams.get("edition") === "1");
@@ -1665,10 +1667,11 @@ export function ProfileExperience({
                 />
               )}
             </div>
-            <LocalProfileCosmeticBadges isMe={isMe} />
+            <LocalProfileCosmeticBadges isMe={isMe} ownerId={profile.id} />
             <p className="yk-profile-bio">{profile.bio || "No bio yet."}</p>
             <div className="yk-profile-actions">
               <LocalProfileStyleEditor
+                ownerId={profile.id}
                 isMe={isMe}
                 name={profile.pseudo}
                 avatarUrl={profile.avatarUrl}
