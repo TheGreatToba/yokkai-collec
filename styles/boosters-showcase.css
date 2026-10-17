@@ -1,24 +1,26 @@
 /* Pack selection only. The original pack artwork and opening styles stay intact. */
 .yk-game-main:has(.yk-pack-grid) {
-  padding-top: clamp(32px, 5vw, 64px);
-  padding-bottom: 64px;
+  position: relative;
+  isolation: isolate;
+  padding-top: clamp(12px, 1.5dvh, 20px);
+  padding-bottom: 8px;
 }
 .yk-pack-page-heading .yk-title {
   margin-top: 0;
-  font-size: clamp(34px, 4.5vw, 60px);
+  font-size: clamp(34px, 5.5dvh, 60px);
   letter-spacing: -0.035em;
   line-height: 1.15;
 }
 .yk-pack-page-heading > p {
   max-width: none;
-  margin-top: 12px;
+  margin-top: 8px;
   font-size: clamp(14px, 1.4vw, 18px);
 }
 .yk-pack-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: clamp(32px, 6vw, 96px);
   max-width: 960px;
-  margin: 32px auto 0;
+  margin: 12px auto 0;
 }
 .yk-pack-grid .yk-pack-panel {
   --pack-accent: var(--color-pack-accent);
@@ -37,34 +39,72 @@
   content: none;
 }
 .yk-pack-grid .yk-pack-panel .yk-pack-art-stage {
-  height: 380px;
+  height: clamp(280px, calc(100dvh - 464px), 520px);
   flex-shrink: 0;
   isolation: isolate;
   background: none;
 }
-.yk-pack-panel .yk-pack-art-stage::after {
-  content: "";
+.yk-pack-ambient {
   position: absolute;
   z-index: -1;
-  bottom: 4px;
-  width: min(100%, 340px);
-  height: 72px;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    color-mix(in srgb, var(--color-accent-neon) 10%, transparent),
+    transparent 65%
+  );
+  filter: blur(32px);
+  pointer-events: none;
+}
+.yk-pack-aura {
+  position: absolute;
+  z-index: -1;
+  inset: -8% -4%;
+  background: radial-gradient(
+    ellipse,
+    color-mix(in srgb, var(--color-accent-neon) 18%, transparent),
+    color-mix(in srgb, var(--color-pack-accent) 6%, transparent) 45%,
+    transparent 72%
+  );
+  filter: blur(40px);
+  pointer-events: none;
+}
+.yk-pack-floor {
+  position: absolute;
+  z-index: 0;
+  bottom: 0;
+  width: min(100%, 380px);
+  height: 48px;
   border-radius: 50%;
   background: radial-gradient(
     ellipse,
-    color-mix(in srgb, var(--color-pack-accent) 32%, transparent),
+    color-mix(in srgb, var(--color-pack-accent) 60%, transparent),
+    color-mix(in srgb, var(--color-accent-neon) 22%, transparent) 35%,
     transparent 70%
   );
-  filter: blur(16px);
+  filter: blur(8px);
+  box-shadow: 0 0 48px
+    color-mix(in srgb, var(--color-pack-accent) 14%, transparent);
   pointer-events: none;
+}
+.yk-decision-panel .yk-pack-floor {
+  background: radial-gradient(
+    ellipse,
+    color-mix(in srgb, var(--color-accent-gold) 55%, transparent),
+    color-mix(in srgb, var(--color-pack-accent) 26%, transparent) 38%,
+    transparent 70%
+  );
 }
 .yk-pack-grid .yk-pack-panel .yk-pack-image {
   width: auto;
-  height: calc(100% - 32px);
+  height: calc(100% - 16px);
   max-width: 85%;
   object-fit: contain;
   filter: drop-shadow(0 16px 15px var(--color-pack-shadow))
-    drop-shadow(0 0 18px var(--color-pack-glow));
+    drop-shadow(0 0 18px var(--color-pack-glow))
+    drop-shadow(
+      0 0 3px color-mix(in srgb, var(--color-pack-accent) 40%, transparent)
+    );
 }
 .yk-pack-grid .yk-pack-panel .yk-pack-info {
   top: 16px;
@@ -79,8 +119,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  flex: 1;
-  padding: 20px 16px 0;
+  padding: 8px 16px 0;
   text-align: center;
 }
 .yk-pack-panel .yk-pack-body h2 {
@@ -95,8 +134,8 @@
   align-items: center;
   gap: 6px;
   width: 100%;
-  min-height: 92px;
-  margin: 12px 0 16px;
+  min-height: 72px;
+  margin: 8px 0 10px;
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -142,8 +181,8 @@
 }
 .yk-pack-grid .yk-pack-panel .yk-pack-body > .yk-button {
   width: min(100%, 280px);
-  min-height: 52px;
-  margin-top: auto;
+  min-height: 48px;
+  margin-top: 0;
   border: 1px solid var(--color-pack-accent);
   border-radius: 999px;
   color: var(--color-pack-button-ink);
@@ -153,8 +192,10 @@
     var(--color-pack-button-middle) 55%,
     var(--color-pack-button-end)
   );
-  box-shadow: 0 8px 24px
-    color-mix(in srgb, var(--color-pack-accent) 12%, transparent);
+  box-shadow:
+    0 0 24px color-mix(in srgb, var(--color-pack-accent) 30%, transparent),
+    inset 0 1px 0
+      color-mix(in srgb, var(--color-pack-button-ink) 16%, transparent);
   font-size: 15px;
   white-space: normal;
   overflow-wrap: anywhere;
@@ -170,8 +211,15 @@
   opacity: 0.55;
   animation: none;
 }
-.yk-pack-panel[data-unavailable="true"] .yk-pack-art-stage::after {
-  opacity: 0.4;
+.yk-pack-panel[data-unavailable="true"] .yk-pack-floor {
+  opacity: 0.65;
+}
+.yk-pack-panel[data-unavailable="true"] .yk-pack-body h2 {
+  color: var(--color-pack-accent);
+}
+.yk-pack-panel[data-unavailable="true"] .yk-pack-status {
+  color: var(--color-ink-2);
+  opacity: 0.9;
 }
 .yk-pack-panel :is(.yk-button, .yk-pack-info):focus-visible {
   outline: 2px solid var(--color-focus-ring);
@@ -195,20 +243,27 @@
     padding-bottom: 12px;
   }
   .yk-pack-grid .yk-pack-panel .yk-pack-art-stage {
-    height: clamp(220px, calc(100svh - 470px), 380px);
+    height: clamp(240px, calc(100svh - 464px), 520px);
   }
   .yk-pack-grid .yk-pack-panel .yk-pack-body > .yk-button {
     min-height: 44px;
   }
 }
 @media (max-width: 700px) {
+  .yk-game-main:has(.yk-pack-grid) {
+    padding-top: 32px;
+    padding-bottom: 40px;
+  }
+  .yk-pack-page-heading .yk-title {
+    font-size: clamp(32px, 8vw, 40px);
+  }
   .yk-pack-grid {
     grid-template-columns: minmax(0, 1fr);
     gap: 56px;
     margin-top: 32px;
   }
   .yk-pack-grid .yk-pack-panel .yk-pack-art-stage {
-    height: 320px;
+    height: 340px;
   }
   .yk-pack-panel .yk-pack-body {
     padding-inline: 0;
