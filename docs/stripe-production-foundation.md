@@ -2,7 +2,7 @@
 
 ## État de livraison
 
-Branche indépendante créée depuis `origin/master` (`1523ee5`). Ce lot prépare le backend persistant ; il **ne rend pas l’offre commercialisable** et ne remplace pas l’aperçu local de la PR #300. Ne pas activer les achats, merger ou déployer sans finir la checklist ci-dessous. Aucun objet Stripe, débit ou accès Pro réel créé pendant le développement.
+Branche indépendante créée depuis `origin/master` (`1523ee5`). Ce lot prépare le backend persistant ; il **ne rend pas l’offre commercialisable** et ne remplace pas l’aperçu local de la PR #300. Ne pas activer les achats, merger ou déployer sans finir la checklist ci-dessous. Aucun objet Stripe en mode réel, débit ou accès Pro de production créé pendant le développement.
 
 Migration `20261017000000_stripe_billing_foundation.sql` : **pas appliquée sur le VPS**, aucune base distante modifiée. Avant son application, coordonner avec Walid sur Discord et vérifier l’historique réel avec le script officiel du dépôt. Aucune migration de droits de jeu dans ce lot ; pas de test existant remplacé, assoupli ou ignoré.
 
@@ -59,9 +59,9 @@ Après installation des variables dans le gestionnaire de secrets du serveur, et
 
 Ce script refuse de démarrer hors `NODE_ENV=production`, avec une autre origine ou si un des flags n’est pas explicitement `false`. Il appelle uniquement `GET /v1/account` et `GET /v1/prices/<id>` via le SDK officiel, vérifie le compte, le mode réel et le tarif actif 499 centimes EUR mensuel récurrent. Aucun client, Checkout, abonnement ou paiement créé, aucune écriture SQL. La sortie ne contient pas la clé, de réponse fournisseur brute ou d’identifiant financier. Un succès confirme ces contrôles uniquement, **pas** la préparation du webhook ou des avantages, ni l’autorisation d’ouvrir les achats.
 
-### Tarif Sandbox fourni — recette isolée à préparer
+### Tarif Sandbox fourni — recette isolée locale
 
-Identifiant fourni par le propriétaire après passage demandé en Sandbox : `price_1URcyIIQHbfFctSIkiBvXgIo`. Le mode test, le compte propriétaire et le tarif actif 499 centimes EUR mensuel récurrent restent **à vérifier par l’API Stripe** ; le préfixe `price_` ne distingue pas test et réel.
+Le 17 octobre 2026, le précontrôle API a vérifié le tarif `price_1URcyIIQHbfFctSIkiBvXgIo` : actif, `livemode: false`, 499 centimes EUR mensuel récurrent. Le compte réellement associé à la clé de test est `acct_1UQSisIQHbfFctSI`, **différent du compte réel initialement fourni**. L’écart a été refusé par le premier précontrôle avant correction de la configuration locale. Le tarif réel n’a pas été vérifié par cette recette.
 
 Configuration de préparation locale, séparée de Coolify production :
 
@@ -69,14 +69,14 @@ Configuration de préparation locale, séparée de Coolify production :
 STRIPE_BILLING_ENABLED=false
 STRIPE_CHECKOUT_ENABLED=false
 STRIPE_BILLING_MODE=test
-STRIPE_ACCOUNT_ID=acct_1UQSidIuXkg5OZqm
+STRIPE_ACCOUNT_ID=acct_1UQSisIQHbfFctSI
 STRIPE_PRO_PRICE_ID=price_1URcyIIQHbfFctSIkiBvXgIo
 STRIPE_SECRET_KEY=
 STRIPE_PRO_WEBHOOK_SECRET=
 STRIPE_RECONCILIATION_SECRET=
 ```
 
-Le propriétaire a également fourni `acct_1UQSidIuXkg5OZqm` pour cet environnement de test ; il est identique à l’identifiant donné pour le réel. Cela ne prouve ni le mode ni l’isolation du Sandbox : vérifier le compte avec sa propre clé de test et exiger `livemode: false` sur le prix. Utiliser uniquement une clé restreinte `rk_test_…` de ce même environnement, stockée dans un fichier local ignoré ou un gestionnaire de secrets, jamais dans le chat ou Git. L’application et Supabase de recette doivent être locaux et distincts de la production. Ne remplacer aucune variable live de Coolify par ces valeurs.
+Utiliser uniquement une clé restreinte `rk_test_…` de ce même environnement, stockée dans un fichier local ignoré ou un gestionnaire de secrets, jamais dans le chat ou Git. L’application et Supabase de recette doivent être locaux et distincts de la production. Ne remplacer aucune variable live de Coolify par ces valeurs.
 
 Le script `check-stripe-setup.mjs` existant reste réservé au précontrôle **live en lecture seule**, sans changement de ses garde-fous. Un script distinct `scripts/check-stripe-sandbox.mjs` vérifie compte et prix en lecture seule avec `NODE_ENV=development`, origine loopback, clé test et flags explicitement fermés ; il n’accède pas à Supabase et ne crée aucun objet Stripe. Il exige un tarif actif, `livemode: false`, 499 centimes EUR mensuel récurrent. Résultats et erreurs expurgés ; un échec ne doit pas être contourné en activant les flags.
 
@@ -86,7 +86,29 @@ Une fois la clé **test** déposée dans `.env.stripe-sandbox.local` (fichier ig
 node --env-file=.env.stripe-sandbox.local scripts/check-stripe-sandbox.mjs
 ```
 
-Ne jamais afficher ce fichier après ajout de la clé. Ce contrôle n’active pas Pro et ne valide pas le parcours d’achat. La recette complète (Checkout, webhook signé, renouvellement et résiliation) reste à préparer avant toute vente ; aucun appel Stripe n’a validé ces identifiants à ce stade.
+Ne jamais afficher ce fichier après ajout de la clé. Ce contrôle n’active pas Pro et ne valide pas le parcours d’achat.
+
+### Écoute webhook et Checkout locaux
+
+Stripe CLI **1.54.0 Windows x86_64** est installé uniquement sous `.tools/stripe-cli/1.54.0/`, ignoré par Git, depuis la [release officielle](https://github.com/stripe/stripe-cli/releases/tag/v1.54.0). SHA-256 de l’archive vérifié : `9653307aa5bf56f1fa8b8c1ca981e42b0be39af5d6ef5e5eb3686061450c7e4b`. Le binaire n’est pas livré dans Git ; sur une autre machine, installer cette version à cet emplacement avant lancement.
+
+```sh
+npm run billing:sandbox
+```
+
+Le lanceur refait le précontrôle puis lit la configuration de Supabase local via sa CLI, en refusant tout hôte distant. Stripe CLI reçoit la clé via son environnement, pas ses arguments, et écoute uniquement les événements snapshot de `BILLING_EVENTS` du compte lui-même (`--events-from @self`). Le secret de signature reste en mémoire et est passé au processus Next.js sans être affiché ni enregistré. Les sorties du lanceur sont bornées à des messages fixes, jamais les logs bruts de Stripe CLI. Pas de destination webhook publique créée dans Stripe.
+
+L’application démarre avec Webpack, liée à `127.0.0.1:3002`, origine `http://localhost:3002`. Les flags restent `false` dans le fichier privé ; le lanceur active les routes **uniquement dans son processus enfant local**, en mode test avec clé test et Supabase loopback. Les deux processus sont arrêtés ensemble si l’un d’eux s’arrête. Le serveur de l’aperçu existant sur le port 3000 n’est pas modifié.
+
+`/design-system/billing-preview` fournit connexion locale, création d’un Checkout, rafraîchissement du statut et portail client. `/premium` est uniquement un retour local vers cet écran ; les deux pages refusent la production et toute configuration hors test explicitement activé. Il ne s’agit pas de la page de vente finale et aucun avantage de jeu n’est activé.
+
+Migration `20261017000000_stripe_billing_foundation.sql` appliquée **uniquement** au conteneur `supabase_db_Kara`, contexte Docker Desktop local vérifié (`npipe:////./pipe/dockerDesktopLinuxEngine`). Tables auparavant absentes ; aucune migration ni donnée du VPS touchée. L’historique de migrations de production n’est pas modifié.
+
+Portail Sandbox créé : `bpc_1URfFDIQHbfFctSIt9k0DO25`, confirmé `livemode: false`, configuration par défaut de cet environnement de test. Factures et modification du moyen de paiement activées ; résiliation en fin de période sans prorata ; changement de prix/quantité désactivé. Aucune configuration du compte réel modifiée.
+
+Contrôle réel local/Sandbox : Auth local jetable, prix forgé refusé (400), Origin tiers refusée (403), Checkout mensuel à 499 centimes créé puis réutilisé au second clic, expiration du Checkout suivie d’un webhook signé réellement traité et enregistré en SQL, aucun accès accordé sans paiement. Le compte Auth et le customer Stripe jetables ont été nettoyés ; aucun débit effectué. Le webhook non signé est refusé et une requête de statut sans session reçoit 401.
+
+**Restent à tester avant vente** : paiement fictif finalisé, carte refusée/3DS, activation après facture payée, renouvellement, résiliation et échéance, remboursement/litige. Préparer ces scénarios n’est pas équivalent à les avoir exécutés. La preuve d’expiration confirme le relais signé et le stockage, pas encore tout le cycle d’abonnement.
 
 ## Conditions obligatoires avant vente — lots suivants
 

@@ -64,7 +64,11 @@ test("Sandbox preparation keeps its supplied price separate from live configurat
   assert.equal(sandbox.STRIPE_CHECKOUT_ENABLED, "false");
   assert.equal(sandbox.STRIPE_BILLING_MODE, "test");
   assert.equal(sandbox.STRIPE_PRO_PRICE_ID, "price_1URcyIIQHbfFctSIkiBvXgIo");
-  assert.equal(sandbox.STRIPE_ACCOUNT_ID, "acct_1UQSidIuXkg5OZqm");
+  assert.equal(sandbox.STRIPE_ACCOUNT_ID, "acct_1UQSisIQHbfFctSI");
+  assert.notEqual(
+    sandbox.STRIPE_ACCOUNT_ID,
+    env(doc.match(/```dotenv\r?\n([\s\S]*?)```/)[1]).STRIPE_ACCOUNT_ID
+  );
   for (const key of [
     "STRIPE_SECRET_KEY",
     "STRIPE_PRO_WEBHOOK_SECRET",
@@ -83,6 +87,11 @@ test("Sandbox preparation keeps its supplied price separate from live configurat
   assert.ok(
     read(".env.billing.example").includes(
       "# STRIPE_PRO_PRICE_ID=" + sandbox.STRIPE_PRO_PRICE_ID
+    )
+  );
+  assert.ok(
+    read(".env.billing.example").includes(
+      "# STRIPE_ACCOUNT_ID=" + sandbox.STRIPE_ACCOUNT_ID
     )
   );
 });
