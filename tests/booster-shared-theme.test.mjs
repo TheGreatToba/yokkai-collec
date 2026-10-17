@@ -12,28 +12,42 @@ const rule = selector =>
   root.nodes.find(node => node.type === "rule" && node.selector === selector);
 const value = (selector, property) =>
   rule(selector)?.nodes.find(node => node.prop === property)?.value;
+const tokens = readFileSync(
+  new URL("../tailwind.config.ts", import.meta.url),
+  "utf8"
+);
+const token = (name, literal) => {
+  assert.match(tokens, new RegExp(`"${name}": "${literal}"`));
+  return `var(--color-${name})`;
+};
 const panels = ".yk-pack-grid .yk-pack-panel";
 
-test("both pack panels share the approved dark blue/lavender theme and pale border", () => {
-  assert.equal(value(panels, "--pack-accent"), "#c0c5ff");
-  assert.equal(value(panels, "color"), "#eeebff");
-  assert.equal(value(panels, "border-color"), "#a6aceb42");
-  const background = value(panels, "background");
-  for (const color of ["#1b1d35", "#151424", "#1c1830"])
-    assert.ok(background.includes(color));
-  assert.doesNotMatch(background, /#fbfaff|#e9e7f8|#f5f2ff/);
+test("both floating packs preserve the approved UI palette through exact tokens", () => {
+  assert.equal(value(panels, "--pack-accent"), token("pack-accent", "#c0c5ff"));
+  assert.equal(value(panels, "color"), token("pack-ink", "#eeebff"));
+  assert.equal(value(panels, "border"), "0");
+  assert.equal(value(panels, "background"), "none");
+  assert.equal(value(panels, "box-shadow"), "none");
   assert.equal(
     value(`${panels} .yk-pack-body > .yk-button`, "color"),
-    "#eeeaff"
+    token("pack-button-ink", "#eeeaff")
   );
-  assert.match(
-    value(`${panels} .yk-pack-body > .yk-button`, "background"),
-    /#4a436f[\s\S]*#36476d/
+  const background = value(
+    `${panels} .yk-pack-body > .yk-button`,
+    "background"
   );
+  for (const [name, literal] of [
+    ["pack-button-start", "#4a436f"],
+    ["pack-button-middle", "#36476d"],
+    ["pack-button-end", "#4c406c"]
+  ]) {
+    assert.ok(background.includes(token(name, literal)));
+  }
+  assert.doesNotMatch(source, /#[\da-f]{3,8}\b|\brgba?\(|\bhsla?\(/i);
   assert.doesNotMatch(source, /url\(|yk-opening|yk-reveal/);
 });
 
-test("the shared pack theme covers badges, image glow, readable status and disabled controls", () => {
+test("the shared pack theme covers image glow, readable status and disabled controls", () => {
   for (const suffix of [
     ".yk-pack-art-stage",
     ".yk-pack-image",
@@ -46,7 +60,7 @@ test("the shared pack theme covers badges, image glow, readable status and disab
     assert.ok(rule(`${panels} ${suffix}`), suffix);
   assert.equal(
     value(`${panels} .yk-pack-status .text-success`, "color"),
-    "#72d6bc"
+    token("pack-success", "#72d6bc")
   );
   assert.ok(
     root.nodes.some(
@@ -56,4 +70,39 @@ test("the shared pack theme covers badges, image glow, readable status and disab
         node.nodes.some(child => child.selector === `${panels}:hover`)
     )
   );
+});
+
+test("reserve dots and accessible count reflect server values including empty and full", async () => {
+  const { transpileModule, JsxEmit } = await import("typescript");
+  const React = await import("react");
+  const { renderToStaticMarkup } = await import("react-dom/server");
+  const boosters = readFileSync(
+    new URL("../components/boosters.tsx", import.meta.url),
+    "utf8"
+  );
+  const fragment = boosters.match(
+    /<div className="yk-pack-reserve"[\s\S]*?<\/div>/
+  )?.[0];
+  assert.ok(fragment);
+  const compiled = transpileModule(`const reserve = ${fragment};`, {
+    compilerOptions: { jsx: JsxEmit.React }
+  }).outputText;
+  const render = new Function(
+    "React",
+    "status",
+    `${compiled}; return reserve;`
+  );
+  for (const [available, maximum] of [
+    [0, 5],
+    [3, 5],
+    [5, 5],
+    [2, 4]
+  ]) {
+    const html = renderToStaticMarkup(render(React, { available, maximum }));
+    assert.ok(
+      html.includes(`aria-label="${available} of ${maximum} packs in reserve"`)
+    );
+    assert.equal((html.match(/data-filled="true"/g) || []).length, available);
+    assert.equal((html.match(/data-filled=/g) || []).length, maximum);
+  }
 });

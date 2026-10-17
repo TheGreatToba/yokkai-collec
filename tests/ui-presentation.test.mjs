@@ -1941,7 +1941,7 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
   });
   assert.match(
     normalizeWhitespace(selection),
-    normalizeWhitespace(/0\/5 in reserve/)
+    normalizeWhitespace(/aria-label="0 of 5 packs in reserve"/)
   );
   assert.match(
     normalizeWhitespace(selection),
@@ -1949,7 +1949,7 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
   );
   assert.match(
     normalizeWhitespace(selection),
-    normalizeWhitespace(/Keep 1 of 5 cards/)
+    normalizeWhitespace(/Daily · Keep 1 of 5/)
   );
   assert.match(
     normalizeWhitespace(selection),
@@ -3328,4 +3328,48 @@ test("English selection and achievement labels handle singulars, plurals and en-
     });
     assert.ok(html.includes(expected), expected);
   }
+});
+
+test("empty Regular Pack reserve shows the countdown only on its disabled button", () => {
+  const { Boosters } = load("components/boosters.tsx");
+  const props = {
+    countdown: "01:00",
+    decisionCountdown: "10:00:00",
+    busy: false,
+    draw: [],
+    drawKind: "regular",
+    collection: [],
+    revealed: 0,
+    onOpen() {},
+    onKeepDecision() {},
+    onReveal() {}
+  };
+  for (const available of [0, 3, 5]) {
+    const html = render(Boosters, {
+      ...props,
+      status: { available, maximum: 5, nextPackAt: available === 5 ? null : 1 }
+    });
+    assert.equal(
+      (html.match(/Next in 01:00/g) || []).length,
+      available === 5 ? 0 : 1
+    );
+    if (available === 0)
+      assert.match(html, /disabled="">Next in 01:00<\/button>/);
+    else assert.match(html, />Open<\/button>/);
+    if (available === 5) assert.match(html, /Reserve full/);
+  }
+  const source = readFileSync(
+    path.join(root, "components/boosters.tsx"),
+    "utf8"
+  );
+  assert.ok(
+    source.includes(
+      "Reveal 5 cards and choose one to keep — with boosted drop rates."
+    )
+  );
+  assert.ok(
+    source.includes(
+      "Open a Regular Pack and add all 5 cards to your collection."
+    )
+  );
 });
