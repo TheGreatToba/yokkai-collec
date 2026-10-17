@@ -3373,3 +3373,31 @@ test("empty Regular Pack reserve shows the countdown only on its disabled button
     )
   );
 });
+
+test("Regular Pack refill and availability share one compact line", () => {
+  const { Boosters } = load("components/boosters.tsx");
+  for (const available of [3, 5]) {
+    const html = render(Boosters, {
+      status: { available, maximum: 5, nextPackAt: available === 5 ? null : 1 },
+      countdown: "01:00",
+      decisionCountdown: "10:00:00",
+      busy: false,
+      draw: [],
+      drawKind: "regular",
+      collection: [],
+      revealed: 0,
+      onOpen() {},
+      onKeepDecision() {},
+      onReveal() {}
+    });
+    const regular = html.split("yk-decision-panel")[0];
+    const line = regular.match(
+      /<p class="yk-pack-timing">([\s\S]*?)<\/p>/
+    )?.[1];
+    assert.ok(
+      line?.includes(available === 5 ? "Reserve full" : "Next in 01:00")
+    );
+    assert.ok(line?.includes("Available now"));
+    assert.doesNotMatch(regular, /<p class="text-success">/);
+  }
+});
