@@ -105,6 +105,9 @@ test("Basic cannot submit a new uploaded banner, but can save a bio with an exis
       errors = [];
     const { submit } = evaluate("export " + functions.get("submit"), {
       busy: false,
+      mode: "profile",
+      styleDraft: null,
+      localStyle: null,
       canCustomizeMedia: allowed,
       bannerFile: newFile,
       bannerUrl: "/existing-banner.gif",
@@ -147,6 +150,8 @@ test("Basic cannot submit a new uploaded banner, but can save a bio with an exis
 function renderEditor(allowed, existingBanner = null) {
   const { Editor } = evaluate("export " + functions.get("Editor"), {
     ...React,
+    useLocalProfileStyle: () => null,
+    EmbeddedProfileStyleEditor: () => null,
     ...media,
     useCardCustomizationAccess: () => allowed,
     Avatar: () => null,

@@ -144,9 +144,11 @@ function renderProfile(profile) {
     },
     "@/components/local-profile-style-preview": {
       LocalProfileCosmeticBadges: () => null,
+      EmbeddedProfileStyleEditor: () => null,
       LocalProfileStyleEditor: () => null
     },
     "@/components/local-profile-style-context": {
+      useLocalProfileStyle: () => null,
       useLocalNameStyle: () => undefined
     },
     "@/components/banner-crop": load("components/banner-crop.tsx", {

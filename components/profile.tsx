@@ -23,10 +23,14 @@ import { BannerCrop } from "@/components/banner-crop";
 import { BannerImage } from "@/components/banner-image";
 import { LocalProProfileBadge } from "@/components/local-pro-badge-preview";
 import {
-  LocalProfileStyleEditor,
+  EmbeddedProfileStyleEditor,
   LocalProfileCosmeticBadges
 } from "@/components/local-profile-style-preview";
-import { useLocalNameStyle } from "@/components/local-profile-style-context";
+import {
+  useLocalNameStyle,
+  useLocalProfileStyle
+} from "@/components/local-profile-style-context";
+import type { LocalProfileStyle } from "@/lib/ui/local-profile-style";
 import { useCardCustomizationAccess } from "@/components/card-customization-access";
 import {
   isGifProfilePhoto,
@@ -374,6 +378,8 @@ function Editor({
   onClose: () => void;
 }) {
   const [bio, setBio] = useState(profile.bio);
+  const localStyle = useLocalProfileStyle(profile.id);
+  const [styleDraft, setStyleDraft] = useState<LocalProfileStyle | null>(null);
   const canCustomizeMedia = useCardCustomizationAccess();
   const [avatar, setAvatar] = useState(profile.avatarUrl);
   const ownedBannerCards = useMemo(() => {
@@ -505,6 +511,8 @@ function Editor({
         uploadedBannerUrl,
         bannerFrame ?? undefined
       );
+      if (mode === "profile" && canCustomizeMedia && styleDraft)
+        localStyle?.apply(styleDraft);
       onSaved(updated);
       onClose();
     } catch (e) {
@@ -559,6 +567,15 @@ function Editor({
               </Link>
             </p>
           )}
+          <EmbeddedProfileStyleEditor
+            ownerId={profile.id}
+            isMe={true}
+            name={profile.pseudo}
+            avatarUrl={avatar}
+            bannerUrl={bannerSource}
+            busy={busy}
+            onDraftChange={setStyleDraft}
+          />
           <label className="block text-sm text-ink-2">
             Bio
             <textarea
@@ -1734,13 +1751,6 @@ export function ProfileExperience({
             <LocalProfileCosmeticBadges isMe={isMe} ownerId={profile.id} />
             <p className="yk-profile-bio">{profile.bio || "No bio yet."}</p>
             <div className="yk-profile-actions">
-              <LocalProfileStyleEditor
-                ownerId={profile.id}
-                isMe={isMe}
-                name={profile.pseudo}
-                avatarUrl={profile.avatarUrl}
-                bannerUrl={bannerImage}
-              />
               {isMe ? (
                 <Button
                   variant="secondary"

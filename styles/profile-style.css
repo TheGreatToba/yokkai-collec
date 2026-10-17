@@ -561,6 +561,61 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+.yk-style-embedded {
+  border-top: 1px solid #b69aff24;
+  padding-top: 24px;
+}
+.yk-style-embedded-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.yk-style-embedded-heading h3 {
+  font-size: 18px;
+}
+.yk-style-embedded-heading > span {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #c2a6ff;
+  border: 1px solid #b69aff55;
+  border-radius: 5px;
+  padding: 3px 6px;
+}
+.yk-style-embedded-fields {
+  min-width: 0;
+  margin: 16px 0 0;
+  padding: 0;
+  border: 0;
+}
+.yk-style-embedded-fields:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.yk-style-embedded-fields:disabled :is(button, input) {
+  cursor: not-allowed;
+}
+.yk-style-embedded .yk-style-controls {
+  max-height: none;
+  overflow: visible;
+  padding-right: 0;
+}
+.yk-style-embedded .yk-style-editor-body {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 20px;
+}
+.yk-style-embedded .yk-style-footer {
+  position: static;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: transparent;
+}
+@media (max-width: 720px) {
+  .yk-style-embedded .yk-style-editor-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 .yk-style-sharing-preview {
   max-width: 1100px;
   margin: 32px auto;

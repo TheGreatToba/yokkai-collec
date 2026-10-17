@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Avatar, Button, Modal } from "@/components/ui";
@@ -183,23 +183,77 @@ export function LocalProfileStyleEditor(props: EditorProps) {
   );
 }
 
+export function EmbeddedProfileStyleEditor({
+  onDraftChange,
+  busy = false,
+  ...props
+}: EditorProps & {
+  onDraftChange: (style: LocalProfileStyle) => void;
+  busy?: boolean;
+}) {
+  const preview = useLocalProfileStyle(props.ownerId);
+  const allowed = useCardCustomizationAccess();
+  if (!preview || !props.isMe) return null;
+  return (
+    <section
+      className="yk-style-embedded"
+      aria-labelledby="embedded-profile-style-title"
+    >
+      <div className="yk-style-embedded-heading">
+        <h3 id="embedded-profile-style-title">Profile style</h3>
+        <span>PRO</span>
+      </div>
+      {!allowed && (
+        <p id="embedded-profile-style-notice" className="yk-style-pro-notice">
+          {PRO_PROFILE_STYLE_MESSAGE}{" "}
+          <Link href="/premium">Discover Yokkai Pro</Link>
+        </p>
+      )}
+      <fieldset
+        className="yk-style-embedded-fields"
+        disabled={!allowed || busy}
+        aria-label="Profile style settings"
+        aria-describedby={
+          !allowed ? "embedded-profile-style-notice" : undefined
+        }
+      >
+        <StyleEditorContent
+          {...props}
+          initial={preview.style}
+          embedded
+          onDraftChange={allowed ? onDraftChange : undefined}
+          onApply={() => {}}
+          onCancel={() => {}}
+        />
+      </fieldset>
+    </section>
+  );
+}
+
 function StyleEditorContent({
   name,
   avatarUrl,
   bannerUrl,
   initial,
   onApply,
-  onCancel
+  onCancel,
+  embedded = false,
+  onDraftChange
 }: EditorProps & {
   initial: LocalProfileStyle;
   onApply: (style: LocalProfileStyle) => void;
   onCancel: () => void;
+  embedded?: boolean;
+  onDraftChange?: (style: LocalProfileStyle) => void;
 }) {
   const [draft, setDraft] = useState<LocalProfileStyle>(() => ({
     ...initial,
     badges: [...initial.badges]
   }));
   const [bannerFailed, setBannerFailed] = useState(false);
+  useEffect(() => {
+    onDraftChange?.(draft);
+  }, [draft, onDraftChange]);
   const variables = localNameVariables(draft) as CSSProperties;
   const edit = (patch: Partial<LocalProfileStyle>) =>
     setDraft(current => ({ ...current, ...patch }));
@@ -403,10 +457,18 @@ function StyleEditorContent({
           >
             Surprise me
           </Button>
-          <button type="button" className="yk-style-cancel" onClick={onCancel}>
-            Cancel
-          </button>
-          <Button onClick={() => onApply(draft)}>Apply locally</Button>
+          {!embedded && (
+            <button
+              type="button"
+              className="yk-style-cancel"
+              onClick={onCancel}
+            >
+              Cancel
+            </button>
+          )}
+          {!embedded && (
+            <Button onClick={() => onApply(draft)}>Apply locally</Button>
+          )}
         </div>
       </div>
     </>
