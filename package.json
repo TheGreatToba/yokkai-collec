@@ -27,7 +27,8 @@
     "csv-parse": "^7.0.2",
     "next": "16.3.8",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "stripe": "^23.0.0"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",
