@@ -220,66 +220,37 @@ test("subscription actions post empty server-owned input, block duplicates and r
   assert.ok(nodes(render()).some(n => n.props.role === "alert"));
 });
 
-test("refresh fetches uncached server status and updates the cancellation message with visible confirmation", async () => {
-  let index = 0;
-  const slots = [];
-  const react = {
-    ...React,
-    useState: initial => {
-      const slot = index++;
-      if (!(slot in slots)) slots[slot] = initial;
-      return [
-        slots[slot],
-        next => {
-          slots[slot] = next;
-        }
-      ];
-    },
-    useRef: initial => {
-      const slot = index++;
-      return (slots[slot] ??= { current: initial });
-    }
-  };
+// Product contract approved with Walid: the UI need not expose a manual refresh.
+// Automatic polling/focus behavior is covered by additional implementation tests.
+test("server-verified renewal, scheduled cancellation and ended access remain distinct", () => {
   const { SubscriptionSettings } = load(
     "components/subscription-settings.tsx",
-    { react, "@/components/ui": { Button } },
-    {
-      fetch: async (url, options) => {
-        assert.equal(url, "/api/billing/status");
-        assert.equal(options.cache, "no-store");
-        return {
-          ok: true,
-          json: async () => ({ ...state, cancelAtPeriodEnd: true })
-        };
-      }
-    }
+    { react: React, "@/components/ui": { Button } }
   );
-  const render = () => {
-    index = 0;
-    return SubscriptionSettings({ billing });
-  };
-  const nodes = node =>
-    Array.isArray(node)
-      ? node.flatMap(nodes)
-      : React.isValidElement(node)
-        ? [node, ...nodes(node.props.children)]
-        : [];
-  nodes(render())
-    .find(n => n.props.children === "Refresh status")
-    .props.onClick();
-  await new Promise(resolve => setImmediate(resolve));
-  const updated = nodes(render());
-  assert.ok(updated.some(n => n.props.children === "Access until"));
-  assert.ok(
-    updated.some(n => n.props.children === "Subscription status updated.")
-  );
-  assert.ok(
-    updated.some(
-      n =>
-        typeof n.props.children === "string" &&
-        n.props.children.includes("will not renew")
-    )
-  );
+  const html = status =>
+    renderToStaticMarkup(
+      React.createElement(SubscriptionSettings, {
+        billing: { ...billing, status }
+      })
+    );
+  const renewing = html(state);
+  assert.match(renewing, /Pro active/);
+  assert.match(renewing, /Next renewal/);
+  assert.doesNotMatch(renewing, /will not renew/);
+  const canceled = html({ ...state, cancelAtPeriodEnd: true });
+  assert.match(canceled, /Pro active/);
+  assert.match(canceled, /Access until/);
+  assert.match(canceled, /will not renew/);
+  assert.match(canceled, /Pro access continues/);
+  const ended = html({
+    ...state,
+    active: false,
+    status: "canceled",
+    endsAt: null
+  });
+  assert.doesNotMatch(ended, /Pro active/);
+  assert.doesNotMatch(ended, /Pro access continues/);
+  assert.match(ended, /Get Yokkai Pro/);
 });
 
 test("the authenticated settings page owns management and all provider returns target its subscription section", () => {
