@@ -21,6 +21,12 @@ import { ProfileWall } from "@/components/profile-wall";
 import { ProfileSales } from "@/components/profile-sales";
 import { BannerCrop } from "@/components/banner-crop";
 import { BannerImage } from "@/components/banner-image";
+import { LocalProProfileBadge } from "@/components/local-pro-badge-preview";
+import {
+  LocalProfileStyleEditor,
+  LocalProfileCosmeticBadges
+} from "@/components/local-profile-style-preview";
+import { useLocalNameStyle } from "@/components/local-profile-style-context";
 import type { BannerFrame } from "@/lib/ui/banner-frame";
 import {
   CatalogueCardModal,
@@ -1137,6 +1143,7 @@ export function ProfileExperience({
   adapter?: ProfileAdapter;
 }) {
   const searchParams = useSearchParams();
+  const localNameStyle = useLocalNameStyle();
   const [profile, setProfile] = useState<Profile>();
   const [wishlist, setWishlist] = useState<WishlistCard[]>([]);
   const [error, setError] = useState("");
@@ -1639,8 +1646,15 @@ export function ProfileExperience({
               />
             </div>
             <span className="yk-profile-identity-label">COLLECTOR</span>
-            <div className="yk-profile-name-row">
-              <h2>{profile.pseudo}</h2>
+            <div
+              className="yk-profile-name-row"
+              data-name-effect={isMe ? localNameStyle?.effect : undefined}
+              style={isMe ? localNameStyle?.style : undefined}
+            >
+              <h2>
+                {profile.pseudo}
+                <LocalProProfileBadge isMe={isMe} />
+              </h2>
               {!isMe && (
                 <PlayerModeration
                   userId={profile.id}
@@ -1651,8 +1665,15 @@ export function ProfileExperience({
                 />
               )}
             </div>
+            <LocalProfileCosmeticBadges isMe={isMe} />
             <p className="yk-profile-bio">{profile.bio || "No bio yet."}</p>
             <div className="yk-profile-actions">
+              <LocalProfileStyleEditor
+                isMe={isMe}
+                name={profile.pseudo}
+                avatarUrl={profile.avatarUrl}
+                bannerUrl={bannerImage}
+              />
               {isMe ? (
                 <Button
                   variant="secondary"

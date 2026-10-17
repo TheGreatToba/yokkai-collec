@@ -15,6 +15,15 @@
 - Aucun changement des fonctionnalités gratuites existantes ; pas de restriction rétroactive de la personnalisation du profil. Les imports, GIFs, images Imgur/Pinterest et autres avantages sont décrits mais pas encore reliés aux profils réels.
 - Aucun changement de base Supabase, aucune migration. Rien appliqué sur le VPS.
 
+## Personnalisation du profil — aperçu local
+
+- Sur `/profile`, le propriétaire dispose de **Style profile** uniquement quand `localPremiumEnabled()` est vrai. Les routes publiques `/profile/[id]` et les autres comptes n’affichent pas cet éditeur. Aucun abonnement n’est activé et aucune donnée du profil n’est écrite.
+- Modale inspirée du principe d’édition Discord, avec une présentation Yokkai sombre/lavande : huit styles de police, sept effets (Solid, Gradient, Neon, Outline, Pop, Shimmer, Prism), palette et deux couleurs personnalisées. Polices déjà chargées ou polices système ; aucune dépendance de police distante supplémentaire.
+- Aperçu immédiat du pseudo sur une fiche de profil et une conversation fictive. Le profil réel local ne change qu’après **Apply locally** ; Cancel, fermeture et Échap abandonnent les modifications. Réouverture avec le style appliqué, Reset et Surprise me disponibles.
+- Le badge Pro lavande reste distinct de six badges décoratifs (Comet, Bloom, Crystal, Orbit, Flame, Moon), limités à trois. Aucun choix de rôle administrateur/modérateur, de certification ni de succès débloqué.
+- L’état reste uniquement en mémoire dans le fournisseur React local : un rechargement complet réinitialise le style. Aucune persistance navigateur, requête d’écriture, migration ni changement de droits SQL. Le branchement aux vrais comptes Pro et la sauvegarde sont une étape distincte.
+- Aperçu mobile empilé ; modale commune conservée pour le focus, le clavier et le blocage du défilement de fond. Shimmer désactivé avec `prefers-reduced-motion`.
+
 ## Démarrer
 
 Branche `ad/local-premium-subscription`, dossier `.worktrees/local-premium-subscription`.
