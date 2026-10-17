@@ -135,6 +135,10 @@ function renderProfile(profile) {
     "@/components/player-moderation": { PlayerModeration: () => null },
     "@/components/profile-wall": { ProfileWall: () => null },
     "@/components/profile-sales": { ProfileSales: () => null },
+    "@/components/card-customization-access": {
+      useCardCustomizationAccess: () => true
+    },
+    "@/lib/ui/pro-profile-media": load("lib/ui/pro-profile-media.ts", {}),
     "@/components/local-pro-badge-preview": {
       LocalProProfileBadge: () => null
     },

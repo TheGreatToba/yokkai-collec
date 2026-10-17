@@ -32,6 +32,14 @@
 - **Restore original image** reste possible pour Basic : ce n’est pas l’ajout d’une nouvelle personnalisation. Aucun média existant n’est supprimé automatiquement.
 - Ce garde est activé uniquement par `localPremiumEnabled()`. Aucun droit existant n’est changé en production. C’est un verrouillage d’interface de prototype, pas encore une protection de l’accès SQL : avant livraison publique, persister/réconcilier les abonnements et protéger `set_card_custom_image` côté serveur/SQL avec les tests de droits appropriés. Aucun abonnement réel, migration ni droit de base modifié ici.
 
+## Médias de profil — même verrouillage d’interface local
+
+- Les pages de profil (`/profile` et ses alias) utilisent le même statut d’abonnement test vérifié côté serveur que la collection, associé au compte connecté, et non au propriétaire visité ni au badge d’aperçu.
+- Pour Basic, **Upload banner** est désactivé avec le message **Custom banners are available to Pro members only.** et un lien vers Pro. Le gestionnaire de sélection, la validation du cadrage et la sauvegarde refusent aussi un nouveau fichier avant tout envoi. Une bannière déjà importée reste conservée ou supprimable, mais son ajustement est réservé à Pro. Les cartes possédées et leur cadrage restent accessibles.
+- Le sélecteur de photo autorise JPG/PNG/WebP pour Basic ; un GIF est refusé avant l’envoi avec **Animated profile photos are available to Pro members only.** Détection par type, extension et signature GIF pour les fichiers renommés. Pro conserve GIF et formats fixes. Le sélecteur est réinitialisé après chaque choix, afin de pouvoir choisir de nouveau un fichier rejeté.
+- La bio, les photos fixes, la vitrine et la sauvegarde sans nouveau média restent utilisables ; aucun avatar ni bannière antérieurs ne sont retirés automatiquement. Vérification navigateur sans écriture de profil ou de Storage, et tests d’adaptateurs Basic/Pro, GIF renommés et conservation des médias existants.
+- Comme pour les cartes, ce verrou est limité à l’interface de l’essai local. Une véritable protection serveur/Storage/SQL sera nécessaire avant production. Aucune migration ni changement des droits existants de production.
+
 ## Démarrer
 
 Branche `ad/local-premium-subscription`, dossier `.worktrees/local-premium-subscription`.

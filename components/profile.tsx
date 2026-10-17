@@ -27,6 +27,12 @@ import {
   LocalProfileCosmeticBadges
 } from "@/components/local-profile-style-preview";
 import { useLocalNameStyle } from "@/components/local-profile-style-context";
+import { useCardCustomizationAccess } from "@/components/card-customization-access";
+import {
+  isGifProfilePhoto,
+  PRO_BANNER_MESSAGE,
+  PRO_AVATAR_GIF_MESSAGE
+} from "@/lib/ui/pro-profile-media";
 import type { BannerFrame } from "@/lib/ui/banner-frame";
 import {
   CatalogueCardModal,
@@ -368,6 +374,7 @@ function Editor({
   onClose: () => void;
 }) {
   const [bio, setBio] = useState(profile.bio);
+  const canCustomizeMedia = useCardCustomizationAccess();
   const [avatar, setAvatar] = useState(profile.avatarUrl);
   const ownedBannerCards = useMemo(() => {
     const cards = new Map<string, Card>();
@@ -460,6 +467,10 @@ function Editor({
     setBusy(true);
     setError("");
     try {
+      if (!canCustomizeMedia && (await isGifProfilePhoto(file))) {
+        setError(PRO_AVATAR_GIF_MESSAGE);
+        return;
+      }
       setAvatar(await (adapter.uploadAvatar ?? uploadAvatar)(file, profile.id));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't upload this image.");
@@ -472,6 +483,7 @@ function Editor({
     setBusy(true);
     setError("");
     try {
+      if (bannerFile && !canCustomizeMedia) throw new Error(PRO_BANNER_MESSAGE);
       if (bannerFrame && !framingAvailable) {
         throw new Error(
           "Banner framing is not available yet. Please try again after the update."
@@ -517,14 +529,36 @@ function Editor({
                 className="sr-only"
                 type="file"
                 disabled={busy}
-                accept="image/jpeg,image/png,image/webp,image/gif"
-                onChange={e => void photo(e.target.files?.[0])}
+                accept={
+                  canCustomizeMedia
+                    ? "image/jpeg,image/png,image/webp,image/gif"
+                    : "image/jpeg,image/png,image/webp"
+                }
+                aria-label="Profile photo"
+                aria-describedby={
+                  !canCustomizeMedia ? "profile-avatar-pro-notice" : undefined
+                }
+                onChange={e => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  void photo(file);
+                }}
               />
             </label>
           </div>
           <p className="text-xs text-ink-3">
-            JPG, PNG, WebP or GIF · Up to 4 MB.
+            {canCustomizeMedia
+              ? "JPG, PNG, WebP or GIF · Up to 4 MB."
+              : "JPG, PNG or WebP · Up to 4 MB."}
           </p>
+          {!canCustomizeMedia && (
+            <p id="profile-avatar-pro-notice" className="text-xs text-ink-3">
+              {PRO_AVATAR_GIF_MESSAGE}{" "}
+              <Link href="/premium" className="yk-detail-link">
+                Discover Yokkai Pro
+              </Link>
+            </p>
+          )}
           <label className="block text-sm text-ink-2">
             Bio
             <textarea
@@ -544,8 +578,9 @@ function Editor({
           >
             <h3 className="font-display text-lg">Profile banner</h3>
             <p className="yk-profile-muted">
-              Choose a card from your collection or upload an image. Adjust its
-              position, zoom and rotation before saving.
+              {canCustomizeMedia
+                ? "Choose a card from your collection or upload an image. Adjust its position, zoom and rotation before saving."
+                : "Choose a card from your collection. Adjust its position, zoom and rotation before saving."}
             </p>
             {profile.bannerCard && !eligibleBanner && !initialBannerUrl && (
               <p className="mt-2 text-xs text-ink-3" role="status">
@@ -563,19 +598,28 @@ function Editor({
             )}
             <div className="yk-profile-widget-tools">
               <label
-                className="yk-button yk-button-secondary cursor-pointer"
+                className={`yk-button yk-button-secondary ${canCustomizeMedia ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}
                 data-banner-upload
+                aria-disabled={!canCustomizeMedia || busy}
               >
                 Upload banner
                 <input
                   className="sr-only"
                   type="file"
-                  disabled={busy}
+                  disabled={busy || !canCustomizeMedia}
+                  aria-label="Upload banner"
+                  aria-describedby={
+                    !canCustomizeMedia ? "profile-banner-pro-notice" : undefined
+                  }
                   accept="image/jpeg,image/png,image/webp,image/gif"
                   onChange={event => {
                     const file = event.target.files?.[0];
                     event.target.value = "";
                     if (!file) return;
+                    if (!canCustomizeMedia) {
+                      setError(PRO_BANNER_MESSAGE);
+                      return;
+                    }
                     if (file.size > PROFILE_IMAGE_MAX_BYTES) {
                       setError("Your banner must be 4 MB or smaller.");
                       return;
@@ -615,19 +659,31 @@ function Editor({
               {bannerSource && (
                 <Button
                   variant="secondary"
-                  disabled={busy}
-                  onClick={() =>
+                  disabled={busy || (!canCustomizeMedia && !bannerCard)}
+                  onClick={() => {
+                    if (!canCustomizeMedia && !bannerCard) return;
                     setCrop({
                       src: bannerSource,
                       frame: bannerFrame,
                       card: bannerCard
-                    })
-                  }
+                    });
+                  }}
                 >
                   Adjust banner
                 </Button>
               )}
             </div>
+            {!canCustomizeMedia && (
+              <p
+                id="profile-banner-pro-notice"
+                className="mt-2 text-xs text-ink-3"
+              >
+                {PRO_BANNER_MESSAGE}{" "}
+                <Link href="/premium" className="yk-detail-link">
+                  Discover Yokkai Pro
+                </Link>
+              </p>
+            )}
             <p className="mt-2 text-xs text-ink-3">
               JPG, PNG, WebP or GIF · Up to 4 MB.
             </p>
@@ -692,7 +748,9 @@ function Editor({
                 <p className="mt-3 text-sm text-ink-3" role="status">
                   {ownedBannerCards.length
                     ? "No matching cards in your collection."
-                    : "Collect a card to use it as a profile banner, or upload an image."}
+                    : canCustomizeMedia
+                      ? "Collect a card to use it as a profile banner, or upload an image."
+                      : "Collect a card to use it as a profile banner."}
                 </p>
               )}
               {ownedBannerChoices.length > 36 && (
@@ -775,6 +833,12 @@ function Editor({
             setCrop(null);
           }}
           onApply={frame => {
+            if (crop.file && !canCustomizeMedia) {
+              setError(PRO_BANNER_MESSAGE);
+              URL.revokeObjectURL(crop.src);
+              setCrop(null);
+              return;
+            }
             setBannerCard(crop.card);
             if (crop.file) {
               setBannerFile(crop.file);

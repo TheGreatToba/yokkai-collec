@@ -54,6 +54,8 @@ function collection(readOnly = false) {
       };
     if (name === "@/hooks/use-collection-sort")
       return { useCollectionSort: () => useState("rarity") };
+    if (name === "@/components/card-customization-access")
+      return { useCardCustomizationAccess: () => true };
     if (name.startsWith("@/lib/ui/")) {
       if (!modules.has(name)) modules.set(name, load(`${name.slice(2)}.ts`));
       return modules.get(name);
