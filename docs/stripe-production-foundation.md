@@ -114,7 +114,18 @@ Recette complémentaire sur deux comptes jetables indépendants du compte du pro
 
 Sur le second compte, facture fictive de 499 centimes payée, accès activé par webhook et vérifié dans l’API et SQL. Échéance raccourcie à 90 secondes, uniquement pour ce compte Sandbox, via `cancel_at` sans prorata ; accès payé conservé avant l’échéance. Après l’échéance, `billing_has_pro` refuse déjà l’accès même si le miroir conserve temporairement `active` en attendant Stripe : expiration SQL fermée indépendamment de la livraison du webhook. Stripe passe ensuite à `canceled` ; le webhook signé retire l’accès et actualise le miroir SQL **avant** tout rafraîchissement manuel. L’API et `billing_has_pro` refusent ensuite l’accès. Les deux clients Stripe et comptes Auth jetables ont été nettoyés après annulation des seuls abonnements créés pour cette recette ; aucun changement sur le compte du propriétaire ni en production.
 
-**Restent à tester avant vente** : refus/3DS dans Checkout hébergé, renouvellement mensuel, remboursement/litige. L’échéance courte ne remplace pas une simulation de renouvellement mensuel par horloge Stripe. Préparer ces scénarios n’est pas équivalent à les avoir exécutés ; la recette ne couvre pas encore tout le cycle d’abonnement.
+Recette avancée réussie sur quatre autres comptes jetables, sans modification du code produit :
+
+- 3DS requis : PaymentIntent Stripe `requires_action`, abonnement `incomplete`, facture impayée et accès refusé par API/SQL après webhook. Cette vérification n’inclut pas encore la validation interactive du challenge.
+- Remboursement fictif intégral de 499 centimes : accès d’abord actif après paiement, puis `risk_hold` persistant et accès retiré par webhook. Deux rafraîchissements API successifs ne lèvent pas la suspension ; SQL refuse l’accès.
+- Litige Sandbox réellement généré par la carte Stripe dédiée : facture payée, litige observé chez Stripe, suspension par webhook et refus API/SQL. Un rafraîchissement ne supprime pas la suspension conservatrice, dont la politique et la levée par opérateur restent à définir avant vente.
+- Renouvellement mensuel : horloge Stripe attachée à un seul client jetable, initialisée 40 jours dans le passé. La première période déjà expirée ne donne aucun accès. Avancer cette horloge produit une nouvelle facture payée de 499 centimes (`subscription_cycle`) couvrant la date réelle, prolonge la période et active le miroir par webhook avant rafraîchissement ; API/SQL accordent alors l’accès. Ni l’heure du serveur ni celle de PostgreSQL n’ont été modifiées. La correspondance du client à son compte SQL est préparée par le harnais local pour ce scénario d’horloge, pas par Checkout.
+
+Les quatre comptes Auth, clients/abonnements Stripe jetables et l’horloge ont été nettoyés. Aucun argent réel, aucune donnée de production, aucun abonnement du propriétaire modifiés.
+
+Un cinquième compte jetable a servi à tenter le challenge sur la facture hébergée Stripe dans Chrome headless isolé. Le harnais n’a pas complété le challenge dans son délai : essai **non validé**, facture restée impayée et accès refusé. Ce cinquième compte/client/abonnement a également été nettoyé. Cet échec de recette ne prouve pas un défaut du parcours utilisateur ; validation manuelle du challenge dans Checkout requise avant vente.
+
+**Restent à tester avant vente** : parcours visuel de refus/3DS dans Checkout hébergé, renouvellement refusé/avec authentification requise et reprise après paiement, remboursements asynchrones/partiels, clôture de litige et revue opérateur. Préparer ces scénarios n’est pas équivalent à les avoir exécutés ; la recette ne couvre pas encore tous les cas de facturation.
 
 ## Conditions obligatoires avant vente — lots suivants
 
