@@ -41,10 +41,17 @@ Préparation de la configuration de production, **sans activation** (ne pas char
 STRIPE_BILLING_ENABLED=false
 STRIPE_CHECKOUT_ENABLED=false
 STRIPE_BILLING_MODE=live
+STRIPE_ACCOUNT_ID=acct_1UQSidIuXkg5OZqm
 STRIPE_PRO_PRICE_ID=price_1URdBZIuXkg5OZqmJiQZmOr7
 ```
 
-L’identifiant de compte `acct_…` reste à renseigner, les secrets restent hors dépôt. Le modèle `.env.billing.example` conserve son mode test et son tarif vide pour ne jamais mélanger ce tarif réel avec une clé de test. Les deux flags ci-dessus restent false jusqu’à la livraison et à la validation de tous les lots obligatoires.
+L’identifiant de compte `acct_1UQSidIuXkg5OZqm` a été fourni par le propriétaire, mais reste à vérifier auprès de Stripe, comme le tarif. Les secrets restent hors dépôt. Le modèle `.env.billing.example` conserve son mode test, son compte et son tarif vides pour ne jamais mélanger ces identifiants réels avec une clé de test. Les deux flags ci-dessus restent false jusqu’à la livraison et à la validation de tous les lots obligatoires.
+
+### Vérification serveur sans activation
+
+Après installation des variables dans le gestionnaire de secrets du serveur, et lorsque ce script est disponible dans le conteneur de la branche de préparation, lancer `node scripts/check-stripe-setup.mjs`. Ne pas copier une clé live dans l’environnement local pour cette vérification.
+
+Ce script refuse de démarrer hors `NODE_ENV=production`, avec une autre origine ou si un des flags n’est pas explicitement `false`. Il appelle uniquement `GET /v1/account` et `GET /v1/prices/<id>` via le SDK officiel, vérifie le compte, le mode réel et le tarif actif 499 centimes EUR mensuel récurrent. Aucun client, Checkout, abonnement ou paiement créé, aucune écriture SQL. La sortie ne contient pas la clé, de réponse fournisseur brute ou d’identifiant financier. Un succès confirme ces contrôles uniquement, **pas** la préparation du webhook ou des avantages, ni l’autorisation d’ouvrir les achats.
 
 ## Conditions obligatoires avant vente — lots suivants
 

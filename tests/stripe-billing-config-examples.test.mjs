@@ -21,6 +21,7 @@ test("configuration examples keep purchases closed, live prices out of local tes
   assert.equal(local.STRIPE_CHECKOUT_ENABLED, "false");
   assert.equal(local.STRIPE_BILLING_MODE, "test");
   assert.equal(local.STRIPE_PRO_PRICE_ID, "");
+  assert.equal(local.STRIPE_ACCOUNT_ID, "");
   const doc = read("docs/stripe-production-foundation.md");
   const block = doc.match(/```dotenv\r?\n([\s\S]*?)```/)?.[1];
   assert.ok(block);
@@ -29,6 +30,7 @@ test("configuration examples keep purchases closed, live prices out of local tes
   assert.equal(production.STRIPE_CHECKOUT_ENABLED, "false");
   assert.equal(production.STRIPE_BILLING_MODE, "live");
   assert.match(production.STRIPE_PRO_PRICE_ID, /^price_[A-Za-z0-9]+$/);
+  assert.match(production.STRIPE_ACCOUNT_ID, /^acct_[A-Za-z0-9]+$/);
   for (const key of [
     "STRIPE_SECRET_KEY",
     "STRIPE_PRO_WEBHOOK_SECRET",
@@ -42,6 +44,11 @@ test("configuration examples keep purchases closed, live prices out of local tes
   assert.ok(
     read(".env.billing.example").includes(
       "# STRIPE_PRO_PRICE_ID=" + production.STRIPE_PRO_PRICE_ID
+    )
+  );
+  assert.ok(
+    read(".env.billing.example").includes(
+      "# STRIPE_ACCOUNT_ID=" + production.STRIPE_ACCOUNT_ID
     )
   );
 });
