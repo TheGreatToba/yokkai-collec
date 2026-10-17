@@ -539,6 +539,148 @@
   background: #ffffff06;
   padding: 5px;
 }
+.yk-pro-banner-showcase {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  align-items: center;
+  gap: 48px;
+  padding: 54px 0;
+  border-top: 1px solid #ffffff10;
+}
+.yk-pro-banner-copy h2 {
+  margin: 18px 0;
+  font:
+    500 clamp(26px, 3vw, 39px)/1.3 var(--font-cinzel),
+    Georgia,
+    serif;
+  letter-spacing: -0.025em;
+}
+.yk-pro-banner-copy h2 em {
+  color: var(--plus-accent);
+  font-style: normal;
+}
+.yk-pro-banner-copy > p:not(.eyebrow) {
+  color: #aaa2b9;
+  font-size: 13px;
+  line-height: 1.8;
+  max-width: 360px;
+}
+.yk-pro-banner-caption {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 22px 0 14px;
+  color: #d6c4ff;
+  font-size: 12px;
+}
+.yk-pro-banner-copy > .yk-pro-banner-disclaimer {
+  font-size: 11px;
+  color: #a198b2;
+}
+.yk-pro-banner-example {
+  min-width: 0;
+}
+.yk-pro-banner-card {
+  border: 1px solid #b69aff30;
+  border-radius: 17px;
+  overflow: hidden;
+  background: linear-gradient(150deg, #181225, #100d19);
+  box-shadow: 0 20px 70px #00000030;
+}
+.yk-pro-live-banner {
+  position: relative;
+  isolation: isolate;
+  aspect-ratio: 2.3;
+  overflow: hidden;
+  background: #100c1a;
+}
+.yk-pro-live-banner > .yk-pro-banner-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  transform-origin: center;
+  pointer-events: none;
+}
+.yk-pro-gif-label {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  padding: 6px 9px;
+  border: 1px solid #ffffff35;
+  border-radius: 5px;
+  background: #090810cc;
+  color: #f0eafb;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+.yk-pro-banner-error {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  font-size: 13px;
+  color: #b6acc7;
+}
+.yk-pro-banner-card-body {
+  position: relative;
+  padding: 0 26px 27px;
+}
+.yk-pro-banner-avatar {
+  position: relative;
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #15101f;
+  margin-top: -30px;
+  margin-bottom: 14px;
+}
+.yk-pro-banner-name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.yk-pro-banner-name h3 {
+  font:
+    600 25px var(--font-cinzel),
+    Georgia,
+    serif;
+}
+.yk-pro-banner-name > span {
+  padding: 5px 7px;
+  border: 1px solid #b69aff35;
+  border-radius: 5px;
+  color: #d6c4ff;
+  background: #b69aff0c;
+  font-size: 8px;
+  letter-spacing: 0.06em;
+}
+.yk-pro-banner-card-body > p {
+  margin-top: 13px;
+  color: #aaa2b9;
+  font-size: 12px;
+}
+.yk-pro-banner-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+.yk-pro-banner-controls > span {
+  color: #a198b2;
+  font-size: 10px;
+}
+.yk-pro-banner-controls .yk-button {
+  font-size: 11px;
+  min-height: 38px;
+}
 .yk-pro-comparison,
 .yk-pro-simulator,
 .yk-pro-feature-section {
@@ -688,6 +830,9 @@
   line-height: 1.8;
 }
 @media (max-width: 800px) {
+  .yk-pro-banner-showcase {
+    gap: 25px;
+  }
   .yk-premium-main {
     padding: 25px;
   }
@@ -721,6 +866,14 @@
   }
 }
 @media (max-width: 600px) {
+  .yk-pro-banner-showcase {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding: 35px 0;
+  }
+  .yk-pro-banner-card-body {
+    padding: 0 20px 23px;
+  }
   .yk-pro-feature-grid,
   .yk-pro-sim-grid {
     grid-template-columns: 1fr;

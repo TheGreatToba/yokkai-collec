@@ -2,7 +2,7 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { Button, Modal } from "@/components/ui";
-import { PremiumPlanPreview } from "@/components/premium-plan-preview";
+import { PremiumBannerPreview } from "@/components/premium-banner-preview";
 import {
   PROPOSED_PLAN_RULES,
   PROPOSED_PRO_FEATURES
@@ -314,7 +314,7 @@ export function PremiumExperience({
           banked at once.
         </p>
       </section>
-      <PremiumPlanPreview />
+      <PremiumBannerPreview />
       <section
         className="yk-pro-feature-section"
         aria-labelledby="pro-features-title"

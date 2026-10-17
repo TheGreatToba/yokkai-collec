@@ -3,7 +3,9 @@
 ## Périmètre
 
 - Page `/premium`, formule mensuelle **4,99 EUR**. Nouvelle offre Pro proposée : personnalisation, packs plus fréquents, limites augmentées et succès donnant des Karas.
-- Comparatif et simulateur **sans droits réels** : Regular Pack 10 → 5 minutes, Decision Pack 24 → 12 heures, enchères simultanées 3 → 6, vitrine 5 → 10. Le simulateur ne fait aucune requête de jeu et ne change pas les probabilités par carte.
+- Comparatif **sans droits réels** : Regular Pack 10 → 5 minutes, Decision Pack 24 → 12 heures, enchères simultanées 3 → 6, vitrine 5 → 10. Aucun changement des probabilités par carte.
+- Le bloc simulateur « Your membership, in motion » a été remplacé, à la demande du propriétaire, par l’exemple de bannière GIF du compte **BBDOU** avec son avatar et son cadrage réel. Le héros et le comparatif restent inchangés. Les anciens helpers de simulation et leurs tests restent disponibles mais ne sont plus affichés dans la page.
+- Les médias sont une copie locale du 17 octobre 2026 dans `public/assets/premium-examples/`. GIF original non converti (498 × 281, 23 images) ; image fixe extraite pour la pause et `prefers-reduced-motion`. Aucun appel de profil ou de média de production pendant l’affichage, aucun accès Pro conféré au compte d’exemple.
 - Liste complète des 13 avantages fournie par le produit dans `lib/premium/offer.ts`, explicitement marquée « Planned » dans l’interface. Les règles Basic décrivent l’offre cible, pas un audit des droits actuels.
 - Aperçu interactif sans paiement : trois thèmes, cadre d’avatar, badge, couleur du pseudo et dos de carte. Aucun effet sur le profil public.
 - Stripe Checkout hébergé en mode abonnement, portail client, webhook signé, vérification serveur de l’abonnement et sauvegarde du thème dans le studio local.
