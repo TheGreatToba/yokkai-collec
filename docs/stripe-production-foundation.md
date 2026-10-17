@@ -29,11 +29,22 @@ Tables `billing_accounts` et `billing_webhook_events` : RLS activée sans politi
 
 ## Configuration et exploitation à préparer
 
-1. Confirmer le prix final 4,99 EUR mensuels, sans essai gratuit. Créer produit et Price dans le **bon** compte Stripe. Aucun changement de prix réel automatisé ici.
+1. Prix final **confirmé par le produit : 4,99 EUR mensuels, sans essai gratuit**. Identifiant fourni par le propriétaire : `price_1URdBZIuXkg5OZqmJiQZmOr7`, déclaré en mode réel. Montant, récurrence, devise, mode et compte restent **à vérifier par l’API Stripe** avec les secrets installés sur le serveur ; l’identifiant seul ne constitue pas cette vérification. Aucun changement de produit ou prix réel automatisé ici.
 2. Déposer les secrets uniquement dans le gestionnaire de secrets du VPS : `STRIPE_SECRET_KEY`, `STRIPE_PRO_WEBHOOK_SECRET`, `STRIPE_RECONCILIATION_SECRET`, clé serveur Supabase existante. Les identifiants `STRIPE_ACCOUNT_ID` et `STRIPE_PRO_PRICE_ID` peuvent être communiqués sans clé secrète. Ne jamais coller les clés dans le chat, les logs, le dépôt ou une variable `NEXT_PUBLIC_`.
 3. Copier le modèle `.env.billing.example` hors Git. Par défaut **les deux flags restent false**. Mode test accepté uniquement en développement sur app/DB loopback ; mode live uniquement sur origine exacte `https://yokkai-collec.com`, build production, DB HTTPS non locale. Incohérence ou configuration absente : refus avant Stripe.
 4. Installer la destination webhook et ses événements exacts, le portail client et un scheduler de réconciliation au moins toutes les cinq minutes. Ajouter alerte sur erreurs webhook, drift, factures échouées et comptes à risque. Vérifier la pagination avec la charge réelle avant lancement. Maintenance prolongée peut retarder les webhooks : la réconciliation doit restaurer un état frais avant réouverture.
 5. Répéter en mode test : 3DS, paiement refusé, abandon, retry, renouvellement, résiliation, échéance, réabonnement, remboursement/litige, notification répétée/désordonnée, coupure réseau et DB. Pas de paiement live « de test » automatisé.
+
+Préparation de la configuration de production, **sans activation** (ne pas charger ces valeurs dans le serveur de développement) :
+
+```dotenv
+STRIPE_BILLING_ENABLED=false
+STRIPE_CHECKOUT_ENABLED=false
+STRIPE_BILLING_MODE=live
+STRIPE_PRO_PRICE_ID=price_1URdBZIuXkg5OZqmJiQZmOr7
+```
+
+L’identifiant de compte `acct_…` reste à renseigner, les secrets restent hors dépôt. Le modèle `.env.billing.example` conserve son mode test et son tarif vide pour ne jamais mélanger ce tarif réel avec une clé de test. Les deux flags ci-dessus restent false jusqu’à la livraison et à la validation de tous les lots obligatoires.
 
 ## Conditions obligatoires avant vente — lots suivants
 
