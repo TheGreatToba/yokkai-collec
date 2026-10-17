@@ -32,6 +32,8 @@ function load(path, dependencies, globals = {}) {
       require: name => {
         if (name === "server-only") return {};
         if (name === "react/jsx-runtime") return require(name);
+        if (name === "@/lib/billing/status-sync" && !(name in dependencies))
+          return { watchBillingStatus: () => () => {} };
         assert.ok(name in dependencies, name);
         return dependencies[name];
       }
@@ -126,6 +128,14 @@ test("subscription settings render verified, canceled, unavailable and disabled 
   assert.match(active, /Next renewal/);
   assert.match(active, /Manage subscription/);
   assert.doesNotMatch(active, /Get Yokkai Pro/);
+  assert.match(active, /border-success\/30 bg-success\/10 text-success/);
+  assert.match(active, /Test mode/);
+  assert.doesNotMatch(
+    active,
+    /No free trial|This tests billing only|game perks are unchanged/
+  );
+  const live = html({ ...billing, sandbox: false });
+  assert.doesNotMatch(live, /Test mode|No free trial/);
   const canceled = html({
     ...billing,
     status: { ...state, cancelAtPeriodEnd: true }
@@ -142,6 +152,7 @@ test("subscription settings render verified, canceled, unavailable and disabled 
   assert.match(disabled, /No payment can be started/);
   assert.match(disabled, /disabled=""[^>]*>Get Yokkai Pro/);
   assert.doesNotMatch(disabled, /Pro active/);
+  assert.doesNotMatch(disabled, /bg-success\/10 text-success/);
   const unavailable = html({ ...billing, status: null, unavailable: true });
   assert.match(unavailable, /Status unavailable/);
   assert.match(unavailable, /Unable to verify/);
@@ -156,6 +167,7 @@ test("subscription actions post empty server-owned input, block duplicates and r
   const redirects = [];
   const react = {
     ...React,
+    useEffect: () => {},
     useState: initial => {
       const slot = index++;
       if (!(slot in slots)) slots[slot] = initial;
@@ -251,6 +263,76 @@ test("server-verified renewal, scheduled cancellation and ended access remain di
   assert.doesNotMatch(ended, /Pro active/);
   assert.doesNotMatch(ended, /Pro access continues/);
   assert.match(ended, /Get Yokkai Pro/);
+});
+
+test("automatic synchronization updates the cancellation message without a refresh button", async () => {
+  let index = 0;
+  let effect,
+    publish,
+    stopCalled = false;
+  const slots = [];
+  const react = {
+    ...React,
+    useEffect: callback => {
+      effect = callback;
+    },
+    useState: initial => {
+      const slot = index++;
+      if (!(slot in slots)) slots[slot] = initial;
+      return [
+        slots[slot],
+        next => {
+          slots[slot] = next;
+        }
+      ];
+    },
+    useRef: initial => {
+      const slot = index++;
+      return (slots[slot] ??= { current: initial });
+    }
+  };
+  const { SubscriptionSettings } = load(
+    "components/subscription-settings.tsx",
+    {
+      react,
+      "@/components/ui": { Button },
+      "@/lib/billing/status-sync": {
+        watchBillingStatus: update => {
+          publish = update;
+          return () => {
+            stopCalled = true;
+          };
+        }
+      }
+    }
+  );
+  const render = () => {
+    index = 0;
+    return SubscriptionSettings({ billing });
+  };
+  const nodes = node =>
+    Array.isArray(node)
+      ? node.flatMap(nodes)
+      : React.isValidElement(node)
+        ? [node, ...nodes(node.props.children)]
+        : [];
+  assert.equal(
+    nodes(render()).some(n => n.props.children === "Refresh status"),
+    false
+  );
+  const stop = effect();
+  publish({ ...state, cancelAtPeriodEnd: true });
+  const updated = nodes(render());
+  assert.ok(updated.some(n => n.props.children === "Access until"));
+  assert.ok(
+    updated.some(
+      n =>
+        typeof n.props.children === "string" &&
+        n.props.children.includes("will not renew")
+    )
+  );
+  stop();
+  assert.equal(stopCalled, true);
 });
 
 test("the authenticated settings page owns management and all provider returns target its subscription section", () => {

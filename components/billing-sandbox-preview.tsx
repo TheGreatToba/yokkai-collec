@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { watchBillingStatus } from "@/lib/billing/status-sync";
 
 type Status = {
   active: boolean;
@@ -15,32 +16,21 @@ export function BillingSandboxPreview({ signedIn }: { signedIn: boolean }) {
   const [status, setStatus] = useState<Status | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [refreshedAt, setRefreshedAt] = useState<number | null>(null);
+  const [syncError, setSyncError] = useState("");
   const pending = useRef(false);
 
-  async function refresh() {
-    if (pending.current) return;
-    pending.current = true;
-    setBusy(true);
-    setError("");
-    setRefreshedAt(null);
-    try {
-      const response = await fetch("/api/billing/status", {
-        cache: "no-store"
-      });
-      if (!response.ok) throw new Error("Status unavailable");
-      const state = (await response.json()) as Status;
-      setStatus(state);
-      setRefreshedAt(Date.now());
-    } catch {
-      setError(
-        "Unable to verify test billing. Check the local server and test-key permissions, then retry."
-      );
-    } finally {
-      pending.current = false;
-      setBusy(false);
-    }
-  }
+  useEffect(() => {
+    if (!signedIn) return;
+    return watchBillingStatus(
+      current => {
+        setStatus(current);
+        setSyncError("");
+      },
+      () =>
+        setSyncError("Unable to verify test billing. Retrying automatically."),
+      () => pending.current
+    );
+  }, [signedIn]);
 
   async function openStripe(action: "checkout" | "portal") {
     if (pending.current || !signedIn) return;
@@ -57,7 +47,7 @@ export function BillingSandboxPreview({ signedIn }: { signedIn: boolean }) {
       if (!response.ok) {
         if (result.code === "BILLING_USE_PORTAL")
           setError(
-            "A test subscription or completed Checkout already exists. Refresh status or manage your subscription."
+            "A test subscription or completed Checkout already exists. Your status will update automatically."
           );
         else
           setError(
@@ -117,7 +107,7 @@ export function BillingSandboxPreview({ signedIn }: { signedIn: boolean }) {
                 ? status.active
                   ? "Active · test billing verified"
                   : `Not active · ${status.status.replaceAll("_", " ")}`
-                : "Select Refresh status to verify test billing."}
+                : "Checking test billing automatically…"}
             </p>
             {status?.endsAt && (
               <p>
@@ -149,25 +139,9 @@ export function BillingSandboxPreview({ signedIn }: { signedIn: boolean }) {
               >
                 Manage test subscription
               </button>
-              <button
-                className="button"
-                disabled={busy}
-                onClick={() => void refresh()}
-              >
-                {busy ? "Please wait…" : "Refresh status"}
-              </button>
             </div>
-            {refreshedAt !== null && (
-              <p role="status">
-                Status refreshed at{" "}
-                {new Intl.DateTimeFormat("en-US", {
-                  timeStyle: "medium"
-                }).format(refreshedAt)}
-                .
-              </p>
-            )}
           </section>
-          {error && <p role="alert">{error}</p>}
+          {(error || syncError) && <p role="alert">{error || syncError}</p>}
         </>
       )}
       <section aria-label="Test card instructions">
