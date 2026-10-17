@@ -107,6 +107,7 @@ export function PremiumOffer({
         <div className="yk-pro-feature-grid">
           {features.map(feature => (
             <article key={feature.id}>
+              {feature.id === "achievements" && <span>Coming soon</span>}
               <h3>{feature.title}</h3>
               <p>{feature.detail}</p>
             </article>

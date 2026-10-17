@@ -12,8 +12,42 @@
 - Stripe Checkout hébergé en mode abonnement, portail client, webhook signé et vérification serveur de l’abonnement. Le prix est affiché depuis la configuration serveur/partagée ; le client n’envoie ni prix, ni identité dans ses requêtes de paiement.
 - Sans configuration Stripe, le bouton d’abonnement connecté est désactivé et indique la cause. Aucun bouton de configuration technique ou alternative de démo n’est affiché.
 - L’ancien studio `components/premium-experience.tsx`, le simulateur et leurs tests restent conservés pour la régression du prototype, mais ne sont importés par aucune route. La page utilise `PremiumOffer` et `PremiumCheckout` ; le code de la démo n’entre pas dans son parcours.
-- Aucun changement des fonctionnalités gratuites existantes ; pas de restriction rétroactive de la personnalisation du profil. Les imports, GIFs, images Imgur/Pinterest et autres avantages sont décrits mais pas encore reliés aux profils réels.
+- Aucun changement des fonctionnalités gratuites en production ; pas de restriction rétroactive de la personnalisation du profil. L’essai local verrouille désormais l’application d’images de cartes pour les comptes Basic, sans retirer leurs anciennes images.
 - Aucun changement de base Supabase, aucune migration. Rien appliqué sur le VPS.
+
+## Personnalisation du profil — aperçu local
+
+- Dans **Edit profile**, le propriétaire voit une section **Profile style** uniquement quand l’aperçu local est activé, sur `/profile` et ses alias. Aucun contrôle d’édition n’est affiché aux visiteurs. Le bouton séparé Style profile a été retiré du profil ; l’ancien composant reste non routé pour conserver les contrats de tests existants.
+- Modale inspirée du principe d’édition Discord, avec une présentation Yokkai sombre/lavande : huit styles de police, sept effets (Solid, Gradient, Neon, Outline, Pop, Shimmer, Prism), palette et deux couleurs personnalisées. Polices déjà chargées ou polices système ; aucune dépendance de police distante supplémentaire.
+- Modale Edit profile élargie jusqu’à 1 480 px : à partir de 1 100 px, photo, bio et bannière à gauche, Profile style à droite. Sous ce seuil, les sections restent empilées ; l’aperçu du style passe sous ses réglages sur les écrans intermédiaires pour éviter de comprimer les contrôles. La vitrine et le recadrage conservent leurs dimensions. Une seule sauvegarde commune, gardes Basic/Pro inchangés.
+- Aperçu immédiat du pseudo sur une fiche de profil et une conversation fictive. Le brouillon de style est appliqué en mémoire seulement après réussite du bouton commun **Save** du profil et seulement pour Pro. Une erreur de sauvegarde n’applique rien ; Cancel, fermeture et Échap abandonnent le brouillon. Aucun bouton Apply ni seconde paire Save/Cancel dans la section intégrée. Réouverture avec le style appliqué, Reset et Surprise me disponibles.
+- Le badge Pro lavande reste distinct de six badges décoratifs (Comet, Bloom, Crystal, Orbit, Flame, Moon), limités à trois. Aucun choix de rôle administrateur/modérateur, de certification ni de succès débloqué.
+- L’état reste uniquement en mémoire dans l’onglet local : il suit la navigation client entre pages, mais un rechargement complet le réinitialise. Le pseudo (police, couleurs, effet), le badge Pro de démonstration et les badges décoratifs sont repris dans les auteurs des messages d’enchères et des posts du mur. L’association utilise l’identifiant du compte, jamais le pseudo. Aucun style n’est attribué à un autre joueur portant le même nom.
+- `/design-system/profile-style-sharing-preview` reste un aperçu protégé par le garde local et une connexion, avec les vrais composants UI et des adaptateurs fictifs en lecture seule (y compris signalements et blocages). Les autres joueurs et navigateurs ne voient pas cet essai. Le style n’est pas persisté en base ni dans le navigateur ; Save utilise uniquement la sauvegarde de profil existante, sans y ajouter de style. Aucune migration ni changement de droits SQL. Le branchement aux vrais comptes Pro et la sauvegarde du style sont une étape distincte.
+- Aperçu mobile empilé ; modale commune conservée pour le focus, le clavier et le blocage du défilement de fond. Shimmer désactivé avec `prefers-reduced-motion`.
+
+## Personnalisation des cartes — verrouillage d’interface local
+
+- Dans les modales de collection et de cartes obtenues dans les packs, **Apply** est désactivé pour Basic, y compris avec une URL remplie. Message anglais explicite et lien **Discover Yokkai Pro**. L’URL reste saisissable ; aucune prévisualisation distante ni application n’est lancée.
+- Le statut provient de `getPremiumState` côté serveur sur les routes connectées, et non du badge Pro de démonstration. Sans configuration, sans abonnement actif ou en cas d’erreur, l’interface locale reste verrouillée. Un abonnement test configuré et actif conserve l’action. Le gestionnaire d’application contrôle aussi l’accès avant l’appel existant de sauvegarde.
+- **Restore original image** reste possible pour Basic : ce n’est pas l’ajout d’une nouvelle personnalisation. Aucun média existant n’est supprimé automatiquement.
+- Ce garde est activé uniquement par `localPremiumEnabled()`. Aucun droit existant n’est changé en production. C’est un verrouillage d’interface de prototype, pas encore une protection de l’accès SQL : avant livraison publique, persister/réconcilier les abonnements et protéger `set_card_custom_image` côté serveur/SQL avec les tests de droits appropriés. Aucun abonnement réel, migration ni droit de base modifié ici.
+
+## Médias de profil — même verrouillage d’interface local
+
+- Les pages de profil (`/profile` et ses alias) utilisent le même statut d’abonnement test vérifié côté serveur que la collection, associé au compte connecté, et non au propriétaire visité ni au badge d’aperçu.
+- Pour Basic, **Upload banner** est désactivé avec le message **Custom banners are available to Pro members only.** et un lien vers Pro. Le gestionnaire de sélection, la validation du cadrage et la sauvegarde refusent aussi un nouveau fichier avant tout envoi. Une bannière déjà importée reste conservée ou supprimable, mais son ajustement est réservé à Pro. Les cartes possédées et leur cadrage restent accessibles.
+- Le sélecteur de photo autorise JPG/PNG/WebP pour Basic ; un GIF est refusé avant l’envoi avec **Animated profile photos are available to Pro members only.** Détection par type, extension et signature GIF pour les fichiers renommés. Pro conserve GIF et formats fixes. Le sélecteur est réinitialisé après chaque choix, afin de pouvoir choisir de nouveau un fichier rejeté.
+- La bio, les photos fixes, la vitrine et la sauvegarde sans nouveau média restent utilisables ; aucun avatar ni bannière antérieurs ne sont retirés automatiquement. Vérification navigateur sans écriture de profil ou de Storage, et tests d’adaptateurs Basic/Pro, GIF renommés et conservation des médias existants.
+- Comme pour les cartes, ce verrou est limité à l’interface de l’essai local. Une véritable protection serveur/Storage/SQL sera nécessaire avant production. Aucune migration ni changement des droits existants de production.
+
+## Accès Basic/Pro — contrôles locaux
+
+- Dans **Edit profile**, les huit polices, sept effets, couleurs et six badges sont visibles mais grisés pour Basic dans un `fieldset disabled`, avec **Profile styling is available to Pro members only.** et un lien vers Pro. La bio et les champs gratuits restent actifs. Basic ne transmet pas de brouillon au parent ; Save et le hook partagé refusent aussi d’appliquer un style Basic. Police, effets et badges décoratifs du profil réel ne sont pas affichés pour Basic ; le badge Pro de démonstration est également masqué pour Basic.
+- Dans la Collection et les détails des packs, le quota local est de **3 enchères actives Basic / 6 Pro**. Le bouton et la confirmation sont désactivés quand le quota connu est plein. Le gestionnaire relit les enchères du compte juste avant la création et refuse si la limite est atteinte ou si la lecture échoue ; verrou synchrone contre un double appel dans le même composant. Les enchères déjà en cours ne sont pas supprimées, même au-dessus du plafond. Annulation et participation restent disponibles.
+- Le quota déduplique les identifiants de vente et exclut les fins passées ; une date invalide ne libère pas de place. Le compteur suit les actualisations existantes. Les tests couvrent 3/6, lecture fraîche, erreur et concurrence locale ; la preuve navigateur simule uniquement la réponse de lecture, sans créer de vente.
+- Les limites de jeu restent un **essai d’interface**, pas un verrou SQL anti-contournement : plusieurs navigateurs ou un appel RPC direct ne sont pas protégés par ce prototype. Implémenter les contrôles atomiques en base et la réconciliation de l’abonnement avant production. Hors essai local, droits de production inchangés.
+- Audit des avantages : images de cartes, imports de bannière, avatars GIF, style et badges Pro ont un garde local. Basic conserve la vitrine de 5 et les délais de jeu existants ; les variantes Pro 10 places et délais 5 min/12 h ne sont pas encore activées. Fonds personnels, cadres exclusifs, thèmes complets, effets de vitrine et dos personnalisés restent non implémentés ; aucun accès réel n’est donc accordé à Basic. Les nouveaux succès Pro et leurs récompenses ne sont pas créés tant que les objectifs et montants ne sont pas définis.
 
 ## Démarrer
 
@@ -77,4 +111,4 @@ La validation de Walid pour les nouvelles règles produit et une PR de tests sé
 
 ## Livraison
 
-Essai local, PR en brouillon uniquement. Ne pas merger ni déployer. Aucun test existant modifié ou affaibli. Pas de migration Supabase.
+Essai local, PR en brouillon uniquement. Ne pas merger ni déployer. Aucun test existant affaibli ; seul un mock du nouveau composant d’identité est ajouté au harnais des tests du chat, sans changer leurs assertions. Pas de migration Supabase.

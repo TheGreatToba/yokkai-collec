@@ -1,4 +1,5 @@
 .yk-premium-page {
+  --font-heading: var(--font-sora);
   min-height: 100dvh;
   background:
     radial-gradient(ellipse at 73% 19%, #25203950, transparent 42%), #090810;
@@ -70,7 +71,7 @@
   padding: 92px 0 65px;
 }
 .yk-premium-copy h1 {
-  font-family: var(--font-cinzel), Georgia, serif;
+  font-family: var(--font-sora), sans-serif;
   font-size: clamp(38px, 4.5vw, 65px);
   line-height: 1.13;
   letter-spacing: -0.04em;
@@ -212,8 +213,8 @@
   border: 4px solid #14111e;
   border-radius: 50%;
   font:
-    27px var(--font-cinzel),
-    serif;
+    600 27px var(--font-sora),
+    sans-serif;
   color: var(--plus-accent);
   box-shadow: 0 0 0 1px var(--plus-accent);
 }
@@ -238,7 +239,7 @@
 }
 .yk-premium-identity h2 {
   font-size: 22px;
-  font-family: var(--font-cinzel), serif;
+  font-family: var(--font-sora), sans-serif;
   overflow: hidden;
   text-overflow: ellipsis;
   color: var(--plus-accent);
@@ -332,8 +333,8 @@
 }
 .yk-premium-studio h2 {
   font:
-    25px var(--font-cinzel),
-    serif;
+    600 25px var(--font-sora),
+    sans-serif;
   margin: 12px 0;
 }
 .yk-premium-muted {
@@ -389,8 +390,8 @@
 }
 .yk-premium-membership h2 {
   font:
-    30px/1.4 var(--font-cinzel),
-    serif;
+    600 30px/1.4 var(--font-sora),
+    sans-serif;
   margin: 15px 0 20px;
 }
 .yk-premium-membership ul {
@@ -421,8 +422,8 @@
 }
 .yk-premium-plan-heading h3 {
   font:
-    23px var(--font-cinzel),
-    serif;
+    600 23px var(--font-sora),
+    sans-serif;
 }
 .yk-premium-plan-heading em {
   font-style: normal;
@@ -494,8 +495,8 @@
 }
 .yk-premium-faq h2 {
   font:
-    25px var(--font-cinzel),
-    serif;
+    600 25px var(--font-sora),
+    sans-serif;
   margin-bottom: 25px;
 }
 .yk-premium-faq details {
@@ -612,9 +613,8 @@
 .yk-pro-banner-copy h2 {
   margin: 18px 0;
   font:
-    500 clamp(26px, 3vw, 39px)/1.3 var(--font-cinzel),
-    Georgia,
-    serif;
+    600 clamp(26px, 3vw, 39px)/1.3 var(--font-sora),
+    sans-serif;
   letter-spacing: -0.025em;
 }
 .yk-pro-banner-copy h2 em {
@@ -719,9 +719,8 @@
 }
 .yk-pro-banner-name h3 {
   font:
-    600 25px var(--font-cinzel),
-    Georgia,
-    serif;
+    600 25px var(--font-sora),
+    sans-serif;
 }
 .yk-pro-banner-name > span {
   padding: 5px 7px;
@@ -912,9 +911,8 @@
 .yk-pro-feature-section h2 {
   margin: 14px 0;
   font:
-    500 clamp(22px, 3vw, 31px)/1.3 var(--font-cinzel),
-    Georgia,
-    serif;
+    600 clamp(22px, 3vw, 31px)/1.3 var(--font-sora),
+    sans-serif;
   letter-spacing: -0.025em;
 }
 .yk-pro-comparison table {

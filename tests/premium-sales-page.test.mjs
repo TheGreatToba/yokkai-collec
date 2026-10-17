@@ -107,3 +107,14 @@ test("commercial copy keeps availability honest without demo annotations", () =>
   assert.doesNotMatch(page, /Local preview/);
   assert.match(page, /if \(!localPremiumEnabled\(\)\) notFound\(\)/);
 });
+
+test("deferred Pro achievements stay in the offer and are visibly marked coming soon", () => {
+  const offer = source("components/premium-offer.tsx");
+  const benefits = source("lib/premium/offer.ts");
+  assert.match(benefits, /id: "achievements"/);
+  assert.match(benefits, /Additional achievements and Karas/);
+  assert.match(
+    offer,
+    /feature\.id === "achievements" && <span>Coming soon<\/span>/
+  );
+});

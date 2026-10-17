@@ -142,6 +142,77 @@ function load(relative) {
 const render = (component, props) =>
   renderToStaticMarkup(React.createElement(component, props));
 
+test("local auction quota disables new listings at 3 Basic or 6 Pro and keeps existing cards visible", () => {
+  const { CollectionView } = load("components/collection.tsx");
+  const { LocalAuctionQuotaProvider } = load(
+    "components/local-auction-quota.tsx"
+  );
+  for (const limit of [3, 6])
+    for (const active of [limit - 1, limit, limit + 1]) {
+      const html = render(LocalAuctionQuotaProvider, {
+        quota: { limit, active },
+        children: React.createElement(CollectionView, {
+          cards: [{ ...card, instanceId: "quota-card" }],
+          categories: [],
+          detailOnly: true,
+          initialSelectedId: "quota-card",
+          async onCreateAuction() {
+            assert.fail("Rendering cannot list an auction");
+          }
+        })
+      });
+      assert.match(html, /Active auctions:/);
+      if (active >= limit) {
+        assert.match(
+          html,
+          /<button[^>]*disabled=""[^>]*aria-describedby="auction-quota-notice"[^>]*>List for auction<\/button>/
+        );
+        assert.match(html, new RegExp(`up to ${limit} active auctions`));
+        assert.equal(
+          html.includes("Upgrade to Pro for 6 auction slots."),
+          limit === 3
+        );
+      } else
+        assert.doesNotMatch(html, /aria-describedby="auction-quota-notice"/);
+    }
+});
+
+test("local Basic members cannot apply card artwork while Pro members retain the action", () => {
+  const { CollectionView } = load("components/collection.tsx");
+  const { CardCustomizationAccessProvider } = load(
+    "components/card-customization-access.tsx"
+  );
+  const selected = {
+    ...card,
+    instanceId: "pro-access-card",
+    customImageUrl: "https://i.imgur.com/old.png"
+  };
+  for (const allowed of [false, true]) {
+    const html = render(CardCustomizationAccessProvider, {
+      allowed,
+      children: React.createElement(CollectionView, {
+        cards: [selected],
+        categories: [],
+        detailOnly: true,
+        initialSelectedId: selected.instanceId,
+        async onSetCustomImage() {
+          assert.fail("Rendering must never save an image");
+        }
+      })
+    });
+    assert.equal(
+      html.includes("Card customization is available to Pro members only."),
+      !allowed
+    );
+    if (!allowed) {
+      assert.match(html, /<button[^>]*disabled=""[^>]*>Apply<\/button>/);
+      assert.match(html, /aria-describedby="detail-custom-image-pro-notice"/);
+      assert.match(html, /href="\/premium"[^>]*>Discover Yokkai Pro/);
+    }
+    assert.match(html, /Restore original image/);
+  }
+});
+
 test("les routes consommatrices de MarketView ont exactement un h1 sans saut de niveau", async () => {
   for (const route of [
     "market-preview",

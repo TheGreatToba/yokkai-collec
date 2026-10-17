@@ -43,6 +43,17 @@ import { useSfx } from "@/hooks/use-sfx";
 import { runPackOpeningOnce } from "@/lib/ui/pack-opening";
 import { releaseBoostersBackground } from "@/components/boosters-load-priority";
 import { startVisiblePolling } from "@/lib/ui/visible-polling";
+import {
+  useCardCustomizationAccess,
+  useLocalProPlan,
+  PRO_CARD_CUSTOMIZATION_MESSAGE
+} from "@/components/card-customization-access";
+import { LocalAuctionQuotaProvider } from "@/components/local-auction-quota";
+import {
+  auctionLimitMessage,
+  countLiveAuctionListings,
+  localAuctionLimit
+} from "@/lib/ui/local-auction-quota";
 
 // Share initial/polling reads, while post-mutation reconciliation still requests
 // a fresh server status even when a previous initial read is pending.
@@ -65,6 +76,9 @@ export function Game({
   previewData?: typeof gameReads;
 }) {
   const [info, setInfo] = useState<Info | null>(null);
+  const canCustomizeImages = useCardCustomizationAccess();
+  const auctionLimit = localAuctionLimit(useLocalProPlan());
+  const auctionSubmitting = useRef(false);
   const [status, setStatus] = useState<PackStatus | null>(null);
   const [decisionStatus, setDecisionStatus] =
     useState<DecisionPackStatus | null>(null);
@@ -338,17 +352,32 @@ export function Game({
   ) {
     if (previewData)
       throw new Error("This action is unavailable in the simulation.");
-    await createAuction(instanceId, price, duration);
-    const [cards, auctions] = await Promise.all([
-      getUserCollection(),
-      getActiveAuctionCards()
-    ]);
-    setCollection(cards);
-    setActiveAuctionCards(auctions);
+    if (auctionSubmitting.current)
+      throw new Error("An auction is already being listed. Please wait.");
+    auctionSubmitting.current = true;
+    try {
+      if (auctionLimit !== null) {
+        const active = await getActiveAuctionCards();
+        setActiveAuctionCards(active);
+        if (countLiveAuctionListings(active) >= auctionLimit)
+          throw new Error(auctionLimitMessage(auctionLimit));
+      }
+      await createAuction(instanceId, price, duration);
+      const [cards, auctions] = await Promise.all([
+        getUserCollection(),
+        getActiveAuctionCards()
+      ]);
+      setCollection(cards);
+      setActiveAuctionCards(auctions);
+    } finally {
+      auctionSubmitting.current = false;
+    }
   }
   async function customizeCard(instanceId: string, imageUrl: string | null) {
     if (previewData)
       throw new Error("This action is unavailable in the simulation.");
+    if (imageUrl !== null && !canCustomizeImages)
+      throw new Error(PRO_CARD_CUSTOMIZATION_MESSAGE);
     await setCardCustomImage(instanceId, imageUrl);
     setCollection(await getUserCollection());
   }
@@ -372,176 +401,195 @@ export function Game({
     .toString()
     .padStart(2, "0")}:${(decisionSeconds % 60).toString().padStart(2, "0")}`;
   return (
-    <div
-      className={view === "packs" ? "flex min-h-dvh w-full flex-col" : "w-full"}
+    <LocalAuctionQuotaProvider
+      quota={
+        auctionLimit === null
+          ? null
+          : {
+              limit: auctionLimit,
+              active: countLiveAuctionListings(activeAuctionCards)
+            }
+      }
     >
-      {!previewData && (
-        <Topbar
-          view={view}
-          account={account}
-          name={info?.user.name}
-          karas={info?.karasBalance}
-          collection={collection}
-          infoError={loadErrors.info}
-          onRetryInfo={() => retries.current.info?.()}
-        />
-      )}
-      <main
-        id="main-content"
-        className={`yk-game-main mx-auto px-6 ${view === "collection" ? "max-w-[var(--layout-collection-max)] py-6" : "w-full max-w-6xl flex-1 py-10"}`}
+      <div
+        className={
+          view === "packs" ? "flex min-h-dvh w-full flex-col" : "w-full"
+        }
       >
-        {view === "packs" ? (
-          <header className="yk-pack-page-heading">
-            <h1 className="yk-title mt-3">Your next great pull.</h1>
-            <p className="mt-4 max-w-xl text-sm leading-6 text-ink-2">
-              New Yokkai, new stories, always something to discover.
+        {!previewData && (
+          <Topbar
+            view={view}
+            account={account}
+            name={info?.user.name}
+            karas={info?.karasBalance}
+            collection={collection}
+            infoError={loadErrors.info}
+            onRetryInfo={() => retries.current.info?.()}
+          />
+        )}
+        <main
+          id="main-content"
+          className={`yk-game-main mx-auto px-6 ${view === "collection" ? "max-w-[var(--layout-collection-max)] py-6" : "w-full max-w-6xl flex-1 py-10"}`}
+        >
+          {view === "packs" ? (
+            <header className="yk-pack-page-heading">
+              <h1 className="yk-title mt-3">Your next great pull.</h1>
+              <p className="mt-4 max-w-xl text-sm leading-6 text-ink-2">
+                New Yokkai, new stories, always something to discover.
+              </p>
+            </header>
+          ) : (
+            <h1 className="text-2xl font-semibold tracking-tight text-ink">
+              My collection
+            </h1>
+          )}
+          {error && (
+            <p
+              role="alert"
+              className="my-6 rounded-lg border border-danger/40 bg-danger/10 p-4 text-sm text-danger-ink"
+            >
+              {error}
             </p>
-          </header>
-        ) : (
-          <h1 className="text-2xl font-semibold tracking-tight text-ink">
-            My collection
-          </h1>
-        )}
-        {error && (
-          <p
-            role="alert"
-            className="my-6 rounded-lg border border-danger/40 bg-danger/10 p-4 text-sm text-danger-ink"
-          >
-            {error}
-          </p>
-        )}
-        {Object.entries(loadErrors)
-          .filter(
-            ([key, message]) =>
-              message && !["regular", "decision", "info"].includes(key)
-          )
-          .map(([key, message]) => (
-            <p key={key} role="alert" className="my-4 text-sm text-danger-ink">
-              {key === "collection"
-                ? "Collection"
-                : key === "folders"
-                  ? "Folders"
-                  : "Auctions"}{" "}
-              : {message}{" "}
-              <button
-                className="yk-button yk-button-secondary"
-                onClick={() => retries.current[key]?.()}
+          )}
+          {Object.entries(loadErrors)
+            .filter(
+              ([key, message]) =>
+                message && !["regular", "decision", "info"].includes(key)
+            )
+            .map(([key, message]) => (
+              <p
+                key={key}
+                role="alert"
+                className="my-4 text-sm text-danger-ink"
               >
+                {key === "collection"
+                  ? "Collection"
+                  : key === "folders"
+                    ? "Folders"
+                    : "Auctions"}{" "}
+                : {message}{" "}
+                <button
+                  className="yk-button yk-button-secondary"
+                  onClick={() => retries.current[key]?.()}
+                >
+                  Try again
+                </button>
+              </p>
+            ))}
+          {previewData && info && (
+            <p data-proof="info">
+              {info.user.name} · {info.karasBalance} Karas
+            </p>
+          )}
+          {previewData && loadErrors.info && (
+            <p data-proof="info-error" role="alert">
+              {loadErrors.info}{" "}
+              <button onClick={() => retries.current.info?.()}>
                 Try again
               </button>
             </p>
-          ))}
-        {previewData && info && (
-          <p data-proof="info">
-            {info.user.name} · {info.karasBalance} Karas
-          </p>
-        )}
-        {previewData && loadErrors.info && (
-          <p data-proof="info-error" role="alert">
-            {loadErrors.info}{" "}
-            <button onClick={() => retries.current.info?.()}>Try again</button>
-          </p>
-        )}
-        {!status && !error && !loadErrors.regular && (
-          <p role="status" className="mt-10">
-            Loading…
-          </p>
-        )}
-        {view === "packs" && (
-          <Boosters
-            status={status}
-            statusError={loadErrors.regular}
-            decisionError={loadErrors.decision}
-            onRetryRegular={() => retries.current.regular?.()}
-            onRetryDecision={() => retries.current.decision?.()}
-            collectionReady={collectionReady}
-            countdown={countdown}
-            decisionStatus={decisionStatus}
-            decisionCountdown={decisionCountdown}
-            dropRates={info?.dropRates}
-            decisionDropRates={info?.decisionDropRates}
-            shinyRate={info?.shinyRate}
-            busy={busy}
-            draw={draw}
-            drawKind={drawKind}
-            collection={collection}
-            folders={folders}
-            revealed={revealed}
-            onOpen={
-              previewData
-                ? async kind => {
-                    const cards: CollectedCard[] = [
-                      {
-                        id: "proof-card",
-                        instanceId: "proof-instance",
-                        name: "Carte de preuve",
-                        rarity: "C",
-                        category: "Anime",
-                        image: "/assets/booster-pack.png",
-                        catalogueImage: "/assets/booster-pack.png",
-                        customImageUrl: null,
-                        obtainedAt: new Date().toISOString(),
-                        shiny: false,
-                        isEvolved: false,
-                        isFirstOwner: true,
-                        folderId: null
-                      }
-                    ];
-                    setDraw(cards);
-                    setDrawKind(kind);
-                    setRevealed(0);
-                    return cards;
-                  }
-                : open
-            }
-            onKeepDecision={previewData ? async () => 0 : keepDecision}
-            onDiscard={previewData ? async () => {} : discard}
-            onAuction={auctionCard}
-            onMoveCard={moveCard}
-            onSetLocked={lockCard}
-            onEvolve={evolve}
-            onSetCustomImage={customizeCard}
-            onReveal={revealCard}
-            onSound={sound.play}
-          />
-        )}
+          )}
+          {!status && !error && !loadErrors.regular && (
+            <p role="status" className="mt-10">
+              Loading…
+            </p>
+          )}
+          {view === "packs" && (
+            <Boosters
+              status={status}
+              statusError={loadErrors.regular}
+              decisionError={loadErrors.decision}
+              onRetryRegular={() => retries.current.regular?.()}
+              onRetryDecision={() => retries.current.decision?.()}
+              collectionReady={collectionReady}
+              countdown={countdown}
+              decisionStatus={decisionStatus}
+              decisionCountdown={decisionCountdown}
+              dropRates={info?.dropRates}
+              decisionDropRates={info?.decisionDropRates}
+              shinyRate={info?.shinyRate}
+              busy={busy}
+              draw={draw}
+              drawKind={drawKind}
+              collection={collection}
+              folders={folders}
+              revealed={revealed}
+              onOpen={
+                previewData
+                  ? async kind => {
+                      const cards: CollectedCard[] = [
+                        {
+                          id: "proof-card",
+                          instanceId: "proof-instance",
+                          name: "Carte de preuve",
+                          rarity: "C",
+                          category: "Anime",
+                          image: "/assets/booster-pack.png",
+                          catalogueImage: "/assets/booster-pack.png",
+                          customImageUrl: null,
+                          obtainedAt: new Date().toISOString(),
+                          shiny: false,
+                          isEvolved: false,
+                          isFirstOwner: true,
+                          folderId: null
+                        }
+                      ];
+                      setDraw(cards);
+                      setDrawKind(kind);
+                      setRevealed(0);
+                      return cards;
+                    }
+                  : open
+              }
+              onKeepDecision={previewData ? async () => 0 : keepDecision}
+              onDiscard={previewData ? async () => {} : discard}
+              onAuction={auctionCard}
+              onMoveCard={moveCard}
+              onSetLocked={lockCard}
+              onEvolve={evolve}
+              onSetCustomImage={customizeCard}
+              onReveal={revealCard}
+              onSound={sound.play}
+            />
+          )}
 
-        {view === "collection" && status && (
-          <CollectionView
-            cards={collection}
-            categories={info?.categories || []}
-            loadPaniniAlbums={getPaniniAlbumsPage}
-            loadPaniniAlbumCards={getPaniniAlbumCardsPage}
-            onSetPaniniAlbumFavorite={setPaniniAlbumFavorite}
-            presentation={Object.fromEntries(
-              activeAuctionCards.map(auction => [
-                auction.instanceId,
-                {
-                  frozen: { remaining: auction.endsAt },
-                  auctionId: auction.auctionId
-                }
-              ])
-            )}
-            folders={folders}
-            onCreateFolder={addFolder}
-            onDeleteFolder={removeFolder}
-            onMoveCard={moveCard}
-            onMoveCards={moveCards}
-            onSetLocked={lockCard}
-            onCreateAuction={auctionCard}
-            onEvolve={evolve}
-            onSetCustomImage={customizeCard}
-            onDiscard={discardCollectionCard}
-            onDiscardMany={discardCollectionCards}
-          />
-        )}
-      </main>
-      <footer
-        className={`mx-auto mt-6 flex w-full ${view === "collection" ? "max-w-[var(--layout-collection-max)]" : "max-w-6xl"} flex-wrap justify-between gap-3 border-t border-veil px-6 py-6 text-xs text-ink-3`}
-      >
-        <span>Yokkai Collec’ · v0.2</span>
-        <span>Your collection is saved to your account</span>
-      </footer>
-    </div>
+          {view === "collection" && status && (
+            <CollectionView
+              cards={collection}
+              categories={info?.categories || []}
+              loadPaniniAlbums={getPaniniAlbumsPage}
+              loadPaniniAlbumCards={getPaniniAlbumCardsPage}
+              onSetPaniniAlbumFavorite={setPaniniAlbumFavorite}
+              presentation={Object.fromEntries(
+                activeAuctionCards.map(auction => [
+                  auction.instanceId,
+                  {
+                    frozen: { remaining: auction.endsAt },
+                    auctionId: auction.auctionId
+                  }
+                ])
+              )}
+              folders={folders}
+              onCreateFolder={addFolder}
+              onDeleteFolder={removeFolder}
+              onMoveCard={moveCard}
+              onMoveCards={moveCards}
+              onSetLocked={lockCard}
+              onCreateAuction={auctionCard}
+              onEvolve={evolve}
+              onSetCustomImage={customizeCard}
+              onDiscard={discardCollectionCard}
+              onDiscardMany={discardCollectionCards}
+            />
+          )}
+        </main>
+        <footer
+          className={`mx-auto mt-6 flex w-full ${view === "collection" ? "max-w-[var(--layout-collection-max)]" : "max-w-6xl"} flex-wrap justify-between gap-3 border-t border-veil px-6 py-6 text-xs text-ink-3`}
+        >
+          <span>Yokkai Collec’ · v0.2</span>
+          <span>Your collection is saved to your account</span>
+        </footer>
+      </div>
+    </LocalAuctionQuotaProvider>
   );
 }
