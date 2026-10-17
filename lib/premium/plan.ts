@@ -1,5 +1,5 @@
 export const PREMIUM_PLAN = {
-  name: "Yokkai Plus",
+  name: "Yokkai Pro",
   amount: 499,
   currency: "eur",
   interval: "month"

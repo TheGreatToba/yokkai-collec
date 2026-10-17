@@ -539,6 +539,154 @@
   background: #ffffff06;
   padding: 5px;
 }
+.yk-pro-comparison,
+.yk-pro-simulator,
+.yk-pro-feature-section {
+  padding: 38px 0;
+  border-top: 1px solid #ffffff10;
+}
+.yk-pro-comparison h2,
+.yk-pro-simulator h2,
+.yk-pro-feature-section h2 {
+  margin: 14px 0;
+  font:
+    500 clamp(22px, 3vw, 31px)/1.3 var(--font-cinzel),
+    Georgia,
+    serif;
+  letter-spacing: -0.025em;
+}
+.yk-pro-comparison table {
+  width: 100%;
+  margin: 24px 0 16px;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+.yk-pro-comparison th,
+.yk-pro-comparison td {
+  padding: 16px;
+  border-bottom: 1px solid #ffffff0c;
+}
+.yk-pro-comparison tbody th {
+  font-weight: 400;
+  color: #b6acc7;
+}
+.yk-pro-comparison td:last-child,
+.yk-pro-comparison thead th:last-child {
+  background: #b69aff0a;
+  color: #d6c4ff;
+}
+.yk-pro-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.yk-pro-plan-toggle,
+.yk-pro-clock {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.yk-pro-plan-toggle button,
+.yk-pro-clock button {
+  padding: 11px 16px;
+  border-radius: 8px;
+  border: 1px solid #ffffff16;
+  background: #ffffff03;
+  font-size: 12px;
+  color: #aaa2b9;
+}
+.yk-pro-plan-toggle button[aria-pressed="true"],
+.yk-pro-clock button[aria-pressed="true"] {
+  background: #b69aff16;
+  border-color: #b69aff70;
+  color: #e6dbff;
+}
+.yk-pro-clock {
+  margin: 24px 0 18px;
+}
+.yk-pro-sim-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.yk-pro-sim-grid article {
+  border: 1px solid #ffffff12;
+  border-radius: 14px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  background: #b69aff04;
+}
+.yk-pro-sim-grid article > span,
+.yk-pro-showcase-preview > span {
+  font-size: 12px;
+  color: #b6acc7;
+}
+.yk-pro-sim-grid strong {
+  font-size: 30px;
+  font-weight: 500;
+  color: #d6c4ff;
+}
+.yk-pro-sim-grid p {
+  color: #aaa2b9;
+  font-size: 12px;
+}
+.yk-pro-sim-grid .yk-button {
+  font-size: 11px;
+}
+.yk-pro-showcase-preview {
+  padding: 24px 0 0;
+}
+.yk-pro-showcase-preview > div {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 15px;
+}
+.yk-pro-showcase-preview > div > span {
+  aspect-ratio: 5 / 7;
+  max-height: 115px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  border: 1px dashed #b69aff48;
+  background: linear-gradient(140deg, #b69aff12, #b69aff03);
+  color: #aa97d0;
+  font-size: 13px;
+}
+.yk-pro-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 26px;
+}
+.yk-pro-feature-grid article {
+  padding: 22px;
+  border: 1px solid #ffffff0e;
+  border-radius: 12px;
+  background: #ffffff02;
+}
+.yk-pro-feature-grid article > span {
+  color: #9e8dbb;
+  font-size: 8px;
+  letter-spacing: 0.14em;
+}
+.yk-pro-feature-grid h3 {
+  margin: 12px 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+.yk-pro-feature-grid p {
+  color: #aaa2b9;
+  font-size: 12px;
+  line-height: 1.8;
+}
 @media (max-width: 800px) {
   .yk-premium-main {
     padding: 25px;
@@ -573,6 +721,22 @@
   }
 }
 @media (max-width: 600px) {
+  .yk-pro-feature-grid,
+  .yk-pro-sim-grid {
+    grid-template-columns: 1fr;
+  }
+  .yk-pro-comparison th,
+  .yk-pro-comparison td {
+    padding: 14px 6px;
+    font-size: 11px;
+  }
+  .yk-pro-clock button {
+    padding: 10px;
+    font-size: 11px;
+  }
+  .yk-pro-showcase-preview > div {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
   .yk-premium-nav {
     padding: 20px;
   }

@@ -1,11 +1,13 @@
-# Yokkai Plus — essai local uniquement
+# Yokkai Pro — essai local uniquement
 
 ## Périmètre
 
-- Page `/premium`, formule mensuelle **4,99 EUR**, sans booster payant ni avantage de gameplay.
+- Page `/premium`, formule mensuelle **4,99 EUR**. Nouvelle offre Pro proposée : personnalisation, packs plus fréquents, limites augmentées et succès donnant des Karas.
+- Comparatif et simulateur **sans droits réels** : Regular Pack 10 → 5 minutes, Decision Pack 24 → 12 heures, enchères simultanées 3 → 6, vitrine 5 → 10. Le simulateur ne fait aucune requête de jeu et ne change pas les probabilités par carte.
+- Liste complète des 13 avantages fournie par le produit dans `lib/premium/offer.ts`, explicitement marquée « Planned » dans l’interface. Les règles Basic décrivent l’offre cible, pas un audit des droits actuels.
 - Aperçu interactif sans paiement : trois thèmes, cadre d’avatar, badge, couleur du pseudo et dos de carte. Aucun effet sur le profil public.
 - Stripe Checkout hébergé en mode abonnement, portail client, webhook signé, vérification serveur de l’abonnement et sauvegarde du thème dans le studio local.
-- Aucun changement des fonctionnalités gratuites existantes ; pas de restriction rétroactive de la personnalisation du profil.
+- Aucun changement des fonctionnalités gratuites existantes ; pas de restriction rétroactive de la personnalisation du profil. Les imports, GIFs, images Imgur/Pinterest et autres avantages sont décrits mais pas encore reliés aux profils réels.
 - Aucun changement de base Supabase, aucune migration. Rien appliqué sur le VPS.
 
 ## Démarrer
@@ -25,7 +27,7 @@ La page et toutes les API renvoient 404 sauf en `NODE_ENV=development`, avec `LO
 
 ## Brancher le vrai parcours Stripe test
 
-1. Dans le sandbox Stripe, créer un produit Yokkai Plus et un prix récurrent **4,99 EUR / mois**, un exemplaire, sans période d’essai. Aucun objet Stripe n’est créé automatiquement avant action explicite sur Checkout.
+1. Dans le sandbox Stripe, créer un produit Yokkai Pro et un prix récurrent **4,99 EUR / mois**, un exemplaire, sans période d’essai. Aucun objet Stripe n’est créé automatiquement avant action explicite sur Checkout.
 2. Ajouter uniquement côté serveur `STRIPE_SECRET_KEY=sk_test_…` et `STRIPE_PREMIUM_PRICE_ID=price_…`. Ne jamais envoyer la clé secrète dans le chat, dans le navigateur ou dans Git.
 3. Installer/authentifier Stripe CLI et lancer :
 
@@ -49,6 +51,17 @@ stripe listen --events checkout.session.completed,checkout.session.async_payment
 - En cas d’arrêt brutal pendant une opération, le verrou `state.lock` peut rester. Arrêter d’abord tous les serveurs de cette branche, vérifier l’absence d’opération Stripe en cours, puis retirer **uniquement** le verrou concerné. Ne pas effacer l’état clients pour recommencer : cela perdrait le lien avec les abonnements test existants.
 - Les cosmétiques sont des prototypes dans le studio ; leur intégration aux profils réels est une étape distincte. Aucun prix ni bénéfice commercial n’est livré au public.
 - La vente future de boosters reste hors périmètre. Validation produit, juridique et Stripe du modèle avant paiement réel.
+
+## Activation des avantages réels — étape distincte
+
+La validation de Walid pour les nouvelles règles produit et une PR de tests séparée a été confirmée par l’utilisateur. Cette PR locale ne modifie ni n’affaiblit les tests existants. Les probabilités de rareté par carte restent inchangées ; les ouvertures plus fréquentes constituent bien un avantage de progression.
+
+- L’éligibilité Pro devra être persistée et réconciliée côté serveur après vérification Stripe, protégée contre les écritures joueur ; aucun drapeau du navigateur ni simulateur ne doit accorder de droits.
+- Délais, limites d’enchères et vitrine devront être contrôlés dans les fonctions SQL existantes avec tests de concurrence, annulation/expiration et transitions Basic/Pro. Définir le traitement d’une vitrine de 10 ou de 6 enchères lors d’une expiration avant d’appliquer les nouvelles limites.
+- Les droits de personnalisation (imports/GIFs, images de cartes, effets, cadres, badge, thèmes et dos) devront être vérifiés côté serveur. Aucun privilège ne sera supprimé aux joueurs gratuits par ce prototype. Définir le traitement des contenus antérieurs.
+- Les succès Pro supplémentaires donneront **des Karas**, conformément à la demande. Leurs objectifs et montants restent à définir ; ne pas inventer de récompenses ni modifier les succès gratuits. Les réclamations devront être atomiques, idempotentes et contrôlées côté SQL, avec une règle explicite pour une expiration d’abonnement.
+- Choisir une politique de médias externes : URL d’image directe validée, taille/type autorisés, aucun chargement serveur arbitraire de pages Pinterest/Imgur ou contournement de leurs restrictions.
+- Les migrations, la PR de tests et une validation de sécurité sont nécessaires avant un essai des droits réels ; aucune migration ni intervention en production n’est réalisée ici.
 
 ## Sources techniques
 

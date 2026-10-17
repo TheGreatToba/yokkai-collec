@@ -8,7 +8,7 @@ import { PremiumExperience } from "@/components/premium-experience";
 import "@/styles/premium.css";
 
 export const metadata: Metadata = {
-  title: "Yokkai Plus · Local preview",
+  title: "Yokkai Pro · Local preview",
   robots: { index: false, follow: false }
 };
 export const dynamic = "force-dynamic";
@@ -37,8 +37,8 @@ export default async function PremiumPage() {
         <PremiumExperience signedIn={!!user} name={name ?? "Collector"} />
       </main>
       <footer className="yk-premium-footer">
-        Local prototype · Test payments only · No changes to drop rates or pack
-        rewards.
+        Local prototype · Test payments only · Planned benefits are simulated,
+        not applied to your account.
       </footer>
     </div>
   );

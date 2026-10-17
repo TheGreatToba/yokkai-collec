@@ -33,13 +33,13 @@ export default async function SettingsPage() {
         {localPremiumEnabled() && (
           <section
             className="mt-8 rounded-2xl border border-veil bg-surface p-6"
-            aria-label="Local Plus subscription"
+            aria-label="Local Pro subscription"
           >
             <p className="eyebrow">Local subscription lab</p>
-            <h2 className="mt-3 text-xl">Yokkai Plus</h2>
+            <h2 className="mt-3 text-xl">Yokkai Pro</h2>
             <p className="mt-2 text-sm text-ink-2">
-              Explore cosmetic previews and manage your Stripe test
-              subscription. No real payments.
+              Compare Basic and Pro, try the previews and manage your Stripe
+              test subscription. No real payments.
             </p>
             <Link
               href="/premium"

@@ -2,6 +2,11 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { Button, Modal } from "@/components/ui";
+import { PremiumPlanPreview } from "@/components/premium-plan-preview";
+import {
+  PROPOSED_PLAN_RULES,
+  PROPOSED_PRO_FEATURES
+} from "@/lib/premium/offer";
 import {
   EMPTY_PREMIUM_STATE,
   PREMIUM_STYLES,
@@ -33,17 +38,17 @@ const benefits = [
   [
     "01",
     "A profile that feels like you",
-    "Explore exclusive avatar frames, a Plus badge and signature name colors."
+    "Custom artwork, animated banners, exclusive frames and a Pro badge."
   ],
   [
     "02",
-    "Your collection, your atmosphere",
-    "Try coordinated profile themes and a matching card-back preview."
+    "More room for your collection",
+    "A 10-character showcase, six auction slots and extra achievements."
   ],
   [
     "03",
-    "Personal style. Same chances.",
-    "No extra packs, boosted drop rates or exclusive collectible cards."
+    "Your next pack, sooner",
+    "Regular Packs every 5 minutes. Decision Packs every 12 hours. Same rarity odds."
   ]
 ];
 
@@ -162,7 +167,7 @@ export function PremiumExperience({
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
       setNotice(
-        "Style saved in the local Plus studio. Your public profile is unchanged."
+        "Style saved in the local Pro studio. Your public profile is unchanged."
       );
     } catch (reason) {
       setError(
@@ -188,16 +193,16 @@ export function PremiumExperience({
           </h1>
           <p className="yk-premium-intro">
             Your favorite characters. Your own signature. Meet{" "}
-            <strong>Yokkai Plus</strong> — a new way to make your corner of
-            Yokkai feel like home.
+            <strong>Yokkai Pro</strong> — more ways to personalize, collect and
+            make your corner of Yokkai feel like home.
           </p>
           <div className="yk-premium-tags">
-            <span>Personalization only</span>
-            <span>Same drop rates for everyone</span>
+            <span>Make it your own</span>
+            <span>Faster packs, unchanged rarity odds</span>
           </div>
           <div className="yk-premium-hero-actions">
             <a href="#membership" className="yk-button yk-button-primary">
-              Explore Plus <span aria-hidden="true">↘</span>
+              Explore Pro <span aria-hidden="true">↘</span>
             </a>
             <button
               type="button"
@@ -225,7 +230,7 @@ export function PremiumExperience({
               </div>
               <div className="yk-premium-identity">
                 <h2>{name}</h2>
-                <span className="yk-premium-badge">✦ PLUS</span>
+                <span className="yk-premium-badge">✦ PRO</span>
               </div>
               <p>
                 Collect what you love.
@@ -257,6 +262,78 @@ export function PremiumExperience({
             <p>{description}</p>
           </article>
         ))}
+      </section>
+      <section className="yk-pro-comparison" aria-labelledby="comparison-title">
+        <p className="eyebrow">The proposed membership</p>
+        <h2 id="comparison-title">Basic or Pro. Your way to collect.</h2>
+        <p className="yk-premium-muted">
+          Planned rules for this local prototype, not current account
+          entitlements. No free features have been removed.
+        </p>
+        <table>
+          <caption className="sr-only">
+            Proposed Basic and Pro plan limits
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Feature</th>
+              <th scope="col">Basic</th>
+              <th scope="col">Pro</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Regular Pack</th>
+              <td>Every {PROPOSED_PLAN_RULES.basic.regularPackMinutes} min</td>
+              <td>Every {PROPOSED_PLAN_RULES.pro.regularPackMinutes} min</td>
+            </tr>
+            <tr>
+              <th scope="row">Decision Pack</th>
+              <td>Every {PROPOSED_PLAN_RULES.basic.decisionPackHours} h</td>
+              <td>Every {PROPOSED_PLAN_RULES.pro.decisionPackHours} h</td>
+            </tr>
+            <tr>
+              <th scope="row">Active auctions</th>
+              <td>{PROPOSED_PLAN_RULES.basic.concurrentAuctions}</td>
+              <td>{PROPOSED_PLAN_RULES.pro.concurrentAuctions}</td>
+            </tr>
+            <tr>
+              <th scope="row">Showcase characters</th>
+              <td>{PROPOSED_PLAN_RULES.basic.showcaseSlots}</td>
+              <td>{PROPOSED_PLAN_RULES.pro.showcaseSlots}</td>
+            </tr>
+            <tr>
+              <th scope="row">Rarity odds per card</th>
+              <td>Unchanged</td>
+              <td>Unchanged</td>
+            </tr>
+          </tbody>
+        </table>
+        <p className="yk-premium-muted">
+          Two Decision Packs per day means a 12-hour cooldown, not two packs
+          banked at once.
+        </p>
+      </section>
+      <PremiumPlanPreview />
+      <section
+        className="yk-pro-feature-section"
+        aria-labelledby="pro-features-title"
+      >
+        <p className="eyebrow">All the details</p>
+        <h2 id="pro-features-title">Everything planned for Pro.</h2>
+        <p className="yk-premium-muted">
+          Offer preview only. The features below are not yet connected to public
+          profiles or game rules.
+        </p>
+        <div className="yk-pro-feature-grid">
+          {PROPOSED_PRO_FEATURES.map(feature => (
+            <article key={feature.id}>
+              <span>PLANNED</span>
+              <h3>{feature.title}</h3>
+              <p>{feature.detail}</p>
+            </article>
+          ))}
+        </div>
       </section>
       <section className="yk-premium-studio" aria-labelledby="studio-title">
         <div>
@@ -292,9 +369,7 @@ export function PremiumExperience({
             disabled={!enabled || busy}
             onClick={saveStyle}
           >
-            {enabled
-              ? "Save studio style"
-              : "Join Plus or try the demo to save"}
+            {enabled ? "Save studio style" : "Join Pro or try the demo to save"}
           </Button>
         </div>
       </section>
@@ -308,24 +383,29 @@ export function PremiumExperience({
           </h2>
           <p>
             Start with a monthly plan. Keep the looks you love while your
-            subscription is active. No gameplay advantage. No paid boosters in
-            this trial.
+            subscription is active. The proposed offer adds faster packs, more
+            auction slots and a bigger showcase alongside personalization.
           </p>
           <ul>
-            <li>Signature avatar-frame previews</li>
-            <li>Plus badge and colored-name previews</li>
-            <li>Three coordinated studio themes</li>
-            <li>Matching card-back preview</li>
+            <li>Regular Packs every 5 minutes</li>
+            <li>Decision Packs every 12 hours</li>
+            <li>6 active auctions and 10 showcase characters</li>
+            <li>Custom artwork, GIFs, themes, frames and effects</li>
+            <li>
+              Extra achievements that reward Karas; objectives and amounts to be
+              defined
+            </li>
           </ul>
           <p className="yk-premium-muted">
             These are prototype benefits for local evaluation, not a live
-            commercial offer.
+            commercial offer. Even an active Stripe test subscription only
+            unlocks style saving in this studio, not the planned game benefits.
           </p>
         </div>
         <article className="yk-premium-price-card">
           <div className="yk-premium-plan-heading">
             <h3>
-              Yokkai <em>Plus</em>
+              Yokkai <em>Pro</em>
             </h3>
             <span>MONTHLY</span>
           </div>
@@ -424,10 +504,12 @@ export function PremiumExperience({
       <section className="yk-premium-faq">
         <h2>A few things worth knowing.</h2>
         <details>
-          <summary>Does Plus improve my drops?</summary>
+          <summary>Does Pro change rarity odds?</summary>
           <p>
-            No. This prototype is for cosmetic personalization only. Regular and
-            Decision Pack rates, rewards and limits stay the same.
+            No. The proposed offer shortens pack cooldowns, so Pro members can
+            open more packs over time, but rarity odds per card stay the same.
+            This local preview does not change any real pack cooldowns or
+            rewards.
           </p>
         </details>
         <details>
@@ -450,18 +532,18 @@ export function PremiumExperience({
           <summary>Will this change my public profile?</summary>
           <p>
             Not yet. This first prototype saves the chosen theme in the local
-            Plus studio only. Integrating the final cosmetics into public
+            Pro studio only. Integrating the final cosmetics into public
             profiles is a separate step.
           </p>
         </details>
       </section>
-      <Modal open={demo} onClose={() => setDemo(false)} title="Try Yokkai Plus">
+      <Modal open={demo} onClose={() => setDemo(false)} title="Try Yokkai Pro">
         <div className="yk-premium-demo">
           <span className="yk-premium-badge">INTERACTIVE DEMO</span>
           <h3>Your style. No checkout needed.</h3>
           <p>
-            Enable a temporary Plus preview on this page. No bank card, no
-            Stripe account, no subscription and no changes to your real profile.
+            Enable a temporary Pro preview on this page. No bank card, no Stripe
+            account, no subscription and no changes to your real profile.
           </p>
           <Button
             onClick={() => {
