@@ -14,7 +14,7 @@ function load(
   },
   env = "test"
 ) {
-  const module = { exports: {} };
+  const compiled = { exports: {} };
   vm.runInNewContext(
     ts.transpileModule(source(file), {
       compilerOptions: {
@@ -23,13 +23,13 @@ function load(
       }
     }).outputText,
     {
-      exports: module.exports,
-      module,
+      exports: compiled.exports,
+      module: compiled,
       require,
       process: { env: { NODE_ENV: env } }
     }
   );
-  return module.exports;
+  return compiled.exports;
 }
 const presets = load("lib/ui/local-profile-style.ts");
 const storeModule = env =>
