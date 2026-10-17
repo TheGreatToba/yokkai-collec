@@ -155,7 +155,7 @@ export function PremiumCheckout({
       )}
       {signedIn && !loading && !state.configured && (
         <p id="checkout-unavailable" className="yk-pro-checkout-unavailable">
-          Checkout is not configured for this local preview yet.
+          Subscriptions are not available yet. Please check back soon.
         </p>
       )}
       {state.hasCustomer && !state.active && (

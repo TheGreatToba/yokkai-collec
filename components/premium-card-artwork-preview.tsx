@@ -40,10 +40,11 @@ export function PremiumCardArtworkPreview() {
           a personal touch with an image or animated GIF.
         </p>
         <div className="yk-pro-banner-caption">
-          <span aria-hidden="true">✦</span> Satoru Gojo · JUJUTSU KAISEN
+          <span aria-hidden="true">✦</span> Your collection, reimagined
         </div>
         <p className="yk-pro-banner-disclaimer">
-          Artwork example only. Card rarity and collection data stay unchanged.
+          Express your style with a new illustration while keeping your card’s
+          identity and rarity.
         </p>
       </div>
       <div className="yk-pro-artwork-preview">

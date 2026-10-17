@@ -8,7 +8,7 @@ import { PremiumOffer } from "@/components/premium-offer";
 import "@/styles/premium.css";
 
 export const metadata: Metadata = {
-  title: "Yokkai Pro · Local preview",
+  title: "Yokkai Pro · Make it yours",
   robots: { index: false, follow: false }
 };
 export const dynamic = "force-dynamic";
@@ -37,7 +37,7 @@ export default async function PremiumPage() {
         <PremiumOffer signedIn={!!user} name={name ?? "Collector"} />
       </main>
       <footer className="yk-premium-footer">
-        Local preview · Stripe test payments only.
+        Yokkai Collec’ · Your collection. Your style.
       </footer>
     </div>
   );

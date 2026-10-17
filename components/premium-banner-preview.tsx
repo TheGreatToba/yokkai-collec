@@ -43,11 +43,11 @@ export function PremiumBannerPreview() {
           image or an animated GIF.
         </p>
         <div className="yk-pro-banner-caption">
-          <span aria-hidden="true">✦</span> Featuring {example.name}
+          <span aria-hidden="true">✦</span> A profile that feels like you
         </div>
         <p className="yk-pro-banner-disclaimer">
-          A preview using BBDOU’s banner. No profile changes or Pro access are
-          applied.
+          Set the mood with your favorite image or bring it to life with an
+          animated GIF.
         </p>
       </div>
       <div className="yk-pro-banner-example">
@@ -75,7 +75,7 @@ export function PremiumBannerPreview() {
             />
             {!failed && (
               <span className="yk-pro-gif-label" aria-hidden="true">
-                {playing ? "GIF · PLAYING" : "STILL PREVIEW"}
+                {playing ? "ANIMATED BANNER" : "STATIC IMAGE"}
               </span>
             )}
             {failed && (
@@ -94,13 +94,13 @@ export function PremiumBannerPreview() {
             />
             <div className="yk-pro-banner-name">
               <h3>{example.name}</h3>
-              <span>PRO STYLE PREVIEW</span>
+              <span>YOKKAI PRO</span>
             </div>
             <p>A banner that makes your profile feel alive.</p>
           </div>
         </div>
         <div className="yk-pro-banner-controls">
-          <span>Original GIF · Same profile framing</span>
+          <span>Your profile. Your signature.</span>
         </div>
       </div>
     </section>

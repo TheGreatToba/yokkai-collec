@@ -20,8 +20,8 @@ export function PremiumOffer({
       style={{ "--plus-accent": "#b69aff" } as CSSProperties}
     >
       <div className="yk-premium-test-note">
-        <span>LOCAL PREVIEW</span> Stripe test payments only. The Pro benefits
-        shown here are not active yet.
+        <span>COMING SOON</span> Discover Yokkai Pro. Subscriptions and the
+        benefits below are not available yet.
       </div>
       <section className="yk-premium-hero yk-pro-offer-hero">
         <div className="yk-premium-copy">
@@ -130,11 +130,10 @@ export function PremiumOffer({
           </p>
         </details>
         <details>
-          <summary>What happens after I subscribe?</summary>
+          <summary>When can I join Yokkai Pro?</summary>
           <p>
-            Subscription status is verified through Stripe. This local preview
-            uses test payments only; the listed Pro benefits are not connected
-            to game accounts yet.
+            Yokkai Pro is coming soon. Subscriptions will open once the
+            membership benefits and secure payment experience are ready.
           </p>
         </details>
       </section>
