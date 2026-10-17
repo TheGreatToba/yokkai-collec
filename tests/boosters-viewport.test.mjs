@@ -70,3 +70,53 @@ test("browser fixture includes the same pack header, main and footer as the real
   assert.match(page, /min-h-dvh/);
   assert.match(page, /flex-1/);
 });
+
+test("pack lighting stays decorative and buttons follow a reserved info line", () => {
+  const root = postcss.parse(css);
+  const declaration = (selector, prop) =>
+    root.nodes
+      .find(node => node.selector === selector)
+      ?.nodes.find(node => node.prop === prop)?.value;
+  const boosters = read("components/boosters.tsx");
+  for (const name of ["ambient", "aura", "floor"]) {
+    assert.ok(
+      boosters.includes(`className="yk-pack-${name}" aria-hidden="true"`)
+    );
+    assert.equal(declaration(`.yk-pack-${name}`, "pointer-events"), "none");
+    assert.match(
+      declaration(`.yk-pack-${name}`, "background"),
+      /radial-gradient/
+    );
+    assert.match(declaration(`.yk-pack-${name}`, "filter"), /blur/);
+  }
+  assert.equal(
+    declaration(
+      ".yk-pack-grid .yk-pack-panel .yk-pack-body > .yk-button",
+      "margin-top"
+    ),
+    "0"
+  );
+  assert.equal(
+    declaration(".yk-pack-grid .yk-pack-panel .yk-pack-status", "min-height"),
+    "72px"
+  );
+  assert.match(
+    declaration(".yk-decision-panel .yk-pack-floor", "background"),
+    /var\(--color-accent-gold\)/
+  );
+});
+
+test("a retry alert in either desktop panel keeps both actions bottom-aligned", () => {
+  const root = postcss.parse(css);
+  const desktop = root.nodes.find(
+    node => node.type === "atrule" && node.params === "(min-width: 701px)"
+  );
+  assert.ok(desktop);
+  const selector = '.yk-pack-grid:has(.yk-pack-body > [role="alert"])';
+  const value = (suffix, prop) =>
+    desktop.nodes
+      .find(node => node.selector === `${selector} ${suffix}`)
+      ?.nodes.find(node => node.prop === prop)?.value;
+  assert.equal(value(".yk-pack-body", "flex"), "1");
+  assert.equal(value(".yk-pack-body > .yk-button", "margin-top"), "auto");
+});
