@@ -15,6 +15,7 @@
     "format": "node scripts/format.mjs --write",
     "format:check": "node scripts/format.mjs --check",
     "local:configure": "node scripts/configure-local-env.mjs",
+    "billing:sandbox": "node --env-file=.env.stripe-sandbox.local scripts/start-stripe-sandbox.mjs",
     "admin:grant": "node --env-file-if-exists=.env.local scripts/grant-admin.mjs",
     "import:cards": "node --env-file-if-exists=.env.local scripts/import-cards.mjs",
     "test": "node --test tests/*.test.mjs",
@@ -27,7 +28,8 @@
     "csv-parse": "^7.0.2",
     "next": "16.3.8",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "stripe": "^23.0.0"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",

@@ -4,6 +4,8 @@ import { AccountMenu } from "@/components/account-menu";
 import { SettingsPanel } from "@/components/settings";
 import { DataExportForm } from "@/components/data-export-form";
 import { AccountDeletionForm } from "@/components/account-deletion-form";
+import { SubscriptionSettings } from "@/components/subscription-settings";
+import { getBillingSettings } from "@/lib/billing/settings";
 import {
   getCurrentKarasBalance,
   getCurrentPseudo,
@@ -13,9 +15,10 @@ import {
 export default async function SettingsPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  const [name, karas] = await Promise.all([
+  const [name, karas, billing] = await Promise.all([
     getCurrentPseudo(user.id),
-    getCurrentKarasBalance()
+    getCurrentKarasBalance(),
+    getBillingSettings(user.id)
   ]);
   return (
     <div className="w-full">
@@ -29,6 +32,7 @@ export default async function SettingsPage() {
         <p className="eyebrow">Your account</p>
         <h1 className="yk-title mt-3">Settings</h1>
         <div className="mt-8">
+          <SubscriptionSettings billing={billing} />
           <SettingsPanel />
           <DataExportForm />
           {name && (
