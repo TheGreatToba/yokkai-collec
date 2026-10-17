@@ -760,19 +760,63 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto 1fr;
-  align-items: start;
+  align-items: stretch;
   gap: 28px;
   min-width: 0;
   padding: 0;
   border: 0;
 }
 @supports (grid-template-rows: subgrid) {
-  .yk-pro-personalization-examples > section {
-    grid-row: span 2;
-    grid-template-rows: subgrid;
+  @media (min-width: 961px) {
+    .yk-pro-personalization-examples {
+      row-gap: 18px;
+    }
+    .yk-pro-personalization-examples > section {
+      grid-row: span 6;
+      grid-template-rows: subgrid;
+      row-gap: 18px;
+    }
+    .yk-pro-personalization-examples .yk-pro-banner-copy {
+      display: grid;
+      grid-row: span 5;
+      grid-template-rows: subgrid;
+      row-gap: 18px;
+    }
+    .yk-pro-personalization-examples .yk-pro-banner-copy > * {
+      align-self: start;
+      margin: 0;
+    }
   }
 }
+.yk-pro-personalization-examples .yk-pro-banner-example {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #b69aff30;
+  border-radius: 17px;
+  overflow: hidden;
+  background: linear-gradient(150deg, #181225, #100d19);
+  box-shadow: 0 20px 70px #00000030;
+}
+.yk-pro-personalization-examples .yk-pro-banner-card {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.yk-pro-personalization-examples .yk-pro-banner-controls {
+  justify-content: center;
+  margin-top: auto;
+  padding: 0 18px 22px;
+  text-align: center;
+}
+.yk-pro-personalization-examples .yk-pro-banner-controls > span {
+  font-size: 11px;
+  line-height: 1.6;
+}
 .yk-pro-artwork-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
   padding: 22px 18px;
   border: 1px solid #b69aff30;
   border-radius: 17px;
@@ -827,7 +871,7 @@
   outline-offset: 5px;
 }
 .yk-pro-artwork-caption {
-  margin-top: 22px;
+  margin-top: auto;
   font-size: 11px;
   line-height: 1.6;
   text-align: center;

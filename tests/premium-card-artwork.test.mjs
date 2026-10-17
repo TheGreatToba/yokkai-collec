@@ -79,3 +79,30 @@ test("artwork example sits alongside the animated banner in the current offer pa
   );
   assert.match(css, /@media \(max-width: 960px\)/);
 });
+
+test("desktop examples share text tracks and stretch both panels without fixed heights", () => {
+  const css = source("styles/premium.css");
+  assert.match(css, /@supports \(grid-template-rows: subgrid\)/);
+  assert.match(css, /@media \(min-width: 961px\)/);
+  assert.match(
+    css,
+    /\.yk-pro-personalization-examples > section \{[^}]*grid-row: span 6;[^}]*grid-template-rows: subgrid;/
+  );
+  assert.match(
+    css,
+    /\.yk-pro-personalization-examples \.yk-pro-banner-copy \{[^}]*grid-row: span 5;[^}]*grid-template-rows: subgrid;/
+  );
+  assert.match(
+    css,
+    /\.yk-pro-personalization-examples > section \{[^}]*align-items: stretch;/
+  );
+  for (const selector of [
+    ".yk-pro-personalization-examples .yk-pro-banner-example",
+    ".yk-pro-artwork-preview"
+  ]) {
+    const block = css.slice(css.indexOf(`${selector} {`)).split("}")[0];
+    assert.match(block, /display: flex;/);
+    assert.match(block, /flex-direction: column;/);
+    assert.doesNotMatch(block, /(?:min-|max-)?height\s*:/);
+  }
+});
