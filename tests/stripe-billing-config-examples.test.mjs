@@ -52,3 +52,37 @@ test("configuration examples keep purchases closed, live prices out of local tes
     )
   );
 });
+
+test("Sandbox preparation keeps its supplied price separate from live configuration and credentials", () => {
+  const doc = read("docs/stripe-production-foundation.md");
+  const section = doc.split("### Tarif Sandbox fourni")[1];
+  assert.ok(section);
+  const block = section.match(/```dotenv\r?\n([\s\S]*?)```/)?.[1];
+  assert.ok(block);
+  const sandbox = env(block);
+  assert.equal(sandbox.STRIPE_BILLING_ENABLED, "false");
+  assert.equal(sandbox.STRIPE_CHECKOUT_ENABLED, "false");
+  assert.equal(sandbox.STRIPE_BILLING_MODE, "test");
+  assert.equal(sandbox.STRIPE_PRO_PRICE_ID, "price_1URcyIIQHbfFctSIkiBvXgIo");
+  assert.equal(sandbox.STRIPE_ACCOUNT_ID, "acct_1UQSidIuXkg5OZqm");
+  for (const key of [
+    "STRIPE_SECRET_KEY",
+    "STRIPE_PRO_WEBHOOK_SECRET",
+    "STRIPE_RECONCILIATION_SECRET"
+  ]) {
+    assert.equal(sandbox[key], "");
+  }
+  const productionBlock = doc.match(/```dotenv\r?\n([\s\S]*?)```/)?.[1];
+  assert.ok(productionBlock);
+  const production = env(productionBlock);
+  assert.equal(
+    production.STRIPE_PRO_PRICE_ID,
+    "price_1URdBZIuXkg5OZqmJiQZmOr7"
+  );
+  assert.notEqual(sandbox.STRIPE_PRO_PRICE_ID, production.STRIPE_PRO_PRICE_ID);
+  assert.ok(
+    read(".env.billing.example").includes(
+      "# STRIPE_PRO_PRICE_ID=" + sandbox.STRIPE_PRO_PRICE_ID
+    )
+  );
+});

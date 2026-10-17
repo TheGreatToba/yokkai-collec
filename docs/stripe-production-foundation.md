@@ -59,6 +59,35 @@ Après installation des variables dans le gestionnaire de secrets du serveur, et
 
 Ce script refuse de démarrer hors `NODE_ENV=production`, avec une autre origine ou si un des flags n’est pas explicitement `false`. Il appelle uniquement `GET /v1/account` et `GET /v1/prices/<id>` via le SDK officiel, vérifie le compte, le mode réel et le tarif actif 499 centimes EUR mensuel récurrent. Aucun client, Checkout, abonnement ou paiement créé, aucune écriture SQL. La sortie ne contient pas la clé, de réponse fournisseur brute ou d’identifiant financier. Un succès confirme ces contrôles uniquement, **pas** la préparation du webhook ou des avantages, ni l’autorisation d’ouvrir les achats.
 
+### Tarif Sandbox fourni — recette isolée à préparer
+
+Identifiant fourni par le propriétaire après passage demandé en Sandbox : `price_1URcyIIQHbfFctSIkiBvXgIo`. Le mode test, le compte propriétaire et le tarif actif 499 centimes EUR mensuel récurrent restent **à vérifier par l’API Stripe** ; le préfixe `price_` ne distingue pas test et réel.
+
+Configuration de préparation locale, séparée de Coolify production :
+
+```dotenv
+STRIPE_BILLING_ENABLED=false
+STRIPE_CHECKOUT_ENABLED=false
+STRIPE_BILLING_MODE=test
+STRIPE_ACCOUNT_ID=acct_1UQSidIuXkg5OZqm
+STRIPE_PRO_PRICE_ID=price_1URcyIIQHbfFctSIkiBvXgIo
+STRIPE_SECRET_KEY=
+STRIPE_PRO_WEBHOOK_SECRET=
+STRIPE_RECONCILIATION_SECRET=
+```
+
+Le propriétaire a également fourni `acct_1UQSidIuXkg5OZqm` pour cet environnement de test ; il est identique à l’identifiant donné pour le réel. Cela ne prouve ni le mode ni l’isolation du Sandbox : vérifier le compte avec sa propre clé de test et exiger `livemode: false` sur le prix. Utiliser uniquement une clé restreinte `rk_test_…` de ce même environnement, stockée dans un fichier local ignoré ou un gestionnaire de secrets, jamais dans le chat ou Git. L’application et Supabase de recette doivent être locaux et distincts de la production. Ne remplacer aucune variable live de Coolify par ces valeurs.
+
+Le script `check-stripe-setup.mjs` existant reste réservé au précontrôle **live en lecture seule**, sans changement de ses garde-fous. Un script distinct `scripts/check-stripe-sandbox.mjs` vérifie compte et prix en lecture seule avec `NODE_ENV=development`, origine loopback, clé test et flags explicitement fermés ; il n’accède pas à Supabase et ne crée aucun objet Stripe. Il exige un tarif actif, `livemode: false`, 499 centimes EUR mensuel récurrent. Résultats et erreurs expurgés ; un échec ne doit pas être contourné en activant les flags.
+
+Une fois la clé **test** déposée dans `.env.stripe-sandbox.local` (fichier ignoré par Git, distinct des fichiers chargés par Next.js), lancer depuis cette branche :
+
+```sh
+node --env-file=.env.stripe-sandbox.local scripts/check-stripe-sandbox.mjs
+```
+
+Ne jamais afficher ce fichier après ajout de la clé. Ce contrôle n’active pas Pro et ne valide pas le parcours d’achat. La recette complète (Checkout, webhook signé, renouvellement et résiliation) reste à préparer avant toute vente ; aucun appel Stripe n’a validé ces identifiants à ce stade.
+
 ## Conditions obligatoires avant vente — lots suivants
 
 - Intégrer proprement l’interface `/premium` des PR #300/#304, retirer ses mentions de prototype **seulement** lorsque tous les bénéfices annoncés sont fonctionnels et vérifiés ; brancher ses actions sur ces routes de facturation. Les URLs de retour `/premium` sont prévues pour cette intégration, la page n’existe pas encore dans ce lot indépendant.
