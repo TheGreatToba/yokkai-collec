@@ -90,6 +90,11 @@ export function BillingSandboxPreview({ signedIn }: { signedIn: boolean }) {
         This page tests billing only. Production accounts, game perks and
         collections are unchanged.
       </p>
+      <p className="mt-4">
+        <Link href="/settings#subscription" className="yk-button">
+          Open subscription settings
+        </Link>
+      </p>
       {!signedIn ? (
         <p>
           <Link href="/login">Sign in with your local account</Link>, then

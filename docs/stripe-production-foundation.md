@@ -100,7 +100,11 @@ Le lanceur refait le précontrôle puis lit la configuration de Supabase local v
 
 L’application démarre avec Webpack, liée à `127.0.0.1:3002`, origine `http://localhost:3002`. Les flags restent `false` dans le fichier privé ; le lanceur active les routes **uniquement dans son processus enfant local**, en mode test avec clé test et Supabase loopback. Les deux processus sont arrêtés ensemble si l’un d’eux s’arrête. Le serveur de l’aperçu existant sur le port 3000 n’est pas modifié.
 
-`/design-system/billing-preview` fournit connexion locale, création d’un Checkout, rafraîchissement du statut et portail client. `/premium` est uniquement un retour local vers cet écran ; les deux pages refusent la production et toute configuration hors test explicitement activé. Il ne s’agit pas de la page de vente finale et aucun avantage de jeu n’est activé.
+La gestion de l’abonnement est centralisée dans `/settings#subscription`, accessible depuis « Settings » dans le menu profil. Statut et échéance sont vérifiés côté serveur pour l’utilisateur authentifié ; souscription, rafraîchissement et accès au portail Stripe utilisent les mêmes routes protégées. Checkout (succès/abandon) et portail reviennent à cette section. Factures, moyen de paiement et résiliation restent hébergés chez Stripe ; aucune donnée bancaire n’est stockée dans l’application. Le retour navigateur ou ses paramètres ne donnent jamais accès à Pro.
+
+La section conserve la DA des paramètres et se replie sur mobile. Sans facturation activée, aucun achat ne peut être démarré et aucun appel Stripe n’est fait ; si la vérification échoue, elle affiche un statut indisponible, pas un statut Basic/Pro supposé. En Sandbox, une mention explicite rappelle qu’aucun argent réel ni avantage de jeu n’est accordé. Recette sur compte jetable : Basic, Pro actif résilié à échéance, portail et rafraîchissement vérifiés, ainsi que rendu Chrome 1440/390 px sans débordement horizontal. Compte nettoyé, captures sous `artifacts/subscription-settings/` hors Git.
+
+`/design-system/billing-preview` reste un outil de diagnostic local, avec un lien vers les paramètres. `/premium` conserve uniquement un ancien retour local vers cet outil ; ces deux pages refusent la production et toute configuration hors test explicitement activé. Il ne s’agit pas de la page de vente finale et aucun avantage de jeu n’est activé.
 
 Migration `20261017000000_stripe_billing_foundation.sql` appliquée **uniquement** au conteneur `supabase_db_Kara`, contexte Docker Desktop local vérifié (`npipe:////./pipe/dockerDesktopLinuxEngine`). Tables auparavant absentes ; aucune migration ni donnée du VPS touchée. L’historique de migrations de production n’est pas modifié.
 
@@ -129,7 +133,7 @@ Un cinquième compte jetable a servi à tenter le challenge sur la facture hébe
 
 ## Conditions obligatoires avant vente — lots suivants
 
-- Intégrer proprement l’interface `/premium` des PR #300/#304, retirer ses mentions de prototype **seulement** lorsque tous les bénéfices annoncés sont fonctionnels et vérifiés ; brancher ses actions sur ces routes de facturation. Les URLs de retour `/premium` sont prévues pour cette intégration, la page n’existe pas encore dans ce lot indépendant.
+- Intégrer proprement l’interface commerciale `/premium` des PR #300/#304, retirer ses mentions de prototype **seulement** lorsque tous les bénéfices annoncés sont fonctionnels et vérifiés ; brancher ses actions sur ces routes de facturation. La gestion et les retours Stripe restent dans `/settings#subscription`, indépendamment de la page commerciale.
 - Faire contrôler **en SQL**, atomiquement, les nouvelles limites et délais : Basic/Pro 3/6 enchères, Regular Pack 10/5 minutes, Decision Pack 24/12 heures et vitrine 5/10. Ne pas toucher aux probabilités par carte. Définir downgrade/expiration sans suppression arbitraire de cartes, médias ou ventes.
 - Persister le style Pro et appliquer les restrictions de personnalisation au serveur/Storage, pas seulement au bouton grisé. Désormais la page locale reste inchangée sur le port 3000 ; son état en mémoire ne devient pas un droit de production.
 - Définir objectifs et montants des succès Pro donnant des Karas, puis réclamations SQL atomiques/idempotentes. Les récompenses restent non définies par le produit ; ne pas en inventer.

@@ -143,8 +143,8 @@ export function billingService(
             line_items: [{ price: config.price, quantity: 1 }],
             allowed_payment_method_types: ["card"],
             subscription_data: { metadata: { yokkai_user_id: userId } },
-            success_url: `${config.origin}/premium?checkout=returned`,
-            cancel_url: `${config.origin}/premium?checkout=canceled`
+            success_url: `${config.origin}/settings?checkout=returned#subscription`,
+            cancel_url: `${config.origin}/settings?checkout=canceled#subscription`
           },
           { idempotencyKey: `yokkai-checkout:${account.id}:${nonce}` }
         );
@@ -173,7 +173,7 @@ export function billingService(
           throw new BillingError("BILLING_NO_SUBSCRIPTION", 409);
         const portal = await stripe.billingPortal.sessions.create({
           customer: account.stripe_customer_id,
-          return_url: `${config.origin}/premium`
+          return_url: `${config.origin}/settings#subscription`
         });
         return stripeDestination(portal.url, "https://billing.stripe.com");
       });

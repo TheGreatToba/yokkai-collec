@@ -478,6 +478,14 @@ test("checkout persists the server-owned customer first, fixes amount and identi
   assert.equal(params.line_items[0].price, "price_example");
   assert.equal(params.line_items[0].quantity, 1);
   assert.equal(params.mode, "subscription");
+  assert.equal(
+    params.success_url,
+    "http://localhost:3000/settings?checkout=returned#subscription"
+  );
+  assert.equal(
+    params.cancel_url,
+    "http://localhost:3000/settings?checkout=canceled#subscription"
+  );
   assert.match(options.idempotencyKey, /row:nonce1$/);
   f.state.subs = [subscription()];
   await assert.rejects(f.service.checkout(userId), /BILLING_USE_PORTAL/);
@@ -595,6 +603,10 @@ test("refunds and disputes put a sticky hold on access; portal and reconciliatio
   assert.equal(f.state.saves.at(-1).state.active, false);
   await f.service.portal(userId);
   assert.equal(f.calls.find(c => c[0] === "portal")[1].customer, "cus_example");
+  assert.equal(
+    f.calls.find(c => c[0] === "portal")[1].return_url,
+    "http://localhost:3000/settings#subscription"
+  );
   assert.equal((await f.service.status(userId)).active, false);
   const result = await f.service.reconcile(
     "00000000-0000-0000-0000-000000000000"
