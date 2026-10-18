@@ -1801,7 +1801,7 @@ test("le Decision Pack confirmé affiche une carte gardée et quatre perdues", (
     html,
     /Card added to your collection · \+0 Karas from the cards you didn&#x27;t keep/
   );
-  assert.match(html, />SSR ×(?:<!-- -->)?1</);
+  assert.doesNotMatch(html, />SSR ×(?:<!-- -->)?\d+</);
   assert.doesNotMatch(html, />SSR ×(?:<!-- -->)?5</);
 });
 
@@ -1927,6 +1927,11 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
     normalizeWhitespace(/>Select</)
   );
   assert.equal((regularDone.match(/>Discard</g) || []).length, 5);
+  assert.equal(
+    (regularDone.match(/yk-slot-button yk-reveal-discard/g) || []).length,
+    5
+  );
+  assert.doesNotMatch(regularDone, />SSR ×(?:<!-- -->)?\d+</);
   const choosing = render(BoosterReveal, {
     cards,
     revealed: 5,

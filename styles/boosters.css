@@ -1318,6 +1318,9 @@
   }
 }
 @media (max-width: 40rem) {
+  .yk-reveal-actions:has(> .yk-reveal-discard) {
+    display: none;
+  }
   .yk-reveal-header {
     align-items: center;
   }
