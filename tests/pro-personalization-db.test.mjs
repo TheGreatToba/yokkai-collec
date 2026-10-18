@@ -243,4 +243,17 @@ test("paid cosmetics are server-only, bounded, owner-scoped and hidden after exp
     ),
     /row-level security/
   );
+  await admin();
+  await db.query(
+    "insert into public.account_deletion_log(user_id) values($1)",
+    [other]
+  );
+  await assert.rejects(reserve(other, "avatar"), /ACCOUNT_DELETED/);
+  await assert.rejects(
+    db.query(
+      "insert into public.profile_customizations(user_id,style) values($1,'{}')",
+      [other]
+    ),
+    /ACCOUNT_DELETED/
+  );
 });

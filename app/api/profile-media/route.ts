@@ -71,6 +71,8 @@ export async function POST(request: Request) {
       });
     if (reserveError?.message === "PRO_REQUIRED")
       throw new ProError("PRO_REQUIRED", 403);
+    if (reserveError?.message === "ACCOUNT_DELETED")
+      throw new ProError("REQUEST_DENIED", 403);
     if (reserveError?.message === "PROFILE_MEDIA_RATE_LIMITED")
       throw new ProError("PROFILE_MEDIA_RATE_LIMITED", 429);
     if (reserveError) throw new ProError("PRO_UNAVAILABLE");

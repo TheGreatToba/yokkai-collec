@@ -21,6 +21,9 @@ grant select,insert,delete on public.profile_media_assets to service_role;
 create function public.guard_profile_media_reservation() returns trigger
 language plpgsql security definer set search_path = '' as $$
 begin
+  if exists(select 1 from public.account_deletion_log where user_id=new.user_id) then raise exception 'ACCOUNT_DELETED'; end if;
+  perform pg_advisory_xact_lock_shared(hashtextextended('account-deletion:'||new.user_id::text,0));
+  if exists(select 1 from public.account_deletion_log where user_id=new.user_id) then raise exception 'ACCOUNT_DELETED'; end if;
   if (new.purpose<>'avatar' or new.animated) and not public.billing_has_game_pro(new.user_id) then raise exception 'PRO_REQUIRED'; end if;
   perform pg_advisory_xact_lock(hashtextextended('profile-media:'||new.user_id::text,0));
   if (select count(*) from public.profile_media_assets where user_id=new.user_id and created_at>clock_timestamp()-interval '10 minutes')>=10
@@ -46,6 +49,9 @@ create function public.guard_pro_profile_style() returns trigger
 language plpgsql security definer set search_path = '' as $$
 declare k text; media_url text; media_path text;
 begin
+  if exists(select 1 from public.account_deletion_log where user_id=new.user_id) then raise exception 'ACCOUNT_DELETED'; end if;
+  perform pg_advisory_xact_lock_shared(hashtextextended('account-deletion:'||new.user_id::text,0));
+  if exists(select 1 from public.account_deletion_log where user_id=new.user_id) then raise exception 'ACCOUNT_DELETED'; end if;
   if new.style='{}'::jsonb then new.updated_at:=clock_timestamp(); return new; end if;
   if not public.billing_has_game_pro(new.user_id) then raise exception 'PRO_REQUIRED'; end if;
   if tg_op='UPDATE' and old.updated_at>clock_timestamp()-interval '2 seconds' and new.style is distinct from old.style

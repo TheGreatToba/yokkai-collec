@@ -141,6 +141,8 @@ export async function saveProStyle(
     .upsert({ user_id: userId, style });
   if (error?.message === "PRO_REQUIRED")
     throw new ProError("PRO_REQUIRED", 403);
+  if (error?.message === "ACCOUNT_DELETED")
+    throw new ProError("REQUEST_DENIED", 403);
   if (error?.message === "PROFILE_STYLE_INVALID" || error?.code === "23514")
     throw new ProError("PROFILE_STYLE_INVALID", 400);
   if (error?.message === "PROFILE_STYLE_RATE_LIMITED")
