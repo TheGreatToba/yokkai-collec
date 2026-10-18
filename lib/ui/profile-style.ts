@@ -143,6 +143,13 @@ export function nameStyleVariables(style: ProfileStyle) {
     "--name-secondary": safe.secondary
   };
 }
+export function profileThemeVariables(style: ProfileStyle) {
+  const safe = normalizeProfileStyle(style);
+  return {
+    "--profile-theme-primary": safe.color,
+    "--profile-theme-accent": safe.secondary
+  };
+}
 export function safeStyleMedia(value: unknown): value is string {
   if (typeof value !== "string" || value.length > 2048) return false;
   try {
