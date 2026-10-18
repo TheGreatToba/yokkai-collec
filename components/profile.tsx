@@ -2048,7 +2048,7 @@ export function ProfileExperience({
         ) : isMe && collection && details ? (
           <Editor
             key={editingMode}
-            mode={editingMode}
+            mode={editingMode === "showcase" ? "showcase" : "profile"}
             profile={profile}
             collection={collection}
             initialBannerUrl={
