@@ -1,4 +1,8 @@
 // Exact overloads and roles only. Every addition requires an access justification.
+export const ownerOnly = [
+  "public.prepare_account_deletion_without_billing(uuid)"
+]; // Only the owning SECURITY DEFINER wrapper may bypass billing preparation; never service_role.
+
 const allowlist = {
   "public.admin_get_player(uuid)": ["authenticated"], // Admin-only account and inventory projection.
   "public.admin_list_players(text, integer, integer)": ["authenticated"], // Admin-only paginated account search.

@@ -7,6 +7,53 @@ import {
   securityDefinerAccess
 } from "../scripts/replay-migrations.mjs";
 import allowlist from "./security-definer-allowlist.mjs";
+import * as accessPolicy from "./security-definer-allowlist.mjs";
+
+test("billing deletion helper has an explicit owner-only access policy", async t => {
+  const signature = "public.prepare_account_deletion_without_billing(uuid)";
+  assert.ok(
+    accessPolicy.ownerOnly?.includes(signature),
+    "Register the billing bypass helper as owner-only"
+  );
+  const { db } = await replayMigrations();
+  t.after(() => db.close());
+  for (const helper of accessPolicy.ownerOnly) {
+    const { rows } = await db.query(
+      `
+      select p.proacl is not null as explicit,
+        has_function_privilege('anon', p.oid, 'EXECUTE') as anon,
+        has_function_privilege('authenticated', p.oid, 'EXECUTE') as authenticated,
+        has_function_privilege('service_role', p.oid, 'EXECUTE') as service_role,
+        has_function_privilege(p.proowner, p.oid, 'EXECUTE') as owner,
+        exists(select 1 from aclexplode(p.proacl) a where a.grantee=0 and a.privilege_type='EXECUTE') as public
+      from pg_proc p where p.oid=$1::regprocedure`,
+      [helper]
+    );
+    assert.deepEqual(
+      rows,
+      [
+        {
+          explicit: true,
+          anon: false,
+          authenticated: false,
+          service_role: false,
+          owner: true,
+          public: false
+        }
+      ],
+      helper
+    );
+  }
+  assert.deepEqual(
+    (
+      await db.query(`select p.oid::regprocedure::text as signature
+    from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+    where n.nspname='public' and p.proacl is null`)
+    ).rows,
+    [],
+    "Every public function must have explicit ACLs"
+  );
+});
 
 test("migration versions are unique", () => {
   const names = readdirSync(new URL("../supabase/migrations/", import.meta.url))
