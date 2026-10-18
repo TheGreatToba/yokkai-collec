@@ -21,6 +21,13 @@ import { ProfileWall } from "@/components/profile-wall";
 import { ProfileSales } from "@/components/profile-sales";
 import { BannerCrop } from "@/components/banner-crop";
 import { BannerImage } from "@/components/banner-image";
+import { ProfileStyleFields } from "@/components/profile-style-fields";
+import { StyledPlayerName } from "@/components/styled-player-name";
+import {
+  DEFAULT_PROFILE_STYLE,
+  normalizeProfileStyle
+} from "@/lib/ui/profile-style";
+import { useProAccess, ProFeatureNotice } from "@/components/pro-access";
 import type { BannerFrame } from "@/lib/ui/banner-frame";
 import {
   CatalogueCardModal,
@@ -297,10 +304,12 @@ function PreferencesEditor({
 
 function Featured({
   cards,
-  emptyLabel
+  emptyLabel,
+  slots = FEATURED_CARD_LIMIT
 }: {
   cards: CollectedCard[];
   emptyLabel?: string;
+  slots?: number;
 }) {
   const pathname = usePathname();
   const publicPseudo = pathname.startsWith("/profile/")
@@ -325,15 +334,12 @@ function Featured({
           <YokaiCard {...card} imageSizes={PROFILE_CARD_IMAGE_SIZES} />
         </div>
       ))}
-      {Array.from(
-        { length: Math.max(0, FEATURED_CARD_LIMIT - cards.length) },
-        (_, i) => (
-          <div key={`empty-${i}`} className="yk-featured-empty">
-            <span aria-hidden="true">✦</span>
-            <small>Empty slot</small>
-          </div>
-        )
-      )}
+      {Array.from({ length: Math.max(0, slots - cards.length) }, (_, i) => (
+        <div key={`empty-${i}`} className="yk-featured-empty">
+          <span aria-hidden="true">✦</span>
+          <small>Empty slot</small>
+        </div>
+      ))}
     </div>
   );
 }
@@ -362,6 +368,14 @@ function Editor({
   onClose: () => void;
 }) {
   const [bio, setBio] = useState(profile.bio);
+  const pro = useProAccess();
+  const FEATURED_CARD_LIMIT = pro ? 10 : 5;
+  const initialStyle = normalizeProfileStyle({
+    ...DEFAULT_PROFILE_STYLE,
+    ...profile.profileStyle?.style
+  });
+  const [style, setStyle] = useState(initialStyle);
+  const [styleMediaBusy, setStyleMediaBusy] = useState(false);
   const [avatar, setAvatar] = useState(profile.avatarUrl);
   const ownedBannerCards = useMemo(() => {
     const cards = new Map<string, Card>();
@@ -462,7 +476,7 @@ function Editor({
     }
   }
   async function submit() {
-    if (busy) return;
+    if (busy || styleMediaBusy) return;
     setBusy(true);
     setError("");
     try {
@@ -487,6 +501,25 @@ function Editor({
         uploadedBannerUrl,
         bannerFrame ?? undefined
       );
+      if (
+        pro &&
+        mode === "profile" &&
+        JSON.stringify(style) !== JSON.stringify(initialStyle)
+      ) {
+        const response = await fetch("/api/pro/profile-style", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ style })
+        });
+        if (!response.ok) {
+          onSaved(updated);
+          throw new Error(
+            "Your profile was saved, but its style couldn't be updated. Please try saving again."
+          );
+        }
+        updated.profileStyle = { active: true, style };
+        window.dispatchEvent(new Event("yokkai:profile-style-updated"));
+      }
       onSaved(updated);
       onClose();
     } catch (e) {
@@ -496,266 +529,286 @@ function Editor({
     }
   }
   return (
-    <div className="space-y-6" data-profile-editor={mode}>
-      {mode === "profile" && (
-        <>
-          <div className="flex items-center gap-4">
-            <Avatar
-              name={profile.pseudo}
-              image={avatar ?? undefined}
-              size={80}
-            />
-            <label className="yk-button yk-button-secondary cursor-pointer">
-              Choose photo
-              <input
-                className="sr-only"
-                type="file"
-                disabled={busy}
-                accept="image/jpeg,image/png,image/webp,image/gif"
-                onChange={e => void photo(e.target.files?.[0])}
+    <div className="space-y-6 yk-profile-edit-grid" data-profile-editor={mode}>
+      <div className="space-y-6">
+        {mode === "profile" && (
+          <>
+            <div className="flex items-center gap-4">
+              <Avatar
+                name={profile.pseudo}
+                image={avatar ?? undefined}
+                size={80}
               />
-            </label>
-          </div>
-          <p className="text-xs text-ink-3">
-            JPG, PNG, WebP or GIF · Up to 4 MB.
-          </p>
-          <label className="block text-sm text-ink-2">
-            Bio
-            <textarea
-              className="auth-input mt-2 min-h-28 resize-none overflow-y-auto py-3"
-              maxLength={300}
-              value={bio}
-              onChange={e => setBio(e.target.value)}
-              placeholder="Tell us about your collection…"
-            />
-            <span className="mt-1 block text-right text-xs text-ink-3">
-              {bio.length}/300
-            </span>
-          </label>
-          <section
-            className="yk-profile-banner-editor"
-            data-owned-banner-picker
-          >
-            <h3 className="font-display text-lg">Profile banner</h3>
-            <p className="yk-profile-muted">
-              Choose a card from your collection or upload an image. Adjust its
-              position, zoom and rotation before saving.
-            </p>
-            {profile.bannerCard && !eligibleBanner && !initialBannerUrl && (
-              <p className="mt-2 text-xs text-ink-3" role="status">
-                Your previous banner is no longer eligible. Saving will replace
-                it with your selected card, or remove it if no card is selected.
-              </p>
-            )}
-            {bannerSource && (
-              <div className="yk-banner-framed-preview">
-                <BannerImage
-                  src={bannerSource}
-                  frame={bannerFrame ?? { x: 50, y: 50, zoom: 1, rotation: 0 }}
-                />
-              </div>
-            )}
-            <div className="yk-profile-widget-tools">
-              <label
-                className="yk-button yk-button-secondary cursor-pointer"
-                data-banner-upload
-              >
-                Upload banner
+              <label className="yk-button yk-button-secondary cursor-pointer">
+                Choose photo
                 <input
                   className="sr-only"
                   type="file"
                   disabled={busy}
                   accept="image/jpeg,image/png,image/webp,image/gif"
-                  onChange={event => {
-                    const file = event.target.files?.[0];
-                    event.target.value = "";
-                    if (!file) return;
-                    if (file.size > PROFILE_IMAGE_MAX_BYTES) {
-                      setError("Your banner must be 4 MB or smaller.");
-                      return;
-                    }
-                    if (
-                      ![
-                        "image/jpeg",
-                        "image/png",
-                        "image/webp",
-                        "image/gif"
-                      ].includes(file.type)
-                    ) {
-                      setError("Use a JPG, PNG, WebP or GIF image.");
-                      return;
-                    }
-                    setError("");
-                    const src = URL.createObjectURL(file);
-                    setCrop({ src, frame: null, card: null, file });
-                  }}
+                  onChange={e => void photo(e.target.files?.[0])}
                 />
               </label>
-              {bannerSource && (
-                <Button
-                  variant="secondary"
-                  disabled={busy}
-                  onClick={() => {
-                    setBannerCard(null);
-                    setBannerFrame(null);
-                    setBannerUrl(null);
-                    setBannerFile(null);
-                    setBannerPreview(null);
-                  }}
-                >
-                  Remove banner
-                </Button>
-              )}
-              {bannerSource && (
-                <Button
-                  variant="secondary"
-                  disabled={busy}
-                  onClick={() =>
-                    setCrop({
-                      src: bannerSource,
-                      frame: bannerFrame,
-                      card: bannerCard
-                    })
-                  }
-                >
-                  Adjust banner
-                </Button>
-              )}
             </div>
-            <p className="mt-2 text-xs text-ink-3">
+            <p className="text-xs text-ink-3">
               JPG, PNG, WebP or GIF · Up to 4 MB.
             </p>
-            {bannerCard && (
-              <div className="yk-banner-choice mt-4">
-                <div>
-                  <img src={bannerCard.image} alt="" decoding="async" />
-                  <strong>{bannerCard.name}</strong>
-                  <small>{bannerCard.anime ?? bannerCard.category}</small>
-                </div>
-              </div>
-            )}
-            <div className="relative mt-4">
-              <input
-                className="auth-input"
-                type="search"
-                aria-label="Search your collection for a banner"
-                aria-describedby="banner-search-help"
-                disabled={busy}
-                value={bannerQuery}
-                onChange={e => {
-                  const value = e.target.value;
-                  setBannerQuery(value);
-                  setError("");
-                }}
-                placeholder="Search by character and franchise…"
+            {!pro && <ProFeatureNotice feature="Animated profile pictures" />}
+            <label className="block text-sm text-ink-2">
+              Bio
+              <textarea
+                className="auth-input mt-2 min-h-28 resize-none overflow-y-auto py-3"
+                maxLength={300}
+                value={bio}
+                onChange={e => setBio(e.target.value)}
+                placeholder="Tell us about your collection…"
               />
-              <p id="banner-search-help" className="mt-2 text-xs text-ink-3">
-                Combine a character’s name with its franchise, e.g. Loki One
-                Piece.
+              <span className="mt-1 block text-right text-xs text-ink-3">
+                {bio.length}/300
+              </span>
+            </label>
+            <section
+              className="yk-profile-banner-editor"
+              data-owned-banner-picker
+            >
+              <h3 className="font-display text-lg">Profile banner</h3>
+              <p className="yk-profile-muted">
+                Choose a card from your collection or upload an image. Adjust
+                its position, zoom and rotation before saving.
               </p>
-              {ownedBannerChoices.length > 0 ? (
-                <ul className="yk-banner-results">
-                  {ownedBannerChoices.slice(0, 36).map(card => (
-                    <li key={card.id}>
-                      <button
-                        type="button"
-                        disabled={busy}
-                        onClick={() => {
-                          setCrop({
-                            src: card.image,
-                            frame: null,
-                            card
-                          });
-                        }}
-                      >
-                        <img
-                          src={card.image}
-                          alt=""
-                          loading="lazy"
-                          decoding="async"
-                        />
-                        <span>
-                          <strong>{card.name}</strong>
-                          <small>{card.anime ?? card.category}</small>
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="mt-3 text-sm text-ink-3" role="status">
-                  {ownedBannerCards.length
-                    ? "No matching cards in your collection."
-                    : "Collect a card to use it as a profile banner, or upload an image."}
+              {profile.bannerCard && !eligibleBanner && !initialBannerUrl && (
+                <p className="mt-2 text-xs text-ink-3" role="status">
+                  Your previous banner is no longer eligible. Saving will
+                  replace it with your selected card, or remove it if no card is
+                  selected.
                 </p>
               )}
-              {ownedBannerChoices.length > 36 && (
-                <p className="mt-2 text-xs text-ink-3">
-                  Showing 36 of{" "}
-                  {ownedBannerChoices.length.toLocaleString("en-US")} cards.
-                  Search to find a specific card.
-                </p>
+              {bannerSource && (
+                <div className="yk-banner-framed-preview">
+                  <BannerImage
+                    src={bannerSource}
+                    frame={
+                      bannerFrame ?? { x: 50, y: 50, zoom: 1, rotation: 0 }
+                    }
+                  />
+                </div>
               )}
+              <div className="yk-profile-widget-tools">
+                <label
+                  className="yk-button yk-button-secondary cursor-pointer"
+                  data-banner-upload
+                  aria-disabled={!pro}
+                >
+                  Upload banner
+                  <input
+                    className="sr-only"
+                    type="file"
+                    disabled={busy || !pro}
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={event => {
+                      const file = event.target.files?.[0];
+                      event.target.value = "";
+                      if (!file || !pro) return;
+                      if (file.size > PROFILE_IMAGE_MAX_BYTES) {
+                        setError("Your banner must be 4 MB or smaller.");
+                        return;
+                      }
+                      if (
+                        ![
+                          "image/jpeg",
+                          "image/png",
+                          "image/webp",
+                          "image/gif"
+                        ].includes(file.type)
+                      ) {
+                        setError("Use a JPG, PNG, WebP or GIF image.");
+                        return;
+                      }
+                      setError("");
+                      const src = URL.createObjectURL(file);
+                      setCrop({ src, frame: null, card: null, file });
+                    }}
+                  />
+                </label>
+                {bannerSource && (
+                  <Button
+                    variant="secondary"
+                    disabled={busy}
+                    onClick={() => {
+                      setBannerCard(null);
+                      setBannerFrame(null);
+                      setBannerUrl(null);
+                      setBannerFile(null);
+                      setBannerPreview(null);
+                    }}
+                  >
+                    Remove banner
+                  </Button>
+                )}
+                {bannerSource && (
+                  <Button
+                    variant="secondary"
+                    disabled={busy}
+                    onClick={() =>
+                      setCrop({
+                        src: bannerSource,
+                        frame: bannerFrame,
+                        card: bannerCard
+                      })
+                    }
+                  >
+                    Adjust banner
+                  </Button>
+                )}
+              </div>
+              <p className="mt-2 text-xs text-ink-3">
+                JPG, PNG, WebP or GIF · Up to 4 MB.
+              </p>
+              {!pro && (
+                <ProFeatureNotice feature="Custom and animated banners" />
+              )}
+              {bannerCard && (
+                <div className="yk-banner-choice mt-4">
+                  <div>
+                    <img src={bannerCard.image} alt="" decoding="async" />
+                    <strong>{bannerCard.name}</strong>
+                    <small>{bannerCard.anime ?? bannerCard.category}</small>
+                  </div>
+                </div>
+              )}
+              <div className="relative mt-4">
+                <input
+                  className="auth-input"
+                  type="search"
+                  aria-label="Search your collection for a banner"
+                  aria-describedby="banner-search-help"
+                  disabled={busy}
+                  value={bannerQuery}
+                  onChange={e => {
+                    const value = e.target.value;
+                    setBannerQuery(value);
+                    setError("");
+                  }}
+                  placeholder="Search by character and franchise…"
+                />
+                <p id="banner-search-help" className="mt-2 text-xs text-ink-3">
+                  Combine a character’s name with its franchise, e.g. Loki One
+                  Piece.
+                </p>
+                {ownedBannerChoices.length > 0 ? (
+                  <ul className="yk-banner-results">
+                    {ownedBannerChoices.slice(0, 36).map(card => (
+                      <li key={card.id}>
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => {
+                            setCrop({
+                              src: card.image,
+                              frame: null,
+                              card
+                            });
+                          }}
+                        >
+                          <img
+                            src={card.image}
+                            alt=""
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <span>
+                            <strong>{card.name}</strong>
+                            <small>{card.anime ?? card.category}</small>
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-3 text-sm text-ink-3" role="status">
+                    {ownedBannerCards.length
+                      ? "No matching cards in your collection."
+                      : "Collect a card to use it as a profile banner, or upload an image."}
+                  </p>
+                )}
+                {ownedBannerChoices.length > 36 && (
+                  <p className="mt-2 text-xs text-ink-3">
+                    Showing 36 of{" "}
+                    {ownedBannerChoices.length.toLocaleString("en-US")} cards.
+                    Search to find a specific card.
+                  </p>
+                )}
+              </div>
+            </section>
+          </>
+        )}
+        {mode === "showcase" && (
+          <section>
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="font-display text-lg">Featured cards</h3>
+              <span className="text-xs text-ink-3">
+                {selected.size}/{FEATURED_CARD_LIMIT}
+              </span>
+            </div>
+            <p className="mt-2 text-xs text-ink-3">
+              Choose up to {FEATURED_CARD_LIMIT} different cards from your
+              collection.
+            </p>
+            <label className="sr-only" htmlFor="featured-query">
+              Search for a card to feature
+            </label>
+            <input
+              id="featured-query"
+              className="auth-input mt-4"
+              type="search"
+              value={featuredQuery}
+              onChange={e => setFeaturedQuery(e.target.value)}
+              placeholder="Search cards…"
+            />
+            <div className="yk-featured-picker mt-4">
+              {featuredChoices.map(card => {
+                const featured = selected.has(card.instanceId);
+                return (
+                  <button
+                    type="button"
+                    key={card.instanceId}
+                    aria-pressed={featured}
+                    className={featured ? "is-selected" : ""}
+                    onClick={() => toggle(card.instanceId)}
+                  >
+                    <YokaiCard
+                      {...card}
+                      image={featured ? card.image : card.catalogueImage}
+                      animated={false}
+                      imageSizes={PROFILE_CARD_IMAGE_SIZES}
+                    />
+                    <span>{featured ? "Selected" : "Choose"}</span>
+                  </button>
+                );
+              })}
             </div>
           </section>
-        </>
-      )}
-      {mode === "showcase" && (
-        <section>
-          <div className="flex items-center justify-between gap-3">
-            <h3 className="font-display text-lg">Featured cards</h3>
-            <span className="text-xs text-ink-3">
-              {selected.size}/{FEATURED_CARD_LIMIT}
-            </span>
-          </div>
-          <p className="mt-2 text-xs text-ink-3">
-            Choose up to five different cards from your collection.
-          </p>
-          <label className="sr-only" htmlFor="featured-query">
-            Search for a card to feature
-          </label>
-          <input
-            id="featured-query"
-            className="auth-input mt-4"
-            type="search"
-            value={featuredQuery}
-            onChange={e => setFeaturedQuery(e.target.value)}
-            placeholder="Search cards…"
-          />
-          <div className="yk-featured-picker mt-4">
-            {featuredChoices.map(card => {
-              const featured = selected.has(card.instanceId);
-              return (
-                <button
-                  type="button"
-                  key={card.instanceId}
-                  aria-pressed={featured}
-                  className={featured ? "is-selected" : ""}
-                  onClick={() => toggle(card.instanceId)}
-                >
-                  <YokaiCard
-                    {...card}
-                    image={featured ? card.image : card.catalogueImage}
-                    animated={false}
-                    imageSizes={PROFILE_CARD_IMAGE_SIZES}
-                  />
-                  <span>{featured ? "Selected" : "Choose"}</span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      )}
+        )}
+      </div>
+      {mode === "profile" ? (
+        <ProfileStyleFields
+          name={profile.pseudo}
+          value={style}
+          onChange={setStyle}
+          busy={busy}
+          onBusyChange={setStyleMediaBusy}
+        />
+      ) : null}
       {error && (
         <p role="alert" className="text-sm text-danger">
           {error}
         </p>
       )}
-      <div className="flex justify-end gap-3">
+      <div className="flex justify-end gap-3 yk-profile-edit-actions">
         <Button variant="secondary" onClick={onClose}>
           Cancel
         </Button>
-        <Button disabled={busy} onClick={() => void submit()}>
+        <Button disabled={busy || styleMediaBusy} onClick={() => void submit()}>
           {busy ? "Saving…" : "Save"}
         </Button>
       </div>
@@ -1330,7 +1383,25 @@ export function ProfileExperience({
     savedBannerFrame === undefined ? details?.bannerFrame : savedBannerFrame;
   return (
     <>
-      <div className="yk-profile-hub" data-profile-tab={tab}>
+      <div
+        className="yk-profile-hub"
+        data-profile-tab={tab}
+        data-profile-theme={
+          profile.profileStyle?.active
+            ? profile.profileStyle.style.theme
+            : "default"
+        }
+        data-avatar-frame={
+          profile.profileStyle?.active
+            ? profile.profileStyle.style.avatarFrame
+            : "none"
+        }
+        data-showcase-effect={
+          profile.profileStyle?.active
+            ? profile.profileStyle.style.showcaseEffect
+            : "none"
+        }
+      >
         <section className="yk-profile-main">
           <nav className="yk-profile-tabs" aria-label="Profile sections">
             {[
@@ -1380,7 +1451,10 @@ export function ProfileExperience({
                   <span className="yk-profile-muted">Their showcase</span>
                 )}
               </div>
-              <Featured cards={profile.featuredCards} />
+              <Featured
+                cards={profile.featuredCards}
+                slots={profile.profileStyle?.active ? 10 : 5}
+              />
             </section>
             {adapter.previewWidgets ? (
               <section className="yk-profile-universe">
@@ -1640,7 +1714,12 @@ export function ProfileExperience({
             </div>
             <span className="yk-profile-identity-label">COLLECTOR</span>
             <div className="yk-profile-name-row">
-              <h2>{profile.pseudo}</h2>
+              <h2>
+                <StyledPlayerName
+                  name={profile.pseudo}
+                  cosmetics={profile.profileStyle}
+                />
+              </h2>
               {!isMe && (
                 <PlayerModeration
                   userId={profile.id}
@@ -1875,7 +1954,9 @@ export function ProfileExperience({
         open={editing}
         onClose={() => setEditing(false)}
         title={editingMode === "showcase" ? "Edit showcase" : "Edit my profile"}
-        className="max-w-4xl"
+        className={
+          editingMode === "profile" ? "yk-profile-edit-modal" : "max-w-4xl"
+        }
       >
         {isMe && collection && details ? (
           <Editor

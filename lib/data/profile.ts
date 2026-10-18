@@ -4,8 +4,9 @@ import { withLiveCardFranchises, type Card, type CollectedCard, type PaniniAlbum
 import type { FriendUser, FriendshipStatus } from "@/lib/data/friends";
 import { publishPlayerSnapshotInvalidation } from "@/lib/data/player-state";
 import type { BannerFrame } from "@/lib/ui/banner-frame";
+import type { PlayerCosmetics } from "@/components/styled-player-name";
 
-export type Profile = {id:string;pseudo:string;avatarUrl:string|null;bio:string;bannerCard:Card|null;friendshipStatus:FriendshipStatus;isPublic:boolean;canViewCollection:boolean;featuredCards:CollectedCard[];friends:(FriendUser&{avatarUrl?:string|null})[];friendsVisible:boolean;cardCount:number|null;distinctCardCount:number|null};
+export type Profile = {profileStyle?: PlayerCosmetics;id:string;pseudo:string;avatarUrl:string|null;bio:string;bannerCard:Card|null;friendshipStatus:FriendshipStatus;isPublic:boolean;canViewCollection:boolean;featuredCards:CollectedCard[];friends:(FriendUser&{avatarUrl?:string|null})[];friendsVisible:boolean;cardCount:number|null;distinctCardCount:number|null};
 export type ProfileInterests = { anime: string[]; games: string[]; kpop: string[]; other: string[] };
 export type ProfileWidget = { category: string; entries: string[] };
 export type ProfileLicensePage = {items: string[]; total: number};

@@ -20,7 +20,11 @@ function serviceClient() {
 // Trusted server/restoration caller only. No Server Action or public route is
 // exposed here; the confirmation UI will authenticate and derive the UUID.
 export async function deleteAccount(userId: string, client?: SupabaseClient) {
-  return deleteAccountCore(userId, client ?? serviceClient());
+  return deleteAccountCore(userId, client ?? serviceClient(), async () => {
+    const { cancelDeletedAccountBilling } =
+      await import("@/lib/billing/deletion");
+    await cancelDeletedAccountBilling(userId);
+  });
 }
 
 export async function deleteCurrentAccount() {

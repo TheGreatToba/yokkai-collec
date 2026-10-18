@@ -136,11 +136,22 @@ export function YokaiCard({
 }
 
 export function CardBack({ className = "" }: { className?: string }) {
+  const style = useOwnProfileStyle();
   return (
     <div
       role="img"
       aria-label="Yokkai Collec’ card back"
       className={`yk-card-back ${className}`}
+      style={
+        style?.cardBackUrl
+          ? {
+              backgroundImage: `url(${JSON.stringify(style.cardBackUrl)})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center"
+            }
+          : undefined
+      }
     />
   );
 }
+import { useOwnProfileStyle } from "@/components/pro-access";

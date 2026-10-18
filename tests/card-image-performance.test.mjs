@@ -32,6 +32,8 @@ function load(input = source) {
       },
       require: name => {
         if (name.endsWith(".css")) return {};
+        if (name === "@/components/pro-access")
+          return { useOwnProfileStyle: () => null };
         if (name === "react") return React;
         if (name === "react/jsx-runtime") return jsxRuntime;
         if (name === "next/image")

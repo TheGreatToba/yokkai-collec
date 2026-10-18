@@ -3,10 +3,12 @@ import { Cinzel, Sora, Noto_Serif_JP } from "next/font/google";
 import localFont from "next/font/local";
 import { BoostersLoadPriority } from "@/components/boosters-load-priority";
 import { PresenceHeartbeat } from "@/components/presence-heartbeat";
+import { ProAccessProvider } from "@/components/pro-access";
 import "./globals.css";
 import "../styles/ui.css";
 import "../styles/community.css";
 import "../styles/profile.css";
+import "../styles/profile-style.css";
 import "../styles/collection.css";
 import "../styles/boosters.css";
 import "../styles/pack-tear.css";
@@ -77,7 +79,7 @@ export default function RootLayout({
       <body suppressHydrationWarning className="min-h-full flex flex-col">
         <BoostersLoadPriority>
           <PresenceHeartbeat />
-          {children}
+          <ProAccessProvider>{children}</ProAccessProvider>
         </BoostersLoadPriority>
       </body>
     </html>

@@ -105,6 +105,7 @@ function panel(adapter, componentSource = component) {
     useCallback: fn => fn(),
     liveAuctionChat: adapter,
     Avatar: "avatar",
+    StyledPlayerName: ({ name, fallbackLabel }) => fallbackLabel ?? name,
     PlayerModeration: "moderation",
     GifPicker: "gif-picker",
     Button: "button",

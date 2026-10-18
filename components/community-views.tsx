@@ -1241,7 +1241,11 @@ export function AuctionChatPanel({
               <div>
                 <p>
                   <Link href={`/profile/${encodeURIComponent(item.pseudo)}`}>
-                    {item.mine ? "You" : item.pseudo}
+                    <StyledPlayerName
+                      name={item.pseudo}
+                      cosmetics={item.profileStyle}
+                      fallbackLabel={item.mine ? "You" : undefined}
+                    />
                   </Link>
                   <time dateTime={item.createdAt}>
                     {new Date(item.createdAt).toLocaleTimeString("en-US", {
@@ -1350,7 +1354,13 @@ export function AuctionChatPanel({
                         image={participant.avatarUrl ?? undefined}
                         size={26}
                       />
-                      <span>@{participant.pseudo}</span>
+                      <span>
+                        @
+                        <StyledPlayerName
+                          name={participant.pseudo}
+                          cosmetics={participant.profileStyle}
+                        />
+                      </span>
                     </button>
                   </li>
                 ))}
@@ -2851,3 +2861,4 @@ export function CommunityView({
     </>
   );
 }
+import { StyledPlayerName } from "@/components/styled-player-name";

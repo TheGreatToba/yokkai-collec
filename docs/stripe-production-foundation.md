@@ -152,3 +152,9 @@ Un cinquième compte jetable a servi à tenter le challenge sur la facture hébe
 - https://docs.stripe.com/customer-management/integrate-customer-portal
 
 Graphify a servi à retrouver le parcours et les limites du prototype existant ; les nouvelles protections ont ensuite été vérifiées directement dans les sources et dans PostgreSQL jetable (tests ciblés). La CI complète reste exécutée uniquement sur GitHub Actions.
+
+> Mise à jour d'intégration : les descriptions du laboratoire ci-dessous
+> documentent le socle initial. La page `/premium` publique, les droits de jeu
+> et la résiliation avant suppression sont maintenant décrits dans
+> `docs/pro-production-integration.md` et `docs/pro-server-entitlements.md`.
+> Ces travaux ne constituent pas une ouverture des paiements réels.

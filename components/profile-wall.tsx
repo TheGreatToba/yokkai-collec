@@ -353,7 +353,12 @@ export function ProfileWall({
                   size={38}
                 />
                 <div>
-                  <strong>{pseudo}</strong>
+                  <strong>
+                    <StyledPlayerName
+                      name={pseudo}
+                      cosmetics={post.profileStyle}
+                    />
+                  </strong>
                   <time dateTime={post.createdAt}>
                     {new Date(post.createdAt).toLocaleString("en-US", {
                       dateStyle: "medium",
@@ -437,3 +442,4 @@ export function ProfileWall({
     </section>
   );
 }
+import { StyledPlayerName } from "@/components/styled-player-name";
