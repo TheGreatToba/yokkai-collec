@@ -10,10 +10,16 @@
   gap: var(--layout-gutter);
   min-height: var(--topbar-height);
   padding-inline: var(--layout-gutter);
-  background: color-mix(in srgb, var(--color-night) 88%, transparent);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--color-veil);
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--color-focus) 12%, transparent);
+  background: linear-gradient(
+    180deg,
+    rgba(6, 9, 19, 0.94),
+    rgba(6, 9, 19, 0.72)
+  );
+  backdrop-filter: blur(10px) saturate(118%);
+  border-bottom: 1px solid rgba(188, 205, 255, 0.3);
+  box-shadow:
+    0 1px 12px rgba(141, 173, 255, 0.12),
+    inset 0 -1px 0 rgba(122, 157, 255, 0.12);
 }
 .yk-brand {
   display: flex;
@@ -25,11 +31,9 @@
   display: block;
   width: 100%;
   height: auto;
-  max-height: 52px;
+  max-height: 50px;
   object-fit: contain;
-  filter: drop-shadow(
-    0 0 7px color-mix(in srgb, var(--color-accent-neon) 28%, transparent)
-  );
+  filter: drop-shadow(0 0 10px rgba(133, 157, 255, 0.32));
 }
 .yk-primary-nav {
   display: flex;
@@ -48,29 +52,34 @@
   align-items: center;
   white-space: nowrap;
   padding-inline: 10px;
-  color: var(--color-ink-3);
+  color: #c7d0ef;
   font-size: 13px;
   font-weight: 600;
+  opacity: 0.82;
   transition:
     color var(--duration-fast) var(--ease-standard),
     background var(--duration-fast) var(--ease-standard);
 }
 .yk-primary-nav > *:hover {
-  color: var(--color-ink-2);
-  background: color-mix(in srgb, var(--color-veil) 38%, transparent);
+  color: #eef2ff;
+  background: rgba(167, 191, 255, 0.06);
+  opacity: 1;
 }
 .yk-primary-nav > [aria-current="page"] {
-  color: var(--color-ink);
+  color: #fff;
+  opacity: 1;
 }
 .yk-primary-nav > [aria-current="page"]::after {
   content: "";
   position: absolute;
-  inset-inline: 10px;
+  right: 0;
+  left: 0;
   bottom: 0;
+  width: 30px;
+  margin-inline: auto;
   height: 2px;
-  background: var(--color-accent-gold);
-  box-shadow: 0 0 10px
-    color-mix(in srgb, var(--color-accent-gold) 45%, transparent);
+  background: #fff;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.55);
 }
 .yk-topbar-actions {
   display: flex;
@@ -85,9 +94,9 @@
   width: 40px;
   height: 40px;
   border-radius: var(--radius-pill);
-  border: 1px solid var(--color-veil);
-  background: var(--color-surface);
-  color: var(--color-ink-2);
+  border: 1px solid rgba(129, 149, 255, 0.28);
+  background: rgba(10, 15, 29, 0.42);
+  color: #d8e3ff;
   transition:
     color var(--duration-fast) var(--ease-standard),
     background var(--duration-fast) var(--ease-standard),
@@ -95,10 +104,10 @@
     box-shadow var(--duration-fast) var(--ease-standard);
 }
 .yk-icon-button:hover {
-  border-color: var(--color-veil-strong);
-  background: var(--color-veil);
-  color: var(--color-ink);
-  box-shadow: var(--shadow-focus);
+  border-color: rgba(178, 194, 255, 0.5);
+  background: rgba(129, 149, 255, 0.12);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(141, 173, 255, 0.18);
 }
 .yk-menu-toggle {
   display: none;
@@ -438,7 +447,8 @@
     border: 1px solid var(--color-veil);
     border-radius: var(--radius-panel);
     padding: 8px;
-    background: color-mix(in srgb, var(--color-void) 96%, transparent);
+    background: rgba(4, 7, 15, 0.96);
+    backdrop-filter: blur(16px);
     box-shadow: var(--shadow-modal);
   }
   .yk-topbar[data-mobile-menu="open"] .yk-primary-nav {
