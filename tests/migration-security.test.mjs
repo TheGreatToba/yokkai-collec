@@ -75,6 +75,91 @@ test("all migrations replay with Supabase defaults; SECURITY DEFINER access is e
   const start = performance.now();
   const { db, migrations } = await replayMigrations();
   t.after(() => db.close());
+  await t.test("public sequences expose no player privileges", async () => {
+    const { rows } = await db.query(`
+      select n.nspname || '.' || c.relname as sequence, r.role, p.privilege,
+        has_sequence_privilege(r.role, c.oid, p.privilege) as granted
+      from pg_class c join pg_namespace n on n.oid=c.relnamespace
+      cross join (values ('anon'), ('authenticated')) r(role)
+      cross join (values ('SELECT'), ('UPDATE'), ('USAGE')) p(privilege)
+      where n.nspname='public' and c.relkind='S'
+      order by sequence, role, privilege
+    `);
+    t.diagnostic(
+      `Public sequences: ${[...new Set(rows.map(row => row.sequence))].join(", ")}`
+    );
+    assert.deepEqual(
+      rows.filter(row => row.granted),
+      [],
+      "Unexpected public sequence grants"
+    );
+  });
+  await t.test(
+    "admin audit identity inserts survive sequence revocation",
+    async () => {
+      // Auth columns used by the moderation RPC are outside the replay's minimal stub.
+      await db.exec(
+        "alter table auth.users add column banned_until timestamptz, add column updated_at timestamptz"
+      );
+      const admin = "10000000-0000-4000-8000-000000000099";
+      const player = "10000000-0000-4000-8000-000000000098";
+      await db.query(
+        'insert into auth.users(id,raw_user_meta_data) values ($1,\'{"pseudo":"SequenceAdmin"}\')',
+        [admin]
+      );
+      await db.query(
+        'insert into auth.users(id,raw_user_meta_data) values ($1,\'{"pseudo":"SequencePlayer"}\')',
+        [player]
+      );
+      await db.query("insert into public.admin_users(user_id) values ($1)", [
+        admin
+      ]);
+      await db.query("select set_config('request.jwt.claim.sub',$1,false)", [
+        admin
+      ]);
+      try {
+        await db.exec("set role authenticated");
+        await db.query(
+          "insert into public.admin_audit_logs(admin_user_id,action) values ($1,'card.create')",
+          [admin]
+        );
+        await db.query("select public.admin_set_user_ban($1,false)", [player]);
+        await db.query("select set_config('request.jwt.claim.sub',$1,false)", [
+          player
+        ]);
+        await assert.rejects(
+          db.query(
+            "insert into public.admin_audit_logs(admin_user_id,action) values ($1,'card.create')",
+            [player]
+          ),
+          { code: "42501" }
+        );
+        for (const sql of [
+          "select nextval('public.admin_audit_logs_id_seq')",
+          "select setval('public.admin_audit_logs_id_seq',1)",
+          "select last_value from public.admin_audit_logs_id_seq"
+        ]) {
+          await assert.rejects(db.exec(sql), { code: "42501" });
+        }
+        await db.exec("set role anon");
+        await assert.rejects(
+          db.exec("select nextval('public.admin_audit_logs_id_seq')"),
+          { code: "42501" }
+        );
+      } finally {
+        await db.exec("reset role");
+      }
+      assert.equal(
+        (
+          await db.query(
+            "select count(*)::int as count from public.admin_audit_logs where admin_user_id=$1",
+            [admin]
+          )
+        ).rows[0].count,
+        2
+      );
+    }
+  );
   const access = await securityDefinerAccess(db);
   const violations = access.filter(
     ({ signature, role, executable }) =>
