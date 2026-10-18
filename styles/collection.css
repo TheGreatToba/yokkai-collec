@@ -774,6 +774,23 @@
   align-content: start;
   gap: calc(var(--spacing) * 5);
 }
+.yk-detail-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--layout-gutter-compact);
+}
+.yk-detail-heading {
+  flex: 1 1 10rem;
+  min-width: 0;
+}
+.yk-detail-heading h3 {
+  overflow-wrap: anywhere;
+}
+.yk-detail-header > .yk-detail-utility-actions {
+  flex-shrink: 0;
+  margin-left: auto;
+}
 .yk-detail-title-row {
   display: flex;
   align-items: center;
