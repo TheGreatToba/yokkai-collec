@@ -658,7 +658,7 @@ export function Topbar({
                       View my profile
                     </Link>
                     <Link
-                      href="/profile?edition=1"
+                      href="/settings"
                       className="yk-account-action"
                       onClick={() => setPanel(null)}
                     >
