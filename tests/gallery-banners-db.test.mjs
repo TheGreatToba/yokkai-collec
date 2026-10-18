@@ -28,6 +28,24 @@ test("gallery banners preserve owner-only access, framing and owned card restric
     await db.exec("reset role; set role authenticated");
     await db.query("select set_config('request.jwt.claim.sub',$1,false)", [id]);
   };
+  // Exercise the same ownership/crop contract with a paid uploader when the
+  // server entitlement migration is present; no security assertion is removed.
+  if (
+    (
+      await db.query(
+        "select to_regprocedure('public.billing_set_entitlement_scope(text,boolean)') present"
+      )
+    ).rows[0].present
+  ) {
+    const scope = "test:acct_gallery:price_gallery";
+    await db.query("select public.billing_set_entitlement_scope($1,true)", [
+      scope
+    ]);
+    await db.query(
+      "insert into public.billing_accounts(user_id,scope,active,status,period_end,verified_at) values($1,$2,true,'active',clock_timestamp()+interval '1 month',clock_timestamp())",
+      [owner, scope]
+    );
+  }
   const frame = { x: 23, y: 78, zoom: 0.6, rotation: 270 };
   const prefix =
     "https://api.yokkai-collec.com/storage/v1/object/public/avatars/";
