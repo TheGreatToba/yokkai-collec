@@ -142,6 +142,31 @@ function load(relative) {
 const render = (component, props) =>
   renderToStaticMarkup(React.createElement(component, props));
 
+test("les actions compactes de détail gardent leurs libellés accessibles sans texte visible", () => {
+  const { CardShareButton } = load("components/card-sharing.tsx");
+  const { CardReportButton } = load("components/card-report-button.tsx");
+  const share = render(CardShareButton, {
+    instanceId: "card-1",
+    name: "Aiolia",
+    iconOnly: true
+  });
+  const report = render(CardReportButton, {
+    cardId: "card-1",
+    cardName: "Aiolia",
+    iconOnly: true
+  });
+  assert.match(share, /aria-label="Share Aiolia"/);
+  assert.match(share, /<svg aria-hidden="true"/);
+  assert.doesNotMatch(share, />Share</);
+  assert.match(report, /aria-label="Report Aiolia"/);
+  assert.match(report, /aria-hidden="true"[^>]*>⚑<\/span>/);
+  assert.doesNotMatch(report, />[^<]*Report this card/);
+  assert.match(
+    render(CardShareButton, { instanceId: "card-1", name: "Aiolia" }),
+    />Share<\/button>/
+  );
+});
+
 test("les routes consommatrices de MarketView ont exactement un h1 sans saut de niveau", async () => {
   for (const route of [
     "market-preview",
@@ -3399,5 +3424,35 @@ test("Regular Pack refill and availability share one compact line", () => {
     );
     assert.ok(line?.includes("Available now"));
     assert.doesNotMatch(regular, /<p class="text-success">/);
+  }
+});
+
+test("empty Regular Pack uses the same unavailable styling as a locked Decision Pack", () => {
+  const { Boosters } = load("components/boosters.tsx");
+  for (const available of [0, 3, 5]) {
+    const html = render(Boosters, {
+      status: { available, maximum: 5, nextPackAt: 1 },
+      decisionStatus: { available: false, pending: [], nextPackAt: 1 },
+      countdown: "01:00",
+      decisionCountdown: "10:00:00",
+      busy: false,
+      draw: [],
+      drawKind: "regular",
+      collection: [],
+      revealed: 0,
+      onOpen() {},
+      onKeepDecision() {},
+      onReveal() {}
+    });
+    assert.ok(
+      html.includes(
+        `<article class="yk-pack-panel" data-unavailable="${available === 0}">`
+      )
+    );
+    assert.ok(
+      html.includes(
+        '<article class="yk-pack-panel yk-decision-panel" data-unavailable="true">'
+      )
+    );
   }
 });

@@ -15,8 +15,10 @@ export function CardReportButton({
   cardId,
   cardName,
   sendReport = reportCard,
-  className = ""
+  className = "",
+  iconOnly = false
 }: {
+  iconOnly?: boolean;
   cardId: string;
   cardName: string;
   sendReport?: typeof reportCard;
@@ -66,7 +68,10 @@ export function CardReportButton({
         title="Report this card"
         onClick={show}
       >
-        <span aria-hidden="true">⚑</span> Report this card
+        <span aria-hidden="true" className={iconOnly ? "text-xl" : undefined}>
+          ⚑
+        </span>
+        {!iconOnly && " Report this card"}
       </Button>
       {mounted &&
         open &&

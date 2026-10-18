@@ -113,7 +113,7 @@ test("paid cosmetics are server-only, bounded, owner-scoped and hidden after exp
     scope
   ]);
   await db.query(
-    "insert into public.billing_accounts(user_id,scope,active,status,period_end,verified_at) values($1,$2,true,'active',clock_timestamp()+interval '1 month',clock_timestamp())",
+    "insert into public.billing_accounts(user_id,scope,stripe_customer_id,active,status,period_end,verified_at) values($1,$2,'cus_cosmeticfixture',true,'active',clock_timestamp()+interval '1 month',clock_timestamp())",
     [owner, scope]
   );
   for (const style of [
