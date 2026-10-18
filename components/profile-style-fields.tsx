@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { ProfileStyle } from "@/lib/ui/profile-style";
 import {
   NAME_FONTS,
@@ -7,7 +8,7 @@ import {
   STYLE_BADGES,
   DEFAULT_PROFILE_STYLE
 } from "@/lib/ui/profile-style";
-import { useProAccess, ProFeatureNotice } from "@/components/pro-access";
+import { useProAccess } from "@/components/pro-access";
 import { StyledPlayerName } from "@/components/styled-player-name";
 
 export function ProfileStyleFields({
@@ -27,9 +28,18 @@ export function ProfileStyleFields({
       className="yk-style-embedded"
       aria-labelledby="profile-style-heading"
     >
-      <h3 id="profile-style-heading">Profile style · Pro</h3>
-      {!pro && <ProFeatureNotice feature="Profile styling" />}
-      <fieldset disabled={!pro || busy} className="yk-style-embedded-fields">
+      <div className="yk-style-embedded-heading">
+        <h3 id="profile-style-heading">Profile style</h3>
+        <span>{pro ? "PRO ACTIVE" : "PREVIEW ONLY"}</span>
+      </div>
+      {!pro && (
+        <p className="yk-style-trial-note" role="status">
+          Try every option and preview the result here. Your live profile stays
+          unchanged until you upgrade to <Link href="/premium">Yokkai Pro</Link>
+          .
+        </p>
+      )}
+      <fieldset disabled={busy} className="yk-style-embedded-fields">
         <legend className="sr-only">Profile style settings</legend>
         <div className="yk-style-controls">
           <fieldset>
@@ -178,16 +188,34 @@ export function ProfileStyleFields({
         </div>
       </fieldset>
       <div
-        className="mt-6 rounded-panel border border-veil p-5"
+        className="yk-style-profile-preview"
         aria-label="Profile style preview"
+        aria-live="polite"
+        data-profile-theme={value.theme ?? "default"}
+        data-avatar-frame={value.avatarFrame ?? "none"}
+        data-showcase-effect={value.showcaseEffect ?? "none"}
       >
-        <StyledPlayerName
-          name={name}
-          cosmetics={{ active: pro, style: value }}
-        />
-        <p className="mt-3 text-xs text-ink-3">
-          Your name style also appears in auction chat and wall posts.
-        </p>
+        <div className="yk-style-profile-preview-banner" aria-hidden="true">
+          <span>✦</span>
+        </div>
+        <div className="yk-style-profile-preview-body">
+          <div className="yk-style-profile-preview-avatar" aria-hidden="true">
+            <span>{name.slice(0, 1).toUpperCase()}</span>
+          </div>
+          <StyledPlayerName
+            name={name}
+            cosmetics={{ active: true, style: value }}
+          />
+          <p>Your style preview updates as you make changes.</p>
+          <div className="yk-style-profile-preview-showcase" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </div>
+          <small>
+            Your name style also appears in auction chat and wall posts.
+          </small>
+        </div>
       </div>
     </section>
   );
