@@ -8,6 +8,28 @@ import {
 } from "@/lib/ui/profile-style";
 
 export type PlayerCosmetics = { active: boolean; style: Partial<ProfileStyle> };
+export function ProBadge() {
+  return (
+    <span
+      className="yk-profile-pro-badge"
+      role="img"
+      aria-label="Yokkai Pro"
+      title="Yokkai Pro"
+      data-pro-badge="true"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          className="yk-profile-pro-badge-seal"
+          d="M12 1.5 14.3 3.4 17.3 2.9 18.4 5.7 21.1 7 20.5 10 22.5 12 20.5 14 21.1 17 18.4 18.3 17.3 21.1 14.3 20.6 12 22.5 9.7 20.6 6.7 21.1 5.6 18.3 2.9 17 3.5 14 1.5 12 3.5 10 2.9 7 5.6 5.7 6.7 2.9 9.7 3.4Z"
+        />
+        <path
+          className="yk-profile-pro-badge-check"
+          d="m7.15 12.05 3.05 3.05 6.65-6.65"
+        />
+      </svg>
+    </span>
+  );
+}
 export function StyledPlayerName({
   name,
   cosmetics,
@@ -23,7 +45,7 @@ export function StyledPlayerName({
     ...cosmetics.style
   });
   return (
-    <span className="inline-flex flex-wrap items-center gap-1.5">
+    <span className="yk-styled-player-name">
       <span
         className="yk-style-name"
         data-name-effect={style.effect}
@@ -31,16 +53,7 @@ export function StyledPlayerName({
       >
         {fallbackLabel ?? name}
       </span>
-      <span
-        className="yk-profile-pro-badge"
-        role="img"
-        aria-label="Yokkai Pro"
-        title="Yokkai Pro"
-      >
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="m12 2 2.9 7.1L22 12l-7.1 2.9L12 22l-2.9-7.1L2 12l7.1-2.9Z" />
-        </svg>
-      </span>
+      <ProBadge />
       {style.badges.map(badge => (
         <span
           key={badge}

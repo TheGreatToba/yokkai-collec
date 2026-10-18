@@ -69,6 +69,8 @@ test("Pro name rendering follows its owner's server projection, not the viewing 
   );
   assert.match(paid, /data-name-effect="neon"/);
   assert.match(paid, /aria-label="Yokkai Pro"/);
+  assert.match(paid, /data-pro-badge="true"/);
+  assert.match(paid, /yk-profile-pro-badge-check/);
   assert.match(paid, /comet decorative badge/);
   assert.doesNotMatch(paid, /local preview|verified role/i);
 });
@@ -102,20 +104,30 @@ test("Basic players can preview profile styles while the controls stay usable", 
       assert.match(html, /href="\/premium"/);
     }
     assert.match(html, /aria-label="Profile style preview"/);
+    assert.match(html, /yk-style-workspace/);
+    assert.match(html, /LIVE PREVIEW/);
     assert.match(html, /data-profile-theme="default"/);
     assert.match(html, /data-avatar-frame="none"/);
     assert.match(html, /data-showcase-effect="none"/);
     assert.match(html, /aria-label="Yokkai Pro"/);
     assert.match(html, /Avatar frame/);
-    assert.match(html, /Profile theme/);
+    assert.match(html, /Profile theme colors/);
+    assert.match(html, /aria-label="Primary R"/);
+    assert.match(html, /aria-label="Primary G"/);
+    assert.match(html, /aria-label="Primary B"/);
+    assert.match(html, /aria-label="Accent R"/);
     assert.match(html, /Showcase effect/);
     assert.doesNotMatch(html, /Site background|Card back/);
     assert.doesNotMatch(html, /type="file"/);
   }
 });
 test("presentation normalizes CSS enums, hex colors, badge limits and safe uploaded media", () => {
-  const { normalizeProfileStyle, DEFAULT_PROFILE_STYLE, safeStyleMedia } =
-    loader()("lib/ui/profile-style.ts");
+  const {
+    normalizeProfileStyle,
+    DEFAULT_PROFILE_STYLE,
+    profileThemeVariables,
+    safeStyleMedia
+  } = loader()("lib/ui/profile-style.ts");
   const value = normalizeProfileStyle({
     ...DEFAULT_PROFILE_STYLE,
     color: "url(javascript:bad)",
@@ -127,6 +139,13 @@ test("presentation normalizes CSS enums, hex colors, badge limits and safe uploa
   assert.equal(value.font, "classic");
   assert.equal(value.badges.length, 3);
   assert.ok(!value.backgroundUrl);
+  const themeVariables = profileThemeVariables({
+    ...DEFAULT_PROFILE_STYLE,
+    color: "#123456",
+    secondary: "#abcdef"
+  });
+  assert.equal(themeVariables["--profile-theme-primary"], "#123456");
+  assert.equal(themeVariables["--profile-theme-accent"], "#abcdef");
   assert.equal(
     safeStyleMedia(
       "https://example.test/storage/v1/object/public/avatars/owner/background.png"
