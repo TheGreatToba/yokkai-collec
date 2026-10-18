@@ -9,15 +9,43 @@
   --ease-yokkai: var(--ease-standard);
 }
 body {
-  background:
+  background-color: #04070f;
+  background-image:
+    linear-gradient(180deg, rgba(2, 4, 10, 0.7), rgba(2, 4, 10, 0.68)),
     radial-gradient(
-      1200px 600px at 50% -10%,
-      var(--color-veil) 0%,
-      transparent 60%
+      circle at 28% 52%,
+      rgba(98, 145, 255, 0.16),
+      transparent 32%
     ),
-    var(--color-night);
+    radial-gradient(
+      circle at 72% 48%,
+      rgba(255, 116, 187, 0.1),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 50% -10%,
+      rgba(167, 191, 255, 0.12),
+      transparent 36%
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.012) 0,
+      rgba(255, 255, 255, 0.012) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    url("/assets/yokkai-site-backdrop.webp");
+  background-position: center;
+  background-size: cover;
+  background-attachment: fixed;
   color: var(--color-ink);
   font-family: var(--font-sans);
+}
+
+@media (max-width: 760px), (prefers-reduced-motion: reduce) {
+  body {
+    background-attachment: scroll;
+  }
 }
 .yk-page-transition {
   min-height: 100%;
