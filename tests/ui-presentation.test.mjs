@@ -3401,3 +3401,33 @@ test("Regular Pack refill and availability share one compact line", () => {
     assert.doesNotMatch(regular, /<p class="text-success">/);
   }
 });
+
+test("empty Regular Pack uses the same unavailable styling as a locked Decision Pack", () => {
+  const { Boosters } = load("components/boosters.tsx");
+  for (const available of [0, 3, 5]) {
+    const html = render(Boosters, {
+      status: { available, maximum: 5, nextPackAt: 1 },
+      decisionStatus: { available: false, pending: [], nextPackAt: 1 },
+      countdown: "01:00",
+      decisionCountdown: "10:00:00",
+      busy: false,
+      draw: [],
+      drawKind: "regular",
+      collection: [],
+      revealed: 0,
+      onOpen() {},
+      onKeepDecision() {},
+      onReveal() {}
+    });
+    assert.ok(
+      html.includes(
+        `<article class="yk-pack-panel" data-unavailable="${available === 0}">`
+      )
+    );
+    assert.ok(
+      html.includes(
+        '<article class="yk-pack-panel yk-decision-panel" data-unavailable="true">'
+      )
+    );
+  }
+});

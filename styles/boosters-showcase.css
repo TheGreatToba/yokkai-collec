@@ -294,11 +294,11 @@
     padding-top: clamp(32px, 3dvh, 72px);
   }
   .yk-pack-page-heading .yk-title {
-    font-size: clamp(60px, 4vw, 120px);
+    font-size: clamp(60px, 4vw, 96px);
   }
   .yk-pack-page-heading > p {
     margin-top: 16px;
-    font-size: clamp(18px, 1vw, 32px);
+    font-size: clamp(18px, 1vw, 26px);
     line-height: 1.5;
   }
   .yk-pack-grid {
@@ -307,15 +307,15 @@
     margin-top: 32px;
   }
   .yk-pack-grid .yk-pack-panel .yk-pack-art-stage {
-    height: clamp(520px, 52dvh, 1100px);
+    height: clamp(520px, 52dvh, 880px);
   }
   .yk-pack-floor {
-    width: min(100%, clamp(380px, 22vw, 800px));
-    height: clamp(48px, 3dvh, 88px);
+    width: min(100%, clamp(380px, 22vw, 640px));
+    height: clamp(48px, 3dvh, 72px);
   }
   .yk-pack-grid .yk-pack-panel .yk-pack-info {
-    width: clamp(44px, 2vw, 72px);
-    height: clamp(44px, 2vw, 72px);
+    width: clamp(44px, 2vw, 60px);
+    height: clamp(44px, 2vw, 60px);
   }
   .yk-pack-info svg {
     width: 50%;
@@ -325,23 +325,23 @@
     padding-top: 16px;
   }
   .yk-pack-panel .yk-pack-body h2 {
-    font-size: clamp(30px, 1.5vw, 56px);
+    font-size: clamp(30px, 1.5vw, 44px);
   }
   .yk-pack-grid .yk-pack-panel .yk-pack-status {
-    min-height: calc(4.5em + 12px);
-    font-size: clamp(14px, 0.7vw, 24px);
+    min-height: calc(3em + 6px);
+    font-size: clamp(14px, 0.7vw, 20px);
     margin-bottom: 16px;
   }
   .yk-pack-timing {
-    font-size: clamp(12px, 0.6vw, 22px);
+    font-size: clamp(12px, 0.6vw, 18px);
   }
   .yk-pack-dots > span {
-    width: clamp(12px, 0.5vw, 20px);
-    height: clamp(12px, 0.5vw, 20px);
+    width: clamp(12px, 0.5vw, 16px);
+    height: clamp(12px, 0.5vw, 16px);
   }
   .yk-pack-grid .yk-pack-panel .yk-pack-body > .yk-button {
-    width: clamp(280px, 14vw, 480px);
-    min-height: clamp(52px, 4dvh, 88px);
-    font-size: clamp(15px, 1vw, 28px);
+    width: clamp(280px, 14vw, 400px);
+    min-height: clamp(52px, 4dvh, 72px);
+    font-size: clamp(15px, 1vw, 24px);
   }
 }
