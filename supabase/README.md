@@ -18,10 +18,13 @@ Le lien email PKCE doit être ouvert dans le navigateur de l’inscription ; pou
 la confirmation dans un autre navigateur, le modèle Confirm signup peut utiliser :
 
 ```html
-<a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email"
-  >Confirmer mon adresse email</a
+<a
+  href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&amp;type=signup"
+  >Confirm email address</a
 >
 ```
+
+Cet exemple reprend [confirmation.html](../public/auth-emails/confirmation.html). Pour les corps et sujets anglais, ainsi que la vérification des modèles réellement actifs, suivre [la checklist Auth](../docs/english-auth-emails.md#checklist-de-vérification-des-modèles-actifs).
 
 La route accepte les deux formats, établit les cookies et redirige vers le jeu.
 Les destinations externes ne sont pas suivies. Le trigger d’inscription crée le
