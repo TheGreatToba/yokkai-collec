@@ -595,3 +595,70 @@ try {
 console.log(
   "Export: concurrent reservations refuse the second caller; one statement preserves the snapshot; split-read counterproof mixes versions"
 );
+
+// Additional current-policy counterproof: distinct cards must not bypass the
+// seller's membership cap when listings arrive through separate connections.
+const proScope = "test:acct_concurrency:price_concurrency";
+await query(
+  `set role service_role; select public.billing_set_entitlement_scope('${proScope}',true);`
+);
+for (const [owner, cap, paid] of [
+  ["6d000000-0000-4000-8000-000000000001", 3, false],
+  ["6d000000-0000-4000-8000-000000000002", 6, true]
+]) {
+  await query(
+    `insert into auth.users(id,raw_user_meta_data) values('${owner}',jsonb_build_object('pseudo','Cap'||${cap}));`
+  );
+  if (paid)
+    await query(`insert into public.billing_accounts(user_id,scope,active,status,period_end,verified_at)
+    values('${owner}','${proScope}',true,'active',clock_timestamp()+interval '1 month',clock_timestamp());`);
+  const copies = JSON.parse(
+    await query(`with copies as (
+    insert into public.user_cards(user_id,card_id,rarity)
+    select '${owner}',c.id,c.rarete_base from (select * from public.cards order by id limit 1)c cross join generate_series(1,10) returning id
+  ) select jsonb_agg(id) from copies;`)
+  );
+  const outcomes = await Promise.allSettled(
+    copies.slice(0, 9).map(id =>
+      query(`set role authenticated;
+    select set_config('request.jwt.claim.sub','${owner}',false);
+    select public.create_auction('${id}',10,60);`)
+    )
+  );
+  assert.equal(
+    outcomes.filter(result => result.status === "fulfilled").length,
+    cap
+  );
+  for (const result of outcomes.filter(result => result.status === "rejected"))
+    assert.match(result.reason.message, /AUCTION_LIMIT_REACHED/);
+  assert.equal(
+    Number(
+      await query(
+        `select count(*) from public.auctions where seller_id='${owner}' and status='active';`
+      )
+    ),
+    cap
+  );
+  if (paid) {
+    await query(
+      `update public.billing_accounts set period_end=clock_timestamp()-interval '1 second' where user_id='${owner}';`
+    );
+    await assert.rejects(
+      query(
+        `set role authenticated;select set_config('request.jwt.claim.sub','${owner}',false);select public.create_auction('${copies[9]}',10,60);`
+      ),
+      /AUCTION_LIMIT_REACHED/
+    );
+    assert.equal(
+      Number(
+        await query(
+          `select count(*) from public.auctions where seller_id='${owner}' and status='active';`
+        )
+      ),
+      6
+    );
+  }
+}
+console.log(
+  "Membership auction caps: concurrent listings remain at Basic 3 / Pro 6; expiry preserves sales but blocks new over-limit listings"
+);

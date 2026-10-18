@@ -58,6 +58,7 @@ function failure(error: { message?: string; code?: string }) {
     FOLDER_NAME_TAKEN: "A folder with this name already exists.",
     FOLDER_NOT_FOUND: "This folder no longer exists.",
   };
+  if (error.message === "PRO_REQUIRED") return new Error("This feature is available to Pro members only.");
   if (error.message === "INVALID_IMGUR_URL") return new Error("Enter a valid Imgur link starting with https://i.imgur.com/ or https://imgur.com/.");
   if (error.message && messages[error.message]) return new Error(messages[error.message]);
   if (error.code === "PGRST301") return new Error(messages.AUTH_REQUIRED);
