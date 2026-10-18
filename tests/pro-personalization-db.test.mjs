@@ -286,6 +286,31 @@ test("paid cosmetics are server-only, bounded, owner-scoped and hidden after exp
   ]);
   await db.query("select set_config('request.jwt.claim.sub','',false)");
   await db.query("select public.begin_account_deletion($1)", [owner]);
+  const cancellationGuard = (
+    await db.query(
+      "select to_regprocedure('public.billing_claim_deletion(uuid,text)') is not null present"
+    )
+  ).rows[0].present;
+  if (cancellationGuard) {
+    await assert.rejects(
+      db.query("select public.prepare_account_deletion($1)", [owner]),
+      /BILLING_CANCELLATION_REQUIRED/
+    );
+    const receipt = (
+      await db.query("select public.billing_claim_deletion($1,$2) value", [
+        owner,
+        scope
+      ])
+    ).rows[0].value;
+    await db.query("select public.billing_confirm_deletion($1,$2)", [
+      receipt.id,
+      receipt.lease_token
+    ]);
+    await db.query("select public.billing_release($1,$2)", [
+      receipt.id,
+      receipt.lease_token
+    ]);
+  }
   await db.query("select public.prepare_account_deletion($1)", [owner]);
   for (const table of ["profile_customizations", "profile_media_assets"])
     assert.equal(
