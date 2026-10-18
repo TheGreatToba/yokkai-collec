@@ -1932,6 +1932,19 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
     5
   );
   assert.doesNotMatch(regularDone, />SSR ×(?:<!-- -->)?\d+</);
+  const withNext = render(BoosterReveal, {
+    cards,
+    revealed: 5,
+    onReveal() {},
+    onReturn() {},
+    onNext() {}
+  });
+  assert.match(withNext, /yk-reveal-screen yk-reveal-complete/);
+  assert.equal((withNext.match(/>Next pack</g) || []).length, 1);
+  assert.match(
+    withNext,
+    /class="yk-reveal-next"><button[^>]*>Next pack<\/button><\/span>/
+  );
   const choosing = render(BoosterReveal, {
     cards,
     revealed: 5,
