@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import test from "node:test";
 import { replayMigrations } from "../scripts/replay-migrations.mjs";
 
@@ -7,9 +7,17 @@ const player = "10000000-0000-4000-8000-000000000001";
 const origin = "https://api.yokkai-collec.com";
 const avatar = `${origin}/storage/v1/object/public/avatars/${player}/avatar.png?v=123`;
 const migration = "20261009000007_validate_profile_avatar.sql";
+// Preserve this historical URL-validation/migration-replay contract unchanged.
+// Current Pro ownership and byte validation have dedicated full-replay tests.
+const historicalReplay = () =>
+  replayMigrations({
+    migrations: readdirSync(new URL("../supabase/migrations/", import.meta.url))
+      .filter(name => name.endsWith(".sql") && name < "20261018000001")
+      .sort()
+  });
 
 test("authenticated update_profile accepts only bounded trusted avatar URLs", async t => {
-  const { db } = await replayMigrations();
+  const { db } = await historicalReplay();
   t.after(() => db.close());
   await db.query(
     'insert into auth.users(id,raw_user_meta_data) values ($1,\'{"pseudo":"AvatarAlice"}\')',
@@ -68,7 +76,7 @@ test("authenticated update_profile accepts only bounded trusted avatar URLs", as
 });
 
 test("avatar migration preserves previously stored nonconforming avatars and is replayable", async t => {
-  const { db } = await replayMigrations();
+  const { db } = await historicalReplay();
   t.after(() => db.close());
   await db.query(
     'insert into auth.users(id,raw_user_meta_data) values ($1,\'{"pseudo":"LegacyAvatar"}\')',
