@@ -1321,6 +1321,10 @@
   }
 }
 @media (max-width: 40rem) {
+  .yk-page-transition:has(.yk-reveal-complete .yk-reveal-next) {
+    animation: none;
+    transform: none;
+  }
   .yk-reveal-complete:has(.yk-reveal-next) {
     padding-bottom: calc(92px + env(safe-area-inset-bottom));
   }
@@ -1330,7 +1334,6 @@
   }
   .yk-reveal-complete .yk-reveal-copy > .eyebrow,
   .yk-reveal-complete .yk-reveal-copy > h2,
-  .yk-reveal-complete .yk-reveal-progress,
   .yk-reveal-complete .yk-reveal-summary:not(.yk-reveal-summary-decision) > h2 {
     display: none;
   }
@@ -1354,11 +1357,6 @@
     width: auto;
     min-height: 44px;
     padding-inline: calc(var(--spacing) * 2);
-    border-color: transparent;
-    background: none;
-    box-shadow: none;
-    text-decoration: underline;
-    text-underline-offset: 3px;
   }
   .yk-reveal-complete .yk-reveal-next {
     position: fixed;
