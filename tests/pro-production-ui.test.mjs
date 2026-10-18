@@ -149,7 +149,9 @@ test("membership synchronization grants only a strict server boolean and drops p
     removeEventListener: window.removeEventListener
   };
   let active = true,
-    failed = false;
+    failed = false,
+    styleActive = true,
+    styleAvailable = true;
   const fakeReact = {
     ...React,
     useEffect: fn => {
@@ -174,11 +176,11 @@ test("membership synchronization grants only a strict server boolean and drops p
       fetch: async path => {
         if (failed) throw Error("offline");
         return {
-          ok: true,
+          ok: path.endsWith("benefits") || styleAvailable,
           json: async () =>
             path.endsWith("benefits")
               ? { active }
-              : { active: true, style: { effect: "neon" } }
+              : { active: styleActive, style: { effect: "neon" } }
         };
       }
     }
@@ -198,6 +200,16 @@ test("membership synchronization grants only a strict server boolean and drops p
   listeners.get("focus")();
   await flush();
   assert.equal(states[0], true);
+  styleActive = false;
+  listeners.get("focus")();
+  await flush();
+  assert.equal(states[0], false);
+  styleActive = true;
+  styleAvailable = false;
+  listeners.get("focus")();
+  await flush();
+  assert.equal(states[0], false);
+  styleAvailable = true;
   failed = true;
   listeners.get("online")();
   await flush();

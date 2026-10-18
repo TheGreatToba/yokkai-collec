@@ -47,7 +47,10 @@ abonnements existent. Aucun remboursement automatique n'est réalisé.
 1. PR de tests séparée #311 puis PR de code : CI verte, branches à jour avec
    `origin/master`, revue des changements produit validés avec Walid.
 2. Terminer les scénarios Sandbox : authentification 3DS, refus, annulation,
-   renouvellement, événements dupliqués et suppression d'un abonné jetable.
+   renouvellement et événements dupliqués. La suppression d'un abonné jetable
+   avec facture Sandbox payée de 4,99 EUR a été vérifiée : résiliation Stripe
+   avant suppression Auth, rapprochement privé supprimé ensuite, fixture
+   nettoyée. La nouvelle migration a été appliquée uniquement à Docker local.
 3. Révoquer toute ancienne clé potentiellement exposée, configurer les secrets
    live uniquement côté serveur et vérifier compte/tarif 4,99 EUR mensuel.
 4. Coordonner la migration sur Discord et relire l'historique réel du VPS.

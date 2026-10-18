@@ -47,8 +47,12 @@ export function ProAccessProvider({ children }: { children: React.ReactNode }) {
               ...projection.style
             });
         }
-        if (!stopped) {
-          setActive(result?.active === true);
+        if (
+          !stopped &&
+          !controller.signal.aborted &&
+          document.visibilityState === "visible"
+        ) {
+          setActive(result?.active === true && ownStyle !== null);
           setStyle(ownStyle);
         }
       } catch {
