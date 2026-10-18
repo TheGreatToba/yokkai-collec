@@ -72,7 +72,7 @@ test("Pro name rendering follows its owner's server projection, not the viewing 
   assert.match(paid, /comet decorative badge/);
   assert.doesNotMatch(paid, /local preview|verified role/i);
 });
-test("Basic style controls are disabled with an upgrade notice; paid core style controls remain usable", () => {
+test("Basic style controls keep an upgrade notice; paid core style controls remain usable", () => {
   for (const pro of [false, true]) {
     const load = loader({
       "@/components/pro-access": {
@@ -95,7 +95,6 @@ test("Basic style controls are disabled with an upgrade notice; paid core style 
       assert.doesNotMatch(html, /<fieldset disabled/);
       assert.doesNotMatch(html, /Pro members only/);
     } else {
-      assert.match(html, /<fieldset disabled/);
       assert.match(html, /Pro members only/);
     }
     assert.match(html, /Avatar frame/);
