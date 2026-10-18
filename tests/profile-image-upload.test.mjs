@@ -6,8 +6,37 @@ import ts from "typescript";
 
 function setup() {
   const calls = [];
+  const source = readFileSync(
+    new URL("../lib/data/profile.ts", import.meta.url),
+    "utf8"
+  );
+  const serverAvatar = source.includes("/api/profile-media");
   const context = {
     exports: {},
+    FormData: class {
+      fields = new Map();
+      set(key, value) {
+        this.fields.set(key, value);
+      }
+    },
+    async fetch(url, { method, body }) {
+      assert.equal(url, "/api/profile-media");
+      assert.equal(method, "POST");
+      assert.deepEqual([...body.fields.keys()].sort(), ["file", "purpose"]);
+      assert.equal(body.fields.get("purpose"), "avatar");
+      const file = body.fields.get("file");
+      calls.push({
+        path: "owner-id/avatar-server-validated.png",
+        size: file.size,
+        options: { upsert: false, contentType: file.type }
+      });
+      return {
+        ok: true,
+        json: async () => ({
+          url: "https://storage.test/avatars/owner-id/avatar-server-validated.png"
+        })
+      };
+    },
     require(name) {
       if (name === "@/utils/supabase/client")
         return {
@@ -51,7 +80,7 @@ function setup() {
     ).outputText,
     context
   );
-  return { api: context.exports, calls };
+  return { api: context.exports, calls, serverAvatar };
 }
 
 for (const [method, kind] of [
@@ -59,19 +88,34 @@ for (const [method, kind] of [
   ["uploadBanner", "banner"]
 ]) {
   test(`${kind} accepts images above the old limit and exactly 4 MB`, async () => {
-    const { api, calls } = setup();
+    const { api, calls, serverAvatar } = setup();
     assert.equal(api.PROFILE_IMAGE_MAX_BYTES, 4194304);
     for (const size of [2097153, 3 * 1024 * 1024, 4194304]) {
       const result = await api[method](
         { size, type: "image/png", name: "photo.png" },
         "owner-id"
       );
-      assert.match(result, new RegExp(`/owner-id/${kind}\\.png\\?v=\\d+$`));
+      assert.match(
+        result,
+        new RegExp(
+          method === "uploadAvatar" && serverAvatar
+            ? "/owner-id/avatar-server-validated\\.png$"
+            : `/owner-id/${kind}\\.png\\?v=\\d+$`
+        )
+      );
     }
     assert.equal(calls.length, 3);
     for (const call of calls) {
-      assert.equal(call.path, `owner-id/${kind}.png`);
-      assert.equal(call.options.upsert, true);
+      assert.equal(
+        call.path,
+        method === "uploadAvatar" && serverAvatar
+          ? "owner-id/avatar-server-validated.png"
+          : `owner-id/${kind}.png`
+      );
+      assert.equal(
+        call.options.upsert,
+        !(method === "uploadAvatar" && serverAvatar)
+      );
       assert.equal(call.options.contentType, "image/png");
     }
   });
