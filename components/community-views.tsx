@@ -1066,6 +1066,12 @@ export function AuctionChatPanel({
         : [],
     [chat?.participants, hasMention, mentionQuery]
   );
+  const [mentionSelection, setMentionSelection] = useState<{
+    options: typeof mentionOptions;
+    index: number;
+  }>();
+  const mentionIndex =
+    mentionSelection?.options === mentionOptions ? mentionSelection.index : 0;
   const load = useCallback(async () => {
     try {
       setChat(await adapter.get(auctionId));
@@ -1114,18 +1120,15 @@ export function AuctionChatPanel({
     )
       return;
     mentionIndexRef.current = 0;
-    const markSelected = () =>
-      document
-        .querySelectorAll<HTMLButtonElement>("#auction-mention-options button")
-        .forEach((button, index) =>
-          button.setAttribute(
-            "aria-selected",
-            String(index === mentionIndexRef.current)
-          )
-        );
-    markSelected();
     const navigate = (event: KeyboardEvent) => {
-      if (event.isComposing) return;
+      if (event.isComposing || mentionIndexRef.current < 0) return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        mentionIndexRef.current = -1;
+        setMentionSelection({ options: mentionOptions, index: -1 });
+        return;
+      }
       if (event.key === "ArrowDown" || event.key === "ArrowUp") {
         event.preventDefault();
         event.stopPropagation();
@@ -1134,7 +1137,10 @@ export function AuctionChatPanel({
             (event.key === "ArrowDown" ? 1 : -1) +
             mentionOptions.length) %
           mentionOptions.length;
-        markSelected();
+        setMentionSelection({
+          options: mentionOptions,
+          index: mentionIndexRef.current
+        });
         return;
       }
       if (event.key === "Enter" || event.key === "Tab") {
@@ -1209,8 +1215,6 @@ export function AuctionChatPanel({
   function selectMention(pseudo: string) {
     setDraft(current => current.replace(/@([^\s@]*)$/, `@${pseudo} `));
   }
-  // The transient list is rebuilt from the current @query; no option persists as selected.
-  // eslint-disable-next-line jsx-a11y/role-has-required-aria-props, @next/next/no-img-element -- preserve animated GIPHY media without optimization.
   return (
     <section
       id="chat-enchere"
@@ -1334,18 +1338,19 @@ export function AuctionChatPanel({
               }}
               placeholder="Write a message or @mention someone…"
             />
-            {mentionOptions.length > 0 && (
+            {mentionOptions.length > 0 && mentionIndex >= 0 && (
               <ul
                 id="auction-mention-options"
                 className="yk-auction-mention-options"
                 role="listbox"
                 aria-label="Participants you can mention"
               >
-                {mentionOptions.map(participant => (
+                {mentionOptions.map((participant, index) => (
                   <li key={participant.userId}>
                     <button
                       type="button"
                       role="option"
+                      aria-selected={index === mentionIndex}
                       onMouseDown={event => event.preventDefault()}
                       onClick={() => selectMention(participant.pseudo)}
                     >
