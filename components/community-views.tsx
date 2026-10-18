@@ -1071,7 +1071,7 @@ export function AuctionChatPanel({
       setChat(await adapter.get(auctionId));
       setError("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Chat indisponible.");
+      setError(e instanceof Error ? e.message : "Chat unavailable.");
     }
   }, [auctionId, adapter]);
   useEffect(() => {
@@ -1087,7 +1087,7 @@ export function AuctionChatPanel({
         reason => {
           if (active)
             setError(
-              reason instanceof Error ? reason.message : "Chat indisponible."
+              reason instanceof Error ? reason.message : "Chat unavailable."
             );
         }
       );

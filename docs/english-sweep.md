@@ -334,3 +334,17 @@ Ajouts de cadrage, rotation et bannières possédées déjà anglais ; textes fr
 ## Migrations
 
 **Aucune migration dans wz/en-sweep. Rien appliqué au VPS. Aucun merge ni déploiement de ce balayage.**
+
+## ENG-01 — player chat fallback (18 October 2026)
+
+The initial auction chat load and polling fallback now both say `Chat unavailable.`.
+The focused regression test fails on unchanged master and passes with this correction.
+
+Annex D entries were traced again on origin/master:
+
+- `components/collection.tsx`: the auction warning (2041–2044), removal button (2205), modal title/body (2337–2346) and confirmation (2436) are all in `adminRemoval` branches. The non-admin alternatives are already English. Only `app/admin/players/player-manager.tsx` enables `adminRemoval`; no player text needs changing here.
+- `components/game.tsx:477`: `Carte de preuve` is a fixture created only when `previewData` is supplied. Only `components/boosters-load-preview.tsx` supplies it; the player collection and booster pages do not. It remains outside the player scope.
+- `lib/server/public-image-fetch.mjs:82`: the empty-DNS diagnostic is used only by `scripts/import-cards.mjs` (and tests), with no player route/component caller. It remains an internal diagnostic.
+- `components/community-views.tsx`: `Joueur supprimé` is a historical-name comparison, not the displayed fallback, which is already English.
+
+Remaining French admin and preview text is outside this PR. No migration is included or applied on the VPS.
