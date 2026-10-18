@@ -320,10 +320,10 @@ export function Boosters({ statusError, decisionError, onRetryRegular, onRetryDe
   const openingLock = useRef(false);
   const openingStage = useRef<HTMLDivElement>(null);
   const openingTrigger = useRef<HTMLElement | null>(null);
-  const skipSeal = useRef<(() => void) | null>(null);
+  const accelerateSeal = useRef<(() => void) | null>(null);
   const preloading = useRef<Promise<void>>(Promise.resolve());
   const playSound = onSound ?? noopSound;
-  const finishSeal = () => skipSeal.current?.();
+  const speedUpSeal = () => accelerateSeal.current?.();
   function preload(cards: RevealCard[]) {
     const decoding = Promise.allSettled(cards.map(card => {
       const image = new Image();
@@ -345,10 +345,18 @@ export function Boosters({ statusError, decisionError, onRetryRegular, onRetryDe
       onResponse: cards => { clearTimeout(waitingTimer); setWaiting(false); if (cards) preload(cards); },
       onSeal: () => { setOpeningPhase("seal"); playSound("tear"); },
       wait: duration => duration !== animation.packOpening.seal ? new Promise(resolve => window.setTimeout(resolve, duration)) : new Promise(resolve => {
-        const timer = window.setTimeout(() => { void (reducedMotion ? Promise.resolve() : preloading.current).then(resolve); }, reducedMotion ? 0 : duration);
-        skipSeal.current = () => { window.clearTimeout(timer); resolve(); };
+        const startedAt = performance.now();
+        const finish = () => { void (reducedMotion ? Promise.resolve() : preloading.current).then(resolve); };
+        let timer = window.setTimeout(finish, reducedMotion ? 0 : duration);
+        accelerateSeal.current = () => {
+          accelerateSeal.current = null;
+          if (reducedMotion) return;
+          openingStage.current?.getAnimations({ subtree: true }).forEach(effect => effect.updatePlaybackRate(3));
+          window.clearTimeout(timer);
+          timer = window.setTimeout(finish, Math.max(0, duration - (performance.now() - startedAt)) / 3);
+        };
       }),
-    }).then(() => setOpeningPhase("idle"), () => { setShowDraw(false); setOpeningPhase("idle"); }).finally(() => { clearTimeout(waitingTimer); setWaiting(false); skipSeal.current = null; openingLock.current = false; });
+    }).then(() => setOpeningPhase("idle"), () => { setShowDraw(false); setOpeningPhase("idle"); }).finally(() => { clearTimeout(waitingTimer); setWaiting(false); accelerateSeal.current = null; openingLock.current = false; });
   }
   const revealCards = packCopyLabels(draw, priorCopies);
   const revealing = showDraw && draw.length > 0 && openingPhase === "idle" && !busy;
@@ -382,7 +390,7 @@ export function Boosters({ statusError, decisionError, onRetryRegular, onRetryDe
   }, [openingPhase]);
   const shownRates = ratesKind === "decision" ? decisionDropRates : dropRates;
   return <>
-        {opening ? <div ref={openingStage} className={`yk-opening-stage yk-opening-${openingPhase}`} role={openingPhase === "seal" ? "button" : "status"} tabIndex={openingPhase === "seal" ? 0 : -1} aria-label={openingPhase === "seal" ? "Skip the opening animation" : undefined} onClick={finishSeal} onKeyDown={event=>{if(event.key === "Tab"){event.preventDefault();}else if(openingPhase === "seal" && (event.key==="Enter"||event.key===" ")){event.preventDefault();finishSeal();}}}><div className="yk-opening-pack yk-pack-tear" aria-hidden="true">
+        {opening ? <div ref={openingStage} className={`yk-opening-stage yk-opening-${openingPhase}`} role={openingPhase === "seal" ? "button" : "status"} tabIndex={openingPhase === "seal" ? 0 : -1} aria-label={openingPhase === "seal" ? "Speed up the opening animation" : undefined} onClick={speedUpSeal} onKeyDown={event=>{if(event.key === "Tab"){event.preventDefault();}else if(openingPhase === "seal" && (event.key==="Enter"||event.key===" ")){event.preventDefault();speedUpSeal();}}}><div className="yk-opening-pack yk-pack-tear" aria-hidden="true">
       <div className="yk-pack-tear-sparks">{[[11,8],[85,12],[5,28],[97,34],[9,49],[91,53],[2,75],[96,80],[19,94],[80,97],[14,64],[83,69],[23,20],[77,26],[48,3],[51,101]].map(([x,y],i)=><span key={i} className="yk-pack-tear-spark" style={{left:`${x}%`,top:`${y}%`,"--spark-delay":`${-i*.41}s`,"--spark-duration":`${2.7+(i%5)*.35}s`,"--spark-length":i%4===0?"18px":"10px"} as CSSProperties}/>)}</div>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img className="yk-pack-tear-body" src={drawKind === "decision" ? "/assets/bubble-decisive-booster-v1.png" : "/assets/bubble-regular-booster-v1.png"} alt="" width={240} height={360} />
