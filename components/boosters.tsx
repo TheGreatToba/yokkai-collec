@@ -311,6 +311,7 @@ export function Boosters({ statusError, decisionError, onRetryRegular, onRetryDe
   onReveal: (index: number) => void; onSound?: (sound: Sound) => void;
 }) {
   const [openingPhase, setOpeningPhase] = useState<"idle" | "tension" | "seal">("idle");
+  const [tearRequested, setTearRequested] = useState(false);
   const [waiting, setWaiting] = useState(false);
   const [showDraw, setShowDraw] = useState(false);
   const [priorCopies, setPriorCopies] = useState<Record<string,number> | null>(null);
@@ -320,10 +321,21 @@ export function Boosters({ statusError, decisionError, onRetryRegular, onRetryDe
   const openingLock = useRef(false);
   const openingStage = useRef<HTMLDivElement>(null);
   const openingTrigger = useRef<HTMLElement | null>(null);
+  const requestSeal = useRef<(() => void) | null>(null);
   const accelerateSeal = useRef<(() => void) | null>(null);
   const preloading = useRef<Promise<void>>(Promise.resolve());
   const playSound = onSound ?? noopSound;
-  const speedUpSeal = () => accelerateSeal.current?.();
+  const speedUpSeal = () => {
+    if (openingPhase === "seal") {
+      accelerateSeal.current?.();
+      return;
+    }
+    if (!requestSeal.current) return;
+    const beginTear = requestSeal.current;
+    requestSeal.current = null;
+    setTearRequested(true);
+    beginTear();
+  };
   function preload(cards: RevealCard[]) {
     const decoding = Promise.allSettled(cards.map(card => {
       const image = new Image();
@@ -338,12 +350,17 @@ export function Boosters({ statusError, decisionError, onRetryRegular, onRetryDe
     openingLock.current = true;
     setPriorCopies(packCopySnapshot(collection, collectionReady));
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    setKeptId(undefined); setDecisionKaras(undefined); setShowDraw(true); setWaiting(false); setOpeningPhase("tension"); playSound("rumble");
+    setKeptId(undefined); setDecisionKaras(undefined); setShowDraw(true); setWaiting(false); setTearRequested(false); setOpeningPhase("tension"); playSound("rumble");
     const waitingTimer = window.setTimeout(() => setWaiting(true), animation.packOpening.slowResponse);
+    const tear = new Promise<void>(resolve => { requestSeal.current = resolve; });
     void runPackOpeningSequence({
       open: () => onOpen(kind),
       onResponse: cards => { clearTimeout(waitingTimer); setWaiting(false); if (cards) preload(cards); },
-      onSeal: () => { setOpeningPhase("seal"); playSound("tear"); },
+      onSeal: async () => {
+        await tear;
+        setOpeningPhase("seal");
+        playSound("tear");
+      },
       wait: duration => duration !== animation.packOpening.seal ? new Promise(resolve => window.setTimeout(resolve, duration)) : new Promise(resolve => {
         const startedAt = performance.now();
         const finish = () => { void (reducedMotion ? Promise.resolve() : preloading.current).then(resolve); };
@@ -356,7 +373,7 @@ export function Boosters({ statusError, decisionError, onRetryRegular, onRetryDe
           timer = window.setTimeout(finish, Math.max(0, duration - (performance.now() - startedAt)) / 3);
         };
       }),
-    }).then(() => setOpeningPhase("idle"), () => { setShowDraw(false); setOpeningPhase("idle"); }).finally(() => { clearTimeout(waitingTimer); setWaiting(false); accelerateSeal.current = null; openingLock.current = false; });
+    }).then(() => setOpeningPhase("idle"), () => { setShowDraw(false); setOpeningPhase("idle"); }).finally(() => { clearTimeout(waitingTimer); setWaiting(false); setTearRequested(false); requestSeal.current = null; accelerateSeal.current = null; openingLock.current = false; });
   }
   const revealCards = packCopyLabels(draw, priorCopies);
   const revealing = showDraw && draw.length > 0 && openingPhase === "idle" && !busy;
@@ -390,13 +407,13 @@ export function Boosters({ statusError, decisionError, onRetryRegular, onRetryDe
   }, [openingPhase]);
   const shownRates = ratesKind === "decision" ? decisionDropRates : dropRates;
   return <>
-        {opening ? <div ref={openingStage} className={`yk-opening-stage yk-opening-${openingPhase}`} role={openingPhase === "seal" ? "button" : "status"} tabIndex={openingPhase === "seal" ? 0 : -1} aria-label={openingPhase === "seal" ? "Speed up the opening animation" : undefined} onClick={speedUpSeal} onKeyDown={event=>{if(event.key === "Tab"){event.preventDefault();}else if(openingPhase === "seal" && (event.key==="Enter"||event.key===" ")){event.preventDefault();speedUpSeal();}}}><div className="yk-opening-pack yk-pack-tear" aria-hidden="true">
+        {opening ? <div ref={openingStage} className={`yk-opening-stage yk-opening-${openingPhase}`} role="button" tabIndex={0} aria-label={openingPhase === "seal" ? "Speed up the opening animation" : tearRequested ? "Opening pack" : "Tear open the pack"} aria-busy={tearRequested && openingPhase !== "seal" ? true : undefined} onClick={speedUpSeal} onKeyDown={event=>{if(event.key === "Tab"){event.preventDefault();}else if(event.key==="Enter"||event.key===" "){event.preventDefault();speedUpSeal();}}}><div className="yk-opening-pack yk-pack-tear" aria-hidden="true">
       <div className="yk-pack-tear-sparks">{[[11,8],[85,12],[5,28],[97,34],[9,49],[91,53],[2,75],[96,80],[19,94],[80,97],[14,64],[83,69],[23,20],[77,26],[48,3],[51,101]].map(([x,y],i)=><span key={i} className="yk-pack-tear-spark" style={{left:`${x}%`,top:`${y}%`,"--spark-delay":`${-i*.41}s`,"--spark-duration":`${2.7+(i%5)*.35}s`,"--spark-length":i%4===0?"18px":"10px"} as CSSProperties}/>)}</div>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img className="yk-pack-tear-body" src={drawKind === "decision" ? "/assets/chrome-decision-booster-v1.png" : "/assets/chrome-regular-booster-v1.png"} alt="" width={941} height={1672} />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img className="yk-pack-tear-top" src={drawKind === "decision" ? "/assets/chrome-decision-booster-v1.png" : "/assets/chrome-regular-booster-v1.png"} alt="" width={941} height={1672} />
-      <div className="yk-pack-tear-glow" /></div><p className="mt-8 text-sm text-ink-2">{openingPhase === "seal" ? "The seal is breaking…" : waiting ? "Opening is taking a little longer…" : "Opening pack…"}</p></div> : revealing ? <BoosterReveal key={draw[0].instanceId} cards={revealCards} collection={collection} folders={folders} revealed={revealed} onReveal={onReveal} onReturn={() => setShowDraw(false)} onNext={drawKind === "regular" ? () => start("regular") : undefined} nextDisabled={!status || status.available === 0 || busy} nextLabel={status?.available === 0 ? `Next in ${countdown}` : "Next pack"} onDiscard={drawKind === "regular" ? onDiscard : undefined} onAuction={drawKind === "regular" ? onAuction : undefined} onMoveCard={drawKind === "regular" ? onMoveCard : undefined} onSetLocked={drawKind === "regular" ? onSetLocked : undefined} onEvolve={drawKind === "regular" ? onEvolve : undefined} onSetCustomImage={drawKind === "regular" ? onSetCustomImage : undefined} decision={drawKind === "decision" ? { keptId, busy, karasReward: decisionKaras, onKeep: async id => { const reward = await onKeepDecision(id); setDecisionKaras(reward); setKeptId(id); return reward; } } : undefined} onSound={playSound} /> : <div className="yk-pack-grid"><span className="yk-pack-ambient" aria-hidden="true" />
+      <div className="yk-pack-tear-glow" /></div><p className="mt-8 text-sm text-ink-2">{openingPhase === "seal" ? "The seal is breaking…" : tearRequested ? waiting ? "Your pack is still being prepared…" : "Getting your cards ready…" : "Click the pack to tear it open."}</p></div> : revealing ? <BoosterReveal key={draw[0].instanceId} cards={revealCards} collection={collection} folders={folders} revealed={revealed} onReveal={onReveal} onReturn={() => setShowDraw(false)} onNext={drawKind === "regular" ? () => start("regular") : undefined} nextDisabled={!status || status.available === 0 || busy} nextLabel={status?.available === 0 ? `Next in ${countdown}` : "Next pack"} onDiscard={drawKind === "regular" ? onDiscard : undefined} onAuction={drawKind === "regular" ? onAuction : undefined} onMoveCard={drawKind === "regular" ? onMoveCard : undefined} onSetLocked={drawKind === "regular" ? onSetLocked : undefined} onEvolve={drawKind === "regular" ? onEvolve : undefined} onSetCustomImage={drawKind === "regular" ? onSetCustomImage : undefined} decision={drawKind === "decision" ? { keptId, busy, karasReward: decisionKaras, onKeep: async id => { const reward = await onKeepDecision(id); setDecisionKaras(reward); setKeptId(id); return reward; } } : undefined} onSound={playSound} /> : <div className="yk-pack-grid"><span className="yk-pack-ambient" aria-hidden="true" />
       <article className="yk-pack-panel" data-unavailable={!status || status.available === 0}><div className="yk-pack-art-stage"><span className="yk-pack-aura" aria-hidden="true" /><span className="yk-pack-floor" aria-hidden="true" /><button type="button" className="yk-pack-info" aria-label="View Regular Pack drop rates" onClick={()=>setRatesKind("regular")}><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></svg></button>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/assets/chrome-regular-booster-v1.png" alt="Yokkai Collec’ Regular Pack" width={941} height={1672} className="yk-pack-image" /></div><div className="yk-pack-body"><h2 className="font-display text-[26px] font-semibold">Regular Pack</h2>
