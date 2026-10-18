@@ -269,28 +269,6 @@
   cursor: default;
   opacity: 0.6;
 }
-.yk-market-tile-watch {
-  position: absolute;
-  top: calc(var(--spacing) * 12);
-  right: calc(var(--spacing) * 2);
-  z-index: 2;
-  width: 44px;
-  min-height: 44px;
-  padding: 0;
-  background: color-mix(in srgb, var(--color-void) 10%, transparent);
-  color: var(--color-ink);
-}
-.yk-market-tile-watch.yk-watching {
-  background: var(--color-surface);
-}
-.yk-market-tile-watch svg {
-  width: 20px;
-  height: 20px;
-}
-.yk-market-tile-watch .yk-watch-label {
-  display: none;
-}
-
 /* Auction detail: art + history on the left, bidding on the right; stacked art → bidding → history on mobile. */
 .yk-auction-page {
   position: relative;

@@ -493,13 +493,7 @@ function WatchButton({
     </button>
   );
 }
-function AuctionTile({
-  auction: a,
-  onToggleWatch
-}: {
-  auction: AuctionPresentation;
-  onToggleWatch?: (id: string) => Promise<void>;
-}) {
+function AuctionTile({ auction: a }: { auction: AuctionPresentation }) {
   return (
     <li className="yk-market-tile">
       <CardShell>
@@ -510,11 +504,6 @@ function AuctionTile({
         >
           <YokaiCard {...a.card} imageSizes="100vw" />
         </Link>
-        <WatchButton
-          watched={a.wishlist}
-          onToggle={onToggleWatch ? () => onToggleWatch(a.id) : undefined}
-          className="yk-market-tile-watch"
-        />
       </CardShell>
       <Link
         href={`/market/${a.id}`}
@@ -585,8 +574,7 @@ export function compareMarketAuctions(
 export function MarketView({
   pageHeading,
   lists,
-  activeSales,
-  onToggleWatch
+  activeSales
 }: {
   pageHeading?: ReactNode;
   lists?: Record<"active" | "mine" | "won" | "sold", AuctionPresentation[]>;
@@ -897,11 +885,7 @@ export function MarketView({
                 aria-label="Active auctions"
               >
                 {browse.map(a => (
-                  <AuctionTile
-                    key={a.id}
-                    auction={a}
-                    onToggleWatch={onToggleWatch}
-                  />
+                  <AuctionTile key={a.id} auction={a} />
                 ))}
               </ul>
             )
@@ -949,11 +933,7 @@ export function MarketView({
               aria-label={`My auctions · ${empty.action}`}
             >
               {mine.map(a => (
-                <AuctionTile
-                  key={a.id}
-                  auction={a}
-                  onToggleWatch={onToggleWatch}
-                />
+                <AuctionTile key={a.id} auction={a} />
               ))}
             </ul>
           )}

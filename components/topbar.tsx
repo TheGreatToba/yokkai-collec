@@ -288,10 +288,10 @@ export function Topbar({
         <Link href="/" className="yk-brand" aria-label="Yokkai Collec’, home">
           <Image
             className="yk-brand-image"
-            src="/assets/brand-logo-bubble.png"
+            src="/assets/brand-logo-chrome.png"
             alt=""
-            width={2173}
-            height={724}
+            width={1672}
+            height={941}
             priority
           />
         </Link>
@@ -405,24 +405,6 @@ export function Topbar({
               )}
             </svg>
           </button>
-          <Link
-            href="/catalog"
-            className="yk-icon-button"
-            aria-label="Open catalog"
-          >
-            <svg
-              aria-hidden="true"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-            >
-              <circle cx="10" cy="10" r="6" />
-              <path d="m15 15 6 6" />
-            </svg>
-          </Link>
           <div className="relative">
             <button
               type="button"
