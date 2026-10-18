@@ -750,3 +750,7 @@ body:has(.yk-pro-site-background) {
   max-width: 100%;
   min-width: 0;
 }
+.yk-profile-edit-grid [aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

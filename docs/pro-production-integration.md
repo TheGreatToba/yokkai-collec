@@ -30,6 +30,10 @@ expiration des Checkout ouverts → résiliation immédiate des abonnements du
 tarif configuré, sans nouvelle facture/prorata → reçu SQL → libération du
 verrou → nettoyage Storage et Auth existant.
 
+Un compte Basic sans client Stripe, intent de création ni opération en cours
+peut être supprimé sans dépendre de Stripe. Un verrou encore actif ou un intent
+non résolu reste bloquant, même si aucun identifiant client n'a encore été sauvé.
+
 Un autre tarif, une réponse ambiguë, un intent dont l'identifiant n'a pas été
 persisté, une liste tronquée ou une erreur Stripe arrête la suppression. Ne
 jamais effacer le rapprochement client pour contourner cette protection.

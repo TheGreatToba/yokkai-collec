@@ -58,8 +58,11 @@ create function public.prepare_account_deletion(p_user_id uuid) returns jsonb
 language plpgsql security definer set search_path = '' as $$
 begin
   perform pg_advisory_xact_lock(hashtextextended('account-deletion:'||p_user_id::text,0));
-  if exists(select 1 from public.billing_accounts where user_id=p_user_id and
-    (deletion_confirmed_at is null or lease_until>clock_timestamp())) then
+  if exists(select 1 from public.billing_accounts where user_id=p_user_id
+    and (stripe_customer_id is not null or checkout_id is not null
+      or customer_started_at is not null or checkout_started_at is not null
+      or lease_until>clock_timestamp())
+    and (deletion_confirmed_at is null or lease_until>clock_timestamp())) then
     raise exception 'BILLING_CANCELLATION_REQUIRED';
   end if;
   return public.prepare_account_deletion_without_billing(p_user_id);

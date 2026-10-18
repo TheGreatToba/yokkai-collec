@@ -107,7 +107,7 @@ export function ProAccessProvider({ children }: { children: React.ReactNode }) {
 export function ProFeatureNotice({ feature }: { feature: string }) {
   return (
     <p className="mt-2 text-xs text-ink-2">
-      {feature} is available to Pro members only.{" "}
+      {feature} — available to Pro members only.{" "}
       <Link href="/premium" className="underline">
         Discover Yokkai Pro
       </Link>

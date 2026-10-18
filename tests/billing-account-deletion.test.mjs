@@ -304,3 +304,41 @@ test("SQL deletion guard fences checkout, respects existing leases and restricts
   ]);
   await db.query("select public.prepare_account_deletion($1)", [user]);
 });
+test("empty billing status rows do not block Basic deletion, but expired uncertain intents still do", async t => {
+  const { db } = await replayMigrations();
+  t.after(() => db.close());
+  for (const [index, kind] of ["empty", "customer", "checkout"].entries()) {
+    const id = `7e000000-0000-4000-8000-00000000000${index + 2}`;
+    await db.query(
+      "insert into auth.users(id,raw_user_meta_data) values($1,$2::jsonb)",
+      [id, JSON.stringify({ pseudo: `EmptyBilling${index}` })]
+    );
+    const account = (
+      await db.query(
+        "select public.billing_claim($1,'test:acct_fixture:price_fixture') value",
+        [id]
+      )
+    ).rows[0].value;
+    if (kind !== "empty")
+      await db.query(
+        `update public.billing_accounts set ${kind === "customer" ? "customer_started_at" : "checkout_started_at"}=clock_timestamp() where id=$1`,
+        [account.id]
+      );
+    await db.query("select public.begin_account_deletion($1)", [id]);
+    await assert.rejects(
+      db.query("select public.prepare_account_deletion($1)", [id]),
+      /BILLING_CANCELLATION_REQUIRED/
+    );
+    await db.query(
+      "update public.billing_accounts set lease_until=clock_timestamp()-interval '1 second' where id=$1",
+      [account.id]
+    );
+    if (kind === "empty")
+      await db.query("select public.prepare_account_deletion($1)", [id]);
+    else
+      await assert.rejects(
+        db.query("select public.prepare_account_deletion($1)", [id]),
+        /BILLING_CANCELLATION_REQUIRED/
+      );
+  }
+});
