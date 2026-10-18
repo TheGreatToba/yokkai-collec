@@ -266,6 +266,18 @@ test("billing preview requires an explicitly enabled development-only test app w
     new URL("../app/premium/page.tsx", import.meta.url),
     "utf8"
   );
-  assert.match(callback, /if \(!billingSandboxEnabled\(\)\) notFound\(\)/);
-  assert.match(callback, /redirect\("\/design-system\/billing-preview"\)/);
+  if (callback.includes("PremiumOffer")) {
+    // The public sales page is not the Sandbox lab. It may display the offer,
+    // but management remains authenticated and purchases remain server-gated.
+    assert.match(callback, /getCurrentUser\(\)/);
+    assert.match(callback, /getBillingSettings\(user\.id\)/);
+    assert.match(callback, /\/settings#subscription/);
+    assert.doesNotMatch(
+      callback,
+      /design-system\/billing-preview|localPremiumEnabled/
+    );
+  } else {
+    assert.match(callback, /if \(!billingSandboxEnabled\(\)\) notFound\(\)/);
+    assert.match(callback, /redirect\("\/design-system\/billing-preview"\)/);
+  }
 });
