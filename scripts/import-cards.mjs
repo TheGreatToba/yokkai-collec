@@ -89,11 +89,11 @@ export function splitFranchises(value) {
     const key = franchise.toLocaleLowerCase("fr-FR");
     if (!franchise || seen.has(key)) continue;
     if (franchise.length > 200)
-      throw new Error("Une licence ne peut pas dépasser 200 caractères.");
+      throw new Error("A license cannot exceed 200 characters.");
     seen.add(key);
     franchises.push(franchise);
   }
-  if (franchises.length > 10) throw new Error("Maximum 10 licences par carte.");
+  if (franchises.length > 10) throw new Error("Maximum 10 licenses per card.");
   return franchises;
 }
 
@@ -110,25 +110,22 @@ export function validateCard(row) {
     "source",
     "image_url"
   ]) {
-    if (!card[column]) throw new Error(`Champ vide : ${column}`);
+    if (!card[column]) throw new Error(`Empty field: ${column}`);
   }
   if (!["C", "R", "SR", "SSR", "LR"].includes(card.rarete_base)) {
-    throw new Error("Rareté invalide.");
+    throw new Error("Invalid rarity.");
   }
   if (
     card.favoris_count !== "" &&
     (!/^\d+$/.test(card.favoris_count) ||
       Number(card.favoris_count) > 2147483647)
   ) {
-    throw new Error(
-      "favoris_count doit être un entier PostgreSQL positif ou nul."
-    );
+    throw new Error("favoris_count must be a non-negative PostgreSQL integer.");
   }
   const url = new URL(card.image_url);
-  if (url.protocol !== "https:")
-    throw new Error("L'image doit utiliser HTTPS.");
+  if (url.protocol !== "https:") throw new Error("The image must use HTTPS.");
   if (url.pathname.endsWith("/default.jpg"))
-    throw new Error("Image AniList par défaut.");
+    throw new Error("Default AniList image.");
   card.favoris_count =
     card.favoris_count === "" ? null : Number(card.favoris_count);
   card.franchise_romaji ||= null;
@@ -245,10 +242,14 @@ export async function downloadImage(
     const retryAfterMs = retryAfterMilliseconds(
       response.headers.get("retry-after")
     );
-    throw failure(`Téléchargement HTTP ${response.status}`, response.status, {
-      finalUrl: response.url || url,
-      retryAfterMs
-    });
+    throw failure(
+      `Image download failed: HTTP ${response.status}`,
+      response.status,
+      {
+        finalUrl: response.url || url,
+        retryAfterMs
+      }
+    );
   }
   const contentType = response.headers
     .get("content-type")
@@ -257,13 +258,13 @@ export async function downloadImage(
     .toLowerCase();
   if (!MIME_TYPES.includes(contentType)) {
     await response.body?.cancel();
-    throw new Error("Réponse non image ou format non pris en charge.");
+    throw new Error("Non-image response or unsupported format.");
   }
   if (Number(response.headers.get("content-length")) > MAX_IMAGE_BYTES) {
     await response.body?.cancel();
-    throw new Error("Image supérieure à 6 Mio.");
+    throw new Error("Image exceeds 6 MiB.");
   }
-  if (!response.body) throw new Error("Image vide.");
+  if (!response.body) throw new Error("Empty image.");
   const reader = response.body.getReader();
   const chunks = [];
   let size = 0;
@@ -272,14 +273,14 @@ export async function downloadImage(
       const { done, value } = await reader.read();
       if (done) break;
       size += value.length;
-      if (size > MAX_IMAGE_BYTES) throw new Error("Image supérieure à 6 Mio.");
+      if (size > MAX_IMAGE_BYTES) throw new Error("Image exceeds 6 MiB.");
       chunks.push(value);
     }
   } finally {
     await reader.cancel();
     reader.releaseLock();
   }
-  if (!size) throw new Error("Image vide.");
+  if (!size) throw new Error("Empty image.");
   const bytes = Buffer.concat(chunks);
   validateImageBytes(bytes, contentType);
   return { bytes, contentType, finalUrl: response.url || url };
@@ -319,8 +320,7 @@ export function validateImageBytes(bytes, contentType) {
       bytes.subarray(8, 12).toString("ascii") === "WEBP" &&
       bytes.readUInt32LE(4) + 8 === bytes.length;
   }
-  if (!valid)
-    throw new Error(`Contenu ${contentType} invalide ou non décodable.`);
+  if (!valid) throw new Error(`Invalid or undecodable ${contentType} content.`);
 }
 
 export function imagePath(card) {

@@ -325,7 +325,7 @@ test("server deletion refunds once, preserves anonymous histories, fences old JW
   const reports = (await db.query("select public.admin_search_reports() v"))
     .rows[0].v;
   assert.equal(reports.total, 1);
-  assert.equal(reports.reports[0].reportedPseudo, "Joueur supprimé");
+  assert.equal(reports.reports[0].reportedPseudo, "Deleted player");
   assert.equal(reports.reports[0].reportedId, null);
   assert.equal(reports.reports[0].reportedEmail, "");
 });

@@ -2036,12 +2036,9 @@ export function CollectionView({
 
               {selectedGroupFrozen &&
                 (adminRemoval ? (
-                  <Feedback
-                    tone="error"
-                    title="Carte actuellement aux enchères"
-                  >
-                    Le retrait administratif annulera aussi la vente et
-                    remboursera automatiquement le meilleur enchérisseur.
+                  <Feedback tone="error" title="Card currently at auction">
+                    Administrative removal will also cancel the listing and
+                    automatically refund the highest bidder.
                   </Feedback>
                 ) : (
                   <Feedback tone="error" title="Card frozen while in auction">
@@ -2201,9 +2198,7 @@ export function CollectionView({
                       setDiscardConfirm(true);
                     }}
                   >
-                    {adminRemoval
-                      ? "Retirer de la collection"
-                      : "Destroy copies"}
+                    {adminRemoval ? "Remove from collection" : "Destroy copies"}
                   </Button>
                 </div>
               )}
@@ -2334,16 +2329,16 @@ export function CollectionView({
             setDiscardError("");
           }
         }}
-        title={adminRemoval ? "Retirer cette carte ?" : "Destroy copies?"}
+        title={adminRemoval ? "Remove this card?" : "Destroy copies?"}
       >
         {selected && (
           <>
             {adminRemoval ? (
               <p className="text-sm leading-6 text-ink-2">
-                Retirer définitivement cet exemplaire de{" "}
-                <strong className="text-ink">{selected.name}</strong> de la
-                collection du joueur ? Aucun Kara ne sera crédité. Cette action
-                est irréversible.
+                Permanently remove this copy of{" "}
+                <strong className="text-ink">{selected.name}</strong> from the
+                player’s collection? No Karas will be credited. This action is
+                irreversible.
               </p>
             ) : (
               <>
@@ -2430,10 +2425,10 @@ export function CollectionView({
               >
                 {discardBusy
                   ? adminRemoval
-                    ? "Retrait…"
+                    ? "Removing…"
                     : "Destroying…"
                   : adminRemoval
-                    ? "Retirer la carte"
+                    ? "Remove card"
                     : `Destroy ${discardCards.length}`}
               </Button>
             </div>

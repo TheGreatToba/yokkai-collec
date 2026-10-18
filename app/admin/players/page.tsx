@@ -64,43 +64,42 @@ export default async function AdminPlayersPage({
             <p className="text-sm font-semibold uppercase tracking-widest text-cyan-300">
               Administration
             </p>
-            <h1 className="text-3xl font-black">Administration des joueurs</h1>
+            <h1 className="text-3xl font-black">Player administration</h1>
             <p className="mt-1 text-sm text-slate-400">
-              Recherche, inventaire et modération des comptes.
+              Account search, inventory and moderation.
             </p>
           </header>
           <AdminNavigation />
           <section className="rounded-2xl border border-cyan-300/20 bg-slate-900/70 p-5">
             <form className="flex flex-col gap-3 sm:flex-row" method="get">
               <input
-                aria-label="Rechercher un joueur"
+                aria-label="Search players"
                 className="yk-field-control flex-1"
                 defaultValue={query}
                 maxLength={100}
                 name="q"
-                placeholder="Pseudo ou adresse e-mail…"
+                placeholder="Username or email address…"
               />
               <button className="yk-button" type="submit">
-                Rechercher
+                Search
               </button>
               {query && (
                 <Link
                   className="yk-button yk-button-secondary"
                   href="/admin/players"
                 >
-                  Effacer
+                  Clear
                 </Link>
               )}
             </form>
             <p className="mt-3 text-xs text-slate-500">
-              {total} compte{total === 1 ? "" : "s"} trouvé
-              {total === 1 ? "" : "s"}
+              {total} account{total === 1 ? "" : "s"} found
             </p>
           </section>
           <PlayerManager players={players} selected={selected} />
           {pages > 1 && (
             <nav
-              aria-label="Pagination des joueurs"
+              aria-label="Player pagination"
               className="flex items-center justify-center gap-3"
             >
               <Link
@@ -108,17 +107,17 @@ export default async function AdminPlayersPage({
                 className={`yk-button yk-button-secondary ${page === 1 ? "pointer-events-none opacity-50" : ""}`}
                 href={href(page - 1)}
               >
-                Précédent
+                Previous
               </Link>
               <span className="text-sm text-slate-400">
-                Page {page} sur {pages}
+                Page {page} of {pages}
               </span>
               <Link
                 aria-disabled={page === pages}
                 className={`yk-button yk-button-secondary ${page === pages ? "pointer-events-none opacity-50" : ""}`}
                 href={href(page + 1)}
               >
-                Suivant
+                Next
               </Link>
             </nav>
           )}

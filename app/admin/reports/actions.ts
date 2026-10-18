@@ -19,7 +19,7 @@ export async function setReportStatusAction(
       !/^[0-9a-f-]{36}$/i.test(reportId) ||
       !["pending", "reviewed", "dismissed"].includes(status)
     ) {
-      throw new Error("Action de modération invalide.");
+      throw new Error("Invalid moderation action.");
     }
     const client = createClient(await cookies());
     const { error } = await client.rpc("admin_set_report_status", {
@@ -32,15 +32,18 @@ export async function setReportStatusAction(
       ok: true,
       message:
         status === "reviewed"
-          ? "Signalement marqué comme traité."
+          ? "Report marked as reviewed."
           : status === "dismissed"
-            ? "Signalement ignoré."
-            : "Signalement remis en attente."
+            ? "Report dismissed."
+            : "Report moved back to pending."
     };
   } catch (error) {
     return {
       ok: false,
-      message: error instanceof Error ? error.message : "Action impossible."
+      message:
+        error instanceof Error
+          ? error.message
+          : "Unable to complete this action."
     };
   }
 }
@@ -57,7 +60,7 @@ export async function setCardReportStatusAction(
       !/^[0-9a-f-]{36}$/i.test(reportId) ||
       !["pending", "reviewed", "dismissed"].includes(status)
     )
-      throw new Error("Action de modération invalide.");
+      throw new Error("Invalid moderation action.");
     const client = createClient(await cookies());
     const { error } = await client.rpc("admin_set_card_report_status", {
       p_report_id: reportId,
@@ -69,15 +72,18 @@ export async function setCardReportStatusAction(
       ok: true,
       message:
         status === "reviewed"
-          ? "Signalement marqué comme traité."
+          ? "Report marked as reviewed."
           : status === "dismissed"
-            ? "Signalement ignoré."
-            : "Signalement remis en attente."
+            ? "Report dismissed."
+            : "Report moved back to pending."
     };
   } catch (error) {
     return {
       ok: false,
-      message: error instanceof Error ? error.message : "Action impossible."
+      message:
+        error instanceof Error
+          ? error.message
+          : "Unable to complete this action."
     };
   }
 }

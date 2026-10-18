@@ -60,7 +60,7 @@ test("image import refuses internal addresses before sending a request", async (
         requests++;
         return image();
       }),
-      /HTTPS|publique|identifiants/
+      /HTTPS|public|Credentials/
     );
   }
   assert.equal(requests, 0);
@@ -274,7 +274,7 @@ test("une ligne sans nom est ignorée sans bloquer les cartes valides et les ide
   assert.equal(stats.imported, 2);
   assert.equal(stats.skipped, 1);
   assert.equal(failures[0].record, 2);
-  assert.match(failures[0].message, /Champ vide : nom/);
+  assert.match(failures[0].message, /Empty field: nom/);
   const imported = [...client.cards.values()];
   assert.ok(
     imported.some(card => /^manual-[a-f0-9]{24}$/.test(card.source_id))
@@ -339,7 +339,7 @@ test("une ligne dupliquée sans image n'empêche pas l'import de la ligne valide
   assert.equal(stats.skipped, 1);
   assert.equal(stats.duplicates, 0);
   assert.equal(failures[0].record, 2);
-  assert.match(failures[0].message, /Champ vide : image_url/);
+  assert.match(failures[0].message, /Empty field: image_url/);
   assert.deepEqual(
     [...client.cards.values()].map(card => card.source_id).sort(),
     ["other-card", "same-card"]
@@ -385,7 +385,7 @@ test("rejet HTML, corps vide et images trop volumineuses même sans Content-Leng
           headers: { "content-type": "text/html" }
         })
     ),
-    /non image/
+    /Non-image/
   );
   await assert.rejects(
     downloadImage(
@@ -395,7 +395,7 @@ test("rejet HTML, corps vide et images trop volumineuses même sans Content-Leng
           headers: { "content-type": "image/png" }
         })
     ),
-    /vide/
+    /Empty image/
   );
   await assert.rejects(
     downloadImage(
@@ -405,7 +405,7 @@ test("rejet HTML, corps vide et images trop volumineuses même sans Content-Leng
           headers: { "content-type": "image/png" }
         })
     ),
-    /6 Mio/
+    /6 MiB/
   );
 });
 

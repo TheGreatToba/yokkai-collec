@@ -36,9 +36,9 @@ test("le panneau admin affiche et traite les signalements enrichis", async () =>
   assert.match(page, /<ReportedPlayerModal/);
   assert.match(list, /playerHrefBase.*report\.reportedId/);
   assert.doesNotMatch(list, /\/admin\/players\?player=/);
-  assert.match(list, /Signalé par/);
-  assert.match(list, /Joueur signalé/);
-  assert.match(list, /Marquer comme traité/);
+  assert.match(list, /Reported by/);
+  assert.match(list, /Reported player/);
+  assert.match(list, /Mark as reviewed/);
   assert.match(actions, /requireAdminAction\(\)/);
   assert.match(actions, /admin_set_report_status/);
   assert.match(migration, /if not public\.is_current_user_admin\(\)/);
@@ -132,7 +132,7 @@ test("la fiche joueur affiche son inventaire et confirme la modération", async 
   assert.match(
     normalizeWhitespace(manager),
     normalizeWhitespace(
-      /title=\{player\.isBanned \? "Débannir ce joueur \?" : "Bannir ce joueur \?"\}/
+      /title=\{player\.isBanned \? "Unban this player\?" : "Ban this player\?"\}/
     )
   );
   assert.match(
@@ -154,7 +154,7 @@ test("la fiche joueur affiche son inventaire et confirme la modération", async 
   assert.match(
     normalizeWhitespace(collection),
     normalizeWhitespace(
-      /Le retrait administratif annulera aussi la vente et remboursera automatiquement/
+      /Administrative removal will also cancel the listing and automatically refund/
     )
   );
   assert.doesNotMatch(

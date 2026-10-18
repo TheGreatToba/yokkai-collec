@@ -20,7 +20,7 @@ export function ReportedPlayerModal({
     <Modal
       open
       onClose={() => router.push(closeHref)}
-      title={`Fiche admin de ${player.pseudo}`}
+      title={`Admin details for ${player.pseudo}`}
       className="max-w-3xl"
     >
       <PlayerDetailPanel selected={player} />

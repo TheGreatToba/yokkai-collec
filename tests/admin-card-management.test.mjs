@@ -102,20 +102,20 @@ test("les erreurs d'import CSV affichent le nom de la carte avec sa ligne", asyn
   const updateStart = actions.indexOf("function updateCardAction");
   const csvImport = actions.slice(importStart, updateStart);
   assert.match(csvImport, /rows\[failure\.record - 1\]\?\.nom\.trim\(\)/);
-  assert.match(csvImport, /Carte « \$\{cardName\} »/);
+  assert.match(csvImport, /Card “\$\{cardName\}”/);
   assert.match(
     csvImport,
-    /\(ligne \$\{failure\.record\}\): \$\{failure\.message\}/
+    /\(row \$\{failure\.record\}\): \$\{failure\.message\}/
   );
-  assert.match(csvImport, /Carte sans nom/);
+  assert.match(csvImport, /Unnamed card/);
 });
 
 test("l'import CSV admin accepte jusqu'à 500 cartes", async () => {
   const actions = await read("app/admin/cards/actions.ts");
   const ui = await read("app/admin/cards/admin-card-manager.tsx");
   assert.match(actions, /records\.length > 500/);
-  assert.match(actions, /Maximum 500 cartes par import\./);
-  assert.match(ui, /Jusqu’à 500 lignes\./);
+  assert.match(actions, /Maximum 500 cards per import\./);
+  assert.match(ui, /Up to 500 rows\./);
 });
 
 test("le menu Admin dépend du rôle et Succès reste dans le menu profil", async () => {
@@ -147,15 +147,12 @@ test("une carte existante accepte une nouvelle image par URL ou fichier", async 
     normalizeWhitespace(update),
     normalizeWhitespace(/patch\.image_url/)
   );
-  assert.match(
-    normalizeWhitespace(ui),
-    normalizeWhitespace(/Nouvelle URL d’image/)
-  );
-  assert.match(normalizeWhitespace(ui), normalizeWhitespace(/nouveau fichier/));
+  assert.match(normalizeWhitespace(ui), normalizeWhitespace(/New image URL/));
+  assert.match(normalizeWhitespace(ui), normalizeWhitespace(/new file/));
   assert.doesNotMatch(normalizeWhitespace(ui), normalizeWhitespace(/>Saga</));
-  assert.match(ui, /Choisir une catégorie/);
-  assert.match(ui, /\+ Nouvelle catégorie…/);
-  assert.match(ui, /Nom de la nouvelle catégorie/);
+  assert.match(ui, /Choose a category/);
+  assert.match(ui, /\+ New category…/);
+  assert.match(ui, /New category name/);
 });
 
 test("le remplacement d'une image admin utilise une nouvelle URL pour contourner les caches", async () => {
@@ -190,21 +187,21 @@ test("la suppression admin demande une confirmation explicite", async () => {
   assert.match(
     normalizeWhitespace(ui),
     normalizeWhitespace(
-      /type="button" onClick=\{\(\)=>setDeleteConfirm\(true\)\}>Supprimer/
+      /type="button" onClick=\{\(\)=>setDeleteConfirm\(true\)\}>Delete/
     )
   );
   assert.match(
     normalizeWhitespace(ui),
     normalizeWhitespace(
-      /<Modal open=\{deleteConfirm\}[\s\S]*?title="Supprimer cette carte \?"/
+      /<Modal open=\{deleteConfirm\}[\s\S]*?title="Delete this card\?"/
     )
   );
   assert.match(
     normalizeWhitespace(ui),
-    normalizeWhitespace(/Cette action est irréversible\./)
+    normalizeWhitespace(/This action is irreversible\./)
   );
-  assert.match(ui, /Toutes les copies possédées seront/);
-  assert.match(ui, /remboursement de la mise/);
+  assert.match(ui, /All owned copies will be removed/);
+  assert.match(ui, /the leading bid refunded/);
   assert.match(
     normalizeWhitespace(ui),
     normalizeWhitespace(/<form action=\{deleteAction\}[^>]+>/)
@@ -212,7 +209,7 @@ test("la suppression admin demande une confirmation explicite", async () => {
   assert.match(
     normalizeWhitespace(ui),
     normalizeWhitespace(
-      /type="submit">\{deleting \? "Suppression…" : "Confirmer la suppression"\}/
+      /type="submit">\{deleting \? "Deleting…" : "Confirm deletion"\}/
     )
   );
 });
@@ -261,7 +258,7 @@ test("la licence est facultative lors de l’ajout et de la modification d’une
   const actions = await read("app/admin/cards/actions.ts");
   const ui = await read("app/admin/cards/admin-card-manager.tsx");
   assert.doesNotMatch(ui, /name="franchise" required/);
-  assert.match(ui, /Licence principale/);
+  assert.match(ui, /Primary license/);
   assert.match(actions, /if \(!patch\.nom \|\| !patch\.categorie\)/);
   assert.doesNotMatch(actions, /!patch\.franchise/);
 });
@@ -303,7 +300,7 @@ test("un admin peut rechercher une carte par son nom dans tout le catalogue", as
   );
   assert.match(page, /nom\.ilike\.\$\{term\},franchise\.ilike\.\$\{term\}/);
   assert.match(page, /name="q"/);
-  assert.match(page, /Rechercher une carte du catalogue/);
+  assert.match(page, /Search catalogue cards/);
 });
 
 test("la recherche admin retourne toutes les cartes d'une licence", async () => {
@@ -312,9 +309,9 @@ test("la recherche admin retourne toutes les cartes d'une licence", async () => 
   assert.match(page, /franchise\.ilike\.\$\{term\}/);
   assert.match(page, /ADMIN_SEARCH_PAGE_SIZE = 1000/);
   assert.match(page, /offset \+= ADMIN_SEARCH_PAGE_SIZE/);
-  assert.match(page, /Nom de la carte ou de la licence/);
+  assert.match(page, /Card or license name/);
   assert.match(page, /V Cyberpunk/);
-  assert.match(manager, /ce nom ou cette licence/);
+  assert.match(manager, /this name or license/);
 });
 
 test("la liste admin limite les formulaires hydrates et se pagine localement", async () => {
@@ -323,7 +320,7 @@ test("la liste admin limite les formulaires hydrates et se pagine localement", a
   assert.match(manager, /const visibleCards = cards\.slice\(/);
   assert.match(manager, /visibleCards\.map\(card =>/);
   assert.match(manager, /editingCardId === card\.id/);
-  assert.match(manager, /Page \{safePage\} sur \{pageCount\}/);
+  assert.match(manager, /Page \{safePage\} of \{pageCount\}/);
   assert.doesNotMatch(manager, /\{cards\.map\(card =>\s*\(\s*<CardRow/);
 });
 
@@ -359,7 +356,7 @@ test("un admin peut filtrer les cartes avec une liste de catégories", async () 
   );
   assert.match(
     normalizeWhitespace(page),
-    normalizeWhitespace(/Toutes les catégories/)
+    normalizeWhitespace(/All categories/)
   );
   assert.match(
     normalizeWhitespace(page),
@@ -373,9 +370,7 @@ test("un admin peut filtrer les cartes avec une liste de catégories", async () 
   );
   assert.match(
     normalizeWhitespace(page),
-    normalizeWhitespace(
-      /aria-label="Nom de la carte ou de la licence"[^>]+w-full min-w-0/
-    )
+    normalizeWhitespace(/aria-label="Card or license name"[^>]+w-full min-w-0/)
   );
   assert.match(
     normalizeWhitespace(page),
@@ -909,9 +904,9 @@ test("une carte admin accepte plusieurs licences et conserve la premiere comme l
   assert.match(actions, /franchise: franchises\[0\] \?\? ""/);
   assert.match(actions, /from\("card_franchises"\)/);
   assert.match(actions, /franchises\.map\(\(franchise, position\)/);
-  assert.match(ui, /\+ Licence secondaire/);
-  assert.match(ui, /Licence secondaire \$\{index\}/);
-  assert.match(ui, /Chaque licence ajoute la carte au Classeur/);
+  assert.match(ui, /\+ Secondary license/);
+  assert.match(ui, /Secondary license \$\{index\}/);
+  assert.match(ui, /Each license adds the card to the corresponding Binder/);
   assert.match(page, /card_franchises\(franchise,position\)/);
   assert.match(
     page,
@@ -1005,7 +1000,7 @@ test("l'import CSV sépare plusieurs licences avec « / » sans casser Fate/Zero
       splitFranchises(
         Array.from({ length: 11 }, (_, i) => `L${i}`).join(" / ")
       ),
-    /Maximum 10 licences/
+    /Maximum 10 licenses/
   );
   const actions = await read("app/admin/cards/actions.ts");
   assert.match(actions, /syncImportedFranchises\(/);

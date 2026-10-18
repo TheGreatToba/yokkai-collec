@@ -19,14 +19,14 @@ export type AdminCardReport = {
   createdAt: string;
 };
 const reasonLabels: Record<AdminCardReport["reason"], string> = {
-  image_issue: "Problème d’image",
-  wrong_license: "Mauvaise licence",
-  duplicate_card: "Doublon de carte"
+  image_issue: "Image issue",
+  wrong_license: "Wrong license",
+  duplicate_card: "Duplicate card"
 };
 const statusLabels = {
-  pending: "En attente",
-  reviewed: "Traité",
-  dismissed: "Ignoré"
+  pending: "Pending",
+  reviewed: "Reviewed",
+  dismissed: "Dismissed"
 } as const;
 const initialState: ReportActionState = { ok: false, message: "" };
 
@@ -46,7 +46,7 @@ function Actions({ report }: { report: AdminCardReport }) {
             name="status"
             value="reviewed"
           >
-            Marquer comme traité
+            Mark as reviewed
           </button>
         )}
         {report.status !== "dismissed" && (
@@ -56,7 +56,7 @@ function Actions({ report }: { report: AdminCardReport }) {
             name="status"
             value="dismissed"
           >
-            Ignorer
+            Dismiss
           </button>
         )}
         {report.status !== "pending" && (
@@ -66,7 +66,7 @@ function Actions({ report }: { report: AdminCardReport }) {
             name="status"
             value="pending"
           >
-            Remettre en attente
+            Move back to pending
           </button>
         )}
       </form>
@@ -92,7 +92,7 @@ export function CardReportList({
   if (!reports.length)
     return (
       <p className="rounded-2xl border border-white/10 bg-slate-900/70 p-8 text-center text-slate-400">
-        Aucune carte signalée.
+        No reported cards.
       </p>
     );
   return (
@@ -104,7 +104,7 @@ export function CardReportList({
         >
           <div className="grid gap-5 sm:grid-cols-[6rem_minmax(0,1fr)]">
             <div
-              aria-label={`Illustration de ${report.cardName}`}
+              aria-label={`Artwork for ${report.cardName}`}
               className="aspect-[5/7] w-24 rounded-lg bg-slate-950 bg-cover bg-center"
               role="img"
               style={
@@ -128,11 +128,11 @@ export function CardReportList({
                 {report.cardName}
               </h3>
               <p className="text-sm text-slate-400">
-                {report.franchise || "Licence non renseignée"}
+                {report.franchise || "No license provided"}
                 {report.rarity ? ` · ${report.rarity}` : ""}
               </p>
               <p className="mt-3 text-sm text-slate-400">
-                Signalé par{" "}
+                Reported by{" "}
                 <strong className="text-white">{report.reporterPseudo}</strong>{" "}
                 · {report.reporterEmail}
               </p>
@@ -141,7 +141,7 @@ export function CardReportList({
                   className="mt-2 inline-block text-sm font-semibold text-cyan-300"
                   href={`${playerHrefBase}${report.reporterId}`}
                 >
-                  Ouvrir la fiche du joueur →
+                  Open player details →
                 </Link>
               )}
               <div className="mt-4">
