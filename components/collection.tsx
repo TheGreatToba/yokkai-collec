@@ -1916,47 +1916,66 @@ export function CollectionView({
               )}
             </div>
             <div className="yk-detail-info">
-              <header>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span
-                    className={`text-sm font-bold tracking-widest ${rarityText[selected.rarity]}`}
-                  >
-                    {selected.rarity}
-                    {selected.shiny ? " ✦ Shiny" : ""}
-                  </span>
-                  {selected.isEvolved && (
-                    <span className="text-[10px] font-semibold tracking-wider text-accent-gold">
-                      EVOLVED
-                    </span>
-                  )}
-                </div>
-                <div className="yk-detail-title-row">
-                  <h3 className="font-display text-[28px] leading-tight">
-                    {selected.name}
-                  </h3>
-                  {!readOnly && onSetLocked && (
-                    <button
-                      type="button"
-                      className="yk-detail-lock-toggle"
-                      aria-label={selected.locked ? "Unlock card" : "Lock card"}
-                      aria-pressed={!!selected.locked}
-                      title={
-                        selected.locked
-                          ? "Locked: can't be destroyed or traded"
-                          : "Lock this card"
-                      }
-                      disabled={lockBusy || !!selectedMeta?.frozen}
-                      onClick={() => void toggleSelectedLock()}
+              <header className="yk-detail-header">
+                <div className="yk-detail-heading">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className={`text-sm font-bold tracking-widest ${rarityText[selected.rarity]}`}
                     >
-                      <ProtectedIcon size={17} />
-                    </button>
+                      {selected.rarity}
+                      {selected.shiny ? " ✦ Shiny" : ""}
+                    </span>
+                    {selected.isEvolved && (
+                      <span className="text-[10px] font-semibold tracking-wider text-accent-gold">
+                        EVOLVED
+                      </span>
+                    )}
+                  </div>
+                  <div className="yk-detail-title-row">
+                    <h3 className="font-display text-[28px] leading-tight">
+                      {selected.name}
+                    </h3>
+                    {!readOnly && onSetLocked && (
+                      <button
+                        type="button"
+                        className="yk-detail-lock-toggle"
+                        aria-label={
+                          selected.locked ? "Unlock card" : "Lock card"
+                        }
+                        aria-pressed={!!selected.locked}
+                        title={
+                          selected.locked
+                            ? "Locked: can't be destroyed or traded"
+                            : "Lock this card"
+                        }
+                        disabled={lockBusy || !!selectedMeta?.frozen}
+                        onClick={() => void toggleSelectedLock()}
+                      >
+                        <ProtectedIcon size={17} />
+                      </button>
+                    )}
+                  </div>
+                  {lockError && (
+                    <p role="alert" className="mt-2 text-xs text-danger">
+                      {lockError}
+                    </p>
                   )}
                 </div>
-                {lockError && (
-                  <p role="alert" className="mt-2 text-xs text-danger">
-                    {lockError}
-                  </p>
-                )}
+                <div className="yk-detail-utility-actions">
+                  {!readOnly && (
+                    <CardShareButton
+                      key={selected.instanceId}
+                      instanceId={selected.instanceId}
+                      name={selected.name}
+                      iconOnly
+                    />
+                  )}
+                  <CardReportButton
+                    cardId={selected.id}
+                    cardName={selected.name}
+                    iconOnly
+                  />
+                </div>
               </header>
               {(selectedGroup?.cards.length ?? 0) > 1 && (
                 <div className="yk-copy-picker">
@@ -2008,18 +2027,7 @@ export function CollectionView({
                   </div>
                 )}
               </dl>
-              {!readOnly && (
-                <CardShareButton
-                  key={selected.instanceId}
-                  instanceId={selected.instanceId}
-                  name={selected.name}
-                />
-              )}
-              <CardReportButton
-                cardId={selected.id}
-                cardName={selected.name}
-                className="mt-4 w-full"
-              />
+
               {selectedGroupFrozen &&
                 (adminRemoval ? (
                   <Feedback
