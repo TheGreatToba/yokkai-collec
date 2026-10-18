@@ -90,6 +90,24 @@ test("server deletion refunds once, preserves anonymous histories, fences old JW
     [removed, card]
   );
   // Supabase's platform supplies Storage table privileges; the minimal bootstrap does not.
+  // Direct Storage writes require Pro once the paid-entitlement migration is
+  // present. Keep this scenario's deletion/fencing assertions unchanged.
+  if (
+    (
+      await db.query(
+        "select to_regprocedure('public.billing_set_entitlement_scope(text,boolean)') present"
+      )
+    ).rows[0].present
+  ) {
+    const scope = "test:acct_deletion:price_deletion";
+    await db.query("select public.billing_set_entitlement_scope($1,true)", [
+      scope
+    ]);
+    await db.query(
+      "insert into public.billing_accounts(user_id,scope,active,status,period_end,verified_at) values($1,$2,true,'active',clock_timestamp()+interval '1 month',clock_timestamp())",
+      [removed, scope]
+    );
+  }
   await db.exec(
     "grant select,insert,update,delete on storage.objects to authenticated; set role authenticated"
   );
