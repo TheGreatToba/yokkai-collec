@@ -209,7 +209,7 @@ export function PlayerDetailPanel({
               <div className="rounded-xl bg-slate-950 p-3">
                 <dt className="text-slate-500">Karas</dt>
                 <dd className="mt-1 font-bold text-amber-300">
-                  {selected.karasBalance.toLocaleString("fr-FR")}
+                  {selected.karasBalance.toLocaleString("en-US")}
                 </dd>
               </div>
               <div className="rounded-xl bg-slate-950 p-3">
@@ -220,7 +220,7 @@ export function PlayerDetailPanel({
                 <dt className="text-slate-500">Dernière activité</dt>
                 <dd className="mt-1">
                   {selected.lastSeenAt
-                    ? new Date(selected.lastSeenAt).toLocaleString("fr-FR")
+                    ? new Date(selected.lastSeenAt).toLocaleString("en-US")
                     : "Jamais vue en ligne"}
                 </dd>
               </div>
@@ -308,7 +308,7 @@ export function PlayerManager({
                   <p className="mt-1 text-xs text-slate-500">
                     {player.cardsCount} carte
                     {player.cardsCount === 1 ? "" : "s"} ·{" "}
-                    {player.karasBalance.toLocaleString("fr-FR")} Karas
+                    {player.karasBalance.toLocaleString("en-US")} Karas
                   </p>
                 </div>
                 <Link
