@@ -809,6 +809,16 @@
   cursor: not-allowed;
   opacity: 0.45;
 }
+.yk-detail-utility-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 2);
+}
+.yk-detail-utility-actions > .yk-button {
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+}
 .yk-detail-facts {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -2008,18 +2008,21 @@ export function CollectionView({
                   </div>
                 )}
               </dl>
-              {!readOnly && (
-                <CardShareButton
-                  key={selected.instanceId}
-                  instanceId={selected.instanceId}
-                  name={selected.name}
+              <div className="yk-detail-utility-actions">
+                {!readOnly && (
+                  <CardShareButton
+                    key={selected.instanceId}
+                    instanceId={selected.instanceId}
+                    name={selected.name}
+                    iconOnly
+                  />
+                )}
+                <CardReportButton
+                  cardId={selected.id}
+                  cardName={selected.name}
+                  iconOnly
                 />
-              )}
-              <CardReportButton
-                cardId={selected.id}
-                cardName={selected.name}
-                className="mt-4 w-full"
-              />
+              </div>
               {selectedGroupFrozen &&
                 (adminRemoval ? (
                   <Feedback

@@ -142,6 +142,31 @@ function load(relative) {
 const render = (component, props) =>
   renderToStaticMarkup(React.createElement(component, props));
 
+test("les actions compactes de détail gardent leurs libellés accessibles sans texte visible", () => {
+  const { CardShareButton } = load("components/card-sharing.tsx");
+  const { CardReportButton } = load("components/card-report-button.tsx");
+  const share = render(CardShareButton, {
+    instanceId: "card-1",
+    name: "Aiolia",
+    iconOnly: true
+  });
+  const report = render(CardReportButton, {
+    cardId: "card-1",
+    cardName: "Aiolia",
+    iconOnly: true
+  });
+  assert.match(share, /aria-label="Share Aiolia"/);
+  assert.match(share, /<svg aria-hidden="true"/);
+  assert.doesNotMatch(share, />Share</);
+  assert.match(report, /aria-label="Report Aiolia"/);
+  assert.match(report, /aria-hidden="true"[^>]*>⚑<\/span>/);
+  assert.doesNotMatch(report, />[^<]*Report this card/);
+  assert.match(
+    render(CardShareButton, { instanceId: "card-1", name: "Aiolia" }),
+    />Share<\/button>/
+  );
+});
+
 test("les routes consommatrices de MarketView ont exactement un h1 sans saut de niveau", async () => {
   for (const route of [
     "market-preview",
