@@ -12,7 +12,7 @@
   position: relative;
   isolation: isolate;
   width: min(300px, 55vw, 38svh);
-  aspect-ratio: 2 / 3;
+  aspect-ratio: 941 / 1672;
   flex-shrink: 0;
   animation: yk-pack-tear-float 4s ease-in-out infinite;
   filter: drop-shadow(0 14px 24px #0008);
