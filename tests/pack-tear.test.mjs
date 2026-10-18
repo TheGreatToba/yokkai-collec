@@ -69,6 +69,19 @@ test("only the torn top moves away once the server-driven seal phase starts", ()
   assert.match(opening, /Speed up the opening animation/);
 });
 
+test("the intact pack waits for an explicit pointer or keyboard tear gesture", () => {
+  assert.match(source, /const tear = new Promise<void>/);
+  assert.match(source, /onSeal: async \(\) => \{[\s\S]*await tear;/);
+  assert.match(opening, /Click the pack to tear it open\./);
+  assert.match(opening, /Tear open the pack/);
+  assert.match(opening, /role="button" tabIndex=\{0\}/);
+  assert.match(opening, /event\.key==="Enter"\|\|event\.key===" "/);
+  assert.match(
+    css,
+    /\.yk-opening-tension \.yk-pack-tear\s*\{[^}]*cursor: pointer/
+  );
+});
+
 test("reduced motion disables the strip, halo, seam and spark animations", () => {
   const reduced = postcss
     .parse(css)

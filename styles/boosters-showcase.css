@@ -39,7 +39,9 @@
   content: none;
 }
 .yk-pack-grid .yk-pack-panel .yk-pack-art-stage {
+  --pack-info-size: 44px;
   height: clamp(280px, calc(100dvh - 464px), 520px);
+  container-type: size;
   flex-shrink: 0;
   isolation: isolate;
   background: none;
@@ -108,9 +110,14 @@
 }
 .yk-pack-grid .yk-pack-panel .yk-pack-info {
   top: 16px;
-  right: 16px;
-  width: 44px;
-  height: 44px;
+  /* Follow the centered artwork's native ratio, with room for the hit target. */
+  left: min(
+    calc(100% - var(--pack-info-size)),
+    calc(50% + (100cqh - 16px) * 941 / 3344 + 8px)
+  );
+  right: auto;
+  width: var(--pack-info-size);
+  height: var(--pack-info-size);
   color: var(--color-pack-accent);
   border-color: var(--color-veil-strong);
   background: var(--color-surface);
@@ -308,14 +315,11 @@
   }
   .yk-pack-grid .yk-pack-panel .yk-pack-art-stage {
     height: clamp(360px, calc(52dvh - 180px), 640px);
+    --pack-info-size: clamp(44px, 1.5vw, 52px);
   }
   .yk-pack-floor {
     width: min(100%, clamp(300px, 18vw, 520px));
     height: clamp(36px, 2.5dvh, 60px);
-  }
-  .yk-pack-grid .yk-pack-panel .yk-pack-info {
-    width: clamp(44px, 1.5vw, 52px);
-    height: clamp(44px, 1.5vw, 52px);
   }
   .yk-pack-info svg {
     width: 50%;

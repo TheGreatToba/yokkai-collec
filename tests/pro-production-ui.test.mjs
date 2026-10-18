@@ -72,7 +72,7 @@ test("Pro name rendering follows its owner's server projection, not the viewing 
   assert.match(paid, /comet decorative badge/);
   assert.doesNotMatch(paid, /local preview|verified role/i);
 });
-test("Basic style controls are disabled with an upgrade notice; paid style controls remain usable", () => {
+test("Basic style controls are disabled with an upgrade notice; paid core style controls remain usable", () => {
   for (const pro of [false, true]) {
     const load = loader({
       "@/components/pro-access": {
@@ -99,8 +99,10 @@ test("Basic style controls are disabled with an upgrade notice; paid style contr
       assert.match(html, /Pro members only/);
     }
     assert.match(html, /Avatar frame/);
-    assert.match(html, /Card back/);
-    assert.match(html, /Site background/);
+    assert.match(html, /Profile theme/);
+    assert.match(html, /Showcase effect/);
+    assert.doesNotMatch(html, /Site background|Card back/);
+    assert.doesNotMatch(html, /type="file"/);
   }
 });
 test("presentation normalizes CSS enums, hex colors, badge limits and safe uploaded media", () => {
