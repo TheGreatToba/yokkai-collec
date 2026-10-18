@@ -82,10 +82,20 @@ export async function exportJournal(admin, url) {
   return journal;
 }
 
-export async function reapplyJournal(admin, entries) {
+async function cancelRestoredAccountBilling(userId) {
+  const { loadRestorationBilling } = await import("./restoration-billing.mjs");
+  const cancel = await loadRestorationBilling();
+  await cancel(userId);
+}
+
+export async function reapplyJournal(
+  admin,
+  entries,
+  cancelBilling = cancelRestoredAccountBilling
+) {
   for (const { user_id, deleted_at } of entries) {
     try {
-      await deleteAccount(user_id, admin);
+      await deleteAccount(user_id, admin, () => cancelBilling(user_id));
       const { error } = await admin
         .from("account_deletion_log")
         .update({ deleted_at })
@@ -153,7 +163,7 @@ async function main() {
   const bytes = await readFile(resolve(options.journal));
   const entries = validateJournal(JSON.parse(bytes), url);
   console.log(
-    `Target: ${url}\nPlan: ${entries.length} deletions through SQL preparation, Storage API and hard Auth Admin deletion.\nJournal SHA256: ${createHash("sha256").update(bytes).digest("hex")}`
+    `Target: ${url}\nPlan: ${entries.length} deletions through verified Stripe cancellation when required, SQL preparation, Storage API and hard Auth Admin deletion.\nJournal SHA256: ${createHash("sha256").update(bytes).digest("hex")}`
   );
   if (!options.apply) {
     console.log(
@@ -174,6 +184,8 @@ async function main() {
   }
   if (answer !== `REAPPLY ${entries.length}`)
     throw Error("CONFIRMATION_REFUSED");
+  // Bind the billing store to the same validated restoration target.
+  process.env.NEXT_PUBLIC_SUPABASE_URL = url;
   await reapplyJournal(admin, entries);
   console.log(
     `Reapplication completed: ${entries.length} entries. Verify before reopening the game.`

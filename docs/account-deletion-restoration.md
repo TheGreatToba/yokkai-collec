@@ -40,6 +40,32 @@ fichier privé et sa provenance avant d’autoriser l’opération. Une cible di
 un UUID/date invalide ou des doublons sont refusés. `--apply` exige un terminal et
 la confirmation `REAPPLY <nombre>` ; aucun flag ne la contourne.
 
+Si la préparation SQL exige une annulation de facturation, le script charge le même
+adaptateur Stripe que la Server Action, uniquement après `--apply` et la confirmation
+interactive. Il nécessite **Node.js 22.15 ou plus récent dans la branche 22** pour le
+chargement contrôlé des trois modules TypeScript de facturation (API natives Node,
+aucune dépendance ajoutée). Le dry-run et le mode export ne chargent pas cet adaptateur.
+
+Charger dans les variables serveur les paramètres habituels : `NODE_ENV`,
+`NEXT_PUBLIC_SITE_URL`, `STRIPE_BILLING_MODE`, `STRIPE_SECRET_KEY`,
+`STRIPE_ACCOUNT_ID`, `STRIPE_PRO_PRICE_ID` et `STRIPE_PRO_WEBHOOK_SECRET`.
+Conserver le compte Stripe, le mode et le prix correspondant aux lignes restaurées.
+Le magasin de facturation utilise la même origine Supabase validée que la
+restauration (`SUPABASE_URL` prioritaire, sinon `NEXT_PUBLIC_SUPABASE_URL`) et
+la même clé privée. La fermeture des nouvelles ventes ne désactive pas cette
+annulation : le serveur force uniquement la facturation active et le checkout fermé.
+Les autres validations de configuration restent intégralement actives.
+
+Le serveur expire les checkouts ouverts, recherche et annule immédiatement les
+abonnements concernés sans prorata ni nouvelle facture, puis confirme en base
+avant de reprendre la préparation SQL. Un client sans abonnement peut être
+confirmé après vérification ; un compte sans billing ne contacte pas Stripe.
+Une erreur Stripe, une configuration absente, un état ambigu, un périmètre incohérent
+ou une liste tronquée bloque la suppression avant Storage/Auth. Le verrou reste actif,
+la liste cesse sans retry automatique et aucun détail fournisseur ne sera imprimé.
+Inspecter Stripe et les étapes déjà terminées avant toute reprise manuelle ;
+ne jamais contourner le verrou ni effacer les mappings pour débloquer la procédure.
+
 La suppression réutilise exactement la routine serveur : clôture/remboursement des
 ventes, retrait des mises et prolongation éventuelle, annulation des échanges,
 effacement SQL, suppression des avatars via Storage, puis suppression **définitive**
