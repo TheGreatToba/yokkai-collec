@@ -12,7 +12,8 @@ const require = createRequire(import.meta.url),
 function setup({
   active = false,
   user = { id: "6c000000-0000-4000-8000-000000000001" },
-  rpcError = null
+  rpcError = null,
+  deletedDuringUpload = false
 } = {}) {
   const calls = [],
     cache = new Map();
@@ -23,6 +24,37 @@ function setup({
     },
     from(table) {
       return {
+        select() {
+          return {
+            eq(column, value) {
+              calls.push({ read: table, column, value });
+              return {
+                maybeSingle: async () => ({
+                  data: deletedDuringUpload ? { user_id: value } : null,
+                  error: null
+                })
+              };
+            }
+          };
+        },
+        delete() {
+          return {
+            eq(column, value) {
+              return {
+                eq: async (nextColumn, nextValue) => {
+                  calls.push({
+                    deleted: table,
+                    column,
+                    value,
+                    nextColumn,
+                    nextValue
+                  });
+                  return { error: null };
+                }
+              };
+            }
+          };
+        },
         async insert(value) {
           calls.push({ table, value });
           return { error: null };
@@ -43,6 +75,10 @@ function setup({
           }),
           async upload(path, bytes, options) {
             calls.push({ path, bytes, options });
+            return { error: null };
+          },
+          async remove(paths) {
+            calls.push({ removed: paths });
             return { error: null };
           }
         };
@@ -206,6 +242,22 @@ test("image upload checks actual GIF bytes despite forged JPEG filename/MIME and
   );
   assert.equal(response.headers.get("Cache-Control"), "private, no-store");
 });
+test("an account deletion committed during upload removes only the new immutable asset", async () => {
+  const fixture = setup({ active: true, deletedDuringUpload: true });
+  const response = await fixture
+    .load("app/api/profile-media/route.ts")
+    .POST(imageRequest());
+  assert.equal(response.status, 403);
+  const path = fixture.calls.find(call => call.path).path;
+  assert.equal(fixture.calls.find(call => call.removed).removed.length, 1);
+  assert.equal(fixture.calls.find(call => call.removed).removed[0], path);
+  const reservation = fixture.calls.find(call => call.deleted);
+  assert.equal(reservation.deleted, "profile_media_assets");
+  assert.equal(reservation.value, path);
+  assert.equal(reservation.nextValue, "6c000000-0000-4000-8000-000000000001");
+  assert.doesNotMatch(await response.text(), /storage\/v1\/object/);
+});
+
 test("Basic can still upload a byte-validated static avatar without paid access", async () => {
   const basic = setup(),
     form = new FormData();

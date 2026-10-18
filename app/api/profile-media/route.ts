@@ -91,6 +91,25 @@ export async function POST(request: Request) {
         .eq("user_id", user.id);
       throw new ProError("PROFILE_MEDIA_UNAVAILABLE");
     }
+    // Storage is outside the SQL reservation transaction. A deletion fence may
+    // have committed while the bytes were in flight, after its manifest read.
+    const deleted = await client
+      .from("account_deletion_log")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (deleted.error || deleted.data) {
+      await client.storage.from("avatars").remove([path]);
+      await client
+        .from("profile_media_assets")
+        .delete()
+        .eq("path", path)
+        .eq("user_id", user.id);
+      throw new ProError(
+        deleted.data ? "REQUEST_DENIED" : "PRO_UNAVAILABLE",
+        deleted.data ? 403 : 503
+      );
+    }
     return proReply({ url });
   } catch (error) {
     return proFailure(error);
