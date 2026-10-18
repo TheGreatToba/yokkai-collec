@@ -2578,3 +2578,55 @@
     transition-delay: 0s;
   }
 }
+.yk-boosters-page {
+  min-height: 100dvh;
+  background-color: #05060a;
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.03),
+      transparent 10%,
+      transparent 90%,
+      rgba(255, 255, 255, 0.02)
+    ),
+    radial-gradient(
+      60% 35% at 50% 105%,
+      rgba(84, 77, 149, 0.08),
+      transparent 70%
+    ),
+    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+    radial-gradient(
+      55% 45% at 20% 35%,
+      rgba(36, 52, 110, 0.22),
+      transparent 68%
+    ),
+    radial-gradient(
+      42% 38% at 78% 28%,
+      rgba(64, 34, 98, 0.16),
+      transparent 70%
+    ),
+    radial-gradient(
+      50% 42% at 70% 72%,
+      rgba(25, 48, 92, 0.15),
+      transparent 72%
+    ),
+    linear-gradient(180deg, #08090f 0%, #05060a 35%, #040509 100%);
+  background-position: center;
+  background-size:
+    auto,
+    auto,
+    100% 4px,
+    4px 100%,
+    auto,
+    auto,
+    auto,
+    auto;
+  background-attachment: fixed;
+}
+
+@media (max-width: 760px), (prefers-reduced-motion: reduce) {
+  .yk-boosters-page {
+    background-attachment: scroll;
+  }
+}
