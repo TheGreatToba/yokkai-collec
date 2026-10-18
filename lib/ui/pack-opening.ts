@@ -25,13 +25,13 @@ export async function runPackOpeningSequence<T>({
   open: () => Promise<T>;
   wait?: (duration: number) => Promise<void>;
   onResponse: (result: T) => void;
-  onSeal: () => void;
+  onSeal: () => void | Promise<void>;
 }) {
   const tension = wait(animation.packOpening.minimumTension);
   const result = await open();
   onResponse(result);
   await tension;
-  onSeal();
+  await onSeal();
   await wait(animation.packOpening.seal);
   return result;
 }

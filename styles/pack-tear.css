@@ -17,6 +17,9 @@
   animation: yk-pack-tear-float 4s ease-in-out infinite;
   filter: drop-shadow(0 14px 24px #0008);
 }
+.yk-opening-tension .yk-pack-tear {
+  cursor: pointer;
+}
 .yk-pack-tear::before,
 .yk-pack-tear::after {
   content: "";

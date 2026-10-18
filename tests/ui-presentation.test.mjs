@@ -562,6 +562,43 @@ test("la rupture attend la réponse et la tension minimale sans additionner leur
   await fastOpening;
 });
 
+test("la rupture peut attendre un geste utilisateur avant de lancer le seal", async () => {
+  const { runPackOpeningSequence } = load("lib/ui/pack-opening.ts");
+  const events = [];
+  let releaseTension;
+  let releaseGesture;
+  let releaseSeal;
+  const gesture = new Promise(resolve => {
+    releaseGesture = resolve;
+  });
+  const opening = runPackOpeningSequence({
+    open: async () => [],
+    wait: duration =>
+      new Promise(resolve => {
+        if (duration === 250) releaseTension = resolve;
+        else releaseSeal = resolve;
+      }),
+    onResponse: () => events.push("response"),
+    onSeal: async () => {
+      events.push("waiting-for-gesture");
+      await gesture;
+      events.push("seal");
+    }
+  });
+
+  await new Promise(resolve => setImmediate(resolve));
+  releaseTension();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(events, ["response", "waiting-for-gesture"]);
+  assert.equal(releaseSeal, undefined);
+
+  releaseGesture();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(events, ["response", "waiting-for-gesture", "seal"]);
+  releaseSeal();
+  await opening;
+});
+
 test("l'ouverture centralise ses durées, se passe et ne bloque pas le reveal sur les rafraîchissements", () => {
   const animations = readFileSync(
     path.join(root, "lib/ui/animations.ts"),
