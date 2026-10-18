@@ -101,6 +101,8 @@ test("Basic style controls are disabled with an upgrade notice; paid core style 
     assert.match(html, /Avatar frame/);
     assert.match(html, /Profile theme/);
     assert.match(html, /Showcase effect/);
+    assert.doesNotMatch(html, /Site background|Card back/);
+    assert.doesNotMatch(html, /type="file"/);
   }
 });
 test("presentation normalizes CSS enums, hex colors, badge limits and safe uploaded media", () => {
