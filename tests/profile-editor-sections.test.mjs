@@ -17,6 +17,10 @@ const tree = ts.createSourceFile(
 const editor = tree.statements.find(
   node => ts.isFunctionDeclaration(node) && node.name?.text === "Editor"
 );
+const styleEditor = tree.statements.find(
+  node =>
+    ts.isFunctionDeclaration(node) && node.name?.text === "ProfileStyleEditor"
+);
 const guards = new Map();
 function inspect(node) {
   if (
@@ -43,8 +47,30 @@ test("the profile editor contains personal fields and banners, never the showcas
   assert.match(profile, /type="file"/);
   assert.doesNotMatch(
     profile,
-    /yk-featured-picker|featured-query|featuredChoices/
+    /yk-featured-picker|featured-query|featuredChoices|ProfileStyleFields/
   );
+});
+
+test("profile styling has its own owner action and isolated editor", () => {
+  assert.ok(styleEditor);
+  const style = styleEditor.getText(tree);
+  assert.match(source, /setEditingMode\("style"\)/);
+  assert.match(source, />\s*Profile style\s*</);
+  assert.match(style, /<ProfileStyleFields/);
+  assert.doesNotMatch(
+    style,
+    /saveProfileAppearance|uploadAvatar|uploadBanner|yk-featured-picker/
+  );
+});
+
+test("Basic players can change the style draft but cannot save or publish it", () => {
+  assert.ok(styleEditor);
+  const style = styleEditor.getText(tree);
+  assert.match(style, /if \(!pro \|\| busy\) return/);
+  assert.match(style, /disabled=\{busy \|\| !pro\}/);
+  assert.match(style, /Pro required/);
+  assert.match(style, /Preview is free/);
+  assert.match(style, /fetch\("\/api\/pro\/profile-style"/);
 });
 
 test("the showcase editor contains only the existing bounded card picker", () => {

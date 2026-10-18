@@ -25,7 +25,8 @@ import { ProfileStyleFields } from "@/components/profile-style-fields";
 import { StyledPlayerName } from "@/components/styled-player-name";
 import {
   DEFAULT_PROFILE_STYLE,
-  normalizeProfileStyle
+  normalizeProfileStyle,
+  type ProfileStyle
 } from "@/lib/ui/profile-style";
 import { useProAccess, ProFeatureNotice } from "@/components/pro-access";
 import type { BannerFrame } from "@/lib/ui/banner-frame";
@@ -370,11 +371,6 @@ function Editor({
   const [bio, setBio] = useState(profile.bio);
   const pro = useProAccess();
   const FEATURED_CARD_LIMIT = pro ? 10 : 5;
-  const initialStyle = normalizeProfileStyle({
-    ...DEFAULT_PROFILE_STYLE,
-    ...profile.profileStyle?.style
-  });
-  const [style, setStyle] = useState(initialStyle);
   const [avatar, setAvatar] = useState(profile.avatarUrl);
   const ownedBannerCards = useMemo(() => {
     const cards = new Map<string, Card>();
@@ -500,25 +496,6 @@ function Editor({
         uploadedBannerUrl,
         bannerFrame ?? undefined
       );
-      if (
-        pro &&
-        mode === "profile" &&
-        JSON.stringify(style) !== JSON.stringify(initialStyle)
-      ) {
-        const response = await fetch("/api/pro/profile-style", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ style })
-        });
-        if (!response.ok) {
-          onSaved(updated);
-          throw new Error(
-            "Your profile was saved, but its style couldn't be updated. Please try saving again."
-          );
-        }
-        updated.profileStyle = { active: true, style };
-        window.dispatchEvent(new Event("yokkai:profile-style-updated"));
-      }
       onSaved(updated);
       onClose();
     } catch (e) {
@@ -789,14 +766,6 @@ function Editor({
           </section>
         )}
       </div>
-      {mode === "profile" ? (
-        <ProfileStyleFields
-          name={profile.pseudo}
-          value={style}
-          onChange={setStyle}
-          busy={busy}
-        />
-      ) : null}
       {error && (
         <p role="alert" className="text-sm text-danger">
           {error}
@@ -836,6 +805,92 @@ function Editor({
           }}
         />
       )}
+    </div>
+  );
+}
+
+function ProfileStyleEditor({
+  profile,
+  onSaved,
+  onClose
+}: {
+  profile: Profile;
+  onSaved: (style: ProfileStyle) => void;
+  onClose: () => void;
+}) {
+  const pro = useProAccess();
+  const initialStyle = normalizeProfileStyle({
+    ...DEFAULT_PROFILE_STYLE,
+    ...profile.profileStyle?.style
+  });
+  const [style, setStyle] = useState(initialStyle);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  async function submit() {
+    if (!pro || busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      const response = await fetch("/api/pro/profile-style", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ style })
+      });
+      if (!response.ok)
+        throw new Error("Your profile style couldn't be saved. Try again.");
+      onSaved(style);
+      window.dispatchEvent(new Event("yokkai:profile-style-updated"));
+      onClose();
+    } catch (reason) {
+      setError(
+        reason instanceof Error
+          ? reason.message
+          : "Your profile style couldn't be saved. Try again."
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="space-y-6" data-profile-editor="style">
+      <ProfileStyleFields
+        name={profile.pseudo}
+        value={style}
+        onChange={setStyle}
+        busy={busy}
+      />
+      {error && (
+        <p role="alert" className="text-sm text-danger">
+          {error}
+        </p>
+      )}
+      <div className="yk-profile-style-actions">
+        {!pro && (
+          <p>
+            Preview is free. Saving and publishing a profile style requires
+            Yokkai Pro.
+          </p>
+        )}
+        <div>
+          <Button variant="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            disabled={busy || !pro}
+            aria-describedby={!pro ? "profile-style-save-help" : undefined}
+            onClick={() => void submit()}
+          >
+            {busy ? "Saving…" : pro ? "Save & apply" : "Pro required"}
+          </Button>
+        </div>
+        {!pro && (
+          <span id="profile-style-save-help" className="sr-only">
+            Upgrade to Yokkai Pro to save and publish this style.
+          </span>
+        )}
+      </div>
     </div>
   );
 }
@@ -1192,9 +1247,9 @@ export function ProfileExperience({
   const [wishlist, setWishlist] = useState<WishlistCard[]>([]);
   const [error, setError] = useState("");
   const [editing, setEditing] = useState(searchParams.get("edition") === "1");
-  const [editingMode, setEditingMode] = useState<"profile" | "showcase">(
-    "profile"
-  );
+  const [editingMode, setEditingMode] = useState<
+    "profile" | "style" | "showcase"
+  >("profile");
   const [toast, setToast] = useState("");
   const [blocked, setBlocked] = useState<BlockedUser[]>([]);
   const [collectionOpen, setCollectionOpen] = useState(false);
@@ -1731,15 +1786,26 @@ export function ProfileExperience({
             <p className="yk-profile-bio">{profile.bio || "No bio yet."}</p>
             <div className="yk-profile-actions">
               {isMe ? (
-                <Button
-                  variant="secondary"
-                  onClick={() => {
-                    setEditingMode("profile");
-                    setEditing(true);
-                  }}
-                >
-                  Edit profile
-                </Button>
+                <>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setEditingMode("profile");
+                      setEditing(true);
+                    }}
+                  >
+                    Edit profile
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setEditingMode("style");
+                      setEditing(true);
+                    }}
+                  >
+                    Profile style
+                  </Button>
+                </>
               ) : (
                 <>
                   <FriendAction
@@ -1951,12 +2017,35 @@ export function ProfileExperience({
       <Modal
         open={editing}
         onClose={() => setEditing(false)}
-        title={editingMode === "showcase" ? "Edit showcase" : "Edit my profile"}
+        title={
+          editingMode === "showcase"
+            ? "Edit showcase"
+            : editingMode === "style"
+              ? "Profile style"
+              : "Edit my profile"
+        }
         className={
-          editingMode === "profile" ? "yk-profile-edit-modal" : "max-w-4xl"
+          editingMode === "profile"
+            ? "yk-profile-edit-modal"
+            : editingMode === "style"
+              ? "yk-profile-style-modal"
+              : "max-w-4xl"
         }
       >
-        {isMe && collection && details ? (
+        {isMe && editingMode === "style" ? (
+          <ProfileStyleEditor
+            key={editingMode}
+            profile={profile}
+            onClose={() => setEditing(false)}
+            onSaved={style => {
+              setProfile({
+                ...profile,
+                profileStyle: { active: true, style }
+              });
+              setToast("Profile style updated");
+            }}
+          />
+        ) : isMe && collection && details ? (
           <Editor
             key={editingMode}
             mode={editingMode}

@@ -72,7 +72,7 @@ test("Pro name rendering follows its owner's server projection, not the viewing 
   assert.match(paid, /comet decorative badge/);
   assert.doesNotMatch(paid, /local preview|verified role/i);
 });
-test("Basic style controls keep an upgrade notice; paid core style controls remain usable", () => {
+test("Basic players can preview profile styles while the controls stay usable", () => {
   for (const pro of [false, true]) {
     const load = loader({
       "@/components/pro-access": {
@@ -91,12 +91,21 @@ test("Basic style controls keep an upgrade notice; paid core style controls rema
         onChange: () => {}
       })
     );
+    assert.doesNotMatch(html, /<fieldset disabled/);
     if (pro) {
-      assert.doesNotMatch(html, /<fieldset disabled/);
-      assert.doesNotMatch(html, /Pro members only/);
+      assert.match(html, /PRO ACTIVE/);
+      assert.doesNotMatch(html, /PREVIEW ONLY|live profile stays unchanged/);
     } else {
-      assert.match(html, /Pro members only/);
+      assert.match(html, /PREVIEW ONLY/);
+      assert.match(html, /Try every option and preview the result here/);
+      assert.match(html, /live profile stays unchanged/);
+      assert.match(html, /href="\/premium"/);
     }
+    assert.match(html, /aria-label="Profile style preview"/);
+    assert.match(html, /data-profile-theme="default"/);
+    assert.match(html, /data-avatar-frame="none"/);
+    assert.match(html, /data-showcase-effect="none"/);
+    assert.match(html, /aria-label="Yokkai Pro"/);
     assert.match(html, /Avatar frame/);
     assert.match(html, /Profile theme/);
     assert.match(html, /Showcase effect/);
