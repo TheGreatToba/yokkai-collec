@@ -206,6 +206,34 @@ test("image upload checks actual GIF bytes despite forged JPEG filename/MIME and
   );
   assert.equal(response.headers.get("Cache-Control"), "private, no-store");
 });
+test("Basic can still upload a byte-validated static avatar without paid access", async () => {
+  const basic = setup(),
+    form = new FormData();
+  const jpeg = Buffer.from([
+    255, 216, 255, 224, 0, 0, 0, 0, 0, 0, 0, 0, 255, 217
+  ]);
+  form.set("purpose", "avatar");
+  form.set("file", new File([jpeg], "photo.jpg", { type: "image/jpeg" }));
+  const response = await basic.load("app/api/profile-media/route.ts").POST(
+    new Request("http://localhost:3000/api/profile-media", {
+      method: "POST",
+      headers: { origin: "http://localhost:3000" },
+      body: form
+    })
+  );
+  assert.equal(response.status, 200);
+  assert.equal(
+    basic.calls.find(call => call.table === "profile_media_assets").value
+      .animated,
+    false
+  );
+  assert.equal(
+    basic.calls.find(call => call.path).options.contentType,
+    "image/jpeg"
+  );
+  assert.ok(basic.calls.every(call => call.name !== "billing_has_game_pro"));
+});
+
 test("image inspector identifies APNG and animated WebP and rejects HTML/SVG/truncated content", () => {
   const { inspectProfileImage } = setup().load("lib/pro/image.ts");
   const chunk = (type, data) => {

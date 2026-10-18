@@ -31,7 +31,9 @@ Les transitions préservent la progression des packs. Une rétrogradation ne sup
 - `20261018000002_pro_showcase.sql`
 - `20261018000003_pro_personalization.sql`
 
-Non appliquées au VPS. Les droits sont fermés par défaut après migration. Cette branche dépend de la fondation Stripe (PR #307) ; aucun secret ou paiement réel n'est ajouté ici.
+Appliquées uniquement à Supabase Docker local, jamais au VPS. Les droits sont fermés par défaut après migration. Cette branche dépend de la fondation Stripe (PR #307) ; aucun secret ou paiement réel n'est ajouté ici.
+
+Le contrôle de bout en bout Sandbox du 18 octobre a créé un compte jetable et une facture fictive payée de 4,99 €. Le serveur Stripe existant a vérifié le paiement et écrit son état : les RPC de jeu ont alors renvoyé 300 secondes, 43 200 secondes et `isPro=true`. L'annulation chez Stripe a ramené les RPC à Basic. Le client, l'abonnement et le compte local jetables ont été nettoyés, puis le périmètre de droits local refermé. Aucun argent réel débité et aucun compte joueur de production modifié.
 
 Après coordination Discord et vérification de l'historique réel des migrations, effectuer la prévalidation serveur et configurer le périmètre avec `node scripts/configure-pro-entitlements.mjs --enable` dans l'environnement cible. Ce script exige les deux indicateurs de paiement fermés et relit le compte/tarif chez Stripe avant d'activer les droits du périmètre exact. Il n'ouvre pas Checkout. Ne jamais passer les secrets en arguments ni les ajouter au dépôt.
 
