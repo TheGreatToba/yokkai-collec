@@ -65,8 +65,8 @@ test("only the torn top moves away once the server-driven seal phase starts", ()
     css,
     /100%\s*\{\s*transform: translate\(57%, -89%\) rotate\(47deg\);\s*opacity: 0/
   );
-  assert.match(opening, /onClick=\{finishSeal\}/);
-  assert.match(opening, /Skip the opening animation/);
+  assert.match(opening, /onClick=\{speedUpSeal\}/);
+  assert.match(opening, /Speed up the opening animation/);
 });
 
 test("reduced motion disables the strip, halo, seam and spark animations", () => {
