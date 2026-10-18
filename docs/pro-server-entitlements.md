@@ -30,6 +30,7 @@ Les transitions préservent la progression des packs. Une rétrogradation ne sup
 - `20261018000001_pro_game_entitlements.sql`
 - `20261018000002_pro_showcase.sql`
 - `20261018000003_pro_personalization.sql`
+- `20261018000004_pro_export_cleanup.sql`
 
 Appliquées uniquement à Supabase Docker local, jamais au VPS. Les droits sont fermés par défaut après migration. Cette branche dépend de la fondation Stripe (PR #307) ; aucun secret ou paiement réel n'est ajouté ici.
 

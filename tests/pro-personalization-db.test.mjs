@@ -256,4 +256,45 @@ test("paid cosmetics are server-only, bounded, owner-scoped and hidden after exp
     ),
     /ACCOUNT_DELETED/
   );
+  // The export keeps one explicit owner-scoped snapshot including Pro settings;
+  // neither private billing identifiers nor another owner's settings leak.
+  await db.exec(
+    "create table auth.identities(user_id uuid,provider text,created_at timestamptz,updated_at timestamptz)"
+  );
+  const exportId = "6c000000-0000-4000-8000-000000000099";
+  await db.query("select public.reserve_data_export($1,$2)", [owner, exportId]);
+  const exported = (
+    await db.query("select public.build_data_export($1,$2) value", [
+      owner,
+      exportId
+    ])
+  ).rows[0].value;
+  assert.equal(exported.profile.regular_pack_interval_seconds, 300);
+  assert.equal(exported.profile.decision_pack_interval_seconds, 43200);
+  assert.equal(exported.profile_customizations[0].style.effect, "neon");
+  assert.equal(exported.profile_media.length, 4);
+  assert.ok(
+    exported.profile_media.every(asset => asset.public_url.includes(owner))
+  );
+  assert.doesNotMatch(
+    JSON.stringify(exported),
+    /stripe_customer_id|lease_token|acct_fixture|price_fixture/
+  );
+  await db.query("select public.finish_data_export($1,$2,false)", [
+    owner,
+    exportId
+  ]);
+  await db.query("select set_config('request.jwt.claim.sub','',false)");
+  await db.query("select public.begin_account_deletion($1)", [owner]);
+  await db.query("select public.prepare_account_deletion($1)", [owner]);
+  for (const table of ["profile_customizations", "profile_media_assets"])
+    assert.equal(
+      (
+        await db.query(
+          `select count(*)::int n from public.${table} where user_id=$1`,
+          [owner]
+        )
+      ).rows[0].n,
+      0
+    );
 });
