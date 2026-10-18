@@ -726,7 +726,8 @@ function singleWinner(results, error) {
   );
   assert.match(
     results.find(r => r.status === "rejected").reason.message,
-    error
+    error,
+    "second RPC must return the domain refusal"
   );
 }
 async function regularPackOverlap() {
@@ -994,7 +995,7 @@ for (const [name, signature, scenario, mutate] of [
         assert.equal(error.code, "ERR_ASSERTION");
         assert.match(
           error.message,
-          /exactly one RPC commits|both opens return the same pending pack|crossed trades must both commit without deadlock/
+          /exactly one RPC commits|second RPC must return the domain refusal|both opens return the same pending pack|crossed trades must both commit without deadlock/
         );
         console.log(
           `BIZ-07 ${name} counterproof: ${error.message.split("\n")[0]}`
