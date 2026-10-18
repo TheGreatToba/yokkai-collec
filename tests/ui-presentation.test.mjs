@@ -2517,22 +2517,13 @@ test("Phase 6 : liste du marché, suivi et Mes enchères", () => {
     async onToggleWatch() {}
   });
   assert.equal((html.match(/class="yk-market-tile"/g) || []).length, 2);
-  assert.match(
-    normalizeWhitespace(html),
-    normalizeWhitespace(
-      /aria-pressed="true"[^>]*aria-label="Unwatch auction"[^>]*>.*?<span class="yk-watch-label">Watching<\/span>/
-    )
-  );
+  assert.doesNotMatch(html, /aria-label="(?:Unwatch|Watch) auction"/);
+
   assert.match(
     normalizeWhitespace(html),
     normalizeWhitespace(/https:\/\/cdn\.example\/kitsune\.png/)
   );
-  assert.match(
-    normalizeWhitespace(html),
-    normalizeWhitespace(
-      /aria-pressed="false"[^>]*aria-label="Watch auction"[^>]*>.*?<span class="yk-watch-label">Watch<\/span>/
-    )
-  );
+
   assert.match(
     normalizeWhitespace(html),
     normalizeWhitespace(/yk-market-timer yk-urgency-critical/)
@@ -2835,6 +2826,28 @@ test("Phase 6 : détail d'enchère, solde, minute ajoutée, historique et issues
     ]
   };
   const live = render(AuctionView, { auction: base, async onBid() {} });
+  for (const wishlist of [false, true]) {
+    const watchHtml = render(AuctionView, {
+      auction: { ...base, wishlist },
+      async onToggleWatch() {}
+    });
+    assert.match(watchHtml, /yk-auction-watch/);
+    if (wishlist) {
+      assert.match(
+        normalizeWhitespace(watchHtml),
+        normalizeWhitespace(
+          /aria-pressed="true"[^>]*aria-label="Unwatch auction"[^>]*>.*?<span class="yk-watch-label">Watching<\/span>/
+        )
+      );
+    } else {
+      assert.match(
+        normalizeWhitespace(watchHtml),
+        normalizeWhitespace(
+          /aria-pressed="false"[^>]*aria-label="Watch auction"[^>]*>.*?<span class="yk-watch-label">Watch<\/span>/
+        )
+      );
+    }
+  }
   assert.match(live, />\+10 Karas<span>· 130 Karas<\/span>/);
   assert.match(live, /One minute has been added to the auction\./);
   assert.match(live, /Not enough Karas \(your balance: 100 Karas\)/);
