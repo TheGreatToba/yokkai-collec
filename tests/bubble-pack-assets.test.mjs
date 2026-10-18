@@ -1,24 +1,19 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import { assertTearAssets, imageAsset } from "./helpers/visual-assets.mjs";
 
 const read = file =>
   readFileSync(new URL(`../${file}`, import.meta.url), "utf8");
 
-test("bubble boosters are used both in the picker and the two tear layers", () => {
+test("the selected booster artwork is used in the picker and both tear layers", () => {
   const source = read("components/boosters.tsx");
-  for (const name of ["regular", "decisive"]) {
-    const path = `/assets/bubble-${name}-booster-v1.png`;
+  const regular = imageAsset(source, "yk-pack-image");
+  const decision = imageAsset(source, "yk-pack-image yk-decision-image");
+  for (const path of [regular, decision]) {
     assert.equal(source.split(path).length - 1, 3);
   }
-  for (const part of ["body", "top"]) {
-    assert.match(
-      source,
-      new RegExp(
-        `className="yk-pack-tear-${part}" src=\\{drawKind === "decision" \\? "/assets/bubble-decisive-booster-v1.png" : "/assets/bubble-regular-booster-v1.png"\\}`
-      )
-    );
-  }
+  assertTearAssets(source, decision, regular);
 });
 
 test("shared card backs use the matching bubble artwork", () => {
