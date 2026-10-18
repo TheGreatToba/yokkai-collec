@@ -221,3 +221,81 @@ test("all migrations replay with Supabase defaults; SECURITY DEFINER access is e
     }
   );
 });
+
+test("profile RLS isolates players even after a SELECT grant", async t => {
+  const { db } = await replayMigrations();
+  t.after(() => db.close());
+  const alice = "10000000-0000-4000-8000-000000000001";
+  const bob = "10000000-0000-4000-8000-000000000002";
+  await db.query(
+    `insert into auth.users(id, raw_user_meta_data) values
+    ($1, '{"pseudo":"PolicyAlice"}'), ($2, '{"pseudo":"PolicyBob"}')`,
+    [alice, bob]
+  );
+  // Existing client reads must remain behind explicit SECURITY DEFINER RPCs.
+  assert.deepEqual(
+    (
+      await db.query(`select p.proname from pg_proc p
+    join pg_namespace n on n.oid=p.pronamespace
+    where n.nspname='public' and not p.prosecdef
+      and has_function_privilege('authenticated',p.oid,'EXECUTE')
+      and p.prosrc ~* '\\muser_profiles\\M'`)
+    ).rows,
+    []
+  );
+  assert.deepEqual(
+    (
+      await db.query(`select viewname from pg_views
+    where schemaname='public' and definition ~* '\\muser_profiles\\M'`)
+    ).rows,
+    []
+  );
+  await db.exec("begin");
+  try {
+    await db.exec(
+      "grant select on public.user_profiles to authenticated; set local role authenticated"
+    );
+    for (const [viewer, other] of [
+      [alice, bob],
+      [bob, alice]
+    ]) {
+      await db.query("select set_config('request.jwt.claim.sub',$1,true)", [
+        viewer
+      ]);
+      assert.deepEqual(
+        (await db.query("select user_id from public.user_profiles")).rows,
+        [{ user_id: viewer }],
+        "SELECT must expose only the caller's profile"
+      );
+      assert.deepEqual(
+        (
+          await db.query(
+            "select user_id from public.user_profiles where user_id=$1",
+            [other]
+          )
+        ).rows,
+        []
+      );
+      assert.equal(
+        (await db.query("select public.get_profile($1) as profile", [other]))
+          .rows[0].profile.id,
+        other
+      );
+    }
+    await db.query("select set_config('request.jwt.claim.sub','',true)");
+    assert.deepEqual(
+      (await db.query("select user_id from public.user_profiles")).rows,
+      []
+    );
+  } finally {
+    await db.exec("rollback");
+  }
+  assert.equal(
+    (
+      await db.query(
+        "select has_table_privilege('authenticated','public.user_profiles','SELECT') as allowed"
+      )
+    ).rows[0].allowed,
+    false
+  );
+});
