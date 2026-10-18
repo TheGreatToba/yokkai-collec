@@ -288,10 +288,10 @@ export function Topbar({
         <Link href="/" className="yk-brand" aria-label="Yokkai Collec’, home">
           <Image
             className="yk-brand-image"
-            src="/assets/brand-logo-bubble.png"
+            src="/assets/brand-logo-chrome.png"
             alt=""
-            width={2173}
-            height={724}
+            width={1672}
+            height={941}
             priority
           />
         </Link>

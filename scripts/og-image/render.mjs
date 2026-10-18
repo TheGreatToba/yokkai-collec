@@ -29,7 +29,7 @@ const sourceDirectory = dirname(fileURLToPath(import.meta.url));
     assert(
       await page
         .locator("img")
-        .evaluate(img => img.complete && img.naturalWidth === 1774)
+        .evaluate(img => img.complete && img.naturalWidth === 1672)
     );
     for (const selector of ["h1", "p", "footer"]) {
       const box = await page.locator(selector).evaluate(el => {

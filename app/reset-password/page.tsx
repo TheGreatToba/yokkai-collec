@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { getCurrentUser } from "@/lib/auth/session";
 import { PasswordUpdateForm } from "@/components/password-reset-forms";
 import "@/styles/auth.css";
@@ -19,12 +20,14 @@ export default async function ResetPasswordPage() {
           className="yk-auth-brand"
           aria-label="Yokkai Collec’, home"
         >
-          <span className="yk-auth-logo">Y</span>
-          <span>
-            Yokkai
-            <br />
-            Collec’
-          </span>
+          <Image
+            className="yk-auth-brand-image"
+            src="/assets/brand-logo-chrome.png"
+            alt=""
+            width={1672}
+            height={941}
+            priority
+          />
         </Link>
         <Link href="/login" className="yk-auth-return">
           <span aria-hidden="true">←</span> Sign in
