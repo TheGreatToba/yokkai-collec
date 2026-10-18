@@ -375,7 +375,6 @@ function Editor({
     ...profile.profileStyle?.style
   });
   const [style, setStyle] = useState(initialStyle);
-  const [styleMediaBusy, setStyleMediaBusy] = useState(false);
   const [avatar, setAvatar] = useState(profile.avatarUrl);
   const ownedBannerCards = useMemo(() => {
     const cards = new Map<string, Card>();
@@ -476,7 +475,7 @@ function Editor({
     }
   }
   async function submit() {
-    if (busy || styleMediaBusy) return;
+    if (busy) return;
     setBusy(true);
     setError("");
     try {
@@ -796,7 +795,6 @@ function Editor({
           value={style}
           onChange={setStyle}
           busy={busy}
-          onBusyChange={setStyleMediaBusy}
         />
       ) : null}
       {error && (
@@ -808,7 +806,7 @@ function Editor({
         <Button variant="secondary" onClick={onClose}>
           Cancel
         </Button>
-        <Button disabled={busy || styleMediaBusy} onClick={() => void submit()}>
+        <Button disabled={busy} onClick={() => void submit()}>
           {busy ? "Saving…" : "Save"}
         </Button>
       </div>
