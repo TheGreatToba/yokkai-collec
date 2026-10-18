@@ -1,6 +1,6 @@
 import { createClient } from "@/utils/supabase/client";
 
-export type WallPost = { id: string; text: string; mediaPath: string | null; gifUrl: string | null; createdAt: string; previewUrl?: string };
+export type WallPost = {profileStyle?: PlayerCosmetics; id: string; text: string; mediaPath: string | null; gifUrl: string | null; createdAt: string; previewUrl?: string };
 export type WallPage = { items: WallPost[]; next: { at: string; id: string } | null };
 export type WallAdapter = {
   list: (ownerId: string, cursor?: WallPage["next"]) => Promise<WallPage>;
@@ -39,3 +39,4 @@ export const liveWall: WallAdapter = {
     if(error) throw new Error("Couldn't remove the file. Please try again.");
   }
 };
+import type { PlayerCosmetics } from "@/components/styled-player-name";

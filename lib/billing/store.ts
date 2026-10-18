@@ -34,6 +34,18 @@ export function billingStore(config: BillingConfig) {
     return data;
   };
   return {
+    async claimDeletion(userId: string): Promise<BillingAccount | null> {
+      return rpc("billing_claim_deletion", {
+        p_user: userId,
+        p_scope: config.scope
+      });
+    },
+    async confirmDeletion(account: BillingAccount) {
+      await rpc("billing_confirm_deletion", {
+        p_id: account.id,
+        p_token: account.lease_token
+      });
+    },
     async claim(userId: string): Promise<BillingAccount> {
       return rpc("billing_claim", { p_user: userId, p_scope: config.scope });
     },

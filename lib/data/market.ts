@@ -4,8 +4,8 @@ import { invalidatePlayerSnapshots, withLiveCardFranchises, type Card } from "@/
 
 export type AuctionData = { id:string; card:Card & {shiny?:boolean;catalogueImage?:string}; amount:number; endsAt:string; status:"active"|"sold"|"expired"; seller:string; sellerId:string|null; sellerAvatarUrl?:string|null; buyerId?:string|null; hasBid?:boolean; popularity?:number; bids:number; watched:boolean };
 export type AuctionDetail = AuctionData & { winner?:string|null; balance:number; history:{id:string;name:string;avatarUrl?:string|null;amount:number;createdAt:string;mine:boolean}[] };
-export type AuctionChatMessage = { id:string; userId:string; pseudo:string; avatarUrl?:string|null; message:string; gifUrl?:string|null; createdAt:string; mine:boolean };
-export type AuctionChatParticipant = { userId:string; pseudo:string; avatarUrl?:string|null; mine:boolean };
+export type AuctionChatMessage = {profileStyle?: PlayerCosmetics; id:string; userId:string; pseudo:string; avatarUrl?:string|null; message:string; gifUrl?:string|null; createdAt:string; mine:boolean };
+export type AuctionChatParticipant = {profileStyle?: PlayerCosmetics; userId:string; pseudo:string; avatarUrl?:string|null; mine:boolean };
 export type AuctionChat = { canPost:boolean; participants:AuctionChatParticipant[]; messages:AuctionChatMessage[] };
 export function auctionReconciliationScopes(previous:readonly AuctionData[],next:readonly AuctionData[],viewer?:string){if(!viewer)return[];const current=new Map(next.map(auction=>[auction.id,auction]));const scopes=new Set<"balance"|"collection">();for(const before of previous){if(before.status!=="active")continue;const after=current.get(before.id);if(before.buyerId===viewer&&(!after||after.buyerId!==viewer))scopes.add("balance");if(!after||after.status==="active")continue;if(after.sellerId===viewer)scopes.add("balance");if(after.status==="sold"&&after.buyerId===viewer)scopes.add("collection");}return[...scopes];}
 let client: ReturnType<typeof createClient> | undefined;
@@ -19,3 +19,4 @@ export async function placeBid(id:string,amount:number) { const result=await cal
 export const toggleWatch=(id:string)=>call<boolean>("toggle_auction_watch",{p_auction_id:id});
 export const getAuctionChat=(id:string)=>call<AuctionChat>("get_auction_chat",{p_auction_id:id});
 export const sendAuctionChatMessage=(id:string,message:string,gifUrl?:string)=>call<AuctionChatMessage>("send_auction_chat_message",{p_auction_id:id,p_message:message,p_gif_url:gifUrl??null});
+import type { PlayerCosmetics } from "@/components/styled-player-name";

@@ -32,6 +32,11 @@ export function AccountDeletionForm({ pseudo }: { pseudo: string }) {
         canceled. Retained history will show “Deleted player”.
       </p>
       <p className="mt-3 text-sm leading-6 text-ink-2">
+        Any Pro subscription will be canceled immediately before account
+        removal. If billing cannot be safely canceled, removal will stop for
+        review.
+      </p>
+      <p className="mt-3 text-sm leading-6 text-ink-2">
         <a href="#mes-donnees" className="underline underline-offset-4">
           Export my data first
         </a>

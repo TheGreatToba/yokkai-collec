@@ -135,6 +135,13 @@ function renderProfile(profile) {
     "@/components/player-moderation": { PlayerModeration: () => null },
     "@/components/profile-wall": { ProfileWall: () => null },
     "@/components/profile-sales": { ProfileSales: () => null },
+    "@/components/pro-access": {
+      useProAccess: () => false,
+      ProFeatureNotice: () => null
+    },
+    "@/components/profile-style-fields": { ProfileStyleFields: () => null },
+    "@/components/styled-player-name": { StyledPlayerName: ({ name }) => name },
+    "@/lib/ui/profile-style": load("lib/ui/profile-style.ts", {}),
     "@/components/banner-crop": load("components/banner-crop.tsx", {
       "@/components/ui": ui,
       "@/components/banner-image": load("components/banner-image.tsx", {

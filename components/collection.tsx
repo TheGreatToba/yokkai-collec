@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useProAccess, ProFeatureNotice } from "@/components/pro-access";
 import { useEffect, useMemo, useState } from "react";
 import type {
   Card,
@@ -247,6 +248,7 @@ export function CollectionView({
   ) => Promise<{ marketValue: number | null }>;
 }) {
   const pathname = usePathname();
+  const pro = useProAccess();
   const profileIdentifier = pathname?.startsWith("/profile/")
     ? decodeURIComponent(pathname.slice("/profile/".length))
     : undefined;
@@ -722,6 +724,10 @@ export function CollectionView({
   }
   async function saveCustomImage(imageUrl: string | null) {
     if (!selected || !onSetCustomImage || imageBusy) return;
+    if (imageUrl && !pro) {
+      setImageError("This feature is available to Pro members only.");
+      return;
+    }
     setImageBusy(true);
     setImageError("");
     try {
@@ -2129,18 +2135,19 @@ export function CollectionView({
                       <input
                         id="detail-custom-image"
                         type="url"
+                        disabled={!pro || imageBusy}
                         value={customImageUrl}
                         onChange={event => {
                           setCustomImageUrl(event.target.value);
                           setImageError("");
                         }}
                         placeholder="https://i.imgur.com/image.jpg"
-                        aria-label="Custom Imgur link"
+                        aria-label="Custom Imgur or Pinterest image link"
                         className="auth-input"
                       />
                       <Button
                         variant="secondary"
-                        disabled={imageBusy || !customImageUrl.trim()}
+                        disabled={!pro || imageBusy || !customImageUrl.trim()}
                         onClick={() =>
                           void saveCustomImage(customImageUrl.trim())
                         }
@@ -2148,8 +2155,10 @@ export function CollectionView({
                         {imageBusy ? "Saving…" : "Apply"}
                       </Button>
                     </div>
+                    {!pro && <ProFeatureNotice feature="Custom card artwork" />}
                     <p className="yk-detail-hint">
-                      Link: https://i.imgur.com/… or https://imgur.com/…
+                      Link: https://i.imgur.com/…, https://imgur.com/… or
+                      https://i.pinimg.com/…
                       {selected.customImageUrl && (
                         <>
                           {" "}
