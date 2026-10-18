@@ -69,10 +69,10 @@ export default async function Home() {
         >
           <Image
             className="yk-landing-brand-image"
-            src="/assets/brand-logo-bubble.png"
+            src="/assets/brand-logo-chrome.png"
             alt=""
-            width={2173}
-            height={724}
+            width={1672}
+            height={941}
             priority
           />
         </Link>
