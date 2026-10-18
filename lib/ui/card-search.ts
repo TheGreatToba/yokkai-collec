@@ -2,7 +2,7 @@ export function cardSearchTerms(query: string): string[] {
   return query
     .replace(/[,%()]/g, " ")
     .trim()
-    .toLocaleLowerCase("fr-FR")
+    .toLocaleLowerCase("en-US")
     .split(/\s+/)
     .filter(Boolean);
 }
@@ -14,7 +14,7 @@ export function matchesCardSearch(
   const terms = cardSearchTerms(query);
   if (!terms.length) return true;
   const searchable = values.map(
-    value => value?.toLocaleLowerCase("fr-FR") ?? ""
+    value => value?.toLocaleLowerCase("en-US") ?? ""
   );
   return terms.every(term => searchable.some(value => value.includes(term)));
 }

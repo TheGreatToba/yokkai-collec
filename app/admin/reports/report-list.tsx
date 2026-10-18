@@ -104,7 +104,7 @@ function ReportActions({ report }: { report: AdminReport }) {
 }
 
 function reportDate(value: string) {
-  return new Intl.DateTimeFormat("fr-FR", {
+  return new Intl.DateTimeFormat("en-US", {
     dateStyle: "medium",
     timeStyle: "short",
     timeZone: "Europe/Paris"

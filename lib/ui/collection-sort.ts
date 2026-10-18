@@ -17,7 +17,7 @@ const byRarity: Compare = (a, b) =>
   rarityRank[a.rarity] - rarityRank[b.rarity] ||
   Number(b.shiny) - Number(a.shiny);
 const byName: Compare = (a, b) =>
-  a.name.localeCompare(b.name, "fr-FR", { sensitivity: "base", numeric: true });
+  a.name.localeCompare(b.name, "en-US", { sensitivity: "base", numeric: true });
 const obtainedTime = (card: CollectedCard) => Date.parse(card.obtainedAt) || 0;
 const compares: Record<CollectionSort, Compare[]> = {
   rarity: [byRarity, byName],
