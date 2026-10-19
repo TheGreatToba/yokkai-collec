@@ -1,0 +1,167 @@
+.yk-modal.yk-private-messages-modal {
+  width: min(700px, calc(100vw - 24px));
+  max-width: 700px;
+  max-height: 92dvh;
+  overflow: hidden;
+  padding: 24px;
+}
+.yk-private-messages-contact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 0 18px;
+  border-bottom: 1px solid var(--color-veil);
+}
+.yk-private-messages-contact > div {
+  min-width: 0;
+}
+.yk-private-messages-contact strong {
+  overflow-wrap: anywhere;
+}
+.yk-private-messages-contact p {
+  margin: 4px 0 0;
+  color: var(--color-ink-3);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.yk-private-messages-log {
+  height: clamp(180px, 42dvh, 440px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  padding: 18px 4px;
+}
+.yk-private-messages-older {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.yk-private-messages-older .yk-button {
+  font-size: 11px;
+  min-height: 34px;
+}
+.yk-private-messages-empty {
+  display: grid;
+  place-content: center;
+  min-height: 180px;
+  gap: 8px;
+  padding: 20px;
+  color: var(--color-ink-3);
+  text-align: center;
+  font-size: 13px;
+}
+.yk-private-messages-empty strong {
+  color: var(--color-ink);
+  font-size: 17px;
+}
+.yk-private-message {
+  width: fit-content;
+  max-width: 83%;
+  margin: 0 0 12px;
+  padding: 11px 14px 8px;
+  border: 1px solid var(--color-veil-strong);
+  border-radius: 14px 14px 14px 4px;
+  background: var(--color-night);
+}
+.yk-private-message.is-own {
+  margin-left: auto;
+  border-color: #8e7be352;
+  border-radius: 14px 14px 4px 14px;
+  background: linear-gradient(130deg, #43365f, #29213e);
+}
+.yk-private-message p {
+  margin: 0;
+  color: #efedf8;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.yk-private-message time {
+  display: block;
+  margin-top: 5px;
+  color: #b3a9c7;
+  font-size: 9px;
+  text-align: right;
+}
+.yk-private-messages-error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  color: var(--color-danger);
+  font-size: 12px;
+}
+.yk-private-messages-error button {
+  margin-left: auto;
+  flex-shrink: 0;
+  text-decoration: underline;
+}
+.yk-private-messages-compose {
+  padding-top: 16px;
+  border-top: 1px solid var(--color-veil);
+}
+.yk-private-messages-compose textarea {
+  width: 100%;
+  max-height: 130px;
+  resize: none;
+  border: 1px solid var(--color-veil-strong);
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: var(--color-void);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 13px;
+}
+.yk-private-messages-compose textarea:focus-visible {
+  outline: 2px solid #b69aff;
+  outline-offset: 2px;
+}
+.yk-private-messages-compose > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+.yk-private-messages-compose > div > span {
+  color: var(--color-ink-3);
+  font-size: 10px;
+  line-height: 1.7;
+}
+.yk-private-messages-compose small {
+  display: block;
+}
+.yk-private-messages-compose .yk-button {
+  flex-shrink: 0;
+}
+.yk-private-messages-preview-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.yk-private-messages-preview-tools p {
+  width: 100%;
+  color: var(--color-ink-3);
+  font-size: 12px;
+}
+@media (max-width: 540px) {
+  .yk-modal.yk-private-messages-modal {
+    padding: 16px;
+  }
+  .yk-private-message {
+    max-width: 90%;
+  }
+  .yk-private-messages-compose > div > span {
+    font-size: 9px;
+  }
+  .yk-private-messages-compose .yk-button {
+    padding-inline: 12px;
+    font-size: 11px;
+  }
+  .yk-social-person .yk-friend-action-buttons .yk-button {
+    flex: 1;
+  }
+}

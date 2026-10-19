@@ -110,6 +110,7 @@ const ui = {
 const link = ({ href, children, ...props }) =>
   h("a", { href, "aria-label": props["aria-label"] }, children);
 const friendsModule = load("components/friends.tsx", {
+  "@/components/private-messages": { PrivateMessages: () => null },
   "next/link": link,
   "@/components/ui": ui,
   "@/lib/data/friends": {},

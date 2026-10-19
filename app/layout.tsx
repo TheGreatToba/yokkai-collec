@@ -7,6 +7,7 @@ import { ProAccessProvider } from "@/components/pro-access";
 import "./globals.css";
 import "../styles/ui.css";
 import "../styles/community.css";
+import "../styles/private-messages.css";
 import "../styles/profile.css";
 import "../styles/profile-style.css";
 import "../styles/collection.css";
