@@ -2741,15 +2741,15 @@ export function CommunityView({
       try {
         const page = await browseAuctions(marketQuery, marketLimit);
         if (!active) return;
-        const previous = marketRef.current ?? [];
+        const next = page.items;
         const scopes = auctionReconciliationScopes(
-          previous,
-          page.items,
+          marketRef.current ?? [],
+          next,
           viewerRef.current
         );
-        marketRef.current = page.items;
+        marketRef.current = next;
         if (scopes.length) invalidatePlayerSnapshots(scopes);
-        setMarket(page.items);
+        setMarket(next);
         setMarketPage(page);
         setError("");
       } catch (e) {

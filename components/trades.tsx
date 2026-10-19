@@ -1147,6 +1147,7 @@ export function TradesPanel({
                   </Chip>
                 ))}
               </div>
+            )}
             {!fixedFriendId && hasMoreFriends && (
               <Button
                 variant="secondary"

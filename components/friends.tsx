@@ -11,7 +11,6 @@ import {
 import { UnreadBadge } from "@/components/unread-badge";
 import type { PrivateMessagesAdapter } from "@/lib/data/private-messages";
 import type { TradesPanelAdapter } from "@/components/trades";
-import { createDemandPager } from "@/lib/data/demand-pages";
 import { Avatar, Button, Modal, StatusPill, Tabs } from "@/components/ui";
 import {
   getFriendships,
@@ -324,21 +323,24 @@ export function FriendsPanel({
 } = {}) {
   const pager = useMemo(
     () =>
-      createDemandPager(
-        adapter === liveFriendsPanel
-          ? getFriendshipsPage
-          : async () => ({
-              items: friendshipItems(await adapter.friendships()),
-              nextCursor: null
-            }),
-        item => item.friend.requestId ?? item.friend.id
+      import("@/lib/data/demand-pages").then(({ createDemandPager }) =>
+        createDemandPager(
+          adapter === liveFriendsPanel
+            ? getFriendshipsPage
+            : async () => ({
+                items: friendshipItems(await adapter.friendships()),
+                nextCursor: null
+              }),
+          item => item.friend.requestId ?? item.friend.id
+        )
       ),
     [adapter]
   );
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   async function readFriends(more = false) {
-    const page = await (more ? pager.more() : pager.refresh());
+    const current = await pager;
+    const page = await (more ? current.more() : current.refresh());
     setHasMore(!!page.nextCursor);
     return groupFriendships(page.items);
   }
@@ -435,7 +437,7 @@ export function FriendsPanel({
       if (loading || document.visibilityState === "hidden") return;
       loading = true;
       try {
-        const page = await pager.refresh();
+        const page = await (await pager).refresh();
         const value = groupFriendships(page.items);
         if (active) {
           setData(value);
