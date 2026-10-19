@@ -14,11 +14,10 @@ import {
 import { Avatar, Button, Modal, Toast } from "@/components/ui";
 import { YokaiCard } from "@/components/yokai-card";
 import { CardShell } from "@/components/card-shell";
-import { CollectionView } from "@/components/collection";
+import dynamic from "next/dynamic";
 import { PlayerModeration } from "@/components/player-moderation";
 import { ProfileLicensePicker } from "@/components/profile-license-picker";
 import { ProfileWall } from "@/components/profile-wall";
-import { ProfileSales } from "@/components/profile-sales";
 import { BannerCrop } from "@/components/banner-crop";
 import { BannerImage } from "@/components/banner-image";
 import { ProfileStyleFields } from "@/components/profile-style-fields";
@@ -30,10 +29,7 @@ import {
 } from "@/lib/ui/profile-style";
 import { useProAccess, ProFeatureNotice } from "@/components/pro-access";
 import type { BannerFrame } from "@/lib/ui/banner-frame";
-import {
-  CatalogueCardModal,
-  type CatalogueCardAdapter
-} from "@/components/community-views";
+import type { CatalogueCardAdapter } from "@/components/community-views";
 import type { WallAdapter } from "@/lib/data/profile-wall";
 import type { ProfileMarketAdapter } from "@/lib/data/profile-market";
 import { listBlockedUsers, type BlockedUser } from "@/lib/data/moderation";
@@ -62,6 +58,21 @@ import {
 import { getWishlist, type WishlistCard } from "@/lib/data/wishlist";
 import { matchesCardSearch } from "@/lib/ui/card-search";
 import { compareBannerCards } from "@/lib/ui/banner-card-sort";
+
+const CollectionView = dynamic(
+  () => import("@/components/collection").then(module => module.CollectionView),
+  { loading: () => <p role="status">Loading collection…</p> }
+);
+
+const ProfileSales = dynamic(() =>
+  import("@/components/profile-sales").then(module => module.ProfileSales)
+);
+
+const CatalogueCardModal = dynamic(() =>
+  import("@/components/community-views").then(
+    module => module.CatalogueCardModal
+  )
+);
 
 const FEATURED_CARD_LIMIT = 5;
 const PROFILE_CARD_IMAGE_SIZES =

@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import test from "node:test";
+import { createRequire } from "node:module";
 import vm from "node:vm";
 import ts from "typescript";
+
+const require = createRequire(import.meta.url);
 
 function fixture(view = "packs") {
   let now = 0,
@@ -135,6 +138,7 @@ function fixture(view = "packs") {
   };
   function load(name) {
     if (stubs[name]) return stubs[name];
+    if (!name.startsWith("@/")) return require(name);
     if (modules.has(name)) return modules.get(name);
     const base = new URL(`../${name.slice(2)}`, import.meta.url);
     const file = new URL(

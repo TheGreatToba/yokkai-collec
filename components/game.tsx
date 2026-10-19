@@ -1,6 +1,5 @@
 "use client";
-import { CollectionView } from "@/components/collection";
-import { Boosters } from "@/components/boosters";
+import dynamic from "next/dynamic";
 import { Topbar } from "@/components/topbar";
 import {
   useCallback,
@@ -43,6 +42,16 @@ import { useSfx } from "@/hooks/use-sfx";
 import { runPackOpeningOnce } from "@/lib/ui/pack-opening";
 import { releaseBoostersBackground } from "@/components/boosters-load-priority";
 import { startVisiblePolling } from "@/lib/ui/visible-polling";
+
+const CollectionView = dynamic(
+  () => import("@/components/collection").then(module => module.CollectionView),
+  { loading: () => <p role="status">Loading collection…</p> }
+);
+
+const Boosters = dynamic(
+  () => import("@/components/boosters").then(module => module.Boosters),
+  { loading: () => <p role="status">Loading packs…</p> }
+);
 
 // Share initial/polling reads, while post-mutation reconciliation still requests
 // a fresh server status even when a previous initial read is pending.
