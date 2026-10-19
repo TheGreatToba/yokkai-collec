@@ -21,7 +21,7 @@ test("ENG-01 admin navigation, errors and removal dialogs are English", () => {
 
 test("ENG-01 migration changes only admin SQL fallback literals", () => {
   const migration = read(
-    "supabase/migrations/20261018143000_english_admin_fallbacks.sql"
+    "supabase/migrations/20261019030002_english_admin_fallbacks.sql"
   );
   const definitions = [
     [

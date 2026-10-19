@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import { replayMigrations } from "../scripts/replay-migrations.mjs";
 
-const migration = "20261018210000_perf_04_fk_indexes.sql";
+const migration = "20261019030000_perf_04_fk_indexes.sql";
 const targets = [
   ["billing_webhook_events", "account_id"],
   ["decision_packs", "user_id"],

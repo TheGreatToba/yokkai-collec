@@ -4,7 +4,7 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { replayMigrations } from "./replay-migrations.mjs";
 
 const directory = new URL("../supabase/migrations/", import.meta.url);
-const migration = "20261018210000_pending_achievement_evaluation.sql";
+const migration = "20261019030001_pending_achievement_evaluation.sql";
 const player = "10000000-0000-4000-8000-000000000009";
 const types =
   "array['unique_cards_collected','first_lr_card','shiny_cards_collected','cards_collected_category_percent']";
@@ -20,7 +20,7 @@ const report = [
   "",
   "20,000 catalogue cards, five balanced rarities, one category; exactly 30,000 copies / 20,000 distinct cards. Real triggers enabled. Each authenticated RPC uses the same seed and is rolled back. One warm-up, eight samples per state. Timings cover only open_regular_pack, excluding snapshots and EXPLAIN. EXPLAIN runs the actual completion function body and the four inner progress queries as the database owner (matching SECURITY DEFINER). PGlite/Windows timings are not PostgreSQL 17 production latency; no comparison with the audit's separate run is claimed.",
   "",
-  "Only completion evaluation changes. Live progress queries below deliberately retain their original plans and cost. Pending collection conditions still scan; completed conditions are removed before progress evaluation. No counters, indexes, API or player text changes. Migration: 20261018210000_pending_achievement_evaluation.sql — non appliquée sur le VPS."
+  "Only completion evaluation changes. Live progress queries below deliberately retain their original plans and cost. Pending collection conditions still scan; completed conditions are removed before progress evaluation. No counters, indexes, API or player text changes. Migration: 20261019030001_pending_achievement_evaluation.sql — non appliquée sur le VPS."
 ];
 
 async function sample() {
