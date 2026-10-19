@@ -726,11 +726,7 @@
   background: transparent;
 }
 .yk-style-profile-preview {
-  --preview-surface: color-mix(
-    in srgb,
-    var(--profile-theme-primary, #eeebff) 10%,
-    #17131f
-  );
+  --preview-surface: #1c1728;
   position: relative;
   min-height: 280px;
   margin-top: 10px;
@@ -740,31 +736,11 @@
   background: var(--preview-surface);
   box-shadow: 0 18px 45px #0003;
 }
-.yk-style-profile-preview[data-profile-theme="amethyst"] {
-  --preview-surface: #241738;
-}
-.yk-style-profile-preview[data-profile-theme="midnight"] {
-  --preview-surface: #111827;
-}
-.yk-style-profile-preview[data-profile-theme="rose"] {
-  --preview-surface: #321b2b;
-}
-.yk-style-profile-preview[data-profile-theme="ocean"] {
-  --preview-surface: #122b39;
-}
 .yk-style-profile-preview-banner {
   height: 92px;
   background:
-    radial-gradient(
-      circle at 78% 8%,
-      color-mix(in srgb, var(--profile-theme-accent, #b69aff), transparent 42%),
-      transparent 34%
-    ),
-    linear-gradient(
-      130deg,
-      color-mix(in srgb, var(--profile-theme-primary, #eeebff) 9%, #15101e),
-      color-mix(in srgb, var(--profile-theme-accent, #b69aff) 42%, #261d34)
-    );
+    radial-gradient(circle at 78% 8%, #b69aff73, transparent 34%),
+    linear-gradient(130deg, #171222, #46345f);
 }
 .yk-style-profile-preview-banner span {
   position: absolute;
@@ -789,10 +765,9 @@
   width: 100%;
   height: 100%;
   place-items: center;
-  border: 1px solid
-    color-mix(in srgb, var(--profile-theme-accent, #b69aff), transparent 55%);
+  border: 1px solid #b69aff55;
   border-radius: inherit;
-  color: var(--profile-theme-primary, #d9c6ff);
+  color: #d9c6ff;
   font:
     700 20px var(--font-cinzel),
     serif;
@@ -831,14 +806,9 @@
 }
 .yk-style-profile-preview-showcase span {
   height: 34px;
-  border: 1px solid
-    color-mix(in srgb, var(--profile-theme-accent, #b69aff), transparent 74%);
+  border: 1px solid #b69aff2e;
   border-radius: 7px;
-  background: linear-gradient(
-    145deg,
-    color-mix(in srgb, var(--profile-theme-primary, #eeebff), transparent 84%),
-    color-mix(in srgb, var(--profile-theme-accent, #b69aff), transparent 91%)
-  );
+  background: linear-gradient(145deg, #b69aff24, #ffffff08);
 }
 .yk-style-profile-preview[data-showcase-effect="glow"]
   .yk-style-profile-preview-showcase {
@@ -974,32 +944,6 @@
   pointer-events: none;
   z-index: -1;
   opacity: 0.22;
-}
-.yk-profile-hub[data-profile-theme="amethyst"] {
-  --color-surface: #241738;
-}
-.yk-profile-hub[data-profile-theme="midnight"] {
-  --color-surface: #111827;
-}
-.yk-profile-hub[data-profile-theme="rose"] {
-  --color-surface: #321b2b;
-}
-.yk-profile-hub[data-profile-theme="ocean"] {
-  --color-surface: #122b39;
-}
-.yk-profile-hub[data-profile-customized="true"] .yk-profile-surface {
-  border-color: color-mix(
-    in srgb,
-    var(--profile-theme-accent, #b69aff),
-    transparent 76%
-  );
-  background:
-    linear-gradient(
-      145deg,
-      color-mix(in srgb, var(--profile-theme-primary, #eeebff) 7%, transparent),
-      color-mix(in srgb, var(--profile-theme-accent, #b69aff) 6%, transparent)
-    ),
-    var(--color-surface, var(--surface));
 }
 .yk-profile-hub[data-avatar-frame="orbit"] .yk-profile-avatar > span {
   outline: 3px solid #b69aff;
