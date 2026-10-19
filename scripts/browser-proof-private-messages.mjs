@@ -301,6 +301,29 @@ try {
     JSON.stringify(bounds)
   );
   await capture("mobile.png");
+  await send("Emulation.setDeviceMetricsOverride", {
+    width: 390,
+    height: 500,
+    deviceScaleFactor: 1,
+    mobile: true
+  });
+  assert.ok(
+    await run(() => {
+      const submit = document
+        .querySelector('dialog[open] button[type="submit"]')
+        .getBoundingClientRect();
+      const log = document
+        .querySelector(".yk-private-messages-log")
+        .getBoundingClientRect();
+      return (
+        submit.bottom <= innerHeight &&
+        log.height >= 60 &&
+        document.documentElement.scrollWidth <= innerWidth
+      );
+    }),
+    "Composer and send button must stay reachable in a short mobile viewport"
+  );
+  await capture("mobile-short.png");
   await click('dialog[open] button[aria-label="Close"]');
   assert.equal(
     await evaluate(

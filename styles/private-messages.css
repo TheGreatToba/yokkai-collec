@@ -5,6 +5,16 @@
   overflow: hidden;
   padding: 24px;
 }
+.yk-modal.yk-private-messages-modal[open] {
+  display: flex;
+  flex-direction: column;
+}
+.yk-private-messages-modal > div:first-child,
+.yk-private-messages-contact,
+.yk-private-messages-compose,
+.yk-private-messages-error {
+  flex-shrink: 0;
+}
 .yk-private-messages-contact {
   display: flex;
   align-items: center;
@@ -26,6 +36,8 @@
 }
 .yk-private-messages-log {
   height: clamp(180px, 42dvh, 440px);
+  min-height: 60px;
+  flex: 1 1 auto;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
@@ -163,5 +175,26 @@
   }
   .yk-social-person .yk-friend-action-buttons .yk-button {
     flex: 1;
+  }
+}
+@media (max-height: 600px) {
+  .yk-modal.yk-private-messages-modal {
+    max-height: 96dvh;
+    padding: 12px;
+  }
+  .yk-private-messages-modal > div:first-child {
+    margin-bottom: 10px;
+  }
+  .yk-private-messages-contact {
+    padding-bottom: 8px;
+  }
+  .yk-private-messages-compose {
+    padding-top: 8px;
+  }
+  .yk-private-messages-compose textarea {
+    height: 54px;
+  }
+  .yk-private-messages-log {
+    padding-block: 8px;
   }
 }
