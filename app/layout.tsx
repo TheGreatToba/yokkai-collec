@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import { BoostersLoadPriority } from "@/components/boosters-load-priority";
 import { PresenceHeartbeat } from "@/components/presence-heartbeat";
 import { ProAccessProvider } from "@/components/pro-access";
+import { ReferralReminder } from "@/components/referral-reminder";
 import "./globals.css";
 import "../styles/ui.css";
 import "../styles/community.css";
@@ -80,7 +81,10 @@ export default function RootLayout({
       <body suppressHydrationWarning className="min-h-full flex flex-col">
         <BoostersLoadPriority>
           <PresenceHeartbeat />
-          <ProAccessProvider>{children}</ProAccessProvider>
+          <ProAccessProvider>
+            {children}
+            <ReferralReminder />
+          </ProAccessProvider>
         </BoostersLoadPriority>
       </body>
     </html>
