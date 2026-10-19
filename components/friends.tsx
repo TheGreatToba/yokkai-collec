@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { PrivateMessages } from "@/components/private-messages";
 import type { PrivateMessagesAdapter } from "@/lib/data/private-messages";
@@ -296,8 +296,14 @@ const liveFriendsPanel: FriendsPanelAdapter = {
 };
 
 export function FriendsPanel({
-  adapter = liveFriendsPanel
-}: { adapter?: FriendsPanelAdapter } = {}) {
+  adapter = liveFriendsPanel,
+  initialConversationId,
+  onConversationClose
+}: {
+  adapter?: FriendsPanelAdapter;
+  initialConversationId?: string;
+  onConversationClose?: () => void;
+} = {}) {
   const [blocked, setBlocked] = useState<BlockedUser[]>([]);
   const moderation = adapter.moderation ?? liveModeration;
   const [data, setData] = useState<Friendships>();
@@ -310,6 +316,26 @@ export function FriendsPanel({
   const [removal, setRemoval] = useState<FriendUser>();
   const [removing, setRemoving] = useState(false);
   const [conversation, setConversation] = useState<FriendUser>();
+  const openedFromNotification = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!initialConversationId) {
+      openedFromNotification.current = undefined;
+      return;
+    }
+    if (!data || openedFromNotification.current === initialConversationId)
+      return;
+    const frame = window.requestAnimationFrame(() => {
+      openedFromNotification.current = initialConversationId;
+      const friend = data.friends.find(
+        person => person.id === initialConversationId
+      );
+      if (friend) {
+        setTab("friends");
+        setConversation(friend);
+      } else setError("This conversation is no longer available.");
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [data, initialConversationId]);
   useEffect(() => {
     let active = true;
     void moderation.list().then(
@@ -579,7 +605,11 @@ export function FriendsPanel({
           friend={conversation}
           adapter={adapter.messages}
           tradeAdapter={adapter.trades}
-          onClose={() => setConversation(undefined)}
+          onClose={() => {
+            setConversation(undefined);
+            onConversationClose?.();
+          }}
+          moderationAdapter={adapter.moderation}
         />
       )}
       <Modal

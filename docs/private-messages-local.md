@@ -1,49 +1,49 @@
-# Messagerie privée — essai local
+# Messagerie privée — livraison
 
-Le bouton **Message** apparaît à côté de **Remove** dans la liste des amis acceptés. Il ouvre une conversation texte privée, paginée, avec envoi par Entrée et retour à la ligne par Maj + Entrée. La fenêtre relit les messages toutes les cinq secondes quand l'onglet est visible et au retour au premier plan. Le brouillon et l'identifiant d'envoi sont conservés après un échec ; une nouvelle tentative ne crée pas de doublon.
+## Produit
 
-## Essayer
+- **Message** dans /friends ouvre une conversation avec cet ami accepté.
+- Texte jusqu'à 2 000 caractères et GIF du sélecteur **GIPHY uniquement**. Aucun import de galerie, fichier personnel ou nouveau bucket Storage.
+- GIF avec ou sans légende, retrait du brouillon avant envoi ; Entrée envoie, Maj + Entrée ajoute une ligne. Brouillon et UUID d'envoi conservés après échec, sans doublon à la reprise.
+- **Trade** verrouille le destinataire sur cet ami, sans sélecteur et avec historique limité à cette relation. La page Trades classique reste libre.
+- Blocage/signalement via les actions de joueur existantes dans la conversation. Aucun nouvel accès administratif global au texte privé.
 
-Serveur de cette branche : `http://localhost:3002`.
+## Notifications
 
-Démarrage : `node scripts/start-private-messages-local.mjs`. Le script vérifie que Supabase pointe uniquement vers la boucle locale et reprend seulement la clé publique GIPHY du checkout principal si elle manque dans le worktree. Aucun identifiant de base de production n'est repris.
+Chaque insertion crée ou réarme une notification **private_message_received**, regroupée par auteur. Une nouvelle tentative identique ne notifie pas à nouveau. La cloche affiche seulement le nom de l'auteur, jamais le texte/GIF privé.
 
-- Démonstration sans connexion : `/design-system/private-messages-preview`.
-- Choisir **View as**, cliquer **Message**, écrire, fermer et changer de joueur pour répondre. Deux onglets du même navigateur partagent l'historique de démonstration.
-- **Add sample conversation** ajoute 55 messages pour tester la pagination.
-- **Fail the next send** simule un échec unique pour vérifier le brouillon et sa nouvelle tentative.
-- `/friends` utilise les RPC réelles avec une session de l'instance Supabase locale.
-- **GIF** ouvre le sélecteur GIPHY du marché. Le GIF choisi reste dans le brouillon jusqu'à **Send message**, avec ou sans texte, et peut être retiré avant envoi. Aucun import de galerie ou fichier personnel.
-- **Trade** ouvre le panneau d'échanges existant dans une modale, avec l'ami de la conversation verrouillé comme destinataire : aucun sélecteur d'amis et uniquement l'historique de cette relation. La page Trades classique garde le choix libre des amis. La démonstration utilise un adaptateur fictif qui interdit l'envoi d'offres réelles ; `/friends` garde les permissions et les opérations du système d'échanges existant.
+Le clic ouvre /friends?message=<sender>. Seul un ami accepté est résolu ; un destinataire devenu indisponible produit une erreur anglaise. Fermer la conversation nettoie le paramètre. Blocage bilatéral, retrait d'amitié, bannissement et clôture masquent les notifications concernées.
 
-La page de démonstration n'envoie aucun message réel. Les RPC de messagerie sont vérifiées séparément avec trois comptes locaux jetables, supprimés après le test.
+Supabase Realtime publie uniquement **notifications**, avec RLS de destinataire conservée, jamais la table de messages privés. INSERT/UPDATE filtrés sur l'utilisateur authentifié réveillent la lecture protégée. Le polling visible existant de 30 secondes et le retour à l'onglet restent les replis ; la conversation se relit aussi toutes les cinq secondes visibles et au signal de notification.
 
-## Données et permissions
+Référence : https://supabase.com/docs/guides/realtime/postgres-changes
 
-Migration : `20261019010000_private_messages.sql`. Appliquée uniquement à `supabase_db_Kara` en local, **pas au VPS**. La production n'est pas modifiée et cette branche ne doit pas être fusionnée pour cet essai.
+## Données et droits
 
-Migration complémentaire : `20261019010001_private_message_gifs.sql`, également appliquée uniquement au conteneur local. Ajoute `gif_url`, conserve l'ancienne API texte et ajoute une RPC GIF authentifiée. Aucun bucket ou droit de stockage supplémentaire.
+- Table sans accès direct anon/authenticated, RLS ; trois RPC authentifiées explicitement autorisées. Identité auth.uid(), amitié, blocs, bans et barrière de clôture contrôlés au serveur.
+- Verrous partagés avec les mutations sociales et la clôture. Une seconde entre envois, maximum 30/minute/auteur tous destinataires confondus.
+- URL GIF HTTPS sur les domaines médias GIPHY exacts, format GIF contrôlé côté SQL/interface ; pas de data:, blob:, SVG ou hôte ressemblant.
+- Pagination date/UUID, 40 messages/page, borne serveur 100.
+- Historique conservé tant que les comptes existent ; retrait d'amitié/blocage ferme l'accès sans purge automatique. Suppression Auth : cascade sur les messages envoyés/reçus. La barrière de clôture interdit les lectures/envois intermédiaires.
+- Export personnel : seulement les messages rédigés par le demandeur, GIF, date et pseudo destinataire ; pas le contenu rédigé par un autre joueur ni son UUID. Instantané SQL unique, permissions service-only et plafonds globaux inchangés.
 
-- Aucun accès direct à la table pour `anon` ou `authenticated`, RLS activée ; trois RPC réservées à `authenticated` (lecture, texte, texte/GIF).
-- L'auteur est toujours `auth.uid()`, jamais un identifiant fourni par le client.
-- Lecture et envoi nécessitent une amitié acceptée et aucun blocage dans les deux sens ; bannissement et clôture de compte sont pris en compte.
-- Les blocages et l'envoi partagent le verrou de la relation. L'envoi tient aussi les verrous de clôture des deux comptes.
-- Messages texte de 1 à 2 000 caractères, affichés comme texte littéral ; une seconde entre envois et 30 messages maximum par minute pour un auteur, tous destinataires confondus.
-- Les messages GIF peuvent avoir une légende vide. Seules les URL GIF HTTPS des domaines médias GIPHY exacts sont acceptées côté SQL et interface : pas d'URL arbitraire, `data:`, `blob:`, SVG ou hôte ressemblant. Texte et GIF partagent les mêmes verrous, limites et identifiants de nouvelle tentative.
-- Historique paginé par date et UUID, 40 messages par page, borne serveur de 100.
-- Suppression effective d'un compte Auth : suppression en cascade de ses messages envoyés et reçus.
-- La mise à jour de `tests/security-definer-allowlist.mjs` ajoute uniquement les deux nouvelles RPC authentifiées avec justification ; validation de Walid à obtenir avant une future livraison SQL.
+## Migrations
 
-L'extension GIF ajoute la troisième signature exacte authentifiée `send_private_message_gif(uuid,text,uuid,text)`, sans élargir les rôles des fonctions existantes. L'utilisateur a confirmé prévenir Walid pour la validation avant une future livraison. Le composant `Modal` isole Annuler/Échap et le piège Tab d'une sous-modale, sans modifier les assertions existantes ; le parcours navigateur vérifie le retour au fil de discussion après le sélecteur GIF.
+Après la correction PERF/ENG de #353 :
 
-Avant une future livraison en production, finaliser les décisions de conservation/modération et l'inclusion des messages dans l'export des données personnelles. Cette itération reste un essai local.
+- 20261019040000_private_messages.sql
+- 20261019040001_private_message_gifs.sql
+- 20261019040002_private_message_notifications.sql
+- 20261019040003_private_message_export.sql
 
-## Vérifications ciblées
+Ces versions remplacent les anciennes versions **locales uniquement** 20261019010000 à 20261019010003, jamais appliquées au VPS. Le registre local est aligné. Aucun historique appliqué en production n'est renommé. L'état réel d'application est consigné dans la PR de livraison.
 
-```powershell
-node --test tests/private-messages-db.test.mjs tests/private-message-gifs-db.test.mjs tests/migration-security.test.mjs
-node --env-file=.env.local scripts/prove-private-messages-local.mjs
-node scripts/browser-proof-private-messages.mjs
-```
+Validation des droits SQL et fenêtre sans migration concurrente confirmées par l'utilisateur avec Walid le 19 octobre. Ordre coordonné : #353 puis #351 avant #352. CI verte sur branche à jour, script officiel de déploiement SQL avec sauvegarde validée, transaction lot/registre et dérive après commit, puis contrôle du déploiement applicatif.
 
-Le script Supabase refuse toute URL autre que `http://localhost:54321` ou `http://127.0.0.1:54321`. Le script navigateur refuse un hôte distant et produit les captures dans `artifacts/private-messages/`.
+## Essai local
+
+Commande : node scripts/start-private-messages-local.mjs ; http://localhost:3002. Supabase local uniquement, seule la clé publique GIPHY peut être reprise du checkout principal.
+
+La route /design-system/private-messages-preview propose View as, historique partagé entre onglets, cloche simulée, Add sample conversation et Fail the next send. Aucun joueur réel contacté, aucun échange réel envoyé. Les routes design-system restent interdites en production.
+
+Les tests ciblés couvrent SQL, GIF, notifications, export, polling et permissions. Le script scripts/prove-private-messages-local.mjs vérifie aussi une vraie réception Realtime puis nettoie ses trois comptes jetables. scripts/browser-proof-private-messages.mjs vérifie desktop/mobile, cloche et destinataire verrouillé ; il refuse un hôte distant.

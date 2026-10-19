@@ -23,6 +23,20 @@ const admin = createClient(
 );
 const publicKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 const created = [];
+const clients = [];
+async function within(promise, message) {
+  let timer;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(Error(message)), 10000);
+      })
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
 try {
   const players = [];
   for (const label of ["Alice", "Bob", "Outsider"]) {
@@ -38,6 +52,7 @@ try {
     if (result.error) throw result.error;
     created.push(result.data.user.id);
     const client = createClient(url.origin, publicKey, options);
+    clients.push(client);
     const session = await client.auth.signInWithPassword({ email, password });
     if (session.error) throw session.error;
     players.push({ id: result.data.user.id, client });
@@ -52,6 +67,40 @@ try {
     p_accept: true
   });
   if (accepted.error) throw accepted.error;
+  let incoming;
+  const incomingNotification = new Promise(resolve => {
+    incoming = resolve;
+  });
+  let ready, failed;
+  const postgresReady = new Promise((resolve, reject) => {
+    ready = resolve;
+    failed = reject;
+  });
+  const channel = bob.client
+    .channel(`local-private-notification:${randomUUID()}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "notifications",
+        filter: `user_id=eq.${bob.id}`
+      },
+      payload => {
+        if (payload.new.type === "private_message_received")
+          incoming(payload.new);
+      }
+    )
+    .on("system", {}, payload => {
+      if (payload.status === "ok") ready();
+      else if (payload.status === "error")
+        failed(Error("Local realtime database subscription failed"));
+    });
+  channel.subscribe(status => {
+    if (status === "CHANNEL_ERROR" || status === "TIMED_OUT")
+      failed(Error("Local realtime subscription failed"));
+  });
+  await within(postgresReady, "Local realtime subscription timed out");
   const id = randomUUID();
   const args = {
     p_friend_id: bob.id,
@@ -65,12 +114,27 @@ try {
   if (sent.error) throw sent.error;
   assert.equal(sent.data.senderId, alice.id);
   assert.equal(repeated.data?.id, id);
+  const realtimeNotice = await within(
+    incomingNotification,
+    "Local realtime notification timed out"
+  );
+  assert.equal(realtimeNotice.user_id, bob.id);
+  assert.equal(realtimeNotice.actor_user_id, alice.id);
+  assert.ok(!JSON.stringify(realtimeNotice).includes(args.p_body));
   const received = await bob.client.rpc("get_private_messages", {
     p_friend_id: alice.id
   });
   if (received.error) throw received.error;
   assert.equal(received.data.items.length, 1);
   assert.equal(received.data.items[0].id, id);
+  const notifications = await bob.client.rpc("list_notifications");
+  if (notifications.error) throw notifications.error;
+  const notice = notifications.data.find(
+    item => item.type === "private_message_received"
+  );
+  assert.equal(notice?.referenceId, alice.id);
+  assert.ok(notice?.actorPseudo);
+  assert.ok(!JSON.stringify(notice).includes(args.p_body));
   const denied = await outsider.client.rpc("get_private_messages", {
     p_friend_id: alice.id
   });
@@ -112,6 +176,13 @@ try {
     p_friend_id: bob.id
   });
   assert.equal(afterBlock.error?.message, "MESSAGES_UNAVAILABLE");
+  const hiddenNotifications = await bob.client.rpc("list_notifications");
+  if (hiddenNotifications.error) throw hiddenNotifications.error;
+  assert.ok(
+    !hiddenNotifications.data.some(
+      item => item.type === "private_message_received"
+    )
+  );
   const gifBlocked = await alice.client.rpc("send_private_message_gif", {
     ...gifArgs,
     p_friend_id: bob.id,
@@ -122,6 +193,7 @@ try {
     "Local Supabase proof passed: authenticated text/GIF send and receive, concurrent idempotent retries, non-GIPHY URL denial, outsider denial, no direct table access, and bilateral block."
   );
 } finally {
+  await Promise.all(clients.map(client => client.removeAllChannels()));
   for (const id of created) {
     const result = await admin.auth.admin.deleteUser(id);
     if (result.error) throw result.error;

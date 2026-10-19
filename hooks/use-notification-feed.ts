@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   getNotifications,
   NotificationRequestError,
+  subscribeNotifications,
   type AppNotification
 } from "@/lib/data/notifications";
 import { invalidatePlayerSnapshots } from "@/lib/data/cards";
@@ -73,6 +74,10 @@ export function useNotificationFeed(
     if (!enabled) return;
     mounted.current = true;
     const stop = startVisiblePolling(() => void refresh(), POLL_INTERVAL_MS);
+    const stopRealtime =
+      load === getNotifications
+        ? subscribeNotifications(() => void refresh())
+        : () => {};
     const onBlock = () => {
       void refresh();
     };
@@ -80,9 +85,10 @@ export function useNotificationFeed(
     return () => {
       mounted.current = false;
       stop();
+      stopRealtime();
       window.removeEventListener("player-block-changed", onBlock);
     };
-  }, [enabled, refresh]);
+  }, [enabled, refresh, load]);
   const retry = useCallback(() => {
     setError("");
     void refresh();

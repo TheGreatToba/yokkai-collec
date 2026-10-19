@@ -11,6 +11,8 @@ import {
 import { Avatar, Button, Modal } from "@/components/ui";
 import { GifPicker, type GifChoice } from "@/components/gif-picker";
 import { TradesPanel, type TradesPanelAdapter } from "@/components/trades";
+import { PlayerModeration } from "@/components/player-moderation";
+import type { ModerationAdapter } from "@/lib/data/moderation";
 import type { FriendUser } from "@/lib/data/friends";
 import {
   livePrivateMessages,
@@ -44,12 +46,14 @@ export function PrivateMessages({
   friend,
   onClose,
   tradeAdapter,
+  moderationAdapter,
   adapter = livePrivateMessages
 }: {
   friend: FriendUser;
   onClose: () => void;
   adapter?: PrivateMessagesAdapter;
   tradeAdapter?: TradesPanelAdapter;
+  moderationAdapter?: ModerationAdapter;
 }) {
   const [page, setPage] = useState<PrivateMessagePage>();
   const [loading, setLoading] = useState(true);
@@ -132,6 +136,7 @@ export function PrivateMessages({
     };
     window.addEventListener("focus", onFocus);
     window.addEventListener("online", onFocus);
+    window.addEventListener("private-message-received", onFocus);
     const blocked = (event: Event) => {
       const detail = (event as CustomEvent<{ id: string; blocked: boolean }>)
         .detail;
@@ -149,6 +154,7 @@ export function PrivateMessages({
       stop();
       window.removeEventListener("focus", onFocus);
       window.removeEventListener("online", onFocus);
+      window.removeEventListener("private-message-received", onFocus);
       window.removeEventListener("player-block-changed", blocked);
     };
   }, [adapter, friend.id, retry]);
@@ -300,6 +306,12 @@ export function PrivateMessages({
           >
             Trade
           </Button>
+          <PlayerModeration
+            userId={friend.id}
+            pseudo={friend.pseudo}
+            adapter={moderationAdapter}
+            onBlocked={onClose}
+          />
         </div>
         <div
           className="yk-private-messages-log"

@@ -479,6 +479,31 @@ try {
     ),
     true
   );
+  // The bell coalesces incoming messages and opens that sender, not another friend.
+  await click('button[aria-controls="notifications-panel"]');
+  await until("!!document.querySelector('[data-notification-kind=message] a')");
+  assert.equal(
+    await evaluate(
+      "document.querySelectorAll('[data-notification-kind=message]').length"
+    ),
+    1
+  );
+  assert.equal(
+    await evaluate(
+      "document.querySelector('[data-notification-kind=message] a').getAttribute('href')"
+    ),
+    "/friends?message=preview-kitsune"
+  );
+  await click("[data-notification-kind=message] a");
+  await until(
+    "!!document.querySelector('.yk-private-messages-modal[open] textarea:not(:disabled)')"
+  );
+  assert.ok(
+    await evaluate(
+      "document.querySelector('.yk-private-messages-modal h2').textContent.includes('Kitsune')"
+    )
+  );
+  await click('.yk-private-messages-modal[open] button[aria-label="Close"]');
   assert.deepEqual(errors, []);
   assert.ok(
     rpcRequests.every(

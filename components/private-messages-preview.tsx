@@ -1,6 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Topbar,
+  notificationItem,
+  type NotificationItem
+} from "@/components/topbar";
 import { FriendsPanel, type FriendsPanelAdapter } from "@/components/friends";
 import { Button } from "@/components/ui";
 import type { TradesPanelAdapter } from "@/components/trades";
@@ -40,6 +45,41 @@ export function PrivateMessagesPreview() {
   const [failure, setFailure] = useState(false);
   const [version, setVersion] = useState(0);
   const [error, setError] = useState("");
+  const [initialConversationId, setInitialConversationId] = useState<string>();
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const read = useRef(new Set<string>());
+  const refreshNotifications = useCallback(() => {
+    try {
+      const latest = new Map<string, PrivateMessage>();
+      for (const message of readMessages()
+        .filter(message => message.recipientId === playerId)
+        .sort(order))
+        latest.set(message.senderId, message);
+      setNotifications(
+        [...latest.values()].reverse().map(message =>
+          notificationItem({
+            id: message.id,
+            type: "private_message_received",
+            referenceId: message.senderId,
+            readAt: read.current.has(message.id) ? message.createdAt : null,
+            createdAt: message.createdAt,
+            cardName: null,
+            achievementName: null,
+            actorPseudo:
+              players.find(player => player.id === message.senderId)?.pseudo ??
+              null
+          })
+        )
+      );
+    } catch {
+      setError("Couldn't load local test notifications.");
+    }
+  }, [playerId]);
+  useEffect(() => {
+    refreshNotifications();
+    const timer = window.setInterval(refreshNotifications, 1000);
+    return () => window.clearInterval(timer);
+  }, [refreshNotifications]);
   const messages = useMemo<PrivateMessagesAdapter>(
     () => ({
       list: async (friendId, cursor) => {
@@ -176,41 +216,74 @@ export function PrivateMessagesPreview() {
   }
   return (
     <>
-      <div className="yk-private-messages-preview-tools">
-        <label>
-          View as{" "}
-          <select
-            className="auth-input"
-            aria-label="Preview player"
-            value={playerId}
-            onChange={event => setPlayerId(event.target.value)}
-          >
-            {players.map(player => (
-              <option key={player.id} value={player.id}>
-                {player.pseudo}
-              </option>
-            ))}
-          </select>
-        </label>
-        <Button variant="secondary" onClick={seed}>
-          Add sample conversation
-        </Button>
-        <label>
-          <input
-            type="checkbox"
-            checked={failure}
-            onChange={event => setFailure(event.target.checked)}
-          />{" "}
-          Fail the next send
-        </label>
-        <p>
-          Local preview only. Choose a player, click Message, then switch
-          players to reply. Two tabs share this test history. No real players
-          are contacted.
-        </p>
-        {error && <p role="alert">{error}</p>}
-      </div>
-      <FriendsPanel key={`${playerId}:${version}`} adapter={adapter} />
+      <Topbar
+        view="friends"
+        name={players.find(player => player.id === playerId)?.pseudo}
+        karas={4499}
+        notifications={notifications}
+        onRefreshNotifications={refreshNotifications}
+        onReadAll={() => {
+          for (const item of notifications) read.current.add(item.id);
+          refreshNotifications();
+        }}
+        onOpenNotification={async (id, href) => {
+          read.current.add(id);
+          refreshNotifications();
+          setInitialConversationId(
+            new URL(href, window.location.origin).searchParams.get("message") ??
+              undefined
+          );
+        }}
+      />
+      <main className="mx-auto w-full max-w-6xl px-6 py-10">
+        <p className="eyebrow">Between collectors</p>
+        <h1 className="yk-title mt-3">My friends</h1>
+        <div className="mt-8">
+          <div className="yk-private-messages-preview-tools">
+            <label>
+              View as{" "}
+              <select
+                className="auth-input"
+                aria-label="Preview player"
+                value={playerId}
+                onChange={event => {
+                  setInitialConversationId(undefined);
+                  setPlayerId(event.target.value);
+                }}
+              >
+                {players.map(player => (
+                  <option key={player.id} value={player.id}>
+                    {player.pseudo}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <Button variant="secondary" onClick={seed}>
+              Add sample conversation
+            </Button>
+            <label>
+              <input
+                type="checkbox"
+                checked={failure}
+                onChange={event => setFailure(event.target.checked)}
+              />{" "}
+              Fail the next send
+            </label>
+            <p>
+              Local preview only. Choose a player, click Message, then switch
+              players to reply. Two tabs share this test history. No real
+              players are contacted.
+            </p>
+            {error && <p role="alert">{error}</p>}
+          </div>
+          <FriendsPanel
+            key={`${playerId}:${version}`}
+            adapter={adapter}
+            initialConversationId={initialConversationId}
+            onConversationClose={() => setInitialConversationId(undefined)}
+          />
+        </div>
+      </main>
     </>
   );
 }

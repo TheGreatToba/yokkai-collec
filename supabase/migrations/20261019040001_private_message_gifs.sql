@@ -1,3 +1,4 @@
+-- First production version follows the coordinated PERF/ENG migrations.
 begin;
 
 -- No gallery upload or storage bucket: messaging only accepts GIPHY GIF URLs.

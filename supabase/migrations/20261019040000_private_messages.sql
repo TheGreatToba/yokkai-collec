@@ -1,3 +1,4 @@
+-- First production version follows the coordinated PERF/ENG migrations.
 begin;
 
 create table public.private_messages (
