@@ -9,7 +9,6 @@ import {
   useMemo,
   useRef,
   useState,
-  type CSSProperties,
   type MouseEvent
 } from "react";
 import { Avatar, Button, Modal, Toast } from "@/components/ui";
@@ -27,7 +26,6 @@ import { StyledPlayerName } from "@/components/styled-player-name";
 import {
   DEFAULT_PROFILE_STYLE,
   normalizeProfileStyle,
-  profileThemeVariables,
   type ProfileStyle
 } from "@/lib/ui/profile-style";
 import { useProAccess, ProFeatureNotice } from "@/components/pro-access";
@@ -1441,14 +1439,7 @@ export function ProfileExperience({
       <div
         className="yk-profile-hub"
         data-profile-tab={tab}
-        data-profile-customized={
-          profile.profileStyle?.active ? "true" : "false"
-        }
-        data-profile-theme={
-          profile.profileStyle?.active
-            ? profile.profileStyle.style.theme
-            : "default"
-        }
+        data-profile-theme="default"
         data-avatar-frame={
           profile.profileStyle?.active
             ? profile.profileStyle.style.avatarFrame
@@ -1458,16 +1449,6 @@ export function ProfileExperience({
           profile.profileStyle?.active
             ? profile.profileStyle.style.showcaseEffect
             : "none"
-        }
-        style={
-          profile.profileStyle?.active
-            ? (profileThemeVariables(
-                normalizeProfileStyle({
-                  ...DEFAULT_PROFILE_STYLE,
-                  ...profile.profileStyle.style
-                })
-              ) as CSSProperties)
-            : undefined
         }
       >
         <section className="yk-profile-main">

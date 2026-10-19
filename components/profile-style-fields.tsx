@@ -1,14 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import type { CSSProperties } from "react";
 import type { ProfileStyle } from "@/lib/ui/profile-style";
 import {
   NAME_FONTS,
   NAME_EFFECTS,
   STYLE_BADGES,
-  DEFAULT_PROFILE_STYLE,
-  profileThemeVariables
+  DEFAULT_PROFILE_STYLE
 } from "@/lib/ui/profile-style";
 import { useProAccess } from "@/components/pro-access";
 import { StyledPlayerName } from "@/components/styled-player-name";
@@ -141,10 +139,9 @@ export function ProfileStyleFields({
               </div>
             </fieldset>
             <fieldset>
-              <legend>Profile theme colors</legend>
+              <legend>Name colors</legend>
               <p className="yk-style-help">
-                Choose any RGB color. These colors shape your profile and name
-                effects.
+                Choose any RGB color for your name and its effects.
               </p>
               <div className="yk-style-custom-colors">
                 <RgbColorControl
@@ -236,10 +233,9 @@ export function ProfileStyleFields({
             className="yk-style-profile-preview"
             aria-label="Profile style preview"
             aria-live="polite"
-            data-profile-theme={value.theme ?? "default"}
+            data-profile-theme="default"
             data-avatar-frame={value.avatarFrame ?? "none"}
             data-showcase-effect={value.showcaseEffect ?? "none"}
-            style={profileThemeVariables(value) as CSSProperties}
           >
             <div className="yk-style-profile-preview-banner" aria-hidden="true">
               <span>✦</span>

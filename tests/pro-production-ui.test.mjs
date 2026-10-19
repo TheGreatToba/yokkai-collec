@@ -111,7 +111,7 @@ test("Basic players can preview profile styles while the controls stay usable", 
     assert.match(html, /data-showcase-effect="none"/);
     assert.match(html, /aria-label="Yokkai Pro"/);
     assert.match(html, /Avatar frame/);
-    assert.match(html, /Profile theme colors/);
+    assert.match(html, /Name colors/);
     assert.match(html, /aria-label="Primary R"/);
     assert.match(html, /aria-label="Primary G"/);
     assert.match(html, /aria-label="Primary B"/);
