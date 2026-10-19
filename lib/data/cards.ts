@@ -472,10 +472,31 @@ export async function discardCollectionCards(instanceIds: string[]): Promise<num
 
 export async function getFolders(sharePending = false): Promise<Folder[]> {
   const id = await playerId(true);
-  const { data, error } = await (sharePending ? cache.memo(`read:folders:${id}`, 0, () => readRequest(signal => db().from("folders").select("id,nom").eq("user_id", id).order("nom").abortSignal(signal))) : readRequest(signal => db().from("folders").select("id,nom").eq("user_id", id).order("nom").abortSignal(signal)));
+  const { data, error } = await (sharePending
+    ? cache.memo(`read:folders:${id}`, 0, () =>
+        readRequest(signal =>
+          db()
+            .from("folders")
+            .select("id,nom")
+            .eq("user_id", id)
+            .order("nom")
+            .abortSignal(signal)
+        )
+      )
+    : readRequest(signal =>
+        db()
+          .from("folders")
+          .select("id,nom")
+          .eq("user_id", id)
+          .order("nom")
+          .abortSignal(signal)
+      ));
   if (error) throw failure(error);
   await assertPlayer(id, true);
-  return (data as { id: string; nom: string }[]).map(folder => ({ id: folder.id, name: folder.nom }));
+  return (data as { id: string; nom: string }[]).map(folder => ({
+    id: folder.id,
+    name: folder.nom
+  }));
 }
 
 export async function createFolder(name: string): Promise<Folder> {
