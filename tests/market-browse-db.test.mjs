@@ -6,7 +6,7 @@ import ts from "typescript";
 import { replayMigrations } from "../scripts/replay-migrations.mjs";
 
 // Execute the existing client predicates, rather than reproducing them in SQL tests.
-function helper(file, names) {
+function helper(file, names, globals = {}) {
   const source = readFileSync(new URL(file, import.meta.url), "utf8");
   const ast = ts.createSourceFile(
     file,
@@ -22,9 +22,12 @@ function helper(file, names) {
   const exports = {};
   vm.runInNewContext(
     ts.transpileModule(functions.map(node => node.getText(ast)).join("\n"), {
-      compilerOptions: { module: ts.ModuleKind.CommonJS }
+      compilerOptions: {
+        module: ts.ModuleKind.CommonJS,
+        target: ts.ScriptTarget.ES2020
+      }
     }).outputText,
-    { exports }
+    { exports, ...globals }
   );
   return exports;
 }
@@ -137,7 +140,25 @@ test("market prefix RPC preserves client search, sections and global sorting", a
   } = {}) {
     const legacy = (await db.query("select public.list_auctions() as value"))
       .rows[0].value;
+    const catalogue = (await db.query("select id,franchise from public.cards"))
+      .rows;
+    const { withLiveCardFranchises } = helper(
+      "../lib/data/cards.ts",
+      ["withLiveCardFranchises"],
+      {
+        FRANCHISE_BATCH: 200,
+        db: () => ({
+          from: () => ({
+            select: () => ({
+              in: async () => ({ data: catalogue, error: null })
+            })
+          })
+        })
+      }
+    );
+    const liveCards = await withLiveCardFranchises(legacy.map(a => a.card));
     return legacy
+      .map((a, index) => ({ ...a, card: liveCards[index] }))
       .filter(a =>
         section === "mine"
           ? a.status === "active" && (a.sellerId === alice || a.hasBid)
@@ -225,6 +246,48 @@ test("market prefix RPC preserves client search, sections and global sorting", a
         await assertPrefix({ sort, limit: 6 });
       }
       await assertPrefix({ limit: 1000 });
+    }
+  );
+  await t.test(
+    "historical snapshots search the live franchise without losing card fields",
+    async () => {
+      await db.exec("reset role");
+      const id = await insertAuction(0, alice, "sold", bob);
+      await db.query(
+        "update public.auctions set card_instance_id=null,card_snapshot=$2::jsonb where id=$1",
+        [
+          id,
+          JSON.stringify({
+            id: cards[0],
+            name: "Snapshot hero",
+            anime: "Old Franchise",
+            category: "Anime/Manga",
+            rarity: "C",
+            image: "snapshot.png",
+            shiny: true
+          })
+        ]
+      );
+      await db.query(
+        "update public.cards set franchise='New Franchise' where id=$1",
+        [cards[0]]
+      );
+      await db.exec("set role authenticated");
+      const page = await assertPrefix({
+        section: "sold",
+        query: "snapshot new",
+        limit: 1000
+      });
+      assert.equal(
+        page.items.find(a => a.id === id).card.anime,
+        "New Franchise"
+      );
+      assert.equal(page.items.find(a => a.id === id).card.shiny, true);
+      await assertPrefix({
+        section: "sold",
+        query: "snapshot old",
+        limit: 1000
+      });
     }
   );
   await t.test(

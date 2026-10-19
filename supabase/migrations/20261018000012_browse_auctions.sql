@@ -19,13 +19,16 @@ begin
     select a.*,c.id card_id,c.nom,c.franchise,c.categorie,c.rarete_base,c.image_url,uc.is_shiny,
       coalesce(c.favoris_count,0) popularity,p.pseudo,p.avatar_url,pb.auction_id is not null has_bid,
       coalesce(c.nom,a.card_snapshot->>'name') search_name,
-      coalesce(c.franchise,a.card_snapshot->>'anime') search_anime,
+      case when c.id is not null then c.franchise
+        when a.card_snapshot->'liveFranchise'='true'::jsonb then a.card_snapshot->>'anime'
+        else snapshot_card.franchise end search_anime,
       coalesce(c.categorie,a.card_snapshot->>'category') category,
       coalesce(c.rarete_base::text,a.card_snapshot->>'rarity') rarity,
       greatest(0,ceil(extract(epoch from a.ends_at-statement_timestamp()))) end_key
     from public.auctions a
     left join public.user_cards uc on uc.id=a.card_instance_id
     left join public.cards c on c.id=uc.card_id
+    left join public.cards snapshot_card on c.id is null and snapshot_card.id=(a.card_snapshot->>'id')::uuid
     left join public.user_profiles p on p.user_id=a.seller_id
     left join player_bids pb on pb.auction_id=a.id
     where (c.id is not null or a.card_snapshot is not null)
@@ -54,7 +57,7 @@ begin
     'items',coalesce((select jsonb_agg(jsonb_build_object(
       'id',a.id,'card',case when a.card_id is not null then jsonb_build_object(
         'id',a.card_id,'name',a.nom,'category',a.categorie,'liveFranchise',true,'anime',a.franchise,
-        'rarity',a.rarete_base,'image',a.image_url,'catalogueImage',a.image_url,'shiny',a.is_shiny) else a.card_snapshot end,
+        'rarity',a.rarete_base,'image',a.image_url,'catalogueImage',a.image_url,'shiny',a.is_shiny) else a.card_snapshot||jsonb_build_object('anime',a.search_anime,'liveFranchise',true) end,
       'amount',a.current_price,'endsAt',a.ends_at,'status',a.status,'seller',coalesce(a.pseudo,'Deleted player'),'sellerId',a.seller_id,
       'sellerAvatarUrl',a.avatar_url,'buyerId',a.buyer_id,'hasBid',a.has_bid,'popularity',a.popularity,
       'bids',(select count(*) from public.bids b where b.auction_id=a.id),
