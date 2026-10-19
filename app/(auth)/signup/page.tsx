@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { AuthForm } from "@/components/auth-form";
-import { normalizeReferralCode } from "@/lib/referrals/shared";
+import { normalizeReferralCode } from "@/lib/auth/forms";
 
 export const metadata: Metadata = {
   title: "Sign up · Yokkai Collec’",

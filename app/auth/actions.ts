@@ -8,6 +8,7 @@ import {
   authError,
   authEmailError,
   captchaOptions,
+  normalizeReferralCode,
   pseudoValidationError,
   validateCredentials,
   validateEmail,
@@ -15,7 +16,6 @@ import {
   validatePasswordChange,
   type AuthState
 } from "@/lib/auth/forms";
-import { normalizeReferralCode } from "@/lib/referrals/shared";
 
 function configuredSiteOrigin() {
   const configuredUrl =
