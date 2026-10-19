@@ -1333,18 +1333,19 @@ export function Boosters({
                 {status ? (
                   <div className="yk-pack-reserve"
                     role="img"
-                    aria-label={`${status.available} of ${status.maximum} packs in reserve`}
+                    aria-label={`${status.reserve ?? status.available} of ${status.maximum} packs in reserve${status.bonus ? ` plus ${status.bonus} bonus packs` : ""}`}
                   >
                     <span className="yk-pack-dots" aria-hidden="true">
                       {Array.from({ length: status.maximum }, (_, index) => (
                         <span
                           key={index}
-                          data-filled={index < status.available}
+                          data-filled={index < (status.reserve ?? status.available)}
                         />
                       ))}
                     </span>
                     <span aria-hidden="true">
-                      {status.available}/{status.maximum}
+                      {status.reserve ?? status.available}/{status.maximum}
+                      {status.bonus ? ` +${status.bonus} bonus` : ""}
                     </span>
                   </div>
                 ) : (

@@ -15,6 +15,7 @@ import {
   validatePasswordChange,
   type AuthState
 } from "@/lib/auth/forms";
+import { normalizeReferralCode } from "@/lib/referrals/shared";
 
 function configuredSiteOrigin() {
   const configuredUrl =
@@ -172,6 +173,7 @@ export async function signUp(
 ): Promise<AuthState> {
   const input = validateCredentials(form, true);
   const values = { email: input.email, pseudo: input.pseudo };
+  const referralCode = normalizeReferralCode(form.get("referralCode"));
   if (!input.valid) return { fields: input.fields, values };
   const captcha = captchaOptions(
     form,
@@ -202,7 +204,10 @@ export async function signUp(
       password: input.password,
       options: {
         ...captcha,
-        data: { pseudo: input.pseudo },
+        data: {
+          pseudo: input.pseudo,
+          ...(referralCode ? { referral_code: referralCode } : {})
+        },
         emailRedirectTo: `${siteOrigin}/auth/confirm`
       }
     });

@@ -16,11 +16,13 @@ type PseudoAvailability = "idle" | "checking" | "available" | "taken";
 
 export function AuthForm({
   mode,
+  referralCode,
   confirmationError = false,
   confirmationUnavailable = false,
   checkPseudoAvailability = checkPseudoAvailabilityWhileTyping
 }: {
   mode: "signin" | "signup";
+  referralCode?: string;
   confirmationError?: boolean;
   confirmationUnavailable?: boolean;
   checkPseudoAvailability?: (pseudo: string) => Promise<boolean | undefined>;
@@ -80,6 +82,15 @@ export function AuthForm({
   return (
     <>
       <form action={action} className="yk-auth-form" aria-busy={pending}>
+        {signup && referralCode && (
+          <>
+            <input type="hidden" name="referralCode" value={referralCode} />
+            <p role="status" className="yk-auth-success-panel text-sm">
+              Referral invitation applied. Your friend will receive 5 bonus
+              Regular Packs after you verify your email.
+            </p>
+          </>
+        )}
         {confirmationError && (
           <p role="alert" className="auth-error">
             This confirmation link is invalid, expired, or already used. If your

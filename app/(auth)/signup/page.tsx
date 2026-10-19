@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AuthForm } from "@/components/auth-form";
+import { normalizeReferralCode } from "@/lib/referrals/shared";
 
 export const metadata: Metadata = {
   title: "Sign up · Yokkai Collec’",
@@ -7,7 +8,15 @@ export const metadata: Metadata = {
     "Create your Yokkai Collec’ account and start collecting your favorite characters with your first packs."
 };
 
-export default function SignUpPage() {
+export default async function SignUpPage({
+  searchParams
+}: {
+  searchParams: Promise<{ ref?: string | string[] }>;
+}) {
+  const params = await searchParams;
+  const referralCode = normalizeReferralCode(
+    Array.isArray(params.ref) ? params.ref[0] : params.ref
+  );
   return (
     <>
       <p className="eyebrow">Your adventure awaits</p>
@@ -15,7 +24,7 @@ export default function SignUpPage() {
       <p className="yk-auth-intro">
         One username. One first card. Let fate take care of the rest.
       </p>
-      <AuthForm mode="signup" />
+      <AuthForm mode="signup" referralCode={referralCode ?? undefined} />
     </>
   );
 }

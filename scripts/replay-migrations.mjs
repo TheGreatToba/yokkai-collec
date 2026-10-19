@@ -5,7 +5,11 @@ import { pg_trgm } from "@electric-sql/pglite/contrib/pg_trgm";
 // Shared Supabase bootstrap for disposable PGlite and PostgreSQL databases.
 export const bootstrapSQL = `
       create schema auth;
-      create table auth.users(id uuid primary key, raw_user_meta_data jsonb);
+      create table auth.users(
+        id uuid primary key,
+        raw_user_meta_data jsonb,
+        email_confirmed_at timestamptz
+      );
       create function auth.uid() returns uuid language sql stable as
         $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
       create schema storage;
