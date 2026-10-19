@@ -2,6 +2,7 @@ import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getSupabaseConfig } from "@/utils/supabase/config";
+import { DECISION_PACK_RESET } from "@/lib/premium/offer";
 
 export class ProError extends Error {
   constructor(
@@ -62,7 +63,9 @@ export function benefits(active: boolean) {
   return {
     active,
     regularPackMinutes: active ? 5 : 10,
-    decisionPackHours: active ? 12 : 24,
+    decisionPacksPerDay: active ? 2 : 1,
+    decisionPackResetHour: DECISION_PACK_RESET.hour,
+    decisionPackResetTimeZone: DECISION_PACK_RESET.timeZone,
     maxActiveAuctions: active ? 6 : 3,
     maxShowcaseCards: active ? 10 : 5,
     canCustomizeCards: active,

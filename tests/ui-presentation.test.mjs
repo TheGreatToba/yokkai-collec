@@ -3524,3 +3524,44 @@ test("empty Regular Pack uses the same unavailable styling as a locked Decision 
     );
   }
 });
+
+test("Decision Packs show server quota and the shared Paris reset without a browser-timezone dependency", () => {
+  const { Boosters } = load("components/boosters.tsx");
+  for (const [maximum, remaining] of [
+    [1, 0],
+    [2, 1],
+    [2, 0]
+  ]) {
+    const html = render(Boosters, {
+      status: { available: 0, maximum: 5, nextPackAt: 1 },
+      decisionStatus: {
+        available: remaining > 0,
+        pending: [],
+        nextPackAt: 1,
+        maximum,
+        remaining,
+        resetAt: 1,
+        resetTimeZone: "Europe/Paris"
+      },
+      countdown: "01:00",
+      decisionCountdown: "10:00:00",
+      busy: false,
+      draw: [],
+      drawKind: "regular",
+      collection: [],
+      revealed: 0,
+      onOpen() {},
+      onKeepDecision() {},
+      onReveal() {}
+    });
+    const decision = html.split("yk-decision-panel")[1];
+    assert.ok(decision.includes(`${remaining}/${maximum} packs left`));
+    assert.ok(decision.includes("Resets daily at 8:00 PM (Paris)"));
+    assert.ok(
+      decision.includes(
+        remaining > 0 ? "Available now" : "Available at 8:00 PM (Paris)"
+      )
+    );
+    assert.doesNotMatch(decision, /Available (?:today|tomorrow) at/);
+  }
+});
