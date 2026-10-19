@@ -1,15 +1,20 @@
 // Proposed product rules for the isolated local preview, NOT game entitlements.
 // Real privileges must be enforced by authenticated database functions, not this file.
+export const DECISION_PACK_RESET = {
+  hour: 20,
+  timeZone: "Europe/Paris"
+} as const;
+
 export const PROPOSED_PLAN_RULES = {
   basic: {
     regularPackMinutes: 10,
-    decisionPackHours: 24,
+    decisionPacksPerDay: 1,
     concurrentAuctions: 3,
     showcaseSlots: 5
   },
   pro: {
     regularPackMinutes: 5,
-    decisionPackHours: 12,
+    decisionPacksPerDay: 2,
     concurrentAuctions: 6,
     showcaseSlots: 10
   }
@@ -30,7 +35,8 @@ export const PROPOSED_PRO_FEATURES = [
   {
     id: "decision-packs",
     title: "Two Decision Packs per day",
-    detail: "One every 12 hours instead of 24. They do not stack."
+    detail:
+      "Two packs unlock together every day at 8:00 PM Paris time instead of one. Unused packs do not carry over."
   },
   {
     id: "auctions",
@@ -83,14 +89,3 @@ export const PROPOSED_PRO_FEATURES = [
     detail: "Style your showcase and personalize your card backs."
   }
 ] as const;
-
-export function previewAvailability(plan: PreviewPlan, elapsedMinutes: number) {
-  const rules = PROPOSED_PLAN_RULES[plan];
-  const elapsed = Number.isFinite(elapsedMinutes)
-    ? Math.max(0, elapsedMinutes)
-    : 0;
-  return {
-    regularReady: elapsed >= rules.regularPackMinutes,
-    decisionReady: elapsed >= rules.decisionPackHours * 60
-  };
-}

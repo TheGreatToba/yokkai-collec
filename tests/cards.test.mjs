@@ -29,7 +29,8 @@ function setup({
   catalogue = [],
   collection = [],
   apiLimit = 500,
-  decisionDropRates
+  decisionDropRates,
+  decisionStatus
 } = {}) {
   let now = 1800000000000;
   let user = "alice";
@@ -163,7 +164,7 @@ function setup({
       }
       if (name === "get_decision_pack_status")
         return {
-          data: {
+          data: decisionStatus ?? {
             available: true,
             nextPackAt: now + 86400000,
             serverNow: now,
@@ -548,6 +549,37 @@ test("initial decision status does not wait for card details; regular opening ke
   assert.deepEqual(
     calls.map(call => call.rpc),
     ["get_decision_pack_status"]
+  );
+});
+
+test("Decision quota and absolute Paris reset survive client clock correction", async () => {
+  const { api, advance, calls } = setup({
+    decisionStatus: {
+      available: true,
+      pending: [],
+      maximum: 2,
+      remaining: 1,
+      serverNow: 1_000_000,
+      nextPackAt: 1_060_000,
+      resetAt: 1_060_000,
+      resetTimeZone: "Europe/Paris"
+    }
+  });
+  const first = await api.getDecisionPackStatus(false);
+  assert.equal(first.available, true);
+  assert.equal(first.maximum, 2);
+  assert.equal(first.remaining, 1);
+  assert.equal(first.resetTimeZone, "Europe/Paris");
+  assert.equal(first.resetAt, 1_060_000);
+  assert.equal(first.nextPackAt, 1_800_000_060_000);
+  advance(86_400_000);
+  const afterClockChange = await api.getDecisionPackStatus(false);
+  assert.equal(afterClockChange.nextPackAt - first.nextPackAt, 86_400_000);
+  assert.equal(afterClockChange.resetAt, first.resetAt);
+  assert.equal(afterClockChange.remaining, 1);
+  assert.deepEqual(
+    calls.map(call => call.rpc),
+    ["get_decision_pack_status", "get_decision_pack_status"]
   );
 });
 

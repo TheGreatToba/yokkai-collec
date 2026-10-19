@@ -184,6 +184,18 @@ export function Game({
     return startVisiblePolling(() => setNow(Date.now()), 1000);
   }, []);
   useEffect(() => {
+    if (view !== "packs" || !decisionStatus?.resetAt) return;
+    // Re-read the server at the shared reset, in addition to background polling.
+    // nextPackAt is corrected for the browser clock; resetAt is absolute metadata.
+    const timer = window.setTimeout(
+      () => {
+        if (!document.hidden) retries.current.decision?.();
+      },
+      Math.max(0, decisionStatus.nextPackAt - Date.now()) + 100
+    );
+    return () => window.clearTimeout(timer);
+  }, [view, decisionStatus?.resetAt, decisionStatus?.nextPackAt]);
+  useEffect(() => {
     let active = true;
     if (previewData) return;
     const unsubscribe = subscribePlayerSnapshotInvalidation(scopes => {

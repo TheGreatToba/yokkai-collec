@@ -27,7 +27,11 @@ export type CollectedCard = Card & { instanceId: string; obtainedAt: string; shi
 export type Folder = { id: string; name: string };
 export type ActiveAuctionCard = { instanceId: string; auctionId: string; endsAt: string };
 export type PackStatus = { available: number; maximum: number; nextPackAt: number | null };
-export type DecisionPackStatus = { available: boolean; nextPackAt: number; pending: (CollectedCard & { discarded?: boolean })[] };
+export type DecisionPackStatus = {
+  available: boolean; nextPackAt: number; pending: (CollectedCard & { discarded?: boolean })[];
+  // Optional while older deployments and isolated previews still return timers.
+  remaining?: number; maximum?: number; resetAt?: number; resetTimeZone?: "Europe/Paris";
+};
 export type DecisionPackChoice = CollectedCard & { karasReward: number };
 type GameInfo = {
   user: { id: string; name: string }; categories: Category[]; rarities: Rarity[];
@@ -378,7 +382,9 @@ export async function getDecisionPackStatus(includeCardDetails = true): Promise<
     withPackDestructionValues(await withLiveCardFranchises(status.pending, true), true)) : status.pending;
   await assertPlayer(id, true);
   return { available: status.available,
-    nextPackAt: Date.now() + status.nextPackAt - status.serverNow, pending };
+    nextPackAt: Date.now() + status.nextPackAt - status.serverNow, pending,
+    remaining: status.remaining, maximum: status.maximum,
+    resetAt: status.resetAt, resetTimeZone: status.resetTimeZone };
 }
 export async function openBooster(): Promise<CollectedCard[]> {
   const id = await playerId();

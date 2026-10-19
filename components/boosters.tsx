@@ -1428,10 +1428,17 @@ export function Boosters({
                     "Choice pending"
                   ) : decisionStatus.available ? (
                     <span className="text-success">Available now</span>
+                  ) : decisionStatus.resetTimeZone === "Europe/Paris" ? (
+                    "Available at 8:00 PM (Paris)"
                   ) : (
                     decisionReturnLabel(decisionStatus.nextPackAt)
                   )}
                 </p>
+                {decisionStatus?.maximum !== undefined && decisionStatus.remaining !== undefined && (
+                  <p className="yk-pack-timing">
+                    {decisionStatus.remaining}/{decisionStatus.maximum} packs left · Resets daily at 8:00 PM (Paris)
+                  </p>
+                )}
               </div>
               {decisionError && (
                 <p role="alert" className="my-3 text-sm text-danger-ink">

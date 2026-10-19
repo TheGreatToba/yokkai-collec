@@ -65,8 +65,8 @@ export function PremiumOffer({
             </tr>
             <tr>
               <th scope="row">Decision Pack</th>
-              <td>Every {rules.basic.decisionPackHours} h</td>
-              <td>Every {rules.pro.decisionPackHours} h</td>
+              <td>{rules.basic.decisionPacksPerDay} per day</td>
+              <td>{rules.pro.decisionPacksPerDay} per day</td>
             </tr>
             <tr>
               <th scope="row">Active auctions</th>
@@ -86,8 +86,10 @@ export function PremiumOffer({
           </tbody>
         </table>
         <p className="yk-pro-offer-footnote">
-          Decision Packs refresh every 12 hours with Pro. Rarity odds per card
-          stay the same for everyone.
+          Decision Packs reset together every day at 8:00 PM Paris time,
+          adjusting for daylight saving time. Both Pro packs are available at
+          once. Unused packs do not carry over. Rarity odds per card stay the
+          same for everyone.
         </p>
       </section>
       <div className="yk-pro-personalization-examples">
@@ -116,8 +118,8 @@ export function PremiumOffer({
         <details>
           <summary>Do rarity odds change with Pro?</summary>
           <p>
-            No. Pro shortens pack cooldowns, so you can open more packs over
-            time. The rarity odds of each card stay the same.
+            No. Pro gives you faster Regular Packs and two daily Decision Packs
+            instead of one. The rarity odds of each card stay the same.
           </p>
         </details>
         <details>
