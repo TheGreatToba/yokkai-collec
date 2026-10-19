@@ -4,15 +4,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const items = [
-  { href: "/admin/cards", label: "Mise en ligne des cartes" },
-  { href: "/admin/players", label: "Administration des joueurs" },
-  { href: "/admin/reports", label: "Signalements" }
+  { href: "/admin/cards", label: "Card publishing" },
+  { href: "/admin/players", label: "Player administration" },
+  { href: "/admin/reports", label: "Reports" }
 ];
 
 export function AdminNavigation() {
   const pathname = usePathname();
   return (
-    <nav aria-label="Navigation de l’administration" className="yk-tabs">
+    <nav aria-label="Admin navigation" className="yk-tabs">
       {items.map(item => (
         <Link
           aria-current={pathname.startsWith(item.href) ? "page" : undefined}

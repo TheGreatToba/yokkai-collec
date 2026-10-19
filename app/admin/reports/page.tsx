@@ -24,10 +24,10 @@ function reportFromRpc(value: Record<string, unknown>): AdminReport {
   return {
     id: String(value.id ?? ""),
     reporterId: String(value.reporterId ?? ""),
-    reporterPseudo: String(value.reporterPseudo ?? "Joueur supprimé"),
+    reporterPseudo: String(value.reporterPseudo ?? "Deleted player"),
     reporterEmail: String(value.reporterEmail ?? ""),
     reportedId: String(value.reportedId ?? ""),
-    reportedPseudo: String(value.reportedPseudo ?? "Joueur supprimé"),
+    reportedPseudo: String(value.reportedPseudo ?? "Deleted player"),
     reportedEmail: String(value.reportedEmail ?? ""),
     reportedIsBanned: value.reportedIsBanned === true,
     reason: String(value.reason) as AdminReport["reason"],
@@ -48,10 +48,10 @@ function cardReportFromRpc(value: Record<string, unknown>): AdminCardReport {
   return {
     id: String(value.id ?? ""),
     reporterId: String(value.reporterId ?? ""),
-    reporterPseudo: String(value.reporterPseudo ?? "Joueur supprimé"),
+    reporterPseudo: String(value.reporterPseudo ?? "Deleted player"),
     reporterEmail: String(value.reporterEmail ?? ""),
     cardId: String(value.cardId ?? ""),
-    cardName: String(value.cardName ?? "Carte"),
+    cardName: String(value.cardName ?? "Card"),
     franchise: String(value.franchise ?? ""),
     imageUrl: String(value.imageUrl ?? ""),
     rarity: String(value.rarity ?? ""),
@@ -139,10 +139,9 @@ export default async function AdminReportsPage({
             <p className="text-sm font-semibold uppercase tracking-widest text-cyan-300">
               Administration
             </p>
-            <h1 className="text-3xl font-black">Signalements</h1>
+            <h1 className="text-3xl font-black">Reports</h1>
             <p className="mt-1 text-sm text-slate-400">
-              Consulte et classe les cartes et joueurs signalés par la
-              communauté.
+              Review and categorize cards and players reported by the community.
             </p>
           </header>
           <AdminNavigation />
@@ -152,45 +151,44 @@ export default async function AdminReportsPage({
               method="get"
             >
               <input
-                aria-label="Rechercher un signalement"
+                aria-label="Search reports"
                 className="yk-field-control"
                 defaultValue={query}
                 maxLength={100}
                 name="q"
-                placeholder="Carte, licence, pseudo ou adresse e-mail…"
+                placeholder="Card, license, username or email address…"
               />
               <select
-                aria-label="Statut du signalement"
+                aria-label="Report status"
                 className="yk-field-control"
                 defaultValue={status}
                 name="status"
               >
-                <option value="">Tous les statuts</option>
-                <option value="pending">En attente</option>
-                <option value="reviewed">Traités</option>
-                <option value="dismissed">Ignorés</option>
+                <option value="">All statuses</option>
+                <option value="pending">Pending</option>
+                <option value="reviewed">Reviewed</option>
+                <option value="dismissed">Dismissed</option>
               </select>
               <button className="yk-button" type="submit">
-                Filtrer
+                Filter
               </button>
               {(query || status) && (
                 <Link
                   className="yk-button yk-button-secondary"
                   href="/admin/reports"
                 >
-                  Effacer
+                  Clear
                 </Link>
               )}
             </form>
             <p className="mt-3 text-xs text-slate-500">
-              {total + cardTotal} signalement
-              {total + cardTotal === 1 ? "" : "s"} trouvé
-              {total + cardTotal === 1 ? "" : "s"}
+              {total + cardTotal} report{total + cardTotal === 1 ? "" : "s"}{" "}
+              found
             </p>
           </section>
           <div>
             <h2 className="mb-4 text-xl font-black">
-              Cartes signalées{" "}
+              Reported cards{" "}
               <span className="text-sm font-normal text-slate-500">
                 ({cardTotal})
               </span>
@@ -202,7 +200,7 @@ export default async function AdminReportsPage({
           </div>
           <div>
             <h2 className="mb-4 text-xl font-black">
-              Joueurs signalés{" "}
+              Reported players{" "}
               <span className="text-sm font-normal text-slate-500">
                 ({total})
               </span>
@@ -211,7 +209,7 @@ export default async function AdminReportsPage({
           </div>
           {pages > 1 && (
             <nav
-              aria-label="Pagination des signalements"
+              aria-label="Report pagination"
               className="flex items-center justify-center gap-3"
             >
               <Link
@@ -219,17 +217,17 @@ export default async function AdminReportsPage({
                 className={`yk-button yk-button-secondary ${page === 1 ? "pointer-events-none opacity-50" : ""}`}
                 href={href(page - 1)}
               >
-                Précédent
+                Previous
               </Link>
               <span className="text-sm text-slate-400">
-                Page {page} sur {pages}
+                Page {page} of {pages}
               </span>
               <Link
                 aria-disabled={page === pages}
                 className={`yk-button yk-button-secondary ${page === pages ? "pointer-events-none opacity-50" : ""}`}
                 href={href(page + 1)}
               >
-                Suivant
+                Next
               </Link>
             </nav>
           )}

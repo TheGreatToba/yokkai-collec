@@ -24,6 +24,6 @@ export async function requireAdminPage() {
 export async function requireAdminAction() {
   const result = await getAdminUser();
   if (result.kind !== "admin")
-    throw new Error("Action réservée aux administrateurs.");
+    throw new Error("This action is restricted to administrators.");
   return result.user;
 }

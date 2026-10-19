@@ -88,14 +88,14 @@ test("URL parsing blocks private, reserved and encoded IPs, credentials and HTTP
   ]) {
     assert.throws(
       () => validateImageURL(`https://${host}/image`),
-      /publique/,
+      /public/,
       host
     );
   }
   assert.throws(() => validateImageURL("http://example.com"), /HTTPS/);
   assert.throws(
     () => validateImageURL("https://user:password@example.com"),
-    /identifiants/
+    /Credentials/
   );
   for (const host of [
     "93.184.216.34",
@@ -126,7 +126,7 @@ test("DNS rejects every internal answer, mixed answers and empty answers before 
         },
         deps
       ),
-      /publique/
+      /public/
     );
     assert.equal(deps.state.connections, 0);
     assert.equal(deps.state.resolutions, 1);
@@ -148,7 +148,7 @@ test("native HTTPS also refuses a private DNS result without opening a socket", 
         }
       }
     ),
-    /publique/
+    /public/
   );
   assert.equal(resolutions, 1);
 });
@@ -223,7 +223,7 @@ test("network failures retain fetch retries but DNS security refusals are perman
       3,
       async () => {}
     ),
-    /publique/
+    /public/
   );
   assert.equal(deps.state.requests, 1);
 });

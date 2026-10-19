@@ -3,7 +3,7 @@ import type { AdminPlayer, AdminPlayerDetail } from "./player-manager";
 export function playerFromRpc(value: Record<string, unknown>): AdminPlayer {
   return {
     userId: String(value.userId ?? ""),
-    pseudo: String(value.pseudo ?? "Joueur"),
+    pseudo: String(value.pseudo ?? "Player"),
     email: String(value.email ?? ""),
     createdAt: String(value.createdAt ?? ""),
     lastSeenAt: typeof value.lastSeenAt === "string" ? value.lastSeenAt : null,

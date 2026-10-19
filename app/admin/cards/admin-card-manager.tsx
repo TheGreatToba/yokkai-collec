@@ -82,7 +82,7 @@ function CategoryField({
       <label
         className={`grid gap-1 ${compact ? "text-xs text-slate-300" : "text-sm"}`}
       >
-        Catégorie
+        Category
         <select
           className={inputClass}
           name={choice === NEW_CATEGORY ? undefined : "categorie"}
@@ -99,28 +99,28 @@ function CategoryField({
           value={choice}
         >
           <option disabled value="">
-            Choisir une catégorie
+            Choose a category
           </option>
           {categories.map(category => (
             <option key={category} value={category}>
               {category}
             </option>
           ))}
-          <option value={NEW_CATEGORY}>+ Nouvelle catégorie…</option>
+          <option value={NEW_CATEGORY}>+ New category…</option>
         </select>
       </label>
       {choice === NEW_CATEGORY ? (
         <label
           className={`grid gap-1 ${compact ? "text-xs text-slate-300" : "text-sm"}`}
         >
-          Nom de la nouvelle catégorie
+          New category name
           <input
             autoFocus
             className={inputClass}
             maxLength={100}
             name="categorie"
             onChange={event => setCustomCategory(event.target.value)}
-            placeholder="Exemple : LITTÉRATURE"
+            placeholder="Example: LITERATURE"
             required
             value={customCategory}
           />
@@ -142,7 +142,7 @@ function LicenseFields({
   );
   return (
     <fieldset className={`min-w-0 space-y-2 ${className}`}>
-      <legend className="sr-only">Licences de la carte</legend>
+      <legend className="sr-only">Card licenses</legend>
       {licenses.map((license, index) => (
         <div
           className={
@@ -154,11 +154,9 @@ function LicenseFields({
         >
           <label className="grid min-w-0 flex-1 gap-1 text-xs text-slate-300">
             <span className="flex flex-wrap items-center gap-2">
-              {index === 0
-                ? "Licence principale"
-                : `Licence secondaire ${index}`}
+              {index === 0 ? "Primary license" : `Secondary license ${index}`}
               <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-normal text-slate-400">
-                {index === 0 ? "Visible sur la carte" : "Classeur uniquement"}
+                {index === 0 ? "Shown on the card" : "Binder only"}
               </span>
             </span>
             <input
@@ -177,7 +175,7 @@ function LicenseFields({
           </label>
           {index > 0 ? (
             <button
-              aria-label={`Retirer la licence secondaire ${index}`}
+              aria-label={`Remove secondary license ${index}`}
               className="rounded-lg border border-red-400/30 px-3 py-2 text-xs text-red-200 transition hover:bg-red-400/10"
               onClick={() =>
                 setLicenses(current =>
@@ -186,7 +184,7 @@ function LicenseFields({
               }
               type="button"
             >
-              Retirer
+              Remove
             </button>
           ) : null}
         </div>
@@ -198,11 +196,11 @@ function LicenseFields({
             onClick={() => setLicenses(current => [...current, ""])}
             type="button"
           >
-            + Licence secondaire
+            + Secondary license
           </button>
         ) : null}
         <p className="text-[11px] text-slate-500">
-          Chaque licence ajoute la carte au Classeur correspondant.
+          Each license adds the card to the corresponding Binder.
         </p>
       </div>
     </fieldset>
@@ -227,7 +225,7 @@ function CardRow({ card, categories }: { card: Card; categories: string[] }) {
           <div className="grid gap-3 xl:col-span-5">
             <div className="grid gap-3 sm:grid-cols-5">
               <label className="grid gap-1 text-xs text-slate-300 sm:col-span-3">
-                Nom
+                Name
                 <input
                   className="rounded-lg border border-white/15 bg-slate-950 p-2 text-white"
                   defaultValue={card.nom}
@@ -244,16 +242,16 @@ function CardRow({ card, categories }: { card: Card; categories: string[] }) {
               </div>
             </div>
             <label className="grid gap-1 text-xs text-slate-300">
-              Nouvelle URL d’image (facultatif)
+              New image URL (optional)
               <input
                 className="rounded-lg border border-white/15 bg-slate-950 p-2 text-white"
                 name="image_url"
-                placeholder="Conserver l’image actuelle"
+                placeholder="Keep the current image"
                 type="url"
               />
             </label>
             <label className="grid gap-1 text-xs text-slate-300">
-              ou choisir un nouveau fichier (facultatif)
+              or choose a new file (optional)
               <input
                 accept="image/jpeg,image/png,image/webp,image/gif"
                 className="rounded-lg border border-white/15 bg-slate-950 p-2 text-white"
@@ -270,7 +268,7 @@ function CardRow({ card, categories }: { card: Card; categories: string[] }) {
           />
           <div className="grid gap-3 xl:col-span-2">
             <label className="grid gap-1 text-xs text-slate-300">
-              Rareté
+              Rarity
               <select
                 className="rounded-lg border border-white/15 bg-slate-950 p-2 text-white"
                 defaultValue={card.rarete_base}
@@ -285,7 +283,7 @@ function CardRow({ card, categories }: { card: Card; categories: string[] }) {
               className="rounded-lg border border-cyan-300/40 px-3 py-2 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-300/10 disabled:opacity-50"
               disabled={updating}
             >
-              {updating ? "…" : "Enregistrer"}
+              {updating ? "…" : "Save"}
             </button>
           </div>
         </div>
@@ -305,7 +303,7 @@ function CardRow({ card, categories }: { card: Card; categories: string[] }) {
           type="button"
           onClick={() => setDeleteConfirm(true)}
         >
-          Supprimer
+          Delete
         </button>
       </div>
       <Feedback state={updateState} />
@@ -314,16 +312,16 @@ function CardRow({ card, categories }: { card: Card; categories: string[] }) {
         onClose={() => {
           if (!deleting) setDeleteConfirm(false);
         }}
-        title="Supprimer cette carte ?"
+        title="Delete this card?"
       >
         <p className="text-sm leading-6 text-ink-2">
-          Tu es sur le point de supprimer définitivement{" "}
-          <strong className="text-ink">{card.nom}</strong> du catalogue.
+          You are about to permanently delete{" "}
+          <strong className="text-ink">{card.nom}</strong> from the catalogue.
         </p>
         <p className="mt-3 text-sm text-danger-ink">
-          Cette action est irréversible. Toutes les copies possédées seront
-          retirées. Les enchères seront annulées avec remboursement de la mise
-          en tête, et les échanges en attente concernés seront déclinés.
+          This action is irreversible. All owned copies will be removed.
+          Auctions will be cancelled and the leading bid refunded. Affected
+          pending trades will be declined.
         </p>
         <Feedback state={deleteState} />
         <form action={deleteAction} className="mt-6 flex justify-end gap-3">
@@ -333,10 +331,10 @@ function CardRow({ card, categories }: { card: Card; categories: string[] }) {
             disabled={deleting}
             onClick={() => setDeleteConfirm(false)}
           >
-            Annuler
+            Cancel
           </Button>
           <Button variant="danger" disabled={deleting} type="submit">
-            {deleting ? "Suppression…" : "Confirmer la suppression"}
+            {deleting ? "Deleting…" : "Confirm deletion"}
           </Button>
         </form>
       </Modal>
@@ -360,12 +358,12 @@ function BulkDeleteDialog({
   const [pending, startTransition] = useTransition();
   const deleted = state.ok;
   const impact: [string, number][] = [
-    ["Cartes", preview.cards],
-    ["Exemplaires détenus par des joueurs", preview.ownedCopies],
-    ["Enchères actives (annulées, mise remboursée)", preview.activeAuctions],
-    ["Échanges en attente (déclinés)", preview.pendingTrades],
-    ["Liens de partage", preview.cardShares],
-    ["Entrées de wishlist", preview.wishlists]
+    ["Cards", preview.cards],
+    ["Copies owned by players", preview.ownedCopies],
+    ["Active auctions (cancelled, bids refunded)", preview.activeAuctions],
+    ["Pending trades (declined)", preview.pendingTrades],
+    ["Share links", preview.cardShares],
+    ["Wishlist entries", preview.wishlists]
   ];
   return (
     <Modal
@@ -373,7 +371,7 @@ function BulkDeleteDialog({
       onClose={() => {
         if (!pending) (deleted ? onDeleted : onClose)();
       }}
-      title={`Supprimer ${ids.length} carte(s) ?`}
+      title={`Delete ${ids.length} card(s)?`}
     >
       {deleted ? null : (
         <>
@@ -388,8 +386,8 @@ function BulkDeleteDialog({
           {preview.multiFranchiseCards.length ? (
             <details className="mt-3 text-sm text-ink-2">
               <summary className="cursor-pointer">
-                {preview.multiFranchiseCards.length} carte(s) appartiennent
-                aussi à une autre licence
+                {preview.multiFranchiseCards.length} card(s) also belong to
+                another license
               </summary>
               <ul className="mt-2 max-h-40 list-disc overflow-y-auto pl-5">
                 {preview.multiFranchiseCards.map(card => (
@@ -401,11 +399,11 @@ function BulkDeleteDialog({
             </details>
           ) : null}
           <p className="mt-3 text-sm text-danger-ink">
-            Action irréversible, appliquée en une seule transaction : si une
-            carte pose problème, rien n’est supprimé.
+            This action is irreversible and runs in a single transaction: if any
+            card causes a problem, nothing is deleted.
           </p>
           <label className="mt-4 grid gap-1 text-sm text-ink-2">
-            Saisis {ids.length} pour confirmer
+            Enter {ids.length} to confirm
             <input
               autoComplete="off"
               className="rounded-lg border border-white/15 bg-slate-950 p-2 text-white"
@@ -422,12 +420,12 @@ function BulkDeleteDialog({
       <div className="mt-6 flex justify-end gap-3">
         {deleted ? (
           <Button variant="secondary" onClick={onDeleted}>
-            Fermer
+            Close
           </Button>
         ) : (
           <>
             <Button variant="secondary" disabled={pending} onClick={onClose}>
-              Annuler
+              Cancel
             </Button>
             <Button
               variant="danger"
@@ -438,7 +436,7 @@ function BulkDeleteDialog({
                 )
               }
             >
-              {pending ? "Suppression…" : `Supprimer ${ids.length} carte(s)`}
+              {pending ? "Deleting…" : `Delete ${ids.length} card(s)`}
             </Button>
           </>
         )}
@@ -522,10 +520,10 @@ export function AdminCardManager({
           action={createAction}
           className="space-y-4 rounded-2xl border border-white/10 bg-slate-900/70 p-5"
         >
-          <h2 className="text-xl font-bold">Ajouter une carte</h2>
+          <h2 className="text-xl font-bold">Add a card</h2>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="grid gap-1 text-sm">
-              Nom
+              Name
               <input
                 className="rounded-lg bg-slate-950 p-3"
                 name="nom"
@@ -535,7 +533,7 @@ export function AdminCardManager({
             <CategoryField categories={categories} />
             <LicenseFields />
             <label className="grid self-start gap-1 text-sm">
-              Rareté
+              Rarity
               <select
                 className="rounded-lg bg-slate-950 p-3"
                 defaultValue="C"
@@ -548,7 +546,7 @@ export function AdminCardManager({
             </label>
           </div>
           <label className="grid gap-1 text-sm">
-            URL HTTPS de l’image
+            HTTPS image URL
             <input
               className="rounded-lg bg-slate-950 p-3"
               name="image_url"
@@ -556,7 +554,7 @@ export function AdminCardManager({
             />
           </label>
           <label className="grid gap-1 text-sm">
-            ou fichier image (6 Mio max.)
+            or image file (6 MiB max.)
             <input
               accept="image/jpeg,image/png,image/webp,image/gif"
               className="rounded-lg bg-slate-950 p-3"
@@ -564,9 +562,7 @@ export function AdminCardManager({
               type="file"
             />
           </label>
-          <SubmitButton>
-            {creating ? "Mise en ligne…" : "Mettre en ligne"}
-          </SubmitButton>
+          <SubmitButton>{creating ? "Publishing…" : "Publish"}</SubmitButton>
           <Feedback state={createState} />
         </form>
 
@@ -574,13 +570,13 @@ export function AdminCardManager({
           action={importAction}
           className="space-y-4 rounded-2xl border border-white/10 bg-slate-900/70 p-5"
         >
-          <h2 className="text-xl font-bold">Importer un CSV</h2>
+          <h2 className="text-xl font-bold">Import a CSV</h2>
           <p className="text-sm text-slate-300">
-            Jusqu’à 500 lignes. Colonnes : nom, categorie, franchise,
-            rarete_base et image_url. Une dernière colonne d’image sans titre
-            est aussi reconnue. Le source_id manquant est créé automatiquement ;
-            les lignes invalides sont ignorées sans bloquer les cartes valides.
-            Les images sont téléchargées lentement (2 simultanées maximum).
+            Up to 500 rows. Columns: nom, categorie, franchise, rarete_base and
+            image_url. An untitled final image column is also recognized.
+            Missing source_id values are generated automatically; invalid rows
+            are skipped without blocking valid cards. Images are downloaded with
+            at most 2 simultaneous downloads.
           </p>
           <input
             accept=".csv,text/csv"
@@ -590,7 +586,7 @@ export function AdminCardManager({
             type="file"
           />
           <SubmitButton>
-            {importing ? "Import en cours…" : "Importer les cartes"}
+            {importing ? "Importing…" : "Import cards"}
           </SubmitButton>
           <Feedback state={importState} />
         </form>
@@ -599,13 +595,9 @@ export function AdminCardManager({
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold">
-            {searchQuery
-              ? `Résultats pour « ${searchQuery} »`
-              : "Cartes récentes"}
+            {searchQuery ? `Results for “${searchQuery}”` : "Recent cards"}
           </h2>
-          <span className="text-sm text-slate-400">
-            {cards.length} affichée(s)
-          </span>
+          <span className="text-sm text-slate-400">{cards.length} shown</span>
         </div>
         {visibleCards.length ? (
           <div className="flex flex-wrap items-center gap-3 text-sm">
@@ -626,7 +618,7 @@ export function AdminCardManager({
                 }}
                 type="checkbox"
               />
-              Tout sélectionner sur cette page
+              Select all on this page
             </label>
             {searchQuery && cards.length > visibleCards.length ? (
               <button
@@ -639,14 +631,14 @@ export function AdminCardManager({
                 }
                 type="button"
               >
-                Sélectionner les {cards.length} cartes de ce filtre
+                Select all {cards.length} cards matching this filter
               </button>
             ) : null}
           </div>
         ) : null}
         {searchQuery && cards.length === 0 ? (
           <p className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 text-slate-300">
-            Aucune carte trouvée avec ce nom ou cette licence.
+            No cards found with this name or license.
           </p>
         ) : null}
         {visibleCards.map(card =>
@@ -657,7 +649,7 @@ export function AdminCardManager({
                 onClick={() => setEditingCardId(null)}
                 type="button"
               >
-                Fermer l&apos;édition
+                Close editor
               </button>
               <CardRow card={card} categories={categories} />
             </div>
@@ -667,7 +659,7 @@ export function AdminCardManager({
               key={card.id}
             >
               <input
-                aria-label={`Sélectionner ${card.nom}`}
+                aria-label={`Select ${card.nom}`}
                 checked={selected.has(card.id)}
                 className="size-5 shrink-0"
                 onChange={event =>
@@ -679,7 +671,7 @@ export function AdminCardManager({
                 <p className="truncate font-semibold text-white">{card.nom}</p>
                 <p className="truncate text-xs text-slate-400">
                   {card.categorie} ·{" "}
-                  {card.franchises.join(" · ") || "Sans licence"}
+                  {card.franchises.join(" · ") || "No license"}
                 </p>
               </div>
               <span className="rounded-full border border-white/10 bg-slate-950 px-3 py-1 text-xs font-semibold text-slate-300">
@@ -690,14 +682,14 @@ export function AdminCardManager({
                 onClick={() => setEditingCardId(card.id)}
                 type="button"
               >
-                Modifier
+                Edit
               </button>
             </article>
           )
         )}
         {pageCount > 1 ? (
           <nav
-            aria-label="Pagination des cartes administrables"
+            aria-label="Admin card pagination"
             className="flex flex-wrap items-center justify-center gap-2 pt-3"
           >
             <button
@@ -706,10 +698,10 @@ export function AdminCardManager({
               onClick={() => goToPage(safePage - 1)}
               type="button"
             >
-              Précédent
+              Previous
             </button>
             <span className="px-2 text-sm text-slate-400">
-              Page {safePage} sur {pageCount}
+              Page {safePage} of {pageCount}
             </span>
             <button
               className="rounded-lg border border-white/15 px-3 py-2 text-sm disabled:opacity-40"
@@ -717,22 +709,22 @@ export function AdminCardManager({
               onClick={() => goToPage(safePage + 1)}
               type="button"
             >
-              Suivant
+              Next
             </button>
           </nav>
         ) : null}
       </section>
       {selectedIds.length ? (
         <div
-          aria-label="Actions sur la sélection"
+          aria-label="Selection actions"
           className="sticky bottom-4 z-10 space-y-3 rounded-2xl border border-red-400/30 bg-slate-950/95 p-4 shadow-xl"
           role="region"
         >
           <div className="flex flex-wrap items-center gap-3">
             <p aria-live="polite" className="flex-1 text-sm font-semibold">
-              {selectedIds.length} carte(s) sélectionnée(s)
+              {selectedIds.length} card(s) selected
               {selectedIds.length > MAX_BULK_DELETE_CARDS
-                ? ` — maximum ${MAX_BULK_DELETE_CARDS} par suppression`
+                ? ` — maximum ${MAX_BULK_DELETE_CARDS} per deletion`
                 : ""}
             </p>
             <button
@@ -740,7 +732,7 @@ export function AdminCardManager({
               onClick={() => setSelected(new Set())}
               type="button"
             >
-              Tout désélectionner
+              Deselect all
             </button>
             <button
               className="rounded-lg border border-red-400/40 px-3 py-2 text-sm font-semibold text-red-200 disabled:opacity-40"
@@ -750,7 +742,7 @@ export function AdminCardManager({
               onClick={openBulkDelete}
               type="button"
             >
-              {previewing ? "Calcul de l’impact…" : "Supprimer"}
+              {previewing ? "Calculating impact…" : "Delete"}
             </button>
           </div>
           <Feedback state={bulkError} />

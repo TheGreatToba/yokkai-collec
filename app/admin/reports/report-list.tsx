@@ -23,26 +23,26 @@ export type AdminReport = {
 };
 
 const reasons: Record<AdminReport["reason"], string> = {
-  harassment: "Harcèlement",
-  inappropriate: "Contenu inapproprié",
+  harassment: "Harassment",
+  inappropriate: "Inappropriate content",
   spam: "Spam",
-  cheating: "Triche",
-  other: "Autre"
+  cheating: "Cheating",
+  other: "Other"
 };
 const statuses: Record<
   AdminReport["status"],
   { label: string; style: string }
 > = {
   pending: {
-    label: "En attente",
+    label: "Pending",
     style: "border-amber-300/30 bg-amber-400/10 text-amber-200"
   },
   reviewed: {
-    label: "Traité",
+    label: "Reviewed",
     style: "border-emerald-300/30 bg-emerald-400/10 text-emerald-200"
   },
   dismissed: {
-    label: "Ignoré",
+    label: "Dismissed",
     style: "border-slate-400/30 bg-slate-400/10 text-slate-300"
   }
 };
@@ -65,7 +65,7 @@ function ReportActions({ report }: { report: AdminReport }) {
             type="submit"
             value="reviewed"
           >
-            Marquer comme traité
+            Mark as reviewed
           </button>
         )}
         {report.status !== "dismissed" && (
@@ -76,7 +76,7 @@ function ReportActions({ report }: { report: AdminReport }) {
             type="submit"
             value="dismissed"
           >
-            Ignorer
+            Dismiss
           </button>
         )}
         {report.status !== "pending" && (
@@ -87,7 +87,7 @@ function ReportActions({ report }: { report: AdminReport }) {
             type="submit"
             value="pending"
           >
-            Remettre en attente
+            Move back to pending
           </button>
         )}
       </form>
@@ -121,7 +121,7 @@ export function ReportList({
   if (!reports.length)
     return (
       <section className="rounded-2xl border border-white/10 bg-slate-900/70 p-10 text-center text-slate-400">
-        Aucun signalement trouvé.
+        No reports found.
       </section>
     );
   return (
@@ -146,12 +146,12 @@ export function ReportList({
                   </span>
                   {report.reportedIsBanned && (
                     <span className="rounded-full bg-red-500/15 px-2.5 py-1 text-xs font-bold text-red-300">
-                      Joueur banni
+                      Banned player
                     </span>
                   )}
                 </div>
                 <p className="mt-3 text-xs text-slate-500">
-                  Reçu le {reportDate(report.createdAt)}
+                  Received on {reportDate(report.createdAt)}
                 </p>
               </div>
               <span className="text-xs text-slate-600">
@@ -161,7 +161,7 @@ export function ReportList({
             <div className="mt-5 grid gap-3 md:grid-cols-2">
               <div className="rounded-xl bg-slate-950 p-4">
                 <p className="text-xs uppercase tracking-widest text-slate-500">
-                  Signalé par
+                  Reported by
                 </p>
                 <p className="mt-2 font-bold">{report.reporterPseudo}</p>
                 <p className="text-sm text-slate-400">{report.reporterEmail}</p>
@@ -170,13 +170,13 @@ export function ReportList({
                     className="mt-3 inline-block text-sm font-semibold text-cyan-300 hover:text-cyan-200"
                     href={`${playerHrefBase}${report.reporterId}`}
                   >
-                    Voir ce joueur →
+                    View this player →
                   </Link>
                 )}
               </div>
               <div className="rounded-xl border border-red-300/15 bg-red-950/20 p-4">
                 <p className="text-xs uppercase tracking-widest text-red-300/70">
-                  Joueur signalé
+                  Reported player
                 </p>
                 <p className="mt-2 font-bold">{report.reportedPseudo}</p>
                 <p className="text-sm text-slate-400">{report.reportedEmail}</p>
@@ -185,19 +185,19 @@ export function ReportList({
                     className="mt-3 inline-block text-sm font-semibold text-cyan-300 hover:text-cyan-200"
                     href={`${playerHrefBase}${report.reportedId}`}
                   >
-                    Ouvrir sa fiche admin →
+                    Open admin details →
                   </Link>
                 )}
               </div>
             </div>
             <div className="mt-4 rounded-xl border border-white/10 bg-slate-950 p-4">
               <p className="text-xs uppercase tracking-widest text-slate-500">
-                Contexte
+                Context
               </p>
               <p className="mt-2 text-sm font-semibold">
                 {report.contextType === "auction_chat"
-                  ? "Message dans le chat d’une enchère"
-                  : "Profil du joueur"}
+                  ? "Auction chat message"
+                  : "Player profile"}
               </p>
               {report.snapshot.message && (
                 <blockquote className="mt-3 border-l-2 border-cyan-400 pl-3 text-sm text-slate-300">
@@ -211,13 +211,13 @@ export function ReportList({
                   rel="noreferrer"
                   target="_blank"
                 >
-                  Voir le GIF signalé ↗
+                  View reported GIF ↗
                 </a>
               )}
               {report.details && (
                 <div className="mt-4">
                   <p className="text-xs font-semibold text-slate-500">
-                    Détails du signalement
+                    Report details
                   </p>
                   <p className="mt-1 whitespace-pre-wrap text-sm text-slate-300">
                     {report.details}

@@ -55,14 +55,14 @@ function franchiseInputs(form: FormData) {
     const franchise = String(entry).trim();
     if (!franchise) continue;
     if (franchise.length > 200)
-      throw new Error("Une licence ne peut pas dépasser 200 caractères.");
+      throw new Error("A license cannot exceed 200 characters.");
     const key = franchise.toLocaleLowerCase("fr-FR");
     if (seen.has(key)) continue;
     seen.add(key);
     franchises.push(franchise);
   }
   if (franchises.length > MAX_FRANCHISES)
-    throw new Error(`Maximum ${MAX_FRANCHISES} licences par carte.`);
+    throw new Error(`Maximum ${MAX_FRANCHISES} licenses per card.`);
   return franchises;
 }
 
@@ -114,15 +114,16 @@ async function imageForCard(
 ) {
   const file = form.get("image_file");
   if (file instanceof File && file.size > 0) {
-    if (file.size > MAX_IMAGE_BYTES) throw new Error("L’image dépasse 6 Mio.");
+    if (file.size > MAX_IMAGE_BYTES)
+      throw new Error("The image exceeds 6 MiB.");
     if (!ALLOWED_MIME.has(file.type))
-      throw new Error("Format d’image non pris en charge.");
+      throw new Error("Unsupported image format.");
     const bytes = Buffer.from(await file.arrayBuffer());
     validateImageBytes(bytes, file.type);
     return { bytes, contentType: file.type };
   }
   if (card.image_url.includes("local.invalid"))
-    throw new Error("Ajoute un fichier image ou une URL HTTPS.");
+    throw new Error("Add an image file or an HTTPS URL.");
   return downloadImage(card.image_url);
 }
 
@@ -255,10 +256,10 @@ export async function createCardAction(
     });
     if (auditError) throw auditError;
     revalidatePath("/admin/cards");
-    return { ok: true, message: `${data.nom} a été mise en ligne.` };
+    return { ok: true, message: `${data.nom} has been published.` };
   } catch (error) {
     return initialFailure(
-      error instanceof Error ? error.message : "Création impossible."
+      error instanceof Error ? error.message : "Unable to create this card."
     );
   }
 }
@@ -271,8 +272,8 @@ export async function importCardsAction(
     const admin = await requireAdminAction();
     const file = form.get("csv");
     if (!(file instanceof File) || !file.size)
-      throw new Error("Choisis un fichier CSV.");
-    if (file.size > 1024 * 1024) throw new Error("Le CSV dépasse 1 Mio.");
+      throw new Error("Choose a CSV file.");
+    if (file.size > 1024 * 1024) throw new Error("The CSV exceeds 1 MiB.");
     const records = parse(await file.text(), {
       bom: true,
       columns: true,
@@ -281,8 +282,8 @@ export async function importCardsAction(
       relax_column_count: true,
       max_record_size: 1024 * 1024
     }) as Record<string, string>[];
-    if (!records.length) throw new Error("Le CSV est vide.");
-    if (records.length > 500) throw new Error("Maximum 500 cartes par import.");
+    if (!records.length) throw new Error("The CSV is empty.");
+    if (records.length > 500) throw new Error("Maximum 500 cards per import.");
     const franchisesByRow: string[][] = [];
     const rows = records.map((rawRow, index) => {
       const row = normalizeCsvRow(rawRow);
@@ -295,7 +296,7 @@ export async function importCardsAction(
         );
       } catch (error) {
         throw new Error(
-          `Carte « ${nom.trim()} » (ligne ${index + 1}) : ${(error as Error).message}`
+          `Card “${nom.trim()}” (row ${index + 1}): ${(error as Error).message}`
         );
       }
       franchisesByRow.push(franchises);
@@ -330,9 +331,9 @@ export async function importCardsAction(
       },
       onFailure: async (failure: { record: number; message: string }) => {
         const cardName = rows[failure.record - 1]?.nom.trim();
-        const cardLabel = cardName ? `Carte « ${cardName} »` : "Carte sans nom";
+        const cardLabel = cardName ? `Card “${cardName}”` : "Unnamed card";
         failures.push(
-          `${cardLabel} (ligne ${failure.record}): ${failure.message}`
+          `${cardLabel} (row ${failure.record}): ${failure.message}`
         );
       }
     });
@@ -350,12 +351,12 @@ export async function importCardsAction(
     revalidatePath("/admin/cards");
     return {
       ok: true,
-      message: `${stats.imported} carte(s) importée(s), ${stats.skipped} refusée(s).`,
+      message: `${stats.imported} card(s) imported, ${stats.skipped} rejected.`,
       details: failures.slice(0, 20)
     };
   } catch (error) {
     return initialFailure(
-      error instanceof Error ? error.message : "Import impossible."
+      error instanceof Error ? error.message : "Unable to import cards."
     );
   }
 }
@@ -367,8 +368,7 @@ export async function updateCardAction(
   try {
     const admin = await requireAdminAction();
     const id = value(form, "id");
-    if (!/^[0-9a-f-]{36}$/i.test(id))
-      throw new Error("Identifiant de carte invalide.");
+    if (!/^[0-9a-f-]{36}$/i.test(id)) throw new Error("Invalid card ID.");
     const franchises = franchiseInputs(form);
     const patch: {
       nom: string;
@@ -383,9 +383,9 @@ export async function updateCardAction(
       rarete_base: value(form, "rarete_base")
     };
     if (!patch.nom || !patch.categorie)
-      throw new Error("Le nom et la catégorie sont requis.");
+      throw new Error("Name and category are required.");
     if (!["C", "R", "SR", "SSR", "LR"].includes(patch.rarete_base))
-      throw new Error("Rareté invalide.");
+      throw new Error("Invalid rarity.");
     const client = createClient(await cookies());
     const { data: current, error: readError } = await client
       .from("cards")
@@ -441,10 +441,10 @@ export async function updateCardAction(
     });
     if (auditError) throw auditError;
     revalidatePath("/admin/cards");
-    return { ok: true, message: `${data.nom} a été modifiée.` };
+    return { ok: true, message: `${data.nom} has been updated.` };
   } catch (error) {
     return initialFailure(
-      error instanceof Error ? error.message : "Modification impossible."
+      error instanceof Error ? error.message : "Unable to update this card."
     );
   }
 }
@@ -456,8 +456,7 @@ export async function deleteCardAction(
   try {
     await requireAdminAction();
     const id = value(form, "id");
-    if (!/^[0-9a-f-]{36}$/i.test(id))
-      throw new Error("Identifiant de carte invalide.");
+    if (!/^[0-9a-f-]{36}$/i.test(id)) throw new Error("Invalid card ID.");
     const client = createClient(await cookies());
     const { data, error } = await client.rpc("admin_delete_card", {
       p_card_id: id
@@ -473,24 +472,24 @@ export async function deleteCardAction(
     return {
       ok: true,
       message:
-        `${result?.name ?? "La carte"} a été supprimée avec ` +
-        `${Number(result?.ownedCopiesRemoved ?? 0)} copie(s), ` +
-        `${Number(result?.auctionsCancelled ?? 0)} enchère(s) et ` +
-        `${Number(result?.pendingTradesDeclined ?? 0)} échange(s) en attente.`
+        `${result?.name ?? "The card"} has been deleted along with ` +
+        `${Number(result?.ownedCopiesRemoved ?? 0)} copy/copies, ` +
+        `${Number(result?.auctionsCancelled ?? 0)} auction(s) and ` +
+        `${Number(result?.pendingTradesDeclined ?? 0)} pending trade(s).`
     };
   } catch (error) {
     return initialFailure(
-      error instanceof Error ? error.message : "Suppression impossible."
+      error instanceof Error ? error.message : "Unable to delete this card."
     );
   }
 }
 
 const BULK_ERRORS: Record<string, string> = {
-  ADMIN_REQUIRED: "Accès administrateur requis.",
-  NO_CARDS_SELECTED: "Aucune carte sélectionnée.",
-  BULK_LIMIT_EXCEEDED: `Maximum ${MAX_BULK_DELETE_CARDS} cartes par suppression groupée.`,
+  ADMIN_REQUIRED: "Administrator access required.",
+  NO_CARDS_SELECTED: "No cards selected.",
+  BULK_LIMIT_EXCEEDED: `Maximum ${MAX_BULK_DELETE_CARDS} cards per bulk deletion.`,
   CARD_NOT_FOUND:
-    "Certaines cartes n’existent plus. Rien n’a été supprimé ; recharge la page."
+    "Some cards no longer exist. Nothing was deleted; reload the page."
 };
 
 function bulkCardIds(ids: unknown) {
@@ -500,7 +499,7 @@ function bulkCardIds(ids: unknown) {
   if (unique.length > MAX_BULK_DELETE_CARDS)
     throw new Error(BULK_ERRORS.BULK_LIMIT_EXCEEDED);
   if (unique.some(id => !/^[0-9a-f-]{36}$/i.test(id)))
-    throw new Error("Identifiant de carte invalide.");
+    throw new Error("Invalid card ID.");
   return unique;
 }
 
@@ -510,9 +509,9 @@ function bulkFailure(error: unknown): AdminActionState {
     details?: string;
   };
   return initialFailure(
-    BULK_ERRORS[message] ?? (message || "Suppression groupée impossible."),
+    BULK_ERRORS[message] ?? (message || "Unable to delete these cards."),
     message === "CARD_NOT_FOUND" && details
-      ? details.split(",").map(id => `Carte introuvable : ${id}`)
+      ? details.split(",").map(id => `Card not found: ${id}`)
       : undefined
   );
 }
@@ -541,9 +540,7 @@ export async function deleteCardsAction(
     await requireAdminAction();
     const cardIds = bulkCardIds(ids);
     if (confirmation.trim() !== String(cardIds.length))
-      throw new Error(
-        `Saisis exactement ${cardIds.length} pour confirmer la suppression.`
-      );
+      throw new Error(`Enter exactly ${cardIds.length} to confirm deletion.`);
     const client = createClient(await cookies());
     const { data, error } = await client.rpc("admin_delete_cards", {
       p_card_ids: cardIds
@@ -559,10 +556,10 @@ export async function deleteCardsAction(
     return {
       ok: true,
       message:
-        `${Number(result?.cardsDeleted ?? 0)} carte(s) supprimée(s) avec ` +
-        `${Number(result?.ownedCopiesRemoved ?? 0)} copie(s), ` +
-        `${Number(result?.auctionsCancelled ?? 0)} enchère(s) et ` +
-        `${Number(result?.pendingTradesDeclined ?? 0)} échange(s) en attente.`
+        `${Number(result?.cardsDeleted ?? 0)} card(s) deleted along with ` +
+        `${Number(result?.ownedCopiesRemoved ?? 0)} copy/copies, ` +
+        `${Number(result?.auctionsCancelled ?? 0)} auction(s) and ` +
+        `${Number(result?.pendingTradesDeclined ?? 0)} pending trade(s).`
     };
   } catch (error) {
     return bulkFailure(error);

@@ -60,7 +60,7 @@ function BanControl({ player }: { player: AdminPlayer }) {
   if (player.isAdmin)
     return (
       <span className="rounded-full border border-cyan-300/30 px-3 py-1 text-xs text-cyan-200">
-        Administrateur
+        Administrator
       </span>
     );
   return (
@@ -74,7 +74,7 @@ function BanControl({ player }: { player: AdminPlayer }) {
         onClick={() => setConfirming(true)}
         type="button"
       >
-        {player.isBanned ? "Débannir" : "Bannir"}
+        {player.isBanned ? "Unban" : "Ban"}
       </button>
       {state.message && (
         <p
@@ -87,12 +87,12 @@ function BanControl({ player }: { player: AdminPlayer }) {
       <Modal
         open={confirming}
         onClose={() => setConfirming(false)}
-        title={player.isBanned ? "Débannir ce joueur ?" : "Bannir ce joueur ?"}
+        title={player.isBanned ? "Unban this player?" : "Ban this player?"}
       >
         <p className="text-sm text-slate-300">
           {player.isBanned
-            ? `${player.pseudo} pourra de nouveau se connecter.`
-            : `${player.pseudo} sera immédiatement déconnecté. Ses ventes seront annulées, les enchérisseurs remboursés et ses mises supprimées.`}
+            ? `${player.pseudo} will be able to sign in again.`
+            : `${player.pseudo} will be signed out immediately. Their listings will be cancelled, bidders refunded and their bids removed.`}
         </p>
         <form action={submit} className="mt-5 flex justify-end gap-3">
           <input name="user_id" type="hidden" value={player.userId} />
@@ -102,7 +102,7 @@ function BanControl({ player }: { player: AdminPlayer }) {
             onClick={() => setConfirming(false)}
             type="button"
           >
-            Annuler
+            Cancel
           </button>
           <button
             className={
@@ -111,7 +111,7 @@ function BanControl({ player }: { player: AdminPlayer }) {
             disabled={pending}
             type="submit"
           >
-            {pending ? "Traitement…" : "Confirmer"}
+            {pending ? "Processing…" : "Confirm"}
           </button>
         </form>
       </Modal>
@@ -157,7 +157,7 @@ export function PlayerDetailPanel({
             card.instanceId,
             {
               auctionId: card.activeAuctionId!,
-              frozen: { remaining: "En enchère" }
+              frozen: { remaining: "At auction" }
             }
           ])
       ),
@@ -184,9 +184,9 @@ export function PlayerDetailPanel({
       <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-5">
         {!selected ? (
           <div className="py-12 text-center text-slate-400">
-            <p className="font-semibold text-white">Sélectionne un joueur</p>
+            <p className="font-semibold text-white">Select a player</p>
             <p className="mt-2 text-sm">
-              Son compte et ses cartes apparaîtront ici.
+              Their account and cards will appear here.
             </p>
           </div>
         ) : (
@@ -194,7 +194,7 @@ export function PlayerDetailPanel({
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <p className="text-xs uppercase tracking-widest text-cyan-300">
-                  Compte joueur
+                  Player account
                 </p>
                 <h2 className="mt-1 truncate text-2xl font-black">
                   {selected.pseudo}
@@ -213,15 +213,15 @@ export function PlayerDetailPanel({
                 </dd>
               </div>
               <div className="rounded-xl bg-slate-950 p-3">
-                <dt className="text-slate-500">Cartes</dt>
+                <dt className="text-slate-500">Cards</dt>
                 <dd className="mt-1 font-bold">{selected.cardsCount}</dd>
               </div>
               <div className="col-span-2 rounded-xl bg-slate-950 p-3">
-                <dt className="text-slate-500">Dernière activité</dt>
+                <dt className="text-slate-500">Last active</dt>
                 <dd className="mt-1">
                   {selected.lastSeenAt
                     ? new Date(selected.lastSeenAt).toLocaleString("en-US")
-                    : "Jamais vue en ligne"}
+                    : "Never seen online"}
                 </dd>
               </div>
             </dl>
@@ -230,8 +230,8 @@ export function PlayerDetailPanel({
                 <div>
                   <h3 className="font-bold">Collection</h3>
                   <p className="mt-1 text-xs text-slate-500">
-                    {selected.cards.length} exemplaire
-                    {selected.cards.length === 1 ? "" : "s"}
+                    {selected.cards.length}{" "}
+                    {selected.cards.length === 1 ? "copy" : "copies"}
                   </p>
                 </div>
                 <button
@@ -239,7 +239,7 @@ export function PlayerDetailPanel({
                   onClick={() => setCollectionOpen(true)}
                   type="button"
                 >
-                  Voir la collection
+                  View collection
                 </button>
               </div>
             </div>
@@ -252,7 +252,7 @@ export function PlayerDetailPanel({
           setCollectionOpen(false);
           setCollectionError("");
         }}
-        title={`Collection de ${selected?.pseudo ?? "ce joueur"}`}
+        title={`Collection of ${selected?.pseudo ?? "this player"}`}
         className="yk-friend-collection-modal"
       >
         {collectionError && (
@@ -284,7 +284,7 @@ export function PlayerManager({
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,.85fr)]">
       <section className="overflow-hidden rounded-2xl border border-white/10 bg-slate-900/70">
         <div className="border-b border-white/10 px-5 py-4">
-          <h2 className="text-lg font-bold">Joueurs ({players.length})</h2>
+          <h2 className="text-lg font-bold">Players ({players.length})</h2>
         </div>
         {players.length ? (
           <div className="divide-y divide-white/10">
@@ -298,7 +298,7 @@ export function PlayerManager({
                     <strong>{player.pseudo}</strong>
                     {player.isBanned && (
                       <span className="rounded-full bg-red-500/15 px-2 py-1 text-[11px] font-bold text-red-300">
-                        Banni
+                        Banned
                       </span>
                     )}
                   </div>
@@ -306,7 +306,7 @@ export function PlayerManager({
                     {player.email}
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
-                    {player.cardsCount} carte
+                    {player.cardsCount} card
                     {player.cardsCount === 1 ? "" : "s"} ·{" "}
                     {player.karasBalance.toLocaleString("en-US")} Karas
                   </p>
@@ -315,13 +315,13 @@ export function PlayerManager({
                   className="yk-button yk-button-secondary"
                   href={`/admin/players?player=${player.userId}`}
                 >
-                  Voir le joueur
+                  View player
                 </Link>
               </article>
             ))}
           </div>
         ) : (
-          <p className="p-8 text-center text-slate-400">Aucun joueur trouvé.</p>
+          <p className="p-8 text-center text-slate-400">No players found.</p>
         )}
       </section>
       <aside className="xl:sticky xl:top-24 xl:self-start">

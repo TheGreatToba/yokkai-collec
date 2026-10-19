@@ -87,42 +87,39 @@ export default async function AdminCardsPage({
               <p className="text-sm font-semibold uppercase tracking-widest text-cyan-300">
                 Administration
               </p>
-              <h1 className="text-3xl font-black">Mise en ligne des cartes</h1>
-              <p className="text-sm text-slate-400">Connecté : {admin.email}</p>
+              <h1 className="text-3xl font-black">Card publishing</h1>
+              <p className="text-sm text-slate-400">Signed in: {admin.email}</p>
             </div>
           </header>
           <AdminNavigation />
           <section className="rounded-2xl border border-cyan-300/20 bg-slate-900/70 p-5">
-            <h2 className="text-xl font-bold">
-              Rechercher une carte du catalogue
-            </h2>
+            <h2 className="text-xl font-bold">Search catalogue cards</h2>
             <p className="mt-1 text-sm text-slate-300">
-              Recherche par nom de carte ou de licence, avec un filtre de
-              catégorie facultatif.
+              Search by card or license name, with an optional category filter.
             </p>
             <form
               className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,3fr)_minmax(14rem,2fr)_auto_auto]"
               method="get"
             >
               <input
-                aria-label="Nom de la carte ou de la licence"
+                aria-label="Card or license name"
                 className="w-full min-w-0 rounded-xl border border-white/15 bg-slate-950 px-4 py-3 text-white"
                 defaultValue={searchQuery}
                 maxLength={100}
                 name="q"
-                placeholder="Exemple : V Cyberpunk"
+                placeholder="Example: V Cyberpunk"
               />
               <label className="sr-only" htmlFor="admin-card-category">
-                Catégorie
+                Category
               </label>
               <select
                 id="admin-card-category"
-                aria-label="Catégorie"
+                aria-label="Category"
                 className="w-full min-w-0 rounded-xl border border-white/15 bg-slate-950 px-4 py-3 text-white"
                 defaultValue={selectedCategory}
                 name="category"
               >
-                <option value="">Toutes les catégories</option>
+                <option value="">All categories</option>
                 {categories.map(item => (
                   <option key={item} value={item}>
                     {item}
@@ -133,14 +130,14 @@ export default async function AdminCardsPage({
                 className="rounded-xl bg-cyan-400 px-5 py-3 font-bold text-slate-950"
                 type="submit"
               >
-                Rechercher
+                Search
               </button>
               {(searchQuery || selectedCategory) && (
                 <a
                   className="rounded-xl border border-white/15 px-5 py-3 text-center"
                   href="/admin/cards"
                 >
-                  Effacer
+                  Clear
                 </a>
               )}
             </form>
