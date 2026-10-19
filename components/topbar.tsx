@@ -36,6 +36,7 @@ export type NotificationItem = {
     | "won"
     | "sold"
     | "mention"
+    | "message"
     | "friend"
     | "mission";
 };
@@ -51,6 +52,7 @@ const notificationStyle = {
   won: ["✓", "text-success bg-success/14"],
   sold: ["◆", "text-accent-gold bg-accent-gold/14"],
   mention: ["@", "text-accent-neon bg-accent-neon/14"],
+  message: ["✉", "text-accent-neon bg-accent-neon/14"],
   friend: ["+", "text-accent-neon bg-accent-neon/14"],
   mission: ["✦", "text-success bg-success/14"]
 };
@@ -62,6 +64,14 @@ export function notificationItem(
     time: new Date(notification.createdAt).toLocaleString("en-US"),
     read: !!notification.readAt
   };
+  if (notification.type === "private_message_received")
+    return {
+      ...common,
+      title: "New private message",
+      text: `${notification.actorPseudo ?? "A friend"} sent you a message.`,
+      href: `/friends?message=${encodeURIComponent(notification.referenceId)}`,
+      kind: "message"
+    };
   if (notification.type === "friend_request")
     return {
       ...common,

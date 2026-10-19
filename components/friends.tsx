@@ -1,7 +1,10 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { PrivateMessages } from "@/components/private-messages";
+import type { PrivateMessagesAdapter } from "@/lib/data/private-messages";
+import type { TradesPanelAdapter } from "@/components/trades";
 import { Avatar, Button, Modal, StatusPill, Tabs } from "@/components/ui";
 import {
   getFriendships,
@@ -201,10 +204,12 @@ export function friendPresenceLabel(
 function Person({
   person,
   actions,
+  onMessage,
   showPresence = false
 }: {
   person: FriendUser;
   actions?: ReactNode;
+  onMessage?: () => void;
   showPresence?: boolean;
 }) {
   return (
@@ -224,7 +229,32 @@ function Person({
           {showPresence ? friendPresenceLabel(person) : "View profile"}
         </small>
       </Link>
-      {actions}
+      {actions && (
+        <div className="yk-friend-action-buttons">
+          {onMessage && (
+            <Button
+              variant="secondary"
+              aria-label={`Message ${person.pseudo}`}
+              onClick={onMessage}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="16"
+                height="16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                aria-hidden="true"
+              >
+                <path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H4l-3 2V11.5a10 10 0 0 1 20 0Z" />
+                <path d="M7 10h9M7 14h6" />
+              </svg>
+              Message
+            </Button>
+          )}
+          {actions}
+        </div>
+      )}
     </li>
   );
 }
@@ -255,6 +285,8 @@ export type FriendsPanelAdapter = {
   remove: (friendId: string) => Promise<unknown>;
   action?: FriendActionAdapter;
   moderation?: ModerationAdapter;
+  messages?: PrivateMessagesAdapter;
+  trades?: TradesPanelAdapter;
 };
 const liveFriendsPanel: FriendsPanelAdapter = {
   friendships: getFriendships,
@@ -264,8 +296,14 @@ const liveFriendsPanel: FriendsPanelAdapter = {
 };
 
 export function FriendsPanel({
-  adapter = liveFriendsPanel
-}: { adapter?: FriendsPanelAdapter } = {}) {
+  adapter = liveFriendsPanel,
+  initialConversationId,
+  onConversationClose
+}: {
+  adapter?: FriendsPanelAdapter;
+  initialConversationId?: string;
+  onConversationClose?: () => void;
+} = {}) {
   const [blocked, setBlocked] = useState<BlockedUser[]>([]);
   const moderation = adapter.moderation ?? liveModeration;
   const [data, setData] = useState<Friendships>();
@@ -277,6 +315,27 @@ export function FriendsPanel({
   const [refusal, setRefusal] = useState<FriendUser>();
   const [removal, setRemoval] = useState<FriendUser>();
   const [removing, setRemoving] = useState(false);
+  const [conversation, setConversation] = useState<FriendUser>();
+  const openedFromNotification = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!initialConversationId) {
+      openedFromNotification.current = undefined;
+      return;
+    }
+    if (!data || openedFromNotification.current === initialConversationId)
+      return;
+    const frame = window.requestAnimationFrame(() => {
+      openedFromNotification.current = initialConversationId;
+      const friend = data.friends.find(
+        person => person.id === initialConversationId
+      );
+      if (friend) {
+        setTab("friends");
+        setConversation(friend);
+      } else setError("This conversation is no longer available.");
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [data, initialConversationId]);
   useEffect(() => {
     let active = true;
     void moderation.list().then(
@@ -489,6 +548,9 @@ export function FriendsPanel({
                 key={person.requestId ?? person.id}
                 person={person}
                 showPresence={tab === "friends"}
+                onMessage={
+                  tab === "friends" ? () => setConversation(person) : undefined
+                }
                 actions={
                   tab === "blocked" ? (
                     <Button
@@ -536,6 +598,19 @@ export function FriendsPanel({
         <p role="alert" className="yk-social-alert">
           {error}
         </p>
+      )}
+      {conversation && (
+        <PrivateMessages
+          key={conversation.id}
+          friend={conversation}
+          adapter={adapter.messages}
+          tradeAdapter={adapter.trades}
+          onClose={() => {
+            setConversation(undefined);
+            onConversationClose?.();
+          }}
+          moderationAdapter={adapter.moderation}
+        />
       )}
       <Modal
         open={!!refusal}

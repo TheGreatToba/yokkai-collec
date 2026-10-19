@@ -61,6 +61,10 @@ const allowlist = {
   "public.get_profile_wall(uuid, timestamp with time zone, uuid, integer)": [
     "authenticated"
   ], // Bounded keyset pages of permitted wall posts only; no anon or private-wall bypass.
+  "public.get_private_messages(uuid, timestamp with time zone, uuid, integer)":
+    ["authenticated"], // Only auth.uid() and an accepted, unblocked friend; bounded conversation pages.
+  "public.send_private_message(uuid, text, uuid)": ["authenticated"], // Sender is auth.uid(); accepted friendship, blocks, deletion fence, rate limit and idempotency checked server-side.
+  "public.send_private_message_gif(uuid, text, uuid, text)": ["authenticated"], // Same conversation authorization, shared sender limits and idempotency; only allowlisted HTTPS GIPHY media URLs, no uploads.
   "public.publish_profile_wall_post(uuid, text, text, text)": ["authenticated"], // Idempotent own posts only, bounded text/rate/count and owner-scoped private media.
   "public.delete_profile_wall_post(uuid)": ["authenticated"], // Author deletes only their own post; private attachment cleanup stays owner-scoped.
   "public.get_profile_details(text)": ["authenticated"], // Calls get_profile first; inventory, activity and favorites obey its collection privacy; mutual friends obey friendsVisible.

@@ -2075,6 +2075,20 @@ export function SearchView({
   );
 }
 
+export function FriendsView() {
+  const params = useSearchParams();
+  const router = useRouter();
+  const conversation = params.get("message") ?? undefined;
+  return (
+    <FriendsPanel
+      initialConversationId={conversation}
+      onConversationClose={() => {
+        if (conversation) router.replace("/friends", { scroll: false });
+      }}
+    />
+  );
+}
+
 export function TradesView() {
   const searchParams = useSearchParams();
   return (
@@ -2818,7 +2832,7 @@ export function CommunityView({
               identifier={playerId}
             />
           )}
-          {screen === "friends" && <FriendsPanel />}
+          {screen === "friends" && <FriendsView />}
           {screen === "market" && (
             <MarketView
               pageHeading={pageHeading}

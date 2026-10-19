@@ -381,6 +381,11 @@ export function Modal({
       aria-labelledby={titleId}
       className={`yk-modal ${className}`}
       onKeyDown={event => {
+        if (
+          (event.target as HTMLElement).closest("dialog") !==
+          event.currentTarget
+        )
+          return;
         if (event.key !== "Tab") return;
         const controls = Array.from(
           event.currentTarget.querySelectorAll<HTMLElement>(
@@ -407,6 +412,7 @@ export function Modal({
         }
       }}
       onCancel={e => {
+        e.stopPropagation();
         e.preventDefault();
         onClose();
       }}
