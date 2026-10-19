@@ -1,3 +1,4 @@
+import type { PageCursor, RpcPage } from "@/lib/data/demand-pages";
 import { createClient } from "@/utils/supabase/client";
 import { readRpcPages } from "@/lib/data/rpc-pages.mjs";
 
@@ -41,11 +42,11 @@ function friendlyFailure(error:unknown){
   return new FriendsError("Friends are temporarily unavailable. Please try again in a moment.",failure.code);
 }
 
-async function call<T>(name:string,args?:Record<string,unknown>,paged=false):Promise<T>{
-  let result:{data:unknown;error:SupabaseFailure|null};
-  try{result=paged?await readRpcPages(db().rpc.bind(db()),name):await db().rpc(name,args);}catch(error){logFailure(name,error);throw friendlyFailure(error);}
+async function call<T>(name:string,args?:Record<string,unknown>,paged:boolean|{cursor:PageCursor}=false):Promise<T>{
+  let result:{data:unknown;error:SupabaseFailure|null;nextCursor?:PageCursor};
+  try{result=paged?await readRpcPages(db().rpc.bind(db()),name,typeof paged === "object" ? {...paged,maxPages:1} : undefined):await db().rpc(name,args);}catch(error){logFailure(name,error);throw friendlyFailure(error);}
   if(result.error){logFailure(name,result.error);throw friendlyFailure(result.error);}
-  return result.data as T;
+  return (typeof paged === "object" ? {items:result.data,nextCursor:result.nextCursor??null} : result.data) as T;
 }
 export const searchUsers=(query:string)=>call<FriendUser[]>("search_users",{p_query:query});
 export const getFriendships=async():Promise<Friendships>=>{
@@ -77,3 +78,18 @@ export async function sendFriendRequest(id:string){
 }
 export const respondFriendRequest=(id:string,accept:boolean)=>call<boolean>("respond_friend_request",{p_request_id:id,p_accept:accept});
 export const removeFriend=(id:string)=>call<boolean>("remove_friend",{p_friend_id:id});
+
+export type FriendshipItem = {bucket:keyof Friendships;friend:FriendUser};
+export function groupFriendships(items:FriendshipItem[]):Friendships {
+  const lists:Friendships={friends:[],incoming:[],outgoing:[]};
+  for(const item of items) lists[item.bucket].push(item.friend);
+  return lists;
+}
+export async function getFriendshipsPage(cursor:PageCursor=null):Promise<RpcPage<FriendshipItem>> {
+  const page=await call<RpcPage<FriendshipItem>|{items:Friendships;nextCursor:PageCursor}>("get_friendships",undefined,{cursor});
+  return {...page,items:Array.isArray(page.items)?page.items:Object.entries(page.items).flatMap(([bucket,friends])=>friends.map(friend=>({bucket:bucket as keyof Friendships,friend})))};
+}
+
+export function friendshipItems(lists:Friendships):FriendshipItem[] {
+  return (Object.keys(lists) as (keyof Friendships)[]).flatMap(bucket=>lists[bucket].map(friend=>({bucket,friend})));
+}

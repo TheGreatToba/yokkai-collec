@@ -4,6 +4,9 @@ export const ownerOnly = [
 ]; // Only the owning SECURITY DEFINER wrapper may bypass billing preparation; never service_role.
 
 const allowlist = {
+  "public.browse_auctions_page(integer, text, text, text, text, text)": [
+    "authenticated"
+  ], // Bounded market prefixes, same viewer visibility as list_auctions_page; no anonymous access. Requires Walid ACL review.
   "public.admin_get_player(uuid)": ["authenticated"], // Admin-only account and inventory projection.
   "public.admin_list_players(text, integer, integer)": ["authenticated"], // Admin-only paginated account search.
   "public.admin_remove_player_card(uuid)": ["authenticated"], // Admin-only removal of one owned copy, including safe auction cancellation.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { PrivateMessages } from "@/components/private-messages";
 import { useSocialUnread } from "@/hooks/use-social-unread";
@@ -14,6 +14,9 @@ import type { TradesPanelAdapter } from "@/components/trades";
 import { Avatar, Button, Modal, StatusPill, Tabs } from "@/components/ui";
 import {
   getFriendships,
+  getFriendshipsPage,
+  groupFriendships,
+  friendshipItems,
   removeFriend,
   respondFriendRequest,
   searchUsers,
@@ -318,6 +321,44 @@ export function FriendsPanel({
   initialConversationId?: string;
   onConversationClose?: () => void;
 } = {}) {
+  const pager = useMemo(
+    () =>
+      import("@/lib/data/demand-pages").then(({ createDemandPager }) =>
+        createDemandPager(
+          adapter === liveFriendsPanel
+            ? getFriendshipsPage
+            : async () => ({
+                items: friendshipItems(await adapter.friendships()),
+                nextCursor: null
+              }),
+          item => item.friend.requestId ?? item.friend.id
+        )
+      ),
+    [adapter]
+  );
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  async function readFriends(more = false) {
+    const current = await pager;
+    const page = await (more ? current.more() : current.refresh());
+    setHasMore(!!page.nextCursor);
+    return groupFriendships(page.items);
+  }
+  async function loadMore() {
+    setLoadingMore(true);
+    setError("");
+    try {
+      setData(await readFriends(true));
+    } catch (e) {
+      setError(
+        e instanceof Error
+          ? e.message
+          : "Couldn't load more friends. Please try again."
+      );
+    } finally {
+      setLoadingMore(false);
+    }
+  }
   const [blocked, setBlocked] = useState<BlockedUser[]>([]);
   const social = useSocialUnread(
     adapter.unread,
@@ -383,7 +424,7 @@ export function FriendsPanel({
   }
   async function load() {
     try {
-      setData(await adapter.friendships());
+      setData(await readFriends());
       invalidateSocialUnread();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't load friends.");
@@ -396,8 +437,12 @@ export function FriendsPanel({
       if (loading || document.visibilityState === "hidden") return;
       loading = true;
       try {
-        const value = await adapter.friendships();
-        if (active) setData(value);
+        const page = await (await pager).refresh();
+        const value = groupFriendships(page.items);
+        if (active) {
+          setData(value);
+          setHasMore(!!page.nextCursor);
+        }
       } catch (e) {
         if (active)
           setError(e instanceof Error ? e.message : "Couldn't load friends.");
@@ -416,7 +461,7 @@ export function FriendsPanel({
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [adapter]);
+  }, [adapter, pager]);
   useEffect(() => {
     if (query.trim().length < 2) return;
     let active = true;
@@ -544,7 +589,7 @@ export function FriendsPanel({
           items={[
             {
               id: "friends",
-              label: `My friends · ${lists.friends.length.toLocaleString("en-US")}`
+              label: `My friends · ${lists.friends.length.toLocaleString("en-US")}${hasMore ? "+" : ""}`
             },
             {
               id: "incoming",
@@ -621,9 +666,31 @@ export function FriendsPanel({
             <span className="yk-social-empty-icon" aria-hidden="true">
               ◇
             </span>
-            <strong>{emptyCopy[tab].title}</strong>
-            <p>{emptyCopy[tab].text}</p>
+            <strong>
+              {hasMore && tab !== "blocked"
+                ? "No relationships loaded in this tab yet"
+                : emptyCopy[tab].title}
+            </strong>
+            <p>
+              {hasMore && tab !== "blocked"
+                ? "Load more to continue through your relationships."
+                : emptyCopy[tab].text}
+            </p>
           </div>
+        )}
+        {tab !== "blocked" && hasMore && (
+          <Button
+            variant="secondary"
+            disabled={loadingMore}
+            onClick={() => void loadMore()}
+          >
+            {loadingMore ? "Loading…" : "Load more"}
+          </Button>
+        )}
+        {data && !hasMore && tab !== "blocked" && (
+          <p role="status" className="yk-search-hint">
+            All relationships loaded.
+          </p>
         )}
       </section>
       {error && (

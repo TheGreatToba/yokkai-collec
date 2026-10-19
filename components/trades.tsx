@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   Avatar,
   Button,
@@ -13,7 +13,13 @@ import {
 } from "@/components/ui";
 import { YokaiCard } from "@/components/yokai-card";
 import { CardFranchise } from "@/components/card-franchise";
-import { getFriendships, type FriendUser } from "@/lib/data/friends";
+import {
+  getFriendships,
+  getFriendshipsPage,
+  groupFriendships,
+  friendshipItems,
+  type FriendUser
+} from "@/lib/data/friends";
 import {
   cancelTradeOffer,
   counterTradeDraft,
@@ -22,6 +28,7 @@ import {
   getTradeContext,
   hasNewAcceptedTrade,
   listTradeOffers,
+  listTradeOffersPage,
   loadTradeContextIfCurrent,
   respondTradeOffer,
   resolveTradeReview,
@@ -43,6 +50,8 @@ import {
   pruneUnavailableSelection,
   selectGroupQuantity
 } from "@/lib/ui/collection-groups";
+
+import { createDemandPager } from "@/lib/data/demand-pages";
 
 const rarityOrder: Record<Rarity, number> = {
   C: 0,
@@ -579,6 +588,63 @@ export function TradesPanel({
   onOfferSent?: () => void;
 } = {}) {
   const initialFriendId = fixedFriendId ?? requestedInitialFriendId;
+  const offerPager = useMemo(
+    () =>
+      createDemandPager(
+        adapter === defaultAdapter
+          ? listTradeOffersPage
+          : async () => ({
+              items: await adapter.listOffers(),
+              nextCursor: null
+            }),
+        offer => offer.id
+      ),
+    [adapter]
+  );
+  const friendPager = useMemo(
+    () =>
+      createDemandPager(
+        adapter === defaultAdapter
+          ? getFriendshipsPage
+          : async () => ({
+              items: friendshipItems(await adapter.friendships()),
+              nextCursor: null
+            }),
+        item => item.friend.requestId ?? item.friend.id
+      ),
+    [adapter]
+  );
+  const [hasMoreOffers, setHasMoreOffers] = useState(false);
+  const [hasMoreFriends, setHasMoreFriends] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  async function readOffers(more = false) {
+    const page = await (more ? offerPager.more() : offerPager.refresh());
+    setHasMoreOffers(!!page.nextCursor);
+    return page.items;
+  }
+  async function readFriends(more = false) {
+    const page = await (more ? friendPager.more() : friendPager.refresh());
+    setHasMoreFriends(!!page.nextCursor);
+    return groupFriendships(page.items);
+  }
+  async function loadMore(kind: "friends" | "offers") {
+    setLoadingMore(true);
+    setError("");
+    try {
+      if (kind === "friends") setFriends((await readFriends(true)).friends);
+      else {
+        const next = await readOffers(true);
+        offersRef.current = next;
+        setOffers(next);
+      }
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "Couldn't load more. Please try again."
+      );
+    } finally {
+      setLoadingMore(false);
+    }
+  }
   const [friends, setFriends] = useState<FriendUser[]>([]);
   const [offers, setOffers] = useState<TradeOffer[]>([]);
   const [tab, setTab] = useState<TradeTab>("compose");
@@ -621,8 +687,8 @@ export function TradesPanel({
   }
   async function reload() {
     const [relations, history] = await Promise.all([
-      adapter.friendships(),
-      adapter.listOffers()
+      readFriends(),
+      readOffers()
     ]);
     offersRef.current = history;
     setFriends(relations.friends);
@@ -631,10 +697,14 @@ export function TradesPanel({
   useEffect(() => {
     let active = true;
     let loading = true;
-    void Promise.all([adapter.friendships(), adapter.listOffers()])
+    void Promise.all([friendPager.refresh(), offerPager.refresh()])
       .then(
-        ([relations, history]) => {
+        ([relationsPage, offersPage]) => {
+          const relations = groupFriendships(relationsPage.items);
+          const history = offersPage.items;
           if (active) {
+            setHasMoreFriends(!!relationsPage.nextCursor);
+            setHasMoreOffers(!!offersPage.nextCursor);
             offersRef.current = history;
             setFriends(relations.friends);
             setOffers(history);
@@ -652,8 +722,10 @@ export function TradesPanel({
       if (loading || document.visibilityState === "hidden") return;
       loading = true;
       try {
-        const history = await adapter.listOffers();
+        const page = await offerPager.refresh();
         if (!active) return;
+        const history = page.items;
+        setHasMoreOffers(!!page.nextCursor);
         const accepted = hasNewAcceptedTrade(offersRef.current, history);
         offersRef.current = history;
         setOffers(history);
@@ -720,7 +792,31 @@ export function TradesPanel({
       if (timer !== undefined) window.clearInterval(timer);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [adapter, pollIntervalMs]);
+  }, [adapter, pollIntervalMs, offerPager, friendPager]);
+  useEffect(() => {
+    if (!initialOfferId) return;
+    let active = true;
+    void (async () => {
+      let page = await offerPager.refresh();
+      while (
+        !page.items.some(offer => offer.id === initialOfferId) &&
+        page.nextCursor &&
+        active
+      )
+        page = await offerPager.more();
+      if (active) {
+        offersRef.current = page.items;
+        setOffers(page.items);
+        setHasMoreOffers(!!page.nextCursor);
+      }
+    })().catch(e => {
+      if (active)
+        setError(e instanceof Error ? e.message : "Couldn't load this offer.");
+    });
+    return () => {
+      active = false;
+    };
+  }, [initialOfferId, offerPager]);
   async function chooseFriend(
     id: string,
     parentId: string | null = null,
@@ -833,16 +929,29 @@ export function TradesPanel({
   useEffect(() => {
     if (!initialFriendId) return;
     let active = true;
-    void adapter
-      .friendships()
-      .then(async relations => {
+    void friendPager
+      .refresh()
+      .then(async firstPage => {
         if (!active) return;
+        const relations = groupFriendships(firstPage.items);
         const normalized = initialFriendId.toLocaleLowerCase("en-US");
-        const friend = relations.friends.find(
+        let friend = relations.friends.find(
           item =>
             item.id === initialFriendId ||
             item.pseudo.toLocaleLowerCase("en-US") === normalized
         );
+        let page = firstPage;
+        while (!friend && page.nextCursor && active) {
+          page = await friendPager.more();
+          const next = groupFriendships(page.items);
+          setFriends(next.friends);
+          setHasMoreFriends(!!page.nextCursor);
+          friend = next.friends.find(
+            item =>
+              item.id === initialFriendId ||
+              item.pseudo.toLocaleLowerCase("en-US") === normalized
+          );
+        }
         if (!friend) {
           setError("This player isn't available to trade.");
           return;
@@ -884,7 +993,7 @@ export function TradesPanel({
     return () => {
       active = false;
     };
-  }, [adapter, initialFriendId, initialRequestedCardId]);
+  }, [adapter, friendPager, initialFriendId, initialRequestedCardId]);
   async function submit() {
     if (fixedFriendId && context?.friend.id !== fixedFriendId) return;
     if (!context || !tryStartTradeSubmission(submissionLock, hasContent))
@@ -995,11 +1104,11 @@ export function TradesPanel({
             { id: "compose", label: "Proposer" },
             {
               id: "received",
-              label: `Received · ${received.length.toLocaleString("en-US")}`
+              label: `Received · ${received.length.toLocaleString("en-US")}${hasMoreOffers ? "+" : ""}`
             },
             {
               id: "sent",
-              label: `Sent · ${sent.length.toLocaleString("en-US")}`
+              label: `Sent · ${sent.length.toLocaleString("en-US")}${hasMoreOffers ? "+" : ""}`
             },
             { id: "history", label: "History" }
           ]}
@@ -1038,6 +1147,20 @@ export function TradesPanel({
                   </Chip>
                 ))}
               </div>
+            )}
+            {!fixedFriendId && hasMoreFriends && (
+              <Button
+                variant="secondary"
+                disabled={loadingMore}
+                onClick={() => void loadMore("friends")}
+              >
+                {loadingMore ? "Loading…" : "Load more friends"}
+              </Button>
+            )}
+            {!fixedFriendId && !!friends.length && !hasMoreFriends && (
+              <p role="status" className="yk-search-hint">
+                All friends loaded.
+              </p>
             )}
             {!friends.length && (
               <div className="yk-social-empty is-compact">
@@ -1207,6 +1330,20 @@ export function TradesPanel({
               onReview={offer => setReviewedId(offer.id)}
               onCancel={tab === "sent" ? setCancelling : undefined}
             />
+            {hasMoreOffers && (
+              <Button
+                variant="secondary"
+                disabled={loadingMore}
+                onClick={() => void loadMore("offers")}
+              >
+                {loadingMore ? "Loading…" : "Load more"}
+              </Button>
+            )}
+            {!hasMoreOffers && (
+              <p role="status" className="yk-search-hint">
+                All offers loaded.
+              </p>
+            )}
           </div>
         )}
       </section>

@@ -1,3 +1,4 @@
+import type { PageCursor, RpcPage } from "@/lib/data/demand-pages";
 import {createClient} from "@/utils/supabase/client";
 import {readRpcPages} from "@/lib/data/rpc-pages.mjs";
 import {invalidatePlayerSnapshots,withLiveCardFranchises,type CollectedCard} from "@/lib/data/cards";
@@ -17,10 +18,9 @@ export function tradeStatusPresentation(status?:string):{label:string;tone:"gold
 export function resolveTradeReview(id:string|undefined,offers:readonly TradeOffer[]){return id?offers.find(offer=>offer.id===id):undefined;}
 export function tradeErrorMessage(code:string){const messages:Record<string,string>={FRIENDS_ONLY:"This offer can't be sent because you're no longer friends.",INVALID_TRADE_KARAS:"The Karas amount is invalid.",EMPTY_TRADE:"Add at least one card or some Karas.",DUPLICATE_TRADE_CARD:"Each card copy can only appear once.",TRADE_CARD_UNAVAILABLE:"A selected card is no longer available.",TRADE_CARD_FROZEN:"A selected card is now listed for sale.",CARD_LOCKED:"A selected card is now locked.",TRADE_NOT_COUNTERABLE:"This offer can no longer receive a counteroffer.",TRADE_NOT_PENDING:"This offer is no longer pending.",TRADE_NOT_FOUND:"This offer couldn't be found.",TRADE_NOT_AUTHOR:"Only the sender can cancel this offer.",TRADE_ALREADY_ACCEPTED:"This offer has already been accepted.",TRADE_ALREADY_DECLINED:"This offer has already been declined.",TRADE_ALREADY_CANCELLED:"This offer has already been canceled.",TRADE_ALREADY_COUNTERED:"This offer already has a counteroffer.",TRADE_INSUFFICIENT_KARAS:"You or your friend no longer have enough Karas to accept this trade."};return messages[code]??"Couldn't process this trade. Please try again.";}
 let client:ReturnType<typeof createClient>|undefined;const db=()=>client??=createClient();
-async function call<T>(name:string,args?:Record<string,unknown>,paged=false):Promise<T>{const {data,error}=paged?await readRpcPages(db().rpc.bind(db()),name):await db().rpc(name,args);if(error)throw new Error(tradeErrorMessage(error.message??""));return data as T;}
+async function call<T>(name:string,args?:Record<string,unknown>,paged:boolean|{cursor:PageCursor}=false):Promise<T>{const result=paged?await readRpcPages(db().rpc.bind(db()),name,typeof paged === "object" ? {...paged,maxPages:1} : undefined):await db().rpc(name,args);const {data,error}=result;if(error)throw new Error(tradeErrorMessage(error.message??""));return (typeof paged === "object" ? {items:data,nextCursor:"nextCursor" in result ? result.nextCursor : null} : data) as T;}
 export const getTradeContext=async(friendId:string)=>{const context=await call<TradeContext>("get_trade_context",{p_friend_id:friendId});const ownCards=await withLiveCardFranchises(context.ownCards);const friendCards=await withLiveCardFranchises(context.friendCards);return {...context,ownCards,friendCards};};
-export const listTradeOffers=async()=>{
-  const offers=await call<TradeOffer[]>("list_trade_offers",undefined,true);
+async function enrichTradeOffers(offers:TradeOffer[]){
   const cards=await withLiveCardFranchises(offers.flatMap(offer=>[...offer.offeredCards,...offer.requestedCards]));
   let offset=0;
   return offers.map(offer=>{
@@ -29,6 +29,11 @@ export const listTradeOffers=async()=>{
     return {...offer,fromPseudo:offer.fromPseudo||"Deleted player",toPseudo:offer.toPseudo||"Deleted player",offeredCards,requestedCards};
   });
 };
+export const listTradeOffers=async()=>enrichTradeOffers(await call<TradeOffer[]>("list_trade_offers",undefined,true));
+export async function listTradeOffersPage(cursor:PageCursor=null):Promise<RpcPage<TradeOffer>> {
+  const page=await call<RpcPage<TradeOffer>>("list_trade_offers",undefined,{cursor});
+  return {...page,items:await enrichTradeOffers(page.items)};
+}
 export const createTradeOffer=(input:{toUser:string;offeredCardIds:string[];offeredKaras:number;requestedCardIds:string[];requestedKaras:number;parentOfferId?:string|null})=>call<string>("create_trade_offer",{p_to_user:input.toUser,p_offered_card_ids:input.offeredCardIds,p_offered_karas:input.offeredKaras,p_requested_card_ids:input.requestedCardIds,p_requested_karas:input.requestedKaras,p_parent_offer_id:input.parentOfferId??null});
 export async function cancelTradeOffer(id:string){const {data,error}=await db().rpc("cancel_trade_offer",{p_offer_id:id});if(error){if(error.message==="TRADE_ALREADY_CANCELLED")return true;throw new Error(tradeErrorMessage(error.message));}return data as boolean;}
 export async function respondTradeOffer(id:string,action:"accept"|"decline") { const accepted=await call<boolean>("respond_trade_offer",{p_offer_id:id,p_action:action});if(action==="accept"&&accepted)invalidatePlayerSnapshots(["collection","balance"]);return accepted; }

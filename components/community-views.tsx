@@ -39,7 +39,11 @@ import {
   cancelAuction,
   getAuction,
   getAuctionChat,
-  getAuctions,
+  browseAuctions,
+  MARKET_PAGE_SIZE,
+  MARKET_MAX_ITEMS,
+  type MarketQuery,
+  type MarketPage,
   placeBid,
   sendAuctionChatMessage,
   toggleWatch,
@@ -574,11 +578,21 @@ export function compareMarketAuctions(
 export function MarketView({
   pageHeading,
   lists,
-  activeSales
+  activeSales,
+  marketPage,
+  marketLimit = MARKET_PAGE_SIZE,
+  loadingMore = false,
+  onQueryChange,
+  onLoadMore
 }: {
   pageHeading?: ReactNode;
   lists?: Record<"active" | "mine" | "won" | "sold", AuctionPresentation[]>;
   activeSales?: string;
+  marketPage?: MarketPage;
+  marketLimit?: number;
+  loadingMore?: boolean;
+  onQueryChange?: (query: MarketQuery) => void;
+  onLoadMore?: () => void;
   onToggleWatch?: (id: string) => Promise<void>;
 }) {
   const [section, setSection] = useState<"browse" | "mine">("browse");
@@ -588,25 +602,45 @@ export function MarketView({
   const [sort, setSort] = useState<MarketSort>("end");
   const [category, setCategory] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  useEffect(() => {
+    if (!onQueryChange) return;
+    const timer = window.setTimeout(
+      () =>
+        onQueryChange({
+          query,
+          rarity,
+          category,
+          sort: section === "browse" ? sort : "end",
+          section: section === "browse" ? "active" : mineTab
+        }),
+      250
+    );
+    return () => window.clearTimeout(timer);
+  }, [query, rarity, category, sort, section, mineTab, onQueryChange]);
   const matches = (a: AuctionPresentation) =>
     matchesCardSearch(query, [a.card.name, a.card.anime]) &&
     (!rarity || a.card.rarity === rarity) &&
     (!category || a.card.category === category);
-  const categories = [
-    ...new Set(
-      (section === "browse" ? lists?.active : lists?.[mineTab])?.map(
-        a => a.card.category
+  const categories =
+    marketPage?.categories ??
+    [
+      ...new Set(
+        (section === "browse" ? lists?.active : lists?.[mineTab])?.map(
+          a => a.card.category
+        )
       )
-    )
-  ].sort();
+    ].sort();
   const filtered = !!(query || rarity || category);
   const browse = lists?.active
     .filter(matches)
     .sort((a, b) => compareMarketAuctions(a, b, sort));
   const mine = lists?.[mineTab].filter(matches);
-  const mineCount = lists
-    ? lists.mine.length + lists.won.length + lists.sold.length
-    : undefined;
+  const counts = marketPage?.counts;
+  const mineCount = counts
+    ? counts.mine + counts.won + counts.sold
+    : lists
+      ? lists.mine.length + lists.won.length + lists.sold.length
+      : undefined;
   const empty = marketEmptyStates[mineTab];
   const shown = section === "browse" ? browse : mine;
   const heading = !shown
@@ -659,7 +693,7 @@ export function MarketView({
               >
                 <span className="yk-filter-check" />
                 <span>{label}</span>
-                {lists && <strong>{lists[key].length}</strong>}
+                {lists && <strong>{counts?.[key] ?? lists[key].length}</strong>}
               </button>
             ))}
           </CatalogueFilterSection>
@@ -791,7 +825,7 @@ export function MarketView({
       >
         {(
           [
-            ["browse", "Auctions", lists?.active.length],
+            ["browse", "Auctions", counts?.active ?? lists?.active.length],
             ["mine", "My auctions", mineCount]
           ] as const
         ).map(([key, label, count]) => (
@@ -891,7 +925,7 @@ export function MarketView({
             )
           ) : !lists || !mine ? (
             <Unavailable>Loading your auctions…</Unavailable>
-          ) : !lists[mineTab].length ? (
+          ) : !(counts?.[mineTab] ?? lists[mineTab].length) ? (
             <div role="status" className="yk-empty-state">
               <span
                 aria-hidden="true"
@@ -936,6 +970,28 @@ export function MarketView({
                 <AuctionTile key={a.id} auction={a} />
               ))}
             </ul>
+          )}
+          {onLoadMore && lists && (
+            <div className="mt-6 flex flex-col items-center gap-3">
+              {marketPage?.hasMore && marketLimit < MARKET_MAX_ITEMS && (
+                <Button
+                  variant="secondary"
+                  disabled={loadingMore}
+                  onClick={onLoadMore}
+                >
+                  {loadingMore ? "Loading…" : "Load more"}
+                </Button>
+              )}
+              <p role="status" className="text-sm text-ink-2">
+                {loadingMore
+                  ? "Loading auctions…"
+                  : marketPage?.hasMore && marketLimit >= MARKET_MAX_ITEMS
+                    ? "Showing the first 1,000 auctions. Refine your filters to see more."
+                    : marketPage && !marketPage.hasMore
+                      ? "All matching auctions loaded."
+                      : ""}
+              </p>
+            </div>
           )}
         </div>
       </div>
@@ -2572,6 +2628,25 @@ export function CommunityView({
   const [karas, setKaras] = useState<number>();
   const [viewer, setViewer] = useState<string>();
   const [market, setMarket] = useState<AuctionData[]>();
+  const [marketPage, setMarketPage] = useState<MarketPage>();
+  const [marketLimit, setMarketLimit] = useState(MARKET_PAGE_SIZE);
+  const [marketLoading, setMarketLoading] = useState(false);
+  const [marketQuery, setMarketQuery] = useState<MarketQuery>({
+    query: "",
+    rarity: "",
+    category: "",
+    sort: "end",
+    section: "active"
+  });
+  const marketQueryRef = useRef(marketQuery);
+  const changeMarketQuery = useCallback((next: MarketQuery) => {
+    if (JSON.stringify(next) === JSON.stringify(marketQueryRef.current)) return;
+    marketQueryRef.current = next;
+    setMarketQuery(next);
+    setMarketLimit(MARKET_PAGE_SIZE);
+    setMarket(undefined);
+    setMarketPage(undefined);
+  }, []);
   const [auction, setAuction] = useState<AuctionDetail>();
   const [, setClock] = useState(0);
   const [extended, setExtended] = useState(false);
@@ -2639,21 +2714,6 @@ export function CommunityView({
             setError("Couldn't load your collection. Please try again later.");
         }
       );
-    if (screen === "market")
-      void getAuctions().then(
-        data => {
-          if (active) {
-            marketRef.current = data;
-            setMarket(data);
-          }
-        },
-        e => {
-          if (active)
-            setError(
-              e instanceof Error ? e.message : "Couldn't load the market."
-            );
-        }
-      );
     if (screen === "auction" && auctionId)
       void getAuction(auctionId).then(
         data => {
@@ -2671,26 +2731,60 @@ export function CommunityView({
     };
   }, [screen, isMe, playerId, auctionId, receiveAuction]);
   useEffect(() => {
-    if (screen !== "market" && screen !== "auction") return;
+    if (screen !== "market") return;
+    let active = true,
+      loading = false;
+    const refresh = async () => {
+      if (loading || document.visibilityState === "hidden") return;
+      loading = true;
+      setMarketLoading(true);
+      try {
+        const page = await browseAuctions(marketQuery, marketLimit);
+        if (!active) return;
+        const next = page.items;
+        const scopes = auctionReconciliationScopes(
+          marketRef.current ?? [],
+          next,
+          viewerRef.current
+        );
+        marketRef.current = next;
+        if (scopes.length) invalidatePlayerSnapshots(scopes);
+        setMarket(next);
+        setMarketPage(page);
+        setError("");
+      } catch (e) {
+        if (active)
+          setError(
+            e instanceof Error
+              ? e.message
+              : "Couldn't load the market. Please try again."
+          );
+      } finally {
+        loading = false;
+        if (active) setMarketLoading(false);
+      }
+    };
+    void refresh();
+    const timer = window.setInterval(() => void refresh(), 3000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void refresh();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [screen, marketQuery, marketLimit]);
+  useEffect(() => {
+    if (screen !== "auction") return;
     let active = true;
     let loading = false;
     const refresh = async () => {
       if (loading || document.visibilityState === "hidden") return;
       loading = true;
       try {
-        if (screen === "market") {
-          const next = await getAuctions();
-          if (active) {
-            const scopes = auctionReconciliationScopes(
-              marketRef.current ?? [],
-              next,
-              viewerRef.current
-            );
-            marketRef.current = next;
-            if (scopes.length) invalidatePlayerSnapshots(scopes);
-            setMarket(next);
-          }
-        } else if (auctionId) {
+        if (auctionId) {
           const next = await getAuction(auctionId);
           if (active) receiveAuction(next);
         }
@@ -2738,8 +2832,9 @@ export function CommunityView({
   const feed = useNotificationFeed();
   const lists =
     market && viewer ? buildAuctionLists(market, viewer) : undefined;
-  const activeSales =
-    market && viewer
+  const activeSales = marketPage?.counts
+    ? String(marketPage.counts.activeSales)
+    : market && viewer
       ? String(
           market.filter(a => a.status === "active" && a.sellerId === viewer)
             .length
@@ -2751,8 +2846,10 @@ export function CommunityView({
   }
   async function watchFromMarket(id: string) {
     try {
-      await toggleWatch(id);
-      setMarket(await getAuctions());
+      const watched = await toggleWatch(id);
+      setMarket(current =>
+        current?.map(item => (item.id === id ? { ...item, watched } : item))
+      );
     } catch (e) {
       setError(
         e instanceof Error ? e.message : "Couldn't update your watchlist."
@@ -2838,6 +2935,15 @@ export function CommunityView({
               pageHeading={pageHeading}
               lists={lists}
               activeSales={activeSales}
+              marketPage={marketPage}
+              marketLimit={marketLimit}
+              loadingMore={marketLoading}
+              onQueryChange={changeMarketQuery}
+              onLoadMore={() =>
+                setMarketLimit(limit =>
+                  Math.min(MARKET_MAX_ITEMS, limit + MARKET_PAGE_SIZE)
+                )
+              }
               onToggleWatch={watchFromMarket}
             />
           )}{" "}
