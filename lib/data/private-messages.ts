@@ -7,6 +7,7 @@ export type PrivateMessage = {
   recipientId: string;
   text: string;
   createdAt: string;
+  gifUrl?: string | null;
 };
 export type MessageCursor = { at: string; id: string };
 export type PrivateMessagePage = {
@@ -14,9 +15,12 @@ export type PrivateMessagePage = {
   items: PrivateMessage[];
   next: MessageCursor | null;
 };
+export function isPrivateMessageGif(url: string): boolean {
+  return url.length <= 2048 && /^https:\/\/(media[0-9]*|i)\.giphy\.com\/media\/[A-Za-z0-9/_.-]+\.gif(\?[A-Za-z0-9_=&%.-]+)?$/.test(url);
+}
 export type PrivateMessagesAdapter = {
   list: (friendId: string, cursor?: MessageCursor) => Promise<PrivateMessagePage>;
-  send: (friendId: string, text: string, id: string) => Promise<PrivateMessage>;
+  send: (friendId: string, text: string, id: string, gifUrl?: string | null) => Promise<PrivateMessage>;
 };
 export class PrivateMessagesError extends Error {
   constructor(message: string, readonly unavailable = false) {
@@ -28,6 +32,7 @@ const errors: Record<string, string> = {
   AUTH_REQUIRED: "Sign in again to view your messages.",
   MESSAGES_UNAVAILABLE: "This conversation is no longer available.",
   MESSAGE_INVALID: "Write a message between 1 and 2,000 characters.",
+  MESSAGE_GIF_INVALID: "Choose a GIF from the GIPHY picker.",
   MESSAGE_RATE_LIMITED: "Please wait a moment before sending another message.",
   MESSAGE_CONFLICT: "This message couldn't be sent. Close the conversation and try again."
 };
@@ -50,9 +55,9 @@ export const livePrivateMessages: PrivateMessagesAdapter = {
     if (error) fail(error);
     return data as PrivateMessagePage;
   },
-  send: async (friendId, text, id) => {
-    const { data, error } = await createClient().rpc("send_private_message", {
-      p_friend_id: friendId, p_body: text, p_id: id
+  send: async (friendId, text, id, gifUrl) => {
+    const { data, error } = await createClient().rpc("send_private_message_gif", {
+      p_friend_id: friendId, p_body: text, p_id: id, p_gif_url: gifUrl ?? null
     });
     if (error) fail(error);
     return data as PrivateMessage;

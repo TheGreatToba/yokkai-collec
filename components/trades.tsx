@@ -564,16 +564,19 @@ export const TRADE_POLL_INTERVAL_MS = 3000;
 export function TradesPanel({
   adapter = defaultAdapter,
   pollIntervalMs = TRADE_POLL_INTERVAL_MS,
-  initialFriendId,
+  initialFriendId: requestedInitialFriendId,
+  fixedFriendId,
   initialRequestedCardId,
   initialOfferId
 }: {
   adapter?: TradesPanelAdapter;
   pollIntervalMs?: number | null;
   initialFriendId?: string;
+  fixedFriendId?: string;
   initialRequestedCardId?: string;
   initialOfferId?: string;
 } = {}) {
+  const initialFriendId = fixedFriendId ?? requestedInitialFriendId;
   const [friends, setFriends] = useState<FriendUser[]>([]);
   const [offers, setOffers] = useState<TradeOffer[]>([]);
   const [tab, setTab] = useState<TradeTab>("compose");
@@ -593,7 +596,7 @@ export function TradesPanel({
   }>();
   const [pendingCounter, setPendingCounter] = useState<TradeOffer>();
   const [reviewedId, setReviewedId] = useState<string | undefined>(
-    initialOfferId
+    fixedFriendId ? undefined : initialOfferId
   );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -721,6 +724,7 @@ export function TradesPanel({
     parentId: string | null = null,
     requestedCardId?: string
   ) {
+    if (fixedFriendId && id !== fixedFriendId) return;
     friendIdRef.current = id;
     setFriendId(id);
     setParent(parentId);
@@ -757,6 +761,7 @@ export function TradesPanel({
     }
   }
   function requestFriendChange(id: string, parentId: string | null = null) {
+    if (fixedFriendId && id !== fixedFriendId) return;
     if (id === friendId && parentId === parent) return;
     if (requested.size) {
       setPendingFriend({ id, parentId });
@@ -765,6 +770,7 @@ export function TradesPanel({
     void chooseFriend(id, parentId);
   }
   async function composeCounter(offer: TradeOffer) {
+    if (fixedFriendId && offer.fromUser !== fixedFriendId) return;
     if (
       !offer.fromUser ||
       !tradeOfferIsActionable(offer.id, offersRef.current)
@@ -878,6 +884,7 @@ export function TradesPanel({
     };
   }, [adapter, initialFriendId, initialRequestedCardId]);
   async function submit() {
+    if (fixedFriendId && context?.friend.id !== fixedFriendId) return;
     if (!context || !tryStartTradeSubmission(submissionLock, hasContent))
       return;
     setBusy(true);
@@ -908,6 +915,7 @@ export function TradesPanel({
       setParent(null);
       setSentNotice("Offer sent. You can now find it in this tab.");
       setTab("sent");
+      if (fixedFriendId) await chooseFriend(fixedFriendId);
     } catch (e) {
       setError(
         e instanceof Error
@@ -957,9 +965,15 @@ export function TradesPanel({
       setBusy(false);
     }
   }
-  const received = filterTradeOffers(offers, "received");
-  const sent = filterTradeOffers(offers, "sent");
-  const history = filterTradeOffers(offers, "history");
+  const scopedOffers = fixedFriendId
+    ? offers.filter(
+        offer =>
+          offer.fromUser === fixedFriendId || offer.toUser === fixedFriendId
+      )
+    : offers;
+  const received = filterTradeOffers(scopedOffers, "received");
+  const sent = filterTradeOffers(scopedOffers, "sent");
+  const history = filterTradeOffers(scopedOffers, "history");
   const hasContent =
     offered.size > 0 ||
     requested.size > 0 ||
@@ -968,7 +982,7 @@ export function TradesPanel({
   const insufficient = !!context && Number(offeredKaras) > context.balance;
   const reviewedOffer = resolveTradeReview(reviewedId, offers);
   return (
-    <div className="yk-social-stack">
+    <div className="yk-social-stack" data-fixed-trade-friend={fixedFriendId}>
       <section className="yk-social-panel">
         <Tabs
           label="Trade navigation"
@@ -992,7 +1006,9 @@ export function TradesPanel({
             <div className="yk-trade-heading mt-6">
               <div>
                 <p className="eyebrow">New offer</p>
-                <h2 className="yk-section-title mt-2">Choose a friend</h2>
+                <h2 className="yk-section-title mt-2">
+                  {fixedFriendId ? "Your trade" : "Choose a friend"}
+                </h2>
               </div>
               {context && (
                 <StatusPill tone="info">
@@ -1000,24 +1016,26 @@ export function TradesPanel({
                 </StatusPill>
               )}
             </div>
-            <div className="yk-friend-choices">
-              {friends.map(friend => (
-                <Chip
-                  key={friend.id}
-                  active={friendId === friend.id}
-                  className="min-h-11 pl-1.5 pr-4"
-                  onClick={() => requestFriendChange(friend.id)}
-                >
-                  <Avatar
-                    name={friend.pseudo}
-                    image={friend.avatarUrl ?? undefined}
-                    online
-                    size={30}
-                  />
-                  {friend.pseudo}
-                </Chip>
-              ))}
-            </div>
+            {!fixedFriendId && (
+              <div className="yk-friend-choices">
+                {friends.map(friend => (
+                  <Chip
+                    key={friend.id}
+                    active={friendId === friend.id}
+                    className="min-h-11 pl-1.5 pr-4"
+                    onClick={() => requestFriendChange(friend.id)}
+                  >
+                    <Avatar
+                      name={friend.pseudo}
+                      image={friend.avatarUrl ?? undefined}
+                      online
+                      size={30}
+                    />
+                    {friend.pseudo}
+                  </Chip>
+                ))}
+              </div>
+            )}
             {!friends.length && (
               <div className="yk-social-empty is-compact">
                 <strong>No friends available</strong>

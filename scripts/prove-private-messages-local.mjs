@@ -77,14 +77,49 @@ try {
   assert.equal(denied.error?.message, "MESSAGES_UNAVAILABLE");
   const direct = await bob.client.from("private_messages").select("*");
   assert.ok(direct.error);
+  const gifUrl = "https://media.giphy.com/media/test/giphy.gif";
+  const gifId = randomUUID();
+  const gifArgs = {
+    p_friend_id: alice.id,
+    p_body: "",
+    p_id: gifId,
+    p_gif_url: gifUrl
+  };
+  const [gifSent, gifRetry] = await Promise.all([
+    bob.client.rpc("send_private_message_gif", gifArgs),
+    bob.client.rpc("send_private_message_gif", gifArgs)
+  ]);
+  if (gifSent.error) throw gifSent.error;
+  assert.equal(gifSent.data.gifUrl, gifUrl);
+  assert.equal(gifRetry.data?.id, gifId);
+  const gifReceived = await alice.client.rpc("get_private_messages", {
+    p_friend_id: bob.id
+  });
+  if (gifReceived.error) throw gifReceived.error;
+  assert.equal(
+    gifReceived.data.items.find(message => message.id === gifId)?.gifUrl,
+    gifUrl
+  );
+  const badGif = await bob.client.rpc("send_private_message_gif", {
+    ...gifArgs,
+    p_id: randomUUID(),
+    p_gif_url: "data:image/gif;base64,invalid"
+  });
+  assert.equal(badGif.error?.message, "MESSAGE_GIF_INVALID");
   const blocked = await bob.client.rpc("block_user", { p_user_id: alice.id });
   if (blocked.error) throw blocked.error;
   const afterBlock = await alice.client.rpc("get_private_messages", {
     p_friend_id: bob.id
   });
   assert.equal(afterBlock.error?.message, "MESSAGES_UNAVAILABLE");
+  const gifBlocked = await alice.client.rpc("send_private_message_gif", {
+    ...gifArgs,
+    p_friend_id: bob.id,
+    p_id: randomUUID()
+  });
+  assert.equal(gifBlocked.error?.message, "MESSAGES_UNAVAILABLE");
   console.log(
-    "Local Supabase proof passed: authenticated send, receive, idempotent retry, outsider denial, no direct table access, and bilateral block."
+    "Local Supabase proof passed: authenticated text/GIF send and receive, concurrent idempotent retries, non-GIPHY URL denial, outsider denial, no direct table access, and bilateral block."
   );
 } finally {
   for (const id of created) {

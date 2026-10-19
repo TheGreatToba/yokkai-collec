@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { PrivateMessages } from "@/components/private-messages";
 import type { PrivateMessagesAdapter } from "@/lib/data/private-messages";
+import type { TradesPanelAdapter } from "@/components/trades";
 import { Avatar, Button, Modal, StatusPill, Tabs } from "@/components/ui";
 import {
   getFriendships,
@@ -285,6 +286,7 @@ export type FriendsPanelAdapter = {
   action?: FriendActionAdapter;
   moderation?: ModerationAdapter;
   messages?: PrivateMessagesAdapter;
+  trades?: TradesPanelAdapter;
 };
 const liveFriendsPanel: FriendsPanelAdapter = {
   friendships: getFriendships,
@@ -576,6 +578,7 @@ export function FriendsPanel({
           key={conversation.id}
           friend={conversation}
           adapter={adapter.messages}
+          tradeAdapter={adapter.trades}
           onClose={() => setConversation(undefined)}
         />
       )}

@@ -3,8 +3,10 @@
 import { useMemo, useState } from "react";
 import { FriendsPanel, type FriendsPanelAdapter } from "@/components/friends";
 import { Button } from "@/components/ui";
+import type { TradesPanelAdapter } from "@/components/trades";
 import {
   PrivateMessagesError,
+  isPrivateMessageGif,
   type PrivateMessage,
   type PrivateMessagesAdapter
 } from "@/lib/data/private-messages";
@@ -64,7 +66,7 @@ export function PrivateMessagesPreview() {
             all.length > 40 ? { at: items[0].createdAt, id: items[0].id } : null
         };
       },
-      send: async (friendId, text, id) => {
+      send: async (friendId, text, id, gifUrl) => {
         await new Promise(resolve => window.setTimeout(resolve, 180));
         if (failure) {
           setFailure(false);
@@ -72,7 +74,11 @@ export function PrivateMessagesPreview() {
             "Couldn't send the message. Your draft has been kept."
           );
         }
-        if (!text.trim() || Array.from(text.trim()).length > 2000)
+        if (
+          (!text.trim() && !gifUrl) ||
+          Array.from(text.trim()).length > 2000 ||
+          (gifUrl && !isPrivateMessageGif(gifUrl))
+        )
           throw new PrivateMessagesError(
             "Write a message between 1 and 2,000 characters."
           );
@@ -84,6 +90,7 @@ export function PrivateMessagesPreview() {
           senderId: playerId,
           recipientId: friendId,
           text: text.trim(),
+          gifUrl: gifUrl ?? null,
           createdAt: new Date().toISOString()
         };
         localStorage.setItem(storageKey, JSON.stringify([...all, message]));
@@ -91,6 +98,28 @@ export function PrivateMessagesPreview() {
       }
     }),
     [playerId, failure]
+  );
+  const trades = useMemo<TradesPanelAdapter>(
+    () => ({
+      friendships: async () => ({
+        friends: players.filter(player => player.id !== playerId),
+        incoming: [],
+        outgoing: []
+      }),
+      listOffers: async () => [],
+      context: async friendId => ({
+        friend: players.find(player => player.id === friendId)!,
+        balance: 4499,
+        ownCards: [],
+        friendCards: []
+      }),
+      create: async () => {
+        throw new Error("Local preview only. No real trade offer was sent.");
+      },
+      cancel: async () => true,
+      respond: async () => true
+    }),
+    [playerId]
   );
   const adapter = useMemo<FriendsPanelAdapter>(
     () => ({
@@ -115,9 +144,10 @@ export function PrivateMessagesPreview() {
         unblock: async () => undefined,
         report: async () => undefined
       },
-      messages
+      messages,
+      trades
     }),
-    [playerId, messages]
+    [playerId, messages, trades]
   );
 
   function seed() {

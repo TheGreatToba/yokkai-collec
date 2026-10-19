@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- GIPHY media must remain animated. */
 
 import {
   useEffect,
@@ -8,10 +9,13 @@ import {
   type KeyboardEvent
 } from "react";
 import { Avatar, Button, Modal } from "@/components/ui";
+import { GifPicker, type GifChoice } from "@/components/gif-picker";
+import { TradesPanel, type TradesPanelAdapter } from "@/components/trades";
 import type { FriendUser } from "@/lib/data/friends";
 import {
   livePrivateMessages,
   PrivateMessagesError,
+  isPrivateMessageGif,
   type PrivateMessage,
   type PrivateMessagePage,
   type PrivateMessagesAdapter
@@ -39,16 +43,20 @@ const date = new Intl.DateTimeFormat("en-US", {
 export function PrivateMessages({
   friend,
   onClose,
+  tradeAdapter,
   adapter = livePrivateMessages
 }: {
   friend: FriendUser;
   onClose: () => void;
   adapter?: PrivateMessagesAdapter;
+  tradeAdapter?: TradesPanelAdapter;
 }) {
   const [page, setPage] = useState<PrivateMessagePage>();
   const [loading, setLoading] = useState(true);
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [draft, setDraft] = useState("");
+  const [gif, setGif] = useState<GifChoice | null>(null);
+  const [trading, setTrading] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const [sendError, setSendError] = useState("");
@@ -57,7 +65,11 @@ export function PrivateMessages({
   const scroll = useRef<HTMLDivElement>(null);
   const composer = useRef<HTMLTextAreaElement>(null);
   const stickToBottom = useRef(true);
-  const pending = useRef<{ text: string; id: string } | null>(null);
+  const pending = useRef<{
+    text: string;
+    gifUrl: string | null;
+    id: string;
+  } | null>(null);
   const sendingRef = useRef(false);
   const mounted = useRef(true);
   const scrollRestore = useRef<{ height: number; top: number } | null>(null);
@@ -128,6 +140,7 @@ export function PrivateMessages({
         setPage(undefined);
         setUnavailable(true);
         setError("This conversation is no longer available.");
+        setTrading(false);
       }
     };
     window.addEventListener("player-block-changed", blocked);
@@ -194,7 +207,7 @@ export function PrivateMessages({
     event?.preventDefault();
     const text = draft.trim();
     if (
-      !text ||
+      (!text && !gif) ||
       Array.from(text).length > 2000 ||
       !page ||
       unavailable ||
@@ -204,10 +217,20 @@ export function PrivateMessages({
     sendingRef.current = true;
     setSending(true);
     setSendError("");
-    if (!pending.current || pending.current.text !== text)
-      pending.current = { text, id: crypto.randomUUID() };
+    const gifUrl = gif?.url ?? null;
+    if (
+      !pending.current ||
+      pending.current.text !== text ||
+      pending.current.gifUrl !== gifUrl
+    )
+      pending.current = { text, gifUrl, id: crypto.randomUUID() };
     try {
-      const message = await adapter.send(friend.id, text, pending.current.id);
+      const message = await adapter.send(
+        friend.id,
+        text,
+        pending.current.id,
+        gifUrl
+      );
       if (!mounted.current) return;
       stickToBottom.current = true;
       setPage(
@@ -218,6 +241,7 @@ export function PrivateMessages({
           }
       );
       setDraft("");
+      setGif(null);
       pending.current = null;
     } catch (reason) {
       if (!mounted.current) return;
@@ -252,126 +276,202 @@ export function PrivateMessages({
   }
 
   return (
-    <Modal
-      open
-      onClose={onClose}
-      title={`Messages with ${friend.pseudo}`}
-      className="yk-private-messages-modal"
-    >
-      <div className="yk-private-messages-contact">
-        <Avatar
-          name={friend.pseudo}
-          image={friend.avatarUrl ?? undefined}
-          online={friend.isOnline}
-        />
-        <div>
-          <strong>{friend.pseudo}</strong>
-          <p>Only you and your friend can access this conversation.</p>
-        </div>
-      </div>
-      <div
-        className="yk-private-messages-log"
-        ref={scroll}
-        role="log"
-        aria-label="Conversation"
-        aria-live="polite"
-        aria-relevant="additions"
-        aria-busy={loading}
-        onScroll={() => {
-          const viewport = scroll.current;
-          if (viewport)
-            stickToBottom.current =
-              viewport.scrollHeight -
-                viewport.scrollTop -
-                viewport.clientHeight <
-              60;
-        }}
+    <>
+      <Modal
+        open
+        onClose={onClose}
+        title={`Messages with ${friend.pseudo}`}
+        className="yk-private-messages-modal"
       >
-        {page?.next && (
-          <div className="yk-private-messages-older">
-            <Button
-              variant="secondary"
-              disabled={loadingOlder}
-              onClick={() => void older()}
-            >
-              {loadingOlder ? "Loading…" : "Load older messages"}
-            </Button>
+        <div className="yk-private-messages-contact">
+          <Avatar
+            name={friend.pseudo}
+            image={friend.avatarUrl ?? undefined}
+            online={friend.isOnline}
+          />
+          <div>
+            <strong>{friend.pseudo}</strong>
+            <p>Only you and your friend can access this conversation.</p>
           </div>
-        )}
-        {loading ? (
-          <p className="yk-private-messages-empty" role="status">
-            Loading messages…
-          </p>
-        ) : page && !page.items.length ? (
-          <div className="yk-private-messages-empty">
-            <strong>Start a conversation</strong>
-            <p>Say hello to {friend.pseudo}.</p>
-          </div>
-        ) : null}
-        {page?.items.map(message => {
-          const own = message.senderId === page.viewerId;
-          return (
-            <div
-              className={`yk-private-message${own ? " is-own" : ""}`}
-              key={message.id}
-            >
-              <p>{message.text}</p>
-              <time
-                dateTime={message.createdAt}
-                title={new Date(message.createdAt).toLocaleString("en-US")}
-              >
-                <span className="sr-only">{own ? "You" : friend.pseudo}, </span>
-                {date.format(new Date(message.createdAt))} ·{" "}
-                {time.format(new Date(message.createdAt))}
-              </time>
-            </div>
-          );
-        })}
-      </div>
-      {(sendError || error) && (
-        <div className="yk-private-messages-error">
-          <p role="alert">{sendError || error}</p>
-          {!unavailable && !sendError && (
-            <button type="button" onClick={() => setRetry(value => value + 1)}>
-              Try again
-            </button>
-          )}
-        </div>
-      )}
-      <form
-        className="yk-private-messages-compose"
-        onSubmit={event => void send(event)}
-      >
-        <label className="sr-only" htmlFor="private-message-draft">
-          Message to {friend.pseudo}
-        </label>
-        <textarea
-          ref={composer}
-          id="private-message-draft"
-          placeholder={`Message ${friend.pseudo}…`}
-          value={draft}
-          maxLength={2000}
-          rows={3}
-          disabled={sending || loading || unavailable || !page}
-          onChange={event => setDraft(event.target.value)}
-          onKeyDown={onKeyDown}
-          aria-describedby="private-message-hint"
-        />
-        <div>
-          <span id="private-message-hint">
-            Enter to send · Shift + Enter for a new line{" "}
-            <small>{draft.length.toLocaleString("en-US")} / 2,000</small>
-          </span>
           <Button
-            type="submit"
-            disabled={
-              sending || loading || unavailable || !page || !draft.trim()
-            }
+            variant="secondary"
+            disabled={loading || unavailable || !page}
+            onClick={() => setTrading(true)}
           >
-            {sending ? "Sending…" : "Send message"}
+            Trade
           </Button>
         </div>
-      </form>
-    </Modal>
+        <div
+          className="yk-private-messages-log"
+          ref={scroll}
+          role="log"
+          aria-label="Conversation"
+          aria-live="polite"
+          aria-relevant="additions"
+          aria-busy={loading}
+          onScroll={() => {
+            const viewport = scroll.current;
+            if (viewport)
+              stickToBottom.current =
+                viewport.scrollHeight -
+                  viewport.scrollTop -
+                  viewport.clientHeight <
+                60;
+          }}
+        >
+          {page?.next && (
+            <div className="yk-private-messages-older">
+              <Button
+                variant="secondary"
+                disabled={loadingOlder}
+                onClick={() => void older()}
+              >
+                {loadingOlder ? "Loading…" : "Load older messages"}
+              </Button>
+            </div>
+          )}
+          {loading ? (
+            <p className="yk-private-messages-empty" role="status">
+              Loading messages…
+            </p>
+          ) : page && !page.items.length ? (
+            <div className="yk-private-messages-empty">
+              <strong>Start a conversation</strong>
+              <p>Say hello to {friend.pseudo}.</p>
+            </div>
+          ) : null}
+          {page?.items.map(message => {
+            const own = message.senderId === page.viewerId;
+            return (
+              <div
+                className={`yk-private-message${own ? " is-own" : ""}`}
+                key={message.id}
+              >
+                {message.text && <p>{message.text}</p>}
+                {message.gifUrl && isPrivateMessageGif(message.gifUrl) && (
+                  <img
+                    className="yk-private-message-gif"
+                    src={message.gifUrl}
+                    alt="GIF from GIPHY"
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    onLoad={() => {
+                      if (stickToBottom.current && scroll.current)
+                        scroll.current.scrollTop = scroll.current.scrollHeight;
+                    }}
+                  />
+                )}
+                <time
+                  dateTime={message.createdAt}
+                  title={new Date(message.createdAt).toLocaleString("en-US")}
+                >
+                  <span className="sr-only">
+                    {own ? "You" : friend.pseudo},{" "}
+                  </span>
+                  {date.format(new Date(message.createdAt))} ·{" "}
+                  {time.format(new Date(message.createdAt))}
+                </time>
+              </div>
+            );
+          })}
+        </div>
+        {(sendError || error) && (
+          <div className="yk-private-messages-error">
+            <p role="alert">{sendError || error}</p>
+            {!unavailable && !sendError && (
+              <button
+                type="button"
+                onClick={() => setRetry(value => value + 1)}
+              >
+                Try again
+              </button>
+            )}
+          </div>
+        )}
+        <form
+          className="yk-private-messages-compose"
+          onSubmit={event => void send(event)}
+        >
+          {gif && (
+            <div className="yk-private-messages-gif-draft">
+              <img
+                src={gif.url}
+                alt={`Selected GIF: ${gif.title}`}
+                referrerPolicy="no-referrer"
+              />
+              <button
+                type="button"
+                disabled={sending}
+                aria-label="Remove selected GIF"
+                onClick={() => setGif(null)}
+              >
+                Remove GIF
+              </button>
+            </div>
+          )}
+          <label className="sr-only" htmlFor="private-message-draft">
+            Message to {friend.pseudo}
+          </label>
+          <textarea
+            ref={composer}
+            id="private-message-draft"
+            placeholder={`Message ${friend.pseudo}…`}
+            value={draft}
+            maxLength={2000}
+            rows={3}
+            disabled={sending || loading || unavailable || !page}
+            onChange={event => setDraft(event.target.value)}
+            onKeyDown={onKeyDown}
+            aria-describedby="private-message-hint"
+          />
+          <div>
+            <div className="yk-private-messages-tools">
+              <GifPicker
+                disabled={sending || loading || unavailable || !page}
+                onSelect={choice => {
+                  if (!isPrivateMessageGif(choice.url)) {
+                    setSendError("Choose a GIF from the GIPHY picker.");
+                    return;
+                  }
+                  setGif(choice);
+                  setSendError("");
+                }}
+              />
+            </div>
+            <span id="private-message-hint">
+              Enter to send · Shift + Enter for a new line{" "}
+              <small>{draft.length.toLocaleString("en-US")} / 2,000</small>
+            </span>
+            <Button
+              type="submit"
+              disabled={
+                sending ||
+                loading ||
+                unavailable ||
+                !page ||
+                (!draft.trim() && !gif)
+              }
+            >
+              {sending ? "Sending…" : "Send message"}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+      {trading && (
+        <Modal
+          open
+          title={`Trade with ${friend.pseudo}`}
+          onClose={() => setTrading(false)}
+          className="yk-private-trade-modal"
+        >
+          {tradeAdapter && (
+            <p className="yk-private-trade-preview-note">
+              Local trade preview. No real offer is sent.
+            </p>
+          )}
+          <TradesPanel adapter={tradeAdapter} fixedFriendId={friend.id} />
+        </Modal>
+      )}
+    </>
   );
 }

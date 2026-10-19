@@ -55,8 +55,51 @@ try {
   const pending = new Map();
   const rpcRequests = [];
   const errors = [];
+  const gifUrl = "https://media.giphy.com/media/local-proof/giphy.gif";
+  const gifImage = Buffer.from(
+    "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+    "base64"
+  );
   socket.addEventListener("message", event => {
     const message = JSON.parse(event.data);
+    if (message.method === "Fetch.requestPaused") {
+      const { requestId, request } = message.params;
+      const url = new URL(request.url);
+      const fulfill = (contentType, body) =>
+        send("Fetch.fulfillRequest", {
+          requestId,
+          responseCode: 200,
+          responseHeaders: [
+            { name: "Content-Type", value: contentType },
+            { name: "Access-Control-Allow-Origin", value: "*" }
+          ],
+          body: Buffer.from(body).toString("base64")
+        });
+      let response;
+      if (url.hostname === "api.giphy.com") {
+        const asset = { url: gifUrl, width: "160", height: "100" };
+        response = fulfill(
+          "application/json",
+          JSON.stringify({
+            data: [
+              {
+                id: "local-proof",
+                title: "Test reaction",
+                images: { original: asset, fixed_width_small: asset }
+              }
+            ],
+            pagination: { count: 1, total_count: 1, offset: 0 }
+          })
+        );
+      } else if (request.url === gifUrl)
+        response = fulfill("image/gif", gifImage);
+      else
+        response = send("Fetch.failRequest", {
+          requestId,
+          errorReason: "BlockedByClient"
+        });
+      void response.catch(reason => errors.push(String(reason)));
+    }
     if (message.method === "Runtime.exceptionThrown")
       errors.push(message.params.exceptionDetails.text);
     if (
@@ -114,7 +157,8 @@ try {
   await send("Page.enable");
   await send("Runtime.enable");
   await send("Network.enable");
-  await send("Network.setBlockedURLs", { urls: ["https://*"] });
+  // Deterministic GIF fixtures; never call GIPHY or other external services in this proof.
+  await send("Fetch.enable", { patterns: [{ urlPattern: "https://*" }] });
   await send("Emulation.setDeviceMetricsOverride", {
     width: 1440,
     height: 1050,
@@ -271,6 +315,110 @@ try {
     ),
     false
   );
+  // Open the existing trade composer with this friend selected, then return to messages.
+  await run(() =>
+    Array.from(document.querySelectorAll(".yk-private-messages-contact button"))
+      .find(button => button.textContent === "Trade")
+      .click()
+  );
+  await until(
+    "!!document.querySelector('.yk-private-trade-modal[open] .yk-trade-composer')"
+  );
+  assert.ok(
+    await evaluate(
+      "document.querySelector('.yk-private-trade-modal').textContent.includes('Trade with Kitsune')"
+    )
+  );
+  assert.equal(
+    await evaluate(
+      "document.querySelector('.yk-private-trade-modal .yk-friend-choices')"
+    ),
+    null,
+    "No friend selector is offered from a conversation"
+  );
+  assert.equal(
+    await evaluate(
+      "document.querySelector('.yk-private-trade-modal [data-fixed-trade-friend]').dataset.fixedTradeFriend"
+    ),
+    "preview-kitsune"
+  );
+  assert.equal(
+    await evaluate(
+      "document.querySelector('.yk-private-trade-modal').textContent.includes('Yuki')"
+    ),
+    false,
+    "Other friends cannot be chosen or appear in the fixed trade"
+  );
+  await send("Input.dispatchKeyEvent", {
+    type: "keyDown",
+    key: "Escape",
+    code: "Escape",
+    windowsVirtualKeyCode: 27
+  });
+  await send("Input.dispatchKeyEvent", {
+    type: "keyUp",
+    key: "Escape",
+    code: "Escape",
+    windowsVirtualKeyCode: 27
+  });
+  await until(
+    "!document.querySelector('.yk-private-trade-modal[open]') && !!document.querySelector('.yk-private-messages-modal[open]')"
+  );
+  await click(".yk-private-messages-modal .yk-gif-trigger");
+  await until(
+    "!!document.querySelector('.yk-gif-modal[open] [aria-label=\"Preview: Test reaction\"]')"
+  );
+  // Escape closes only the GIF picker, never the parent conversation.
+  await send("Input.dispatchKeyEvent", {
+    type: "keyDown",
+    key: "Escape",
+    code: "Escape",
+    windowsVirtualKeyCode: 27
+  });
+  await send("Input.dispatchKeyEvent", {
+    type: "keyUp",
+    key: "Escape",
+    code: "Escape",
+    windowsVirtualKeyCode: 27
+  });
+  await until(
+    "!document.querySelector('.yk-gif-modal[open]') && !!document.querySelector('.yk-private-messages-modal[open]')"
+  );
+  await click(".yk-private-messages-modal .yk-gif-trigger");
+  await until(
+    "!!document.querySelector('.yk-gif-modal[open] [aria-label=\"Preview: Test reaction\"]')"
+  );
+  await click('.yk-gif-modal [aria-label="Preview: Test reaction"]');
+  await run(() =>
+    Array.from(document.querySelectorAll(".yk-gif-preview button"))
+      .find(button => button.textContent === "Send this GIF")
+      .click()
+  );
+  await until("!!document.querySelector('.yk-private-messages-gif-draft')");
+  assert.equal(
+    await evaluate(
+      "document.querySelectorAll('.yk-private-messages-modal input[type=file]').length"
+    ),
+    0,
+    "No gallery upload is offered"
+  );
+  assert.equal(
+    await evaluate(
+      "document.querySelector('.yk-private-messages-modal textarea').value"
+    ),
+    ""
+  );
+  // An empty caption is valid for a GIF-only message.
+  await click(".yk-private-messages-modal button[type=submit]");
+  await until(
+    "!!document.querySelector('.yk-private-message-gif') && !document.querySelector('.yk-private-messages-gif-draft')"
+  );
+  assert.equal(
+    await evaluate(
+      "JSON.parse(localStorage.getItem('yokkai:private-messages-preview:v1')).filter(message => message.gifUrl).length"
+    ),
+    1
+  );
   await send("Emulation.setDeviceMetricsOverride", {
     width: 390,
     height: 844,
@@ -341,7 +489,7 @@ try {
     "Only the existing navigation's read-only local profile lookup is allowed; no messaging RPC or other mutation"
   );
   console.log(
-    "Private messages browser proof passed: friends buttons, send/reply, literal text, failed-send draft, retry, pagination, mobile bounds, Escape/focus and zero live messaging RPCs."
+    "Private messages browser proof passed: send/reply, literal text, draft/retry, pagination, friend-selected Trade modal, GIPHY-only messages without gallery uploads, nested Escape/focus, mobile bounds and zero live messaging RPCs."
   );
 } finally {
   socket?.close();
