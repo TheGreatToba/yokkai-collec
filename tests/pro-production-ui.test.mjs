@@ -70,7 +70,7 @@ test("Pro name rendering follows its owner's server projection, not the viewing 
   assert.match(paid, /data-name-effect="neon"/);
   assert.match(paid, /aria-label="Yokkai Pro"/);
   assert.match(paid, /data-pro-badge="true"/);
-  assert.match(paid, /yk-profile-pro-badge-check/);
+  assert.match(paid, /yk-profile-pro-badge-star/);
   assert.match(paid, /comet decorative badge/);
   assert.doesNotMatch(paid, /local preview|verified role/i);
 });

@@ -90,12 +90,8 @@
   stroke: #cfc3ff;
   stroke-width: 0.8px;
 }
-.yk-profile-pro-badge-check {
-  fill: none;
-  stroke: #fff;
-  stroke-width: 2.25px;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.yk-profile-pro-badge-star {
+  fill: #fff;
 }
 .yk-styled-player-name {
   display: inline-flex;
