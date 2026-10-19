@@ -23,8 +23,11 @@ if (!local.NEXT_PUBLIC_GIPHY_API_KEY) {
     /* A standalone checkout can configure its own public key. */
   }
 }
+const port = process.env.PRIVATE_MESSAGES_PORT ?? "3002";
+if (!/^\d+$/.test(port) || Number(port) < 1024 || Number(port) > 65535)
+  throw Error("Invalid local preview port.");
 console.log(
-  `Local messaging on port 3002. GIPHY ${local.NEXT_PUBLIC_GIPHY_API_KEY ? "configured" : "not configured"}.`
+  `Local messaging on port ${port}. GIPHY ${local.NEXT_PUBLIC_GIPHY_API_KEY ? "configured" : "not configured"}.`
 );
 const child = spawn(
   process.execPath,
@@ -33,7 +36,7 @@ const child = spawn(
     "dev",
     "--webpack",
     "--port",
-    "3002",
+    port,
     "--hostname",
     "0.0.0.0"
   ],
