@@ -96,7 +96,13 @@ export function ReferralReminder() {
   return (
     <aside
       aria-label="Referral reward"
-      className="fixed bottom-4 left-16 z-[70] grid w-[min(calc(100vw-5rem),32rem)] grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 rounded-[18px] border border-veil-strong bg-surface/95 px-4 py-2.5 shadow-[0_14px_45px_rgba(0,0,0,0.55),0_0_24px_rgba(139,124,246,0.08)] backdrop-blur-md max-sm:left-3 max-sm:w-[calc(100vw-1.5rem)]"
+      className={[
+        "fixed bottom-4 left-16 z-[70] grid w-[min(calc(100vw-5rem),32rem)]",
+        "grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 rounded-[18px]",
+        "border border-veil-strong bg-surface/95 px-4 py-2.5 backdrop-blur-md",
+        "shadow-[0_14px_45px_rgba(0,0,0,0.55),0_0_24px_rgba(139,124,246,0.08)]",
+        "max-sm:left-3 max-sm:w-[calc(100vw-1.5rem)]"
+      ].join(" ")}
     >
       <div className="min-w-0">
         <p className="truncate font-display text-sm font-bold tracking-wide text-ink">
