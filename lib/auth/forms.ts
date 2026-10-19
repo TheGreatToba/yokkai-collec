@@ -13,6 +13,12 @@ export type AuthState = {
 
 const FORBIDDEN_PSEUDO_CHARACTERS = /[/\\?#%<>\p{Cc}]/u;
 
+export function normalizeReferralCode(value: unknown) {
+  if (typeof value !== "string") return null;
+  const code = value.trim().toLowerCase();
+  return /^[a-f0-9]{12}$/.test(code) ? code : null;
+}
+
 export function pseudoValidationError(pseudo: string) {
   const length = [...pseudo].length;
   if (length < 3) return "Choose a username with at least 3 characters.";

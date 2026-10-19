@@ -26,7 +26,13 @@ export type PaniniAlbumCardPage = {
 export type CollectedCard = Card & { instanceId: string; obtainedAt: string; shiny: boolean; isEvolved: boolean; isFirstOwner: boolean; locked?: boolean; folderId: string | null; catalogueImage: string; customImageUrl: string | null; destructionValue?: number };
 export type Folder = { id: string; name: string };
 export type ActiveAuctionCard = { instanceId: string; auctionId: string; endsAt: string };
-export type PackStatus = { available: number; maximum: number; nextPackAt: number | null };
+export type PackStatus = {
+  available: number;
+  maximum: number;
+  nextPackAt: number | null;
+  reserve?: number;
+  bonus?: number;
+};
 export type DecisionPackStatus = {
   available: boolean; nextPackAt: number; pending: (CollectedCard & { discarded?: boolean })[];
   // Optional while older deployments and isolated previews still return timers.
@@ -365,7 +371,8 @@ export async function getPackStatus(sharePending = false): Promise<PackStatus> {
   const status = data as PackStatus & { serverNow: number };
   // Display clock only: availability and consumption always use database time.
   return { available: status.available, maximum: status.maximum,
-    nextPackAt: status.nextPackAt === null ? null : Date.now() + status.nextPackAt - status.serverNow };
+    nextPackAt: status.nextPackAt === null ? null : Date.now() + status.nextPackAt - status.serverNow,
+    reserve: status.reserve, bonus: status.bonus };
 }
 
 export async function getDecisionPackStatus(includeCardDetails = true): Promise<DecisionPackStatus> {

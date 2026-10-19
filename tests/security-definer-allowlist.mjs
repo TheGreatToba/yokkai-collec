@@ -31,6 +31,7 @@ const allowlist = {
   "public.create_auction(uuid, integer, integer)": ["authenticated"], // Player lists an owned eligible card.
   "public.create_card_share(uuid, boolean)": ["authenticated"], // Player shares their own card.
   "public.create_folder(text)": ["authenticated"], // Player creates their own collection folder.
+  "public.create_referral_code()": ["authenticated"], // Creates or returns only auth.uid()'s opaque referral code.
   "public.create_trade_offer(uuid, uuid[], integer, uuid[], integer, uuid)": [
     "authenticated"
   ], // Player proposes a validated trade with owned assets.
@@ -86,6 +87,7 @@ const allowlist = {
     ["authenticated"], // Own bounded crop metadata only; reuses atomic appearance/URL/deletion checks, no inventory or storage grant. Validated with Walid.
   "public.get_public_profile(uuid)": ["authenticated"], // Exposes the permitted public profile projection.
   "public.get_regular_pack_status()": ["authenticated"], // Reads the current player's pack timers.
+  "public.get_referral_status()": ["authenticated"], // Reads only auth.uid()'s code, aggregate rewards and bonus balance.
   "public.get_shared_card(text)": ["anon", "authenticated"], // Public share token intentionally exposes the shared card projection.
   "public.get_trade_context(uuid)": ["authenticated"], // Reads a permitted trading context for the viewer.
   "public.is_current_user_admin()": ["authenticated"], // RLS helper answers only whether the current player is an admin.
