@@ -125,6 +125,7 @@ export function PrivateMessages({
           return {
             ...current,
             viewerId: fresh.viewerId,
+            readThroughId: fresh.readThroughId ?? current.readThroughId,
             items: mergeMessages(current.items, fresh.items)
           };
         });
@@ -176,6 +177,40 @@ export function PrivateMessages({
   }, [adapter, friend.id, retry]);
 
   useEffect(() => {
+    // Run after rendering a successfully fetched page, not when opening the
+    // bell, loading older history, failing a fetch or switching to a hidden tab.
+    if (!adapter.markRead || !page?.readThroughId || unavailable || trading)
+      return;
+    let active = true;
+    let busy = false;
+    let confirmed = false;
+    const acknowledge = async () => {
+      if (!active || document.hidden || busy || confirmed) return;
+      busy = true;
+      try {
+        await adapter.markRead!(friend.id, page.readThroughId!);
+        if (active) confirmed = true;
+      } catch {
+        /* Retry without clearing the last confirmed unread badge. */
+      } finally {
+        busy = false;
+      }
+    };
+    const stop = startVisiblePolling(() => void acknowledge(), 5_000);
+    return () => {
+      active = false;
+      stop();
+    };
+  }, [
+    adapter,
+    friend.id,
+    page?.viewerId,
+    page?.readThroughId,
+    unavailable,
+    trading
+  ]);
+
+  useEffect(() => {
     const viewport = scroll.current;
     if (!viewport) return;
     if (scrollRestore.current) {
@@ -204,6 +239,7 @@ export function PrivateMessages({
         current =>
           current && {
             ...current,
+            readThroughId: current.readThroughId ?? olderPage.readThroughId,
             items: mergeMessages(olderPage.items, current.items),
             next: olderPage.next
           }

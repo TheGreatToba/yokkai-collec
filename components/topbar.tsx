@@ -12,6 +12,9 @@ import {
 } from "@/lib/data/notifications";
 import { useSfx } from "@/hooks/use-sfx";
 import { useNotificationFeed } from "@/hooks/use-notification-feed";
+import { useSocialUnread } from "@/hooks/use-social-unread";
+import type { SocialUnreadAdapter } from "@/lib/data/social-unread";
+import { UnreadBadge } from "@/components/unread-badge";
 import { useBoostersLoadPriority } from "@/components/boosters-load-priority";
 import { useIsAdmin } from "@/hooks/use-is-admin";
 import { getProfile } from "@/lib/data/profile";
@@ -183,6 +186,7 @@ export function Topbar({
   infoError,
   onRetryInfo,
   notifications,
+  socialUnread,
   notificationError: externalNotificationError,
   onRetryNotifications,
   onRefreshNotifications,
@@ -209,6 +213,7 @@ export function Topbar({
   infoError?: string;
   onRetryInfo?: () => void;
   notifications?: NotificationItem[];
+  socialUnread?: SocialUnreadAdapter;
   notificationError?: string;
   onRetryNotifications?: () => void;
   onRefreshNotifications?: () => void;
@@ -223,6 +228,10 @@ export function Topbar({
   const [avatarUrl, setAvatarUrl] = useState<string>();
   const [profileName, setProfileName] = useState<string>();
   const feed = useNotificationFeed(!notifications && secondaryReady);
+  const social = useSocialUnread(
+    socialUnread,
+    secondaryReady && (!!socialUnread || !notifications)
+  );
   const loaded = feed.notifications?.map(notificationItem);
   const shown = notifications ?? loaded;
   const visibleNotificationError = externalNotificationError ?? feed.error;
@@ -340,7 +349,17 @@ export function Topbar({
             href="/friends"
             aria-current={view === "friends" ? "page" : undefined}
           >
-            Friends
+            <span className="yk-friends-nav-label">
+              Friends
+              <UnreadBadge
+                variant="nav"
+                count={
+                  (social?.messageCount ?? 0) + (social?.requestCount ?? 0)
+                }
+                label="unread messages and pending friend requests"
+                singularLabel="unread message or pending friend request"
+              />
+            </span>
           </Link>
           <Link
             href="/wishlist"

@@ -3,6 +3,12 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { PrivateMessages } from "@/components/private-messages";
+import { useSocialUnread } from "@/hooks/use-social-unread";
+import {
+  invalidateSocialUnread,
+  type SocialUnreadAdapter
+} from "@/lib/data/social-unread";
+import { UnreadBadge } from "@/components/unread-badge";
 import type { PrivateMessagesAdapter } from "@/lib/data/private-messages";
 import type { TradesPanelAdapter } from "@/components/trades";
 import { Avatar, Button, Modal, StatusPill, Tabs } from "@/components/ui";
@@ -205,11 +211,13 @@ function Person({
   person,
   actions,
   onMessage,
+  unreadCount = 0,
   showPresence = false
 }: {
   person: FriendUser;
   actions?: ReactNode;
   onMessage?: () => void;
+  unreadCount?: number;
   showPresence?: boolean;
 }) {
   return (
@@ -250,6 +258,11 @@ function Person({
                 <path d="M7 10h9M7 14h6" />
               </svg>
               Message
+              <UnreadBadge
+                count={unreadCount}
+                label="unread messages"
+                singularLabel="unread message"
+              />
             </Button>
           )}
           {actions}
@@ -286,6 +299,7 @@ export type FriendsPanelAdapter = {
   action?: FriendActionAdapter;
   moderation?: ModerationAdapter;
   messages?: PrivateMessagesAdapter;
+  unread?: SocialUnreadAdapter;
   trades?: TradesPanelAdapter;
 };
 const liveFriendsPanel: FriendsPanelAdapter = {
@@ -305,6 +319,10 @@ export function FriendsPanel({
   onConversationClose?: () => void;
 } = {}) {
   const [blocked, setBlocked] = useState<BlockedUser[]>([]);
+  const social = useSocialUnread(
+    adapter.unread,
+    adapter === liveFriendsPanel || !!adapter.unread
+  );
   const moderation = adapter.moderation ?? liveModeration;
   const [data, setData] = useState<Friendships>();
   const [tab, setTab] = useState<FriendsTab>("friends");
@@ -366,6 +384,7 @@ export function FriendsPanel({
   async function load() {
     try {
       setData(await adapter.friendships());
+      invalidateSocialUnread();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't load friends.");
     }
@@ -529,6 +548,15 @@ export function FriendsPanel({
             },
             {
               id: "incoming",
+              badge: lists.incoming.length ? (
+                <span className="ml-2 inline-flex">
+                  <UnreadBadge
+                    count={lists.incoming.length}
+                    label="pending friend requests"
+                    singularLabel="pending friend request"
+                  />
+                </span>
+              ) : undefined,
               label: `Received requests · ${lists.incoming.length.toLocaleString("en-US")}`
             },
             {
@@ -548,6 +576,10 @@ export function FriendsPanel({
                 key={person.requestId ?? person.id}
                 person={person}
                 showPresence={tab === "friends"}
+                unreadCount={
+                  social?.messages.find(item => item.friendId === person.id)
+                    ?.count ?? 0
+                }
                 onMessage={
                   tab === "friends" ? () => setConversation(person) : undefined
                 }
