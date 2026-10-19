@@ -9,6 +9,8 @@ import {
 import { FriendsPanel, type FriendsPanelAdapter } from "@/components/friends";
 import { Button } from "@/components/ui";
 import type { TradesPanelAdapter } from "@/components/trades";
+import type { TradeOffer } from "@/lib/data/trades";
+import type { CollectedCard } from "@/lib/data/cards";
 import {
   PrivateMessagesError,
   isPrivateMessageGif,
@@ -27,6 +29,50 @@ const players = [
   }
 ];
 const storageKey = "yokkai:private-messages-preview:v1";
+const tradeStorageKey = "yokkai:conversation-trades-preview:v1";
+const sampleCard = (owner: string): CollectedCard => ({
+  id: `sample-card-${owner}`,
+  instanceId: `sample-copy-${owner}`,
+  name: `Sample card · ${players.find(player => player.id === owner)?.pseudo ?? "Player"}`,
+  category: "Anime/Manga",
+  anime: "Local preview",
+  rarity: "SSR",
+  image: "/assets/premium-examples/gojo-original.png",
+  catalogueImage: "/assets/premium-examples/gojo-original.png",
+  customImageUrl: null,
+  shiny: false,
+  isEvolved: false,
+  isFirstOwner: true,
+  folderId: null,
+  obtainedAt: "2026-10-19T00:00:00Z"
+});
+function readTrades(): TradeOffer[] {
+  return JSON.parse(localStorage.getItem(tradeStorageKey) ?? "[]");
+}
+function previewOffer(
+  from: string,
+  to: string,
+  offeredCards: CollectedCard[],
+  requestedCards: CollectedCard[],
+  offeredKaras: number,
+  requestedKaras: number
+): TradeOffer {
+  return {
+    id: crypto.randomUUID(),
+    fromUser: from,
+    toUser: to,
+    fromPseudo: players.find(player => player.id === from)!.pseudo,
+    toPseudo: players.find(player => player.id === to)!.pseudo,
+    incoming: false,
+    offeredCards,
+    requestedCards,
+    offeredKaras,
+    requestedKaras,
+    status: "pending",
+    parentOfferId: null,
+    createdAt: new Date().toISOString()
+  };
+}
 const order = (a: PrivateMessage, b: PrivateMessage) =>
   a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id);
 function readMessages(): PrivateMessage[] {
@@ -146,18 +192,74 @@ export function PrivateMessagesPreview() {
         incoming: [],
         outgoing: []
       }),
-      listOffers: async () => [],
+      listOffers: async () =>
+        readTrades()
+          .filter(
+            offer => offer.fromUser === playerId || offer.toUser === playerId
+          )
+          .map(offer => ({ ...offer, incoming: offer.toUser === playerId })),
       context: async friendId => ({
         friend: players.find(player => player.id === friendId)!,
         balance: 4499,
-        ownCards: [],
-        friendCards: []
+        ownCards: [sampleCard(playerId)],
+        friendCards: [sampleCard(friendId)]
       }),
-      create: async () => {
-        throw new Error("Local preview only. No real trade offer was sent.");
+      create: async input => {
+        if (
+          !players.some(player => player.id === input.toUser) ||
+          input.toUser === playerId
+        )
+          throw Error("Choose a friend.");
+        const offer = previewOffer(
+          playerId,
+          input.toUser,
+          input.offeredCardIds.length ? [sampleCard(playerId)] : [],
+          input.requestedCardIds.length ? [sampleCard(input.toUser)] : [],
+          input.offeredKaras,
+          input.requestedKaras
+        );
+        localStorage.setItem(
+          tradeStorageKey,
+          JSON.stringify([...readTrades(), offer])
+        );
+        return offer.id;
       },
-      cancel: async () => true,
-      respond: async () => true
+      cancel: async id => {
+        localStorage.setItem(
+          tradeStorageKey,
+          JSON.stringify(
+            readTrades().map(offer =>
+              offer.id === id &&
+              offer.fromUser === playerId &&
+              offer.status === "pending"
+                ? { ...offer, status: "cancelled" }
+                : offer
+            )
+          )
+        );
+        return true;
+      },
+      respond: async (id, action) => {
+        await new Promise(resolve => window.setTimeout(resolve, 180));
+        const offers = readTrades();
+        const offer = offers.find(item => item.id === id);
+        if (!offer || offer.toUser !== playerId || offer.status !== "pending")
+          throw Error("This offer is no longer pending.");
+        localStorage.setItem(
+          tradeStorageKey,
+          JSON.stringify(
+            offers.map(item =>
+              item.id === id
+                ? {
+                    ...item,
+                    status: action === "accept" ? "accepted" : "declined"
+                  }
+                : item
+            )
+          )
+        );
+        return true;
+      }
     }),
     [playerId]
   );
@@ -260,6 +362,42 @@ export function PrivateMessagesPreview() {
             </label>
             <Button variant="secondary" onClick={seed}>
               Add sample conversation
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                try {
+                  const friendId = players.find(
+                    player => player.id !== playerId
+                  )!.id;
+                  const incoming = previewOffer(
+                    friendId,
+                    playerId,
+                    [sampleCard(friendId)],
+                    [sampleCard(playerId)],
+                    125,
+                    50
+                  );
+                  const outgoing = previewOffer(
+                    playerId,
+                    friendId,
+                    [sampleCard(playerId)],
+                    [],
+                    0,
+                    75
+                  );
+                  localStorage.setItem(
+                    tradeStorageKey,
+                    JSON.stringify([...readTrades(), incoming, outgoing])
+                  );
+                  setVersion(value => value + 1);
+                  setError("");
+                } catch {
+                  setError("Couldn't save local test trades.");
+                }
+              }}
+            >
+              Add sample trades
             </Button>
             <label>
               <input

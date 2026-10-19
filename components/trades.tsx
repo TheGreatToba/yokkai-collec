@@ -567,7 +567,8 @@ export function TradesPanel({
   initialFriendId: requestedInitialFriendId,
   fixedFriendId,
   initialRequestedCardId,
-  initialOfferId
+  initialOfferId,
+  onOfferSent
 }: {
   adapter?: TradesPanelAdapter;
   pollIntervalMs?: number | null;
@@ -575,6 +576,7 @@ export function TradesPanel({
   fixedFriendId?: string;
   initialRequestedCardId?: string;
   initialOfferId?: string;
+  onOfferSent?: () => void;
 } = {}) {
   const initialFriendId = fixedFriendId ?? requestedInitialFriendId;
   const [friends, setFriends] = useState<FriendUser[]>([]);
@@ -916,6 +918,7 @@ export function TradesPanel({
       setSentNotice("Offer sent. You can now find it in this tab.");
       setTab("sent");
       if (fixedFriendId) await chooseFriend(fixedFriendId);
+      onOfferSent?.();
     } catch (e) {
       setError(
         e instanceof Error

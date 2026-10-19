@@ -16,7 +16,8 @@
   flex-shrink: 0;
 }
 .yk-private-messages-contact {
-  display: flex;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 12px;
   padding: 0 0 18px;
@@ -26,7 +27,7 @@
   min-width: 0;
 }
 .yk-private-messages-contact > .yk-button {
-  margin-left: auto;
+  margin-left: 0;
   flex-shrink: 0;
 }
 .yk-private-message-gif {
@@ -149,6 +150,102 @@
   flex-shrink: 0;
   text-decoration: underline;
 }
+.yk-conversation-trades-status {
+  color: var(--color-ink-3);
+  font-size: 11px;
+  margin-bottom: 12px;
+}
+.yk-conversation-trade {
+  width: min(100%, 510px);
+  margin: 0 0 16px;
+  padding: 16px;
+  border: 1px solid var(--color-veil-strong);
+  border-radius: 16px 16px 16px 4px;
+  background: var(--color-night);
+}
+.yk-conversation-trade.is-own {
+  margin-left: auto;
+  border-color: #8e7be352;
+  border-radius: 16px 16px 4px 16px;
+}
+.yk-conversation-trade header,
+.yk-conversation-trade footer,
+.yk-conversation-trade-confirm > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.yk-conversation-trade header {
+  justify-content: space-between;
+}
+.yk-conversation-trade > p,
+.yk-conversation-trade-confirm p {
+  margin: 8px 0 12px;
+  color: var(--color-ink-3);
+  font-size: 11px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.yk-conversation-trade-lots {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  margin-block: 14px;
+}
+.yk-conversation-trade-lot {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--color-veil);
+  border-radius: 10px;
+}
+.yk-conversation-trade-lot h4 {
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+.yk-conversation-trade-lot > p {
+  margin-bottom: 10px;
+  color: var(--color-ink-3);
+  font-size: 11px;
+}
+.yk-conversation-trade-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 75px), 1fr));
+  align-items: start;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.yk-conversation-trade-art {
+  max-width: 100px;
+  margin-bottom: 6px;
+}
+.yk-conversation-trade-cards strong,
+.yk-conversation-trade-cards small {
+  display: block;
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+.yk-conversation-trade-cards small {
+  color: var(--color-ink-3);
+}
+.yk-conversation-trade-confirm {
+  padding: 12px;
+  border: 1px solid var(--color-veil-strong);
+  border-radius: 10px;
+  font-size: 12px;
+}
+.yk-conversation-trade .yk-button {
+  min-height: 38px;
+  padding-inline: 12px;
+  font-size: 11px;
+}
+.yk-conversation-trade time {
+  display: block;
+  margin-top: 10px;
+  font-size: 10px;
+  color: var(--color-ink-3);
+  text-align: right;
+}
 .yk-private-messages-compose {
   padding-top: 16px;
   border-top: 1px solid var(--color-veil);
@@ -200,6 +297,18 @@
   font-size: 12px;
 }
 @media (max-width: 540px) {
+  .yk-conversation-trade-art {
+    max-width: 78px;
+  }
+  .yk-conversation-trade {
+    padding: 12px;
+  }
+  .yk-conversation-trade-lots {
+    gap: 8px;
+  }
+  .yk-conversation-trade-lot {
+    padding: 8px;
+  }
   .yk-modal.yk-private-messages-modal {
     padding: 16px;
   }

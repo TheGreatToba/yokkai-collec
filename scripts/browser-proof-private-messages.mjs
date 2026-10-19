@@ -3,6 +3,7 @@ import { spawn } from "node:child_process";
 import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { proveConversationTrades } from "./browser-proof-conversation-trades.mjs";
 
 const origin =
   process.env.PRIVATE_MESSAGES_PREVIEW_ORIGIN ?? "http://localhost:3002";
@@ -504,6 +505,7 @@ try {
     )
   );
   await click('.yk-private-messages-modal[open] button[aria-label="Close"]');
+  await proveConversationTrades({ run, send, evaluate, click, until, capture });
   assert.deepEqual(errors, []);
   assert.ok(
     rpcRequests.every(

@@ -11,6 +11,9 @@ import {
 import { Avatar, Button, Modal } from "@/components/ui";
 import { GifPicker, type GifChoice } from "@/components/gif-picker";
 import { TradesPanel, type TradesPanelAdapter } from "@/components/trades";
+import { ConversationTrade } from "@/components/conversation-trade";
+import { useConversationTrades } from "@/hooks/use-conversation-trades";
+import { conversationTimeline } from "@/lib/ui/conversation-trades";
 import { PlayerModeration } from "@/components/player-moderation";
 import type { ModerationAdapter } from "@/lib/data/moderation";
 import type { FriendUser } from "@/lib/data/friends";
@@ -66,6 +69,18 @@ export function PrivateMessages({
   const [sendError, setSendError] = useState("");
   const [unavailable, setUnavailable] = useState(false);
   const [retry, setRetry] = useState(0);
+  const [visibleTrades, setVisibleTrades] = useState(20);
+  const trades = useConversationTrades(
+    page?.viewerId,
+    friend.id,
+    !!page && !unavailable,
+    tradeAdapter
+  );
+  const timeline = conversationTimeline(
+    page?.items ?? [],
+    trades.offers,
+    visibleTrades
+  );
   const scroll = useRef<HTMLDivElement>(null);
   const composer = useRef<HTMLTextAreaElement>(null);
   const stickToBottom = useRef(true);
@@ -99,6 +114,7 @@ export function PrivateMessages({
           // remain reachable through the server cursor instead of leaving a gap.
           if (
             !current ||
+            current.viewerId !== fresh.viewerId ||
             (fresh.next &&
               current.items.length &&
               !fresh.items.some(message =>
@@ -170,7 +186,7 @@ export function PrivateMessages({
       scrollRestore.current = null;
     } else if (stickToBottom.current)
       viewport.scrollTop = viewport.scrollHeight;
-  }, [page]);
+  }, [page, trades.offers, visibleTrades]);
 
   async function older() {
     if (!page?.next || loadingOlder || unavailable) return;
@@ -319,7 +335,7 @@ export function PrivateMessages({
           role="log"
           aria-label="Conversation"
           aria-live="polite"
-          aria-relevant="additions"
+          aria-relevant="additions text"
           aria-busy={loading}
           onScroll={() => {
             const viewport = scroll.current;
@@ -342,22 +358,59 @@ export function PrivateMessages({
               </Button>
             </div>
           )}
+          {trades.offers.length > visibleTrades && (
+            <div className="yk-private-messages-older">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  const viewport = scroll.current;
+                  if (viewport)
+                    scrollRestore.current = {
+                      height: viewport.scrollHeight,
+                      top: viewport.scrollTop
+                    };
+                  setVisibleTrades(value => value + 20);
+                }}
+              >
+                Show older trades
+              </Button>
+            </div>
+          )}
           {loading ? (
             <p className="yk-private-messages-empty" role="status">
               Loading messages…
             </p>
-          ) : page && !page.items.length ? (
+          ) : page && !timeline.length ? (
             <div className="yk-private-messages-empty">
               <strong>Start a conversation</strong>
               <p>Say hello to {friend.pseudo}.</p>
             </div>
           ) : null}
-          {page?.items.map(message => {
+          {trades.loading && (
+            <p className="yk-conversation-trades-status" role="status">
+              Loading trade offers…
+            </p>
+          )}
+          {timeline.map(entry => {
+            if (!page) return null;
+            if (entry.kind === "trade")
+              return (
+                <ConversationTrade
+                  key={entry.id}
+                  offer={entry.offer}
+                  viewerId={page.viewerId}
+                  busy={!!trades.busyId || unavailable}
+                  onRespond={(id, action) => {
+                    void trades.respond(id, action);
+                  }}
+                />
+              );
+            const message = entry.message;
             const own = message.senderId === page.viewerId;
             return (
               <div
                 className={`yk-private-message${own ? " is-own" : ""}`}
-                key={message.id}
+                key={entry.id}
               >
                 {message.text && <p>{message.text}</p>}
                 {message.gifUrl && isPrivateMessageGif(message.gifUrl) && (
@@ -387,6 +440,18 @@ export function PrivateMessages({
             );
           })}
         </div>
+        {trades.error && !unavailable && (
+          <div className="yk-private-messages-error">
+            <p role="alert">{trades.error}</p>
+            <button
+              type="button"
+              disabled={!!trades.busyId}
+              onClick={() => void trades.retry()}
+            >
+              Retry trades
+            </button>
+          </div>
+        )}
         {(sendError || error) && (
           <div className="yk-private-messages-error">
             <p role="alert">{sendError || error}</p>
@@ -481,7 +546,15 @@ export function PrivateMessages({
               Local trade preview. No real offer is sent.
             </p>
           )}
-          <TradesPanel adapter={tradeAdapter} fixedFriendId={friend.id} />
+          <TradesPanel
+            adapter={tradeAdapter}
+            fixedFriendId={friend.id}
+            onOfferSent={() => {
+              setTrading(false);
+              stickToBottom.current = true;
+              void trades.refresh();
+            }}
+          />
         </Modal>
       )}
     </>
