@@ -513,7 +513,12 @@ export function Field({
   );
 }
 
-export type TabItem = { id: string; label: string; disabled?: boolean };
+export type TabItem = {
+  id: string;
+  label: string;
+  disabled?: boolean;
+  badge?: ReactNode;
+};
 export function Tabs({
   items,
   value,
@@ -538,6 +543,7 @@ export function Tabs({
           onClick={() => onChange(item.id)}
         >
           {item.label}
+          {item.badge}
         </button>
       ))}
     </div>

@@ -65,6 +65,28 @@
   background: rgba(167, 191, 255, 0.06);
   opacity: 1;
 }
+.yk-friends-nav-label {
+  position: relative;
+  display: inline-block;
+}
+.yk-friends-nav-badge {
+  position: absolute;
+  right: calc(100% - 5px);
+  bottom: calc(100% - 3px);
+  display: inline-flex;
+  min-width: 12px;
+  min-height: 10px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 1px 3px;
+  background: #dd4668;
+  color: #fff;
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+}
 .yk-primary-nav > [aria-current="page"] {
   color: #fff;
   opacity: 1;

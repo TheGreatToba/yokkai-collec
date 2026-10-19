@@ -12,6 +12,10 @@ import type { TradesPanelAdapter } from "@/components/trades";
 import type { TradeOffer } from "@/lib/data/trades";
 import type { CollectedCard } from "@/lib/data/cards";
 import {
+  invalidateSocialUnread,
+  type SocialUnreadAdapter
+} from "@/lib/data/social-unread";
+import {
   PrivateMessagesError,
   isPrivateMessageGif,
   type PrivateMessage,
@@ -30,6 +34,8 @@ const players = [
 ];
 const storageKey = "yokkai:private-messages-preview:v1";
 const tradeStorageKey = "yokkai:conversation-trades-preview:v1";
+const readStorageKey = "yokkai:message-reads-preview:v1";
+const requestStorageKey = "yokkai:friend-request-preview:v1";
 const sampleCard = (owner: string): CollectedCard => ({
   id: `sample-card-${owner}`,
   instanceId: `sample-copy-${owner}`,
@@ -94,6 +100,40 @@ export function PrivateMessagesPreview() {
   const [initialConversationId, setInitialConversationId] = useState<string>();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const read = useRef(new Set<string>());
+  const unread = useMemo<SocialUnreadAdapter>(
+    () => ({
+      load: async () => {
+        const acknowledged: string[] = JSON.parse(
+          localStorage.getItem(readStorageKey) ?? "[]"
+        );
+        const counts = new Map<string, number>();
+        for (const message of readMessages()) {
+          if (
+            message.recipientId === playerId &&
+            !acknowledged.includes(message.id)
+          )
+            counts.set(
+              message.senderId,
+              (counts.get(message.senderId) ?? 0) + 1
+            );
+        }
+        const messages = [...counts].map(([friendId, count]) => ({
+          friendId,
+          count
+        }));
+        return {
+          viewerId: playerId,
+          messages,
+          messageCount: messages.reduce((sum, item) => sum + item.count, 0),
+          requestCount: Number(
+            localStorage.getItem(`${requestStorageKey}:${playerId}`) ===
+              "pending"
+          )
+        };
+      }
+    }),
+    [playerId]
+  );
   const refreshNotifications = useCallback(() => {
     try {
       const latest = new Map<string, PrivateMessage>();
@@ -147,10 +187,38 @@ export function PrivateMessagesPreview() {
         const items = all.slice(-40);
         return {
           viewerId: playerId,
+          readThroughId:
+            items.filter(message => message.recipientId === playerId).at(-1)
+              ?.id ?? null,
           items,
           next:
             all.length > 40 ? { at: items[0].createdAt, id: items[0].id } : null
         };
+      },
+      markRead: async (friendId, lastMessageId) => {
+        const incoming = readMessages()
+          .filter(
+            message =>
+              message.senderId === friendId && message.recipientId === playerId
+          )
+          .sort(order);
+        const index = incoming.findIndex(
+          message => message.id === lastMessageId
+        );
+        if (index < 0) throw new Error("This message is no longer available.");
+        const previous: string[] = JSON.parse(
+          localStorage.getItem(readStorageKey) ?? "[]"
+        );
+        localStorage.setItem(
+          readStorageKey,
+          JSON.stringify([
+            ...new Set([
+              ...previous,
+              ...incoming.slice(0, index + 1).map(message => message.id)
+            ])
+          ])
+        );
+        invalidateSocialUnread();
       },
       send: async (friendId, text, id, gifUrl) => {
         await new Promise(resolve => window.setTimeout(resolve, 180));
@@ -180,6 +248,7 @@ export function PrivateMessagesPreview() {
           createdAt: new Date().toISOString()
         };
         localStorage.setItem(storageKey, JSON.stringify([...all, message]));
+        invalidateSocialUnread();
         return message;
       }
     }),
@@ -267,7 +336,16 @@ export function PrivateMessagesPreview() {
     () => ({
       friendships: async () => ({
         friends: players.filter(player => player.id !== playerId),
-        incoming: [],
+        incoming:
+          localStorage.getItem(`${requestStorageKey}:${playerId}`) === "pending"
+            ? [
+                {
+                  id: "preview-inviter",
+                  pseudo: "New collector",
+                  requestId: "preview-request"
+                }
+              ]
+            : [],
         outgoing: []
       }),
       search: async query =>
@@ -278,7 +356,10 @@ export function PrivateMessagesPreview() {
               player.pseudo.toLowerCase().includes(query.toLowerCase())
           )
           .map(player => ({ ...player, status: "accepted" as const })),
-      respond: async () => undefined,
+      respond: async () => {
+        localStorage.removeItem(`${requestStorageKey}:${playerId}`);
+        invalidateSocialUnread();
+      },
       remove: async () => undefined,
       moderation: {
         list: async () => [],
@@ -287,9 +368,10 @@ export function PrivateMessagesPreview() {
         report: async () => undefined
       },
       messages,
+      unread,
       trades
     }),
-    [playerId, messages, trades]
+    [playerId, messages, trades, unread]
   );
 
   function seed() {
@@ -311,6 +393,7 @@ export function PrivateMessagesPreview() {
         JSON.stringify([...readMessages(), ...seeded])
       );
       setVersion(value => value + 1);
+      invalidateSocialUnread();
       setError("");
     } catch {
       setError("Couldn't save the local test messages.");
@@ -323,6 +406,7 @@ export function PrivateMessagesPreview() {
         name={players.find(player => player.id === playerId)?.pseudo}
         karas={4499}
         notifications={notifications}
+        socialUnread={unread}
         onRefreshNotifications={refreshNotifications}
         onReadAll={() => {
           for (const item of notifications) read.current.add(item.id);
@@ -362,6 +446,19 @@ export function PrivateMessagesPreview() {
             </label>
             <Button variant="secondary" onClick={seed}>
               Add sample conversation
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                localStorage.setItem(
+                  `${requestStorageKey}:${playerId}`,
+                  "pending"
+                );
+                invalidateSocialUnread();
+                setVersion(value => value + 1);
+              }}
+            >
+              Add sample friend request
             </Button>
             <Button
               variant="secondary"
