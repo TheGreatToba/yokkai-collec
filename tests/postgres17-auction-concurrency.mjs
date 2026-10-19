@@ -662,3 +662,353 @@ for (const [owner, cap, paid] of [
 console.log(
   "Membership auction caps: concurrent listings remain at Basic 3 / Pro 6; expiry preserves sales but blocks new over-limit listings"
 );
+
+// BIZ-07: hold the first successful RPC open, then prove that another real
+// authenticated session overlaps before committing it. No scheduling sleeps.
+async function heldRpcOverlap(player, sql) {
+  const first =
+    session(`set statement_timeout='12s'; begin; set local role authenticated;
+    select set_config('request.jwt.claim.sub','${player}',true);
+    ${sql}; select 'BIZ_READY';`);
+  const firstOutcome = Promise.allSettled([first.done]);
+  let second, secondOutcome;
+  try {
+    await until(
+      () => first.output().includes("BIZ_READY"),
+      "first BIZ RPC completed before commit"
+    );
+    second =
+      session(`set application_name='ci-biz-second'; set statement_timeout='12s';
+      begin; set local role authenticated;
+      select set_config('request.jwt.claim.sub','${player}',true); ${sql}; commit;`);
+    second.child.stdin.end();
+    secondOutcome = Promise.allSettled([second.done]);
+    await until(
+      async () =>
+        (await query(
+          "select count(*) from pg_stat_activity where application_name='ci-biz-second' and wait_event_type='Lock';"
+        )) === "1",
+      "second BIZ RPC overlaps the uncommitted first RPC"
+    );
+  } finally {
+    first.child.stdin.end("commit;\n");
+    await firstOutcome;
+  }
+  const [one] = await firstOutcome;
+  const [two] = await secondOutcome;
+  assert.equal(one.status, "fulfilled", "first BIZ RPC commits");
+  return [one, two];
+}
+
+async function bizPlayers() {
+  const players = JSON.parse(
+    await query("select json_build_array(gen_random_uuid(),gen_random_uuid());")
+  );
+  for (const id of players) {
+    await query(`insert into auth.users(id,raw_user_meta_data)
+      values('${id}',jsonb_build_object('pseudo','Biz'||left('${id}',8)));
+      update public.user_profiles set karas_balance=1000,
+        next_regular_pack_at=clock_timestamp()-interval '1 second',
+        next_decision_pack_at=clock_timestamp()-interval '1 second' where user_id='${id}';
+      select public.ensure_achievement_stats('${id}');`);
+  }
+  return players;
+}
+await query(`insert into public.cards(source_id,nom,categorie,franchise,rarete_base,image_url,source)
+  select 'biz-'||r,'Concurrency card','Anime','Concurrency',r::public.card_rarity,'https://example.test/card.png','test'
+  from unnest(array['C','R','SR','SSR','LR']) r;`);
+
+function singleWinner(results, error) {
+  assert.equal(
+    results.filter(r => r.status === "fulfilled").length,
+    1,
+    "exactly one RPC commits"
+  );
+  assert.match(
+    results.find(r => r.status === "rejected").reason.message,
+    error,
+    "second RPC must return the domain refusal"
+  );
+}
+async function regularPackOverlap() {
+  const [player] = await bizPlayers();
+  const results = await heldRpcOverlap(
+    player,
+    "select public.open_regular_pack()"
+  );
+  singleWinner(results, /PACK_NOT_READY/);
+  const state = JSON.parse(
+    await query(`select json_build_object(
+    'cards',(select count(*) from public.user_cards where user_id='${player}'),
+    'opened',(select regular_packs_opened from public.user_achievement_stats where user_id='${player}'),
+    'cooldown',(select next_regular_pack_at>clock_timestamp() from public.user_profiles where user_id='${player}'));`)
+  );
+  assert.deepEqual(state, { cards: 5, opened: 1, cooldown: true });
+}
+async function decisionPackOverlap() {
+  const [player] = await bizPlayers();
+  const results = await heldRpcOverlap(
+    player,
+    "select public.open_decision_pack()"
+  );
+  assert.ok(
+    results.every(r => r.status === "fulfilled"),
+    "both opens return the same pending pack"
+  );
+  // First output has an extra READY line, but both contain the exact JSON result.
+  const cards = results.map(r =>
+    JSON.parse(r.value.split("\n").find(line => line.startsWith("[")))
+  );
+  assert.equal(cards[0].length, 5);
+  assert.deepEqual(cards[0], cards[1]);
+  const state = JSON.parse(
+    await query(`select json_build_object(
+    'packs',(select count(*) from public.decision_packs where user_id='${player}'),
+    'choices',(select count(*) from public.decision_pack_choices c join public.decision_packs p on p.id=c.pack_id where p.user_id='${player}'),
+    'cards',(select count(*) from public.user_cards where user_id='${player}'),
+    'cooldown',(select next_decision_pack_at>clock_timestamp() from public.user_profiles where user_id='${player}'));`)
+  );
+  assert.deepEqual(state, { packs: 1, choices: 5, cards: 0, cooldown: true });
+}
+async function doubleTradeOverlap() {
+  const [from, to] = await bizPlayers();
+  await query(
+    `insert into public.friendships(user_id,friend_id,status) values('${from}','${to}','accepted');`
+  );
+  const offer = (
+    await asPlayer(
+      from,
+      `select public.create_trade_offer('${to}','{}',100,'{}',30)`
+    )
+  )
+    .split("\n")
+    .at(-1);
+  const results = await heldRpcOverlap(
+    to,
+    `select public.respond_trade_offer('${offer}','accept')`
+  );
+  singleWinner(results, /TRADE_NOT_PENDING/);
+  const state = JSON.parse(
+    await query(`select json_build_object(
+    'balances',(select json_agg(karas_balance order by user_id='${to}') from public.user_profiles where user_id in ('${from}','${to}')),
+    'status',(select status from public.trade_offers where id='${offer}'),
+    'notifications',(select count(*) from public.notifications where reference_id='${offer}' and type='trade_offer_accepted'),
+    'completed',(select json_agg(trades_completed order by user_id='${to}') from public.user_achievement_stats where user_id in ('${from}','${to}')));`)
+  );
+  assert.deepEqual(state, {
+    balances: [930, 1070],
+    status: "accepted",
+    notifications: 1,
+    completed: [1, 1]
+  });
+}
+async function achievementOverlap() {
+  const [player] = await bizPlayers();
+  await query(`insert into public.user_achievements(user_id,achievement_id,completed_at)
+    values('${player}','premier-rituel',clock_timestamp())
+    on conflict(user_id,achievement_id) do update set completed_at=excluded.completed_at,claimed_at=null;`);
+  const reward = Number(
+    await query(
+      "select karas_reward from public.achievements where id='premier-rituel';"
+    )
+  );
+  const results = await heldRpcOverlap(
+    player,
+    "select public.claim_achievement('premier-rituel')"
+  );
+  singleWinner(results, /ACHIEVEMENT_ALREADY_CLAIMED/);
+  assert.equal(
+    Number(
+      await query(
+        `select karas_balance from public.user_profiles where user_id='${player}';`
+      )
+    ),
+    1000 + reward
+  );
+  assert.equal(
+    await query(
+      `select count(*) from public.user_achievements where user_id='${player}' and achievement_id='premier-rituel' and claimed_at is not null;`
+    ),
+    "1"
+  );
+}
+
+// Force both debits to overlap. Ordered profile locks serialize the safe RPC;
+// without them each transaction holds its sender row and deadlocks on its peer.
+await query(`create function public.ci_biz_pause_debit() returns trigger language plpgsql as $$
+  begin
+    if new.karas_balance<old.karas_balance then perform pg_advisory_xact_lock_shared(721935); end if;
+    return new;
+  end $$;
+  create trigger ci_biz_pause_debit before update of karas_balance on public.user_profiles
+    for each row execute function public.ci_biz_pause_debit();`);
+async function crossedTradeOverlap() {
+  const [from, to] = await bizPlayers();
+  await query(
+    `insert into public.friendships(user_id,friend_id,status) values('${from}','${to}','accepted');`
+  );
+  const copies = [];
+  for (const player of [from, to])
+    copies.push(
+      await query(`insert into public.user_cards(user_id,card_id,rarity)
+    select '${player}',id,'SR' from public.cards where source_id='biz-SR' returning id;`)
+    );
+  const offers = [];
+  offers.push(
+    (
+      await asPlayer(
+        from,
+        `select public.create_trade_offer('${to}',array['${copies[0]}']::uuid[],100,'{}',0)`
+      )
+    )
+      .split("\n")
+      .at(-1)
+  );
+  offers.push(
+    (
+      await asPlayer(
+        to,
+        `select public.create_trade_offer('${from}',array['${copies[1]}']::uuid[],40,'{}',0)`
+      )
+    )
+      .split("\n")
+      .at(-1)
+  );
+  const gate = session("select pg_advisory_lock(721935); select 'READY';");
+  const calls = [];
+  let outcomes;
+  try {
+    await until(
+      () => gate.output().includes("READY"),
+      "crossed trade coordinator"
+    );
+    for (const [i, player] of [to, from].entries()) {
+      const s =
+        session(`set application_name='ci-biz-cross-${i}'; set statement_timeout='12s';
+        begin; set local role authenticated; select set_config('request.jwt.claim.sub','${player}',true);
+        select public.respond_trade_offer('${offers[i]}','accept'); commit;`);
+      s.child.stdin.end();
+      calls.push(s.done);
+    }
+    outcomes = Promise.allSettled(calls);
+    await until(
+      async () =>
+        (await query(
+          "select count(*) from pg_stat_activity where application_name in ('ci-biz-cross-0','ci-biz-cross-1') and wait_event_type='Lock';"
+        )) === "2",
+      "both crossed trade sessions overlap on locks"
+    );
+  } finally {
+    gate.child.stdin.end("select pg_advisory_unlock(721935);\n");
+    await gate.done;
+  }
+  const results = await outcomes;
+  assert.deepEqual(
+    results.filter(r => r.status === "rejected").map(r => r.reason.message),
+    [],
+    "crossed trades must both commit without deadlock"
+  );
+  const state = JSON.parse(
+    await query(`select json_build_object(
+    'balances',json_build_array((select karas_balance from public.user_profiles where user_id='${from}'),(select karas_balance from public.user_profiles where user_id='${to}')),
+    'owners',json_build_array((select user_id from public.user_cards where id='${copies[0]}'),(select user_id from public.user_cards where id='${copies[1]}')),
+    'accepted',(select count(*) from public.trade_offers where id in ('${offers[0]}','${offers[1]}') and status='accepted'),
+    'notifications',(select count(*) from public.notifications where reference_id in ('${offers[0]}','${offers[1]}') and type='trade_offer_accepted'),
+    'completed',(select json_agg(trades_completed order by user_id) from public.user_achievement_stats where user_id in ('${from}','${to}')));`)
+  );
+  assert.deepEqual(state, {
+    balances: [940, 1060],
+    owners: [to, from],
+    accepted: 2,
+    notifications: 2,
+    completed: [2, 2]
+  });
+}
+
+// Counterproofs alter definitions ONLY in this disposable database. Every
+// scenario must reject a specific unsafe implementation and pass after restore.
+const orderedProfiles =
+  "perform 1 from public.user_profiles where user_id in (offer.from_user,offer.to_user) order by user_id for update;";
+for (const [name, signature, scenario, mutate] of [
+  [
+    "Regular Pack double open",
+    "open_regular_pack()",
+    regularPackOverlap,
+    sql =>
+      sql
+        .replace("perform public.billing_sync_pack_timing(player_id);", "")
+        .replace(
+          "where user_id=player_id for update;",
+          "where user_id=player_id;"
+        )
+  ],
+  [
+    "Decision Pack double open",
+    "open_decision_pack()",
+    decisionPackOverlap,
+    sql =>
+      sql
+        .replace("perform public.billing_sync_pack_timing(player_id);", "")
+        .replace(
+          "where user_id=player_id for update;",
+          "where user_id=player_id;"
+        )
+  ],
+  [
+    "Trade double accept",
+    "respond_trade_offer(uuid,text)",
+    doubleTradeOverlap,
+    sql =>
+      sql.replace("where id=p_offer_id for update;", "where id=p_offer_id;")
+  ],
+  [
+    "Crossed A/B trades",
+    "respond_trade_offer(uuid,text)",
+    crossedTradeOverlap,
+    sql => sql.replace(orderedProfiles, "")
+  ],
+  [
+    "Achievement double claim",
+    "claim_achievement(text)",
+    achievementOverlap,
+    sql =>
+      sql.replace(
+        "achievement_id=p_achievement_id for update;",
+        "achievement_id=p_achievement_id;"
+      )
+  ]
+]) {
+  const definition = await query(
+    `select pg_get_functiondef('public.${signature}'::regprocedure);`
+  );
+  const unsafe = mutate(definition);
+  assert.notEqual(
+    unsafe,
+    definition,
+    `${name}: counterproof must change the effective definition`
+  );
+  await query(unsafe);
+  try {
+    await assert.rejects(
+      scenario,
+      error => {
+        assert.equal(error.code, "ERR_ASSERTION");
+        assert.match(
+          error.message,
+          /exactly one RPC commits|second RPC must return the domain refusal|both opens return the same pending pack|crossed trades must both commit without deadlock/
+        );
+        console.log(
+          `BIZ-07 ${name} counterproof: ${error.message.split("\n")[0]}`
+        );
+        return true;
+      },
+      `${name}: unsafe implementation must fail the invariant`
+    );
+  } finally {
+    await query(definition);
+  }
+  await scenario();
+  console.log(
+    `BIZ-07 ${name}: unsafe counterproof rejected; restored RPC passes with two authenticated sessions`
+  );
+}
