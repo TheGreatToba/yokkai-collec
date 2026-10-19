@@ -1008,6 +1008,9 @@ export function Boosters({
   const [openingPhase, setOpeningPhase] = useState<"idle" | "tension" | "seal">(
     "idle"
   );
+  const [openingKind, setOpeningKind] = useState<"regular" | "decision">(
+    "regular"
+  );
   const [tearRequested, setTearRequested] = useState(false);
   const [waiting, setWaiting] = useState(false);
   const [showDraw, setShowDraw] = useState(false);
@@ -1056,6 +1059,7 @@ export function Boosters({
     if (openingLock.current) return;
     openingTrigger.current = trigger ?? (document.activeElement instanceof HTMLElement && document.activeElement.tabIndex >= 0 ? document.activeElement : null);
     openingLock.current = true;
+    setOpeningKind(kind);
     setPriorCopies(packCopySnapshot(collection, collectionReady));
     const reducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
@@ -1170,7 +1174,7 @@ export function Boosters({
       {opening ? (
         <div
           ref={openingStage}
-          className={`yk-opening-stage yk-opening-${openingPhase}`}
+          className={`yk-opening-stage yk-opening-${openingPhase} yk-opening-kind-${openingKind}`}
           role="button" tabIndex={0}
           aria-label={
             openingPhase === "seal"
