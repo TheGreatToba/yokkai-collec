@@ -1,5 +1,4 @@
 "use client";
-
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -55,7 +54,7 @@ import { TradesPanel } from "@/components/trades";
 import { type ModerationAdapter } from "@/lib/data/moderation";
 import { PlayerModeration } from "@/components/player-moderation";
 import { FriendsPanel } from "@/components/friends";
-import { ProfileExperience } from "@/components/profile";
+import dynamic from "next/dynamic";
 import {
   getCardDiscovery as liveGetCardDiscovery,
   getWishlist,
@@ -67,6 +66,11 @@ import {
 import { markNotificationRead } from "@/lib/data/notifications";
 import { useNotificationFeed } from "@/hooks/use-notification-feed";
 import { matchesCardSearch } from "@/lib/ui/card-search";
+
+const ProfileExperience = dynamic(
+  () => import("@/components/profile").then(module => module.ProfileExperience),
+  { loading: () => <p role="status">Loading profile…</p> }
+);
 
 export type CommunityScreen =
   | "profile"

@@ -12,7 +12,7 @@ import type {
   PackStatus,
   Rarity
 } from "@/lib/data/cards";
-import { CollectionView } from "@/components/collection";
+import dynamic from "next/dynamic";
 import { CardShareButton } from "@/components/card-sharing";
 import {
   Button,
@@ -25,6 +25,11 @@ import { CardBack, YokaiCard } from "@/components/yokai-card";
 import type { SfxName } from "@/hooks/use-sfx";
 import { animation } from "@/lib/ui/animations";
 import { runPackOpeningSequence } from "@/lib/ui/pack-opening";
+
+const CollectionView = dynamic(
+  () => import("@/components/collection").then(module => module.CollectionView),
+  { loading: () => <p role="status">Loading collection…</p> }
+);
 
 export type RevealCard = Card & {
   instanceId: string;
