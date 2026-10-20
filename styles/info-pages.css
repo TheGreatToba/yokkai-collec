@@ -10,6 +10,22 @@
     ),
     var(--color-night);
 }
+.yk-info-page[data-tone="navy"] {
+  --color-night: #060913;
+  --color-void: #050810;
+  --color-surface: #080d18;
+  --color-veil: #111d30;
+  --color-veil-strong: #22324c;
+  --color-focus-ring: #bccdff;
+  background: var(--color-night);
+}
+.yk-info-page[data-tone="navy"] .yk-info-brand img {
+  filter: drop-shadow(0 0 8px rgba(151, 190, 255, 0.18));
+}
+.yk-info-page[data-tone="navy"] .yk-terms-draft {
+  border-color: var(--color-veil);
+  background: var(--color-surface);
+}
 .yk-info-header {
   display: flex;
   width: min(1120px, calc(100% - 48px));
