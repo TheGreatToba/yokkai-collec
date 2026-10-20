@@ -9,7 +9,7 @@
   gap: 16px;
 }
 .yk-home-hero {
-  --font-heading: var(--font-cinzel), serif;
+  --font-heading: var(--font-display);
   position: relative;
   overflow: hidden;
   display: grid;
@@ -21,7 +21,8 @@
   z-index: 1;
 }
 .yk-home-hero h1 {
-  font-family: var(--font-cinzel), serif;
+  font-family: var(--font-display);
+  font-weight: 700;
   font-size: clamp(28px, 3.3vw, 44px);
   line-height: 1.18;
   letter-spacing: -0.035em;
@@ -30,6 +31,7 @@
 .yk-home-hero h1 em {
   color: var(--color-accent-gold);
   font-weight: inherit;
+  font-style: normal;
 }
 .yk-home-hero-copy > p:not(.eyebrow) {
   color: var(--color-ink-2);
@@ -242,7 +244,8 @@
   color: #a6adff;
 }
 .yk-home-discord h2 {
-  font-family: var(--font-cinzel), serif;
+  font-family: var(--font-display);
+  font-weight: 700;
   font-size: 22px;
   margin-block: 8px;
 }
@@ -482,7 +485,8 @@
   background: linear-gradient(120deg, #c8a65018, #c8a65005);
 }
 .yk-home-referral h2 {
-  font-family: var(--font-cinzel), serif;
+  font-family: var(--font-display);
+  font-weight: 700;
   font-size: 22px;
   margin-block: 8px;
 }
