@@ -29,7 +29,7 @@ test("le fond reste stable sur mobile et avec les animations réduites", () => {
   assert.match(globals, /background-attachment:\s*scroll/);
 });
 
-test("the boosters route uses its own blue and violet art direction", () => {
+test("the boosters route uses the backdrop matching its approved UI palette", () => {
   const globals = readFileSync(path.join(root, "styles/ui.css"), "utf8");
   const boosters = readFileSync(path.join(root, "styles/boosters.css"), "utf8");
   const layout = readFileSync(
@@ -45,7 +45,13 @@ test("the boosters route uses its own blue and violet art direction", () => {
   assert.match(layout, /className="yk-boosters-page"/);
   assert.match(boosters, /\.yk-boosters-page\s*\{/);
   assert.match(boosters, /rgba\(36, 52, 110, 0\.22\)/);
-  assert.match(boosters, /rgba\(64, 34, 98, 0\.16\)/);
+  const tokens = readFileSync(path.join(root, "tailwind.config.ts"), "utf8");
+  assert.match(
+    boosters,
+    tokens.includes('"pack-accent": "#bccdff"')
+      ? /rgba\(34, 55, 98, 0\.16\)/
+      : /rgba\(64, 34, 98, 0\.16\)/
+  );
   assert.match(
     boosters,
     /linear-gradient\(180deg, #08090f 0%, #05060a 35%, #040509 100%\)/
