@@ -1,0 +1,345 @@
+.yk-home-main {
+  width: 100%;
+  max-width: 1248px;
+  margin-inline: auto;
+  padding: 24px 20px 64px;
+  color: var(--color-ink);
+}
+.yk-home-motion-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--color-ink-2);
+  margin-block: 16px;
+  cursor: pointer;
+}
+.yk-home-motion-control input {
+  accent-color: var(--color-accent-gold);
+  width: 16px;
+  height: 16px;
+}
+.yk-home-hero:has(input:checked) .yk-home-ribbon,
+.yk-home-big:has(input:checked) .yk-home-big-track,
+.yk-home-big-window:focus-within .yk-home-big-track {
+  animation: none;
+}
+.yk-home-hero {
+  --font-heading: var(--font-cinzel), serif;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: grid;
+  border: 1px solid var(--color-veil);
+  border-radius: 24px;
+  background:
+    radial-gradient(ellipse at 100% 10%, #a27bf31c, transparent 65%),
+    var(--color-surface);
+}
+.yk-home-hero-copy {
+  padding: 32px 24px;
+  z-index: 1;
+}
+.yk-home-hero h1 {
+  font-family: var(--font-cinzel), serif;
+  font-size: clamp(28px, 4.2vw, 52px);
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+  margin-block: 16px 20px;
+}
+.yk-home-hero h1 em {
+  color: var(--color-accent-gold);
+  font-weight: inherit;
+}
+.yk-home-hero-copy > p:not(.eyebrow) {
+  color: var(--color-ink-2);
+  font-size: 13px;
+  line-height: 1.9;
+  margin-bottom: 24px;
+}
+.yk-home-ribbon-window {
+  overflow: hidden;
+  align-self: center;
+  padding-block: 12px 28px;
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    black 10%,
+    black 90%,
+    transparent
+  );
+}
+.yk-home-ribbon,
+.yk-home-ribbon-set {
+  display: flex;
+  gap: 14px;
+  width: max-content;
+}
+.yk-home-ribbon {
+  animation: home-marquee 65s linear infinite;
+}
+.yk-home-display-card {
+  width: 130px;
+  flex: 0 0 auto;
+  transform: rotate(-7deg);
+}
+.yk-home-display-card:nth-child(even) {
+  transform: rotate(7deg) translateY(12px);
+}
+.yk-home-panel {
+  min-width: 0;
+  margin-top: 28px;
+  padding: 24px 0;
+  border-top: 1px solid var(--color-veil);
+}
+.yk-home-panel-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.yk-home-panel h2,
+.yk-home-discord h2 {
+  font-family: var(--font-cinzel), serif;
+  font-weight: 600;
+  font-size: clamp(19px, 2.5vw, 25px);
+}
+.yk-home-panel-heading > a {
+  font-size: 12px;
+  color: var(--color-ink-2);
+  text-align: right;
+}
+.yk-home-pack-content {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px;
+  border: 1px solid var(--color-accent-gold);
+  border-radius: 16px;
+  background: linear-gradient(110deg, #caab5c12, transparent);
+}
+.yk-home-pack-content h3 {
+  font-size: 22px;
+  font-weight: 600;
+  margin-block: 8px;
+}
+.yk-home-pack-content p:not(.eyebrow) {
+  color: var(--color-ink-2);
+  font-size: 13px;
+}
+.yk-home-clock {
+  margin-top: 8px;
+}
+.yk-home-clock span {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-accent-gold);
+}
+.yk-home-card-grid,
+.yk-home-market-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 14px;
+}
+.yk-home-card-button {
+  cursor: pointer;
+  width: 100%;
+  border-radius: 12px;
+  text-align: left;
+  transition: transform 0.2s;
+}
+.yk-home-card-button:hover {
+  transform: translateY(-4px);
+}
+.yk-home-main a:focus-visible,
+.yk-home-main button:focus-visible,
+.yk-home-big-window:focus-visible {
+  outline: 2px solid var(--color-accent-gold);
+  outline-offset: 5px;
+}
+.yk-home-empty {
+  padding: 28px 0;
+  color: var(--color-ink-2);
+  font-size: 14px;
+}
+.yk-home-empty a {
+  text-decoration: underline;
+}
+.yk-home-big-window {
+  overflow-x: auto;
+  border-radius: 16px;
+  background: var(--color-surface);
+}
+.yk-home-big-track,
+.yk-home-big-set {
+  display: flex;
+  gap: 20px;
+  width: max-content;
+}
+.yk-home-big-track {
+  animation: home-marquee 100s linear infinite;
+  padding-block: 20px;
+}
+.yk-home-big-window:hover .yk-home-big-track,
+.yk-home-big-window:focus-within .yk-home-big-track {
+  animation-play-state: paused;
+}
+.yk-home-big-pull {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 290px;
+  padding-inline: 12px;
+}
+.yk-home-big-pull > .yk-card {
+  flex: 0 0 92px;
+}
+.yk-home-big-pull h3 {
+  font-size: 13px;
+  font-weight: 600;
+  margin-block: 8px;
+}
+.yk-home-big-pull a {
+  font-size: 12px;
+  color: var(--color-accent-gold);
+}
+.yk-home-big-pull time {
+  display: block;
+  font-size: 11px;
+  margin-top: 6px;
+  color: var(--color-ink-3);
+}
+.yk-home-auction {
+  min-width: 0;
+}
+.yk-home-auction h3 {
+  font-size: 12px;
+  font-weight: 600;
+  margin-block: 12px 6px;
+}
+.yk-home-auction > span[role="timer"] {
+  display: block;
+  color: var(--color-ink-2);
+  font-size: 12px;
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.yk-home-discord {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-top: 24px;
+  padding: 28px;
+  border: 1px solid #5865f266;
+  border-radius: 18px;
+  background: linear-gradient(120deg, #5865f222, #5865f208);
+}
+.yk-home-discord .eyebrow {
+  color: #a6adff;
+}
+.yk-home-discord h2 {
+  margin-block: 10px;
+}
+.yk-home-discord p:not(.eyebrow) {
+  color: var(--color-ink-2);
+  font-size: 13px;
+  line-height: 1.8;
+}
+.yk-home-discord .yk-button {
+  background: #5865f2;
+  border-color: #5865f2;
+  color: white;
+}
+.yk-home-guides {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+}
+.yk-home-guides a {
+  border: 1px solid var(--color-veil);
+  border-radius: 14px;
+  padding: 22px;
+  background: var(--color-surface);
+}
+.yk-home-guides h3 {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 14px;
+}
+.yk-home-guides p {
+  color: var(--color-ink-2);
+  font-size: 12px;
+  line-height: 1.8;
+  margin-top: 10px;
+}
+.yk-home-skeleton {
+  display: flex;
+  gap: 16px;
+  min-height: 160px;
+}
+.yk-home-skeleton > div {
+  flex: 1;
+  border-radius: 14px;
+  background: var(--color-veil);
+  animation: home-pulse 1.5s ease-in-out infinite alternate;
+}
+@keyframes home-marquee {
+  to {
+    transform: translateX(calc(-50% - 7px));
+  }
+}
+@keyframes home-pulse {
+  to {
+    opacity: 0.45;
+  }
+}
+@media (min-width: 640px) {
+  .yk-home-main {
+    padding: 36px 32px 72px;
+  }
+  .yk-home-card-grid,
+  .yk-home-market-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .yk-home-guides {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (min-width: 960px) {
+  .yk-home-hero {
+    grid-template-columns: 1.1fr 1fr;
+    min-height: 470px;
+  }
+  .yk-home-hero-copy {
+    padding: 48px 40px;
+  }
+  .yk-home-ribbon-window {
+    min-width: 0;
+  }
+  .yk-home-display-card {
+    width: 190px;
+  }
+  .yk-home-card-grid,
+  .yk-home-market-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 20px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .yk-home-ribbon,
+  .yk-home-big-track,
+  .yk-home-skeleton > div {
+    animation: none;
+  }
+  .yk-home-big-set[aria-hidden="true"] {
+    display: none;
+  }
+  .yk-home-card-button {
+    transition: none;
+  }
+}

@@ -405,8 +405,7 @@ export async function openBooster(): Promise<CollectedCard[]> {
     return valued.map((card, index) => ({ ...card, anime: franchised[index].anime })).sort((a, b) => rank[a.rarity] - rank[b.rarity]);
   } finally {
     // The server may have committed even if the response was lost.
-    cache.delete(`collection:${id}`);
-    collectionPages.delete(id);
+    invalidatePlayerSnapshots(["collection"]);
   }
 }
 
@@ -442,9 +441,7 @@ export async function keepDecisionPackCard(choiceId: string): Promise<DecisionPa
     return (await withLiveCardFranchises([data as DecisionPackChoice]))[0];
   } finally {
     // The automatically discarded Decision cards credit Karas too.
-    cache.delete(`collection:${id}`);
-    collectionPages.delete(id);
-    cache.delete(`info:${id}`);
+    invalidatePlayerSnapshots(["collection", "balance"]);
   }
 }
 

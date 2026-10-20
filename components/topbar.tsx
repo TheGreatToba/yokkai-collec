@@ -194,6 +194,7 @@ export function Topbar({
   onOpenNotification
 }: {
   view:
+    | "home"
     | "packs"
     | "collection"
     | "profile"
@@ -319,6 +320,9 @@ export function Topbar({
           aria-label="Main navigation"
           className="yk-primary-nav"
         >
+          <Link href="/" aria-current={view === "home" ? "page" : undefined}>
+            Home
+          </Link>
           <Link
             href="/boosters"
             aria-current={view === "packs" ? "page" : undefined}
