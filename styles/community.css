@@ -124,7 +124,7 @@
 }
 .yk-profile-banner-label strong {
   overflow: hidden;
-  font-family: var(--font-cinzel);
+  font-family: var(--font-display);
   font-size: 17px;
   text-overflow: ellipsis;
   white-space: nowrap;

@@ -40,11 +40,11 @@ const noto = Noto_Serif_JP({
   display: "swap",
   preload: false
 });
-const hyWenHei = localFont({
-  src: "./fonts/hywenhei-85w/HYWenHei-85W.ttf",
-  weight: "700",
+const inter = localFont({
+  src: "./fonts/inter/InterVariable.ttf",
+  weight: "100 900",
   style: "normal",
-  variable: "--font-hy-wen-hei",
+  variable: "--font-inter",
   display: "swap"
 });
 
@@ -73,7 +73,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`h-full antialiased ${cinzel.variable} ${sora.variable} ${noto.variable} ${hyWenHei.variable}`}
+      className={`h-full antialiased ${cinzel.variable} ${sora.variable} ${noto.variable} ${inter.variable}`}
     >
       <head>
         {process.env.NEXT_PUBLIC_SUPABASE_URL && (
