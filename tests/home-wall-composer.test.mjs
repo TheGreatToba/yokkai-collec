@@ -89,3 +89,11 @@ test("Home obtains its own identity through the existing RPC rather than widenin
   assert.match(home, /profile.data\?\.id === userId/);
   assert.doesNotMatch(home, /\.from\("user_profiles"\)/);
 });
+
+test("the shared Home/profile wall textarea cannot be manually resized and keeps long drafts scrollable", () => {
+  const css = readFileSync("styles/profile.css", "utf8");
+  const rule = css.match(/\.yk-wall-composer textarea\s*\{([^}]+)\}/)?.[1];
+  assert.ok(rule, "Shared composer rule must exist");
+  assert.match(rule, /resize:\s*none/);
+  assert.match(rule, /overflow-y:\s*auto/);
+});
