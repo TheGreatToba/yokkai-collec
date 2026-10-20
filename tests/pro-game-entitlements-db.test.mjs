@@ -63,6 +63,7 @@ test("paid server state activates actual game limits, never client flags; expiry
   ])
     await assert.rejects(db.query(sql), /permission denied/);
   assert.equal((await status()).refillSeconds, 600);
+  assert.equal((await status()).maximum, 5);
   await admin();
   await db.query(
     "update public.user_profiles set next_regular_pack_at=clock_timestamp()+interval '10 minutes',next_decision_pack_at=clock_timestamp()+interval '24 hours' where user_id=$1",
@@ -97,6 +98,15 @@ test("paid server state activates actual game limits, never client flags; expiry
     0,
     "upgrade preserves progress rather than minting a reserve"
   );
+  assert.equal((await status()).maximum, 10);
+  await admin();
+  await db.query(
+    "update public.user_profiles set next_regular_pack_at=clock_timestamp()-interval '45 minutes' where user_id=$1",
+    [owner]
+  );
+  const fullProReserve = await status();
+  assert.equal(fullProReserve.reserve, 10);
+  assert.equal(fullProReserve.maximum, 10);
   await admin();
   await db.query(
     "update public.user_profiles set next_regular_pack_at=clock_timestamp(),next_decision_pack_at=clock_timestamp() where user_id=$1",
@@ -140,6 +150,7 @@ test("paid server state activates actual game limits, never client flags; expiry
   );
   assert.equal(await eligible(), false);
   assert.equal((await status()).refillSeconds, 600);
+  assert.equal((await status()).maximum, 5);
   await login(owner);
   await assert.rejects(
     db.query("select public.create_auction($1,10,60)", [copies[6]]),

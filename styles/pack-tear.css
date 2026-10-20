@@ -12,6 +12,10 @@
   background: #05061c url("/assets/regular-opening-nebula.webp") center / cover
     no-repeat;
 }
+.yk-opening-stage.yk-opening-kind-decision:has(.yk-pack-tear) {
+  background: #080308 url("/assets/decision-opening-nebula.webp") center / cover
+    no-repeat;
+}
 .yk-opening-stage .yk-pack-tear {
   position: relative;
   isolation: isolate;
