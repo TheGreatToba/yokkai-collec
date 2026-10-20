@@ -5,6 +5,7 @@
   width: min(100%, 1360px);
   min-width: 0;
   overflow: clip;
+  contain: paint;
   min-height: 100dvh;
   margin-inline: auto;
   flex-direction: column;
