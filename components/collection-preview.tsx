@@ -1,5 +1,5 @@
 "use client";
-
+import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { CollectionView } from "@/components/collection";
 import type { CollectedCard, Folder } from "@/lib/data/cards";
@@ -16,9 +16,11 @@ const record = (entry: string) => {
 };
 
 export function CollectionPreviewClient({
-  cards: initialCards
+  cards: initialCards,
+  pageHeading
 }: {
   cards: CollectedCard[];
+  pageHeading?: ReactNode;
 }) {
   const [cards, setCards] = useState(initialCards);
   const [folders, setFolders] = useState<Folder[]>([
@@ -71,6 +73,7 @@ export function CollectionPreviewClient({
     );
   return (
     <CollectionView
+      pageHeading={pageHeading}
       cards={cards}
       presentation={{
         "preview-evolve-2": {

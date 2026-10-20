@@ -32,7 +32,8 @@
   align-items: center;
   gap: var(--layout-gutter);
 }
-.yk-market-heading .yk-market-toolbar-band {
+.yk-market-heading .yk-market-toolbar-band,
+.yk-market-heading .yk-collection-toolbar {
   min-width: 0;
   margin-bottom: 0;
 }
