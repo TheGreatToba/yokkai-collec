@@ -8,6 +8,12 @@ qu'il prévenait Walid pour la validation des adaptations de tests.
 
 Cette PR ne change aucun code de production :
 
+- Le contrat de palette prépare aussi le bleu **plus foncé** demandé ensuite par
+  le propriétaire : boutons `#0d1728`, `#080f1c`, `#101b2e`. La sélection de l'accent
+  verrouille toujours une famille complète de tokens ; aucun contrôle de rareté,
+  de lisibilité ou d'image n'est supprimé. Changement produit validé avec le lot
+  couleurs par le propriétaire, avec confirmation de Walid.
+
 - Le formulaire valide des scénarios Auth existants inclut désormais le champ
   d'acceptation attendu par le prochain contrôle serveur.
 - Les exemples de pseudos valides remplacent les emojis par des lettres Unicode :
