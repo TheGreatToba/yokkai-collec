@@ -36,7 +36,7 @@ const form = (values = {}) => {
     email: "joueur@example.com",
     password: "  secret123  ",
     pseudo: "  Yokkai  ",
-    acceptedPolicies: "2026-10-20-draft",
+    acceptedPolicies: "2026-10-20",
     ...values
   })) {
     data.set(key, value);

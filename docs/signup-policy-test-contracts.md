@@ -20,8 +20,9 @@ Cette PR ne change aucun code de production :
 - Aucune assertion sur les erreurs, mots de passe, sessions, Captcha, disponibilité
   du pseudo ou confidentialité n'est retirée ni assouplie.
 
-La version `2026-10-20-draft` est une version de prévisualisation, pas des conditions
-publiées. La mise en ligne reste suspendue à la revue juridique des conditions.
+La version publiée prévue est `2026-10-20`. Le propriétaire a fourni le nom
+d'éditeur « Yokkai Collec » et demande la publication sans mentions de brouillon.
+La validation de Walid des changements de tests est confirmée par le propriétaire.
 
 Ordre de revue : valider/fusionner ce contrat de tests, puis mettre à jour la PR
 applicative depuis master et relancer sa CI. Aucun merge sans CI GitHub verte.
