@@ -4,7 +4,7 @@ import vm from "node:vm";
 import test from "node:test";
 import ts from "typescript";
 
-test("wheel scrolls the strip and releases the page at either end", () => {
+test("wheel loops in both directions without moving the page", () => {
   const loaded = { exports: {} };
   vm.runInNewContext(
     ts.transpileModule(readFileSync("lib/ui/horizontal-wheel.ts", "utf8"), {
@@ -43,16 +43,94 @@ test("wheel scrolls the strip and releases the page at either end", () => {
     });
     return prevented;
   };
-  assert.equal(wheel(-10), false);
+  assert.equal(wheel(-10), true);
+  assert.equal(element.scrollLeft, 800);
+  assert.equal(wheel(10), true);
+  assert.equal(element.scrollLeft, 0);
   assert.equal(wheel(120), true);
   assert.equal(element.scrollLeft, 120);
   assert.equal(wheel(2, { deltaMode: 1 }), true);
   assert.equal(element.scrollLeft, 152);
   assert.equal(wheel(100, { ctrlKey: true }), false);
-  assert.equal(wheel(2, { deltaX: 30 }), false);
+  assert.equal(wheel(2, { deltaX: 30 }), true);
+  assert.equal(element.scrollLeft, 182);
   assert.equal(wheel(10000), true);
   assert.equal(element.scrollLeft, 800);
+  assert.equal(wheel(120), true);
+  assert.equal(element.scrollLeft, 0);
+  assert.equal(wheel(-120), true);
+  assert.equal(element.scrollLeft, 800);
+  element.scrollWidth = element.clientWidth;
   assert.equal(wheel(120), false);
+  assert.equal(wheel(0), false);
   cleanup();
   assert.equal(listener, null);
+});
+
+test("automatic scrolling yields to interaction, reduced motion and hidden tabs", () => {
+  const loaded = { exports: {} };
+  let tick,
+    cleared = false,
+    now = 0;
+  const motion = { matches: false },
+    document = { hidden: false };
+  const listeners = new Map();
+  vm.runInNewContext(
+    ts.transpileModule(readFileSync("lib/ui/horizontal-wheel.ts", "utf8"), {
+      compilerOptions: { module: ts.ModuleKind.CommonJS }
+    }).outputText,
+    {
+      exports: loaded.exports,
+      document,
+      Date: { now: () => now },
+      window: {
+        matchMedia: () => motion,
+        setInterval: fn => {
+          tick = fn;
+          return 1;
+        },
+        clearInterval: () => {
+          cleared = true;
+        }
+      }
+    }
+  );
+  let hovered = false;
+  const element = {
+    scrollLeft: 0,
+    scrollWidth: 1000,
+    clientWidth: 200,
+    matches: () => hovered,
+    addEventListener: (name, fn) => listeners.set(name, fn),
+    removeEventListener: name => listeners.delete(name)
+  };
+  const cleanup = loaded.exports.enableAutomaticScroll(element);
+  tick();
+  assert.equal(element.scrollLeft, 2);
+  hovered = true;
+  tick();
+  assert.equal(element.scrollLeft, 2);
+  hovered = false;
+  listeners.get("wheel")();
+  element.scrollLeft = 100;
+  now = 5000;
+  tick();
+  assert.equal(element.scrollLeft, 100);
+  now = 6001;
+  tick();
+  assert.equal(element.scrollLeft, 102);
+  motion.matches = true;
+  tick();
+  assert.equal(element.scrollLeft, 102);
+  motion.matches = false;
+  document.hidden = true;
+  tick();
+  assert.equal(element.scrollLeft, 102);
+  document.hidden = false;
+  element.scrollLeft = 800;
+  tick();
+  assert.equal(element.scrollLeft, 0);
+  cleanup();
+  assert.equal(cleared, true);
+  assert.equal(listeners.size, 0);
 });

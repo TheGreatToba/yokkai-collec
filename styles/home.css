@@ -489,3 +489,18 @@
   font-size: 12px;
   line-height: 1.8;
 }
+
+.yk-home-pull-name .yk-styled-player-name {
+  display: flex;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+.yk-home-pull-name .yk-style-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.yk-home-pull-name .yk-style-cosmetic-badge {
+  display: none;
+}
