@@ -1158,7 +1158,7 @@ export function TradesPanel({
               </Button>
             )}
             {!fixedFriendId && !!friends.length && !hasMoreFriends && (
-              <p role="status" className="yk-search-hint">
+              <p role="status" className="sr-only">
                 All friends loaded.
               </p>
             )}
@@ -1340,7 +1340,7 @@ export function TradesPanel({
               </Button>
             )}
             {!hasMoreOffers && (
-              <p role="status" className="yk-search-hint">
+              <p role="status" className="sr-only">
                 All offers loaded.
               </p>
             )}

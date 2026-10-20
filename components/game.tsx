@@ -1,4 +1,5 @@
 "use client";
+import { packCountdown } from "@/lib/ui/pack-countdown";
 import dynamic from "next/dynamic";
 import { Topbar } from "@/components/topbar";
 import {
@@ -381,12 +382,7 @@ export function Game({
       setRevealed(current => (current === index ? current + 1 : current)),
     []
   );
-  const seconds = status?.nextPackAt
-    ? Math.max(0, Math.ceil((status.nextPackAt - now) / 1000))
-    : 0;
-  const countdown = `${Math.floor(seconds / 60)
-    .toString()
-    .padStart(2, "0")}:${(seconds % 60).toString().padStart(2, "0")}`;
+  const countdown = packCountdown(status?.nextPackAt, now);
   const decisionSeconds = decisionStatus?.nextPackAt
     ? Math.max(0, Math.ceil((decisionStatus.nextPackAt - now) / 1000))
     : 0;
@@ -395,6 +391,12 @@ export function Game({
     .padStart(2, "0")}:${Math.floor((decisionSeconds % 3600) / 60)
     .toString()
     .padStart(2, "0")}:${(decisionSeconds % 60).toString().padStart(2, "0")}`;
+  const collectionHeading = (
+    <div>
+      <p className="eyebrow">Every card you own</p>
+      <h1 className="yk-title mt-3">Collection</h1>
+    </div>
+  );
   return (
     <div
       className={view === "packs" ? "flex min-h-dvh w-full flex-col" : "w-full"}
@@ -422,9 +424,7 @@ export function Game({
             </p>
           </header>
         ) : (
-          <h1 className="text-2xl font-semibold tracking-tight text-ink">
-            My collection
-          </h1>
+          !status && collectionHeading
         )}
         {error && (
           <p
@@ -532,6 +532,7 @@ export function Game({
 
         {view === "collection" && status && (
           <CollectionView
+            pageHeading={collectionHeading}
             cards={collection}
             categories={info?.categories || []}
             loadPaniniAlbums={getPaniniAlbumsPage}

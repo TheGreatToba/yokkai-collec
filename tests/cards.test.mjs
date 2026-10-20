@@ -311,6 +311,8 @@ function setup({
   vm.runInNewContext(source, context);
   return {
     api: context.exports,
+    subscribeInvalidations:
+      playerStateContext.exports.subscribePlayerSnapshotInvalidation,
     calls,
     advance: ms => {
       now += ms;
@@ -449,6 +451,19 @@ test("ouverture : une RPC, tri du reveal et invalidation immédiate de la collec
   );
   assert.equal((await api.getUserCollection()).length, 2);
   assert.equal(calls.filter(c => c.rpc === "open_regular_pack").length, 1);
+});
+
+test("opening a booster publishes collection invalidation for home and other tabs", async () => {
+  const { api, subscribeInvalidations } = setup({
+    catalogue: [card(1, "SSR")]
+  });
+  const events = [];
+  const unsubscribe = subscribeInvalidations(scopes =>
+    events.push(Array.from(scopes))
+  );
+  await api.openBooster();
+  unsubscribe();
+  assert.deepEqual(events, [["collection"]]);
 });
 
 test("destruction : invalide immédiatement la collection et le solde de Karas", async () => {

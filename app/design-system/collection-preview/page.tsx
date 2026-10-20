@@ -65,9 +65,15 @@ export default function CollectionPreview() {
         id="main-content"
         className="mx-auto w-full max-w-[var(--layout-collection-max)] px-6 py-6"
       >
-        <p className="eyebrow">Collection personnelle</p>
-        <h1 className="yk-title mt-2">Ma Collection</h1>
-        <CollectionPreviewClient cards={cards} />
+        <CollectionPreviewClient
+          cards={cards}
+          pageHeading={
+            <div>
+              <p className="eyebrow">Collection personnelle</p>
+              <h1 className="yk-title mt-3">Collection</h1>
+            </div>
+          }
+        />
       </main>
     </>
   );

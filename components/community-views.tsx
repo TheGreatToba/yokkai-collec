@@ -987,13 +987,15 @@ export function MarketView({
                 </Button>
               )}
               <p role="status" className="text-sm text-ink-2">
-                {loadingMore
-                  ? "Loading auctions…"
-                  : marketPage?.hasMore && marketLimit >= MARKET_MAX_ITEMS
-                    ? "Showing the first 1,000 auctions. Refine your filters to see more."
-                    : marketPage && !marketPage.hasMore
-                      ? "All matching auctions loaded."
-                      : ""}
+                {loadingMore ? (
+                  "Loading auctions…"
+                ) : marketPage?.hasMore && marketLimit >= MARKET_MAX_ITEMS ? (
+                  "Showing the first 1,000 auctions. Refine your filters to see more."
+                ) : marketPage && !marketPage.hasMore ? (
+                  <span className="sr-only">All matching auctions loaded.</span>
+                ) : (
+                  ""
+                )}
               </p>
             </div>
           )}
@@ -1833,8 +1835,13 @@ export function ProfileView({
 
 export function SearchView({
   loadPage = getCataloguePage,
-  previewCategories
-}: { loadPage?: typeof getCataloguePage; previewCategories?: string[] } = {}) {
+  previewCategories,
+  pageHeading
+}: {
+  loadPage?: typeof getCataloguePage;
+  previewCategories?: string[];
+  pageHeading?: ReactNode;
+} = {}) {
   const [pageSize, setPageSize] = useState<number>(CARD_PAGE_SIZES[0]);
   const [categories, setCategories] = useState<string[]>(
     previewCategories ?? []
@@ -2013,40 +2020,6 @@ export function SearchView({
   );
   return (
     <section className="yk-catalogue">
-      <div className="yk-catalogue-heading">
-        <div>
-          <p role="status" className="font-display text-xl">
-            {searching
-              ? "Loading catalog…"
-              : `${total.toLocaleString("en-US")} ${total === 1 ? "card" : "cards"}`}
-          </p>
-          <p className="mt-1 text-xs text-ink-3">
-            {query || category || rarity
-              ? "Results matching your filters"
-              : "Every card in the game"}
-          </p>
-        </div>
-        <button
-          type="button"
-          className="yk-mobile-filter-trigger"
-          aria-expanded={filtersOpen}
-          aria-controls="catalogue-filters"
-          onClick={() => setFiltersOpen(true)}
-        >
-          <svg
-            aria-hidden="true"
-            width="17"
-            height="17"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-          >
-            <path d="M4 6h16M7 12h10M10 18h4" />
-          </svg>
-          Filters{query || category || rarity ? <span>•</span> : null}
-        </button>
-      </div>
       {filtersOpen && (
         <button
           type="button"
@@ -2056,6 +2029,9 @@ export function SearchView({
         />
       )}
       <div className="yk-collection-layout">
+        {pageHeading && (
+          <header className="yk-catalogue-title">{pageHeading}</header>
+        )}
         <aside
           id="catalogue-filters"
           className={`yk-collection-sidebar ${filtersOpen ? "yk-sidebar-open" : ""}`}
@@ -2074,6 +2050,33 @@ export function SearchView({
           {filters}
         </aside>
         <div className="yk-collection-main">
+          <div className="yk-catalogue-heading">
+            <p role="status" className="sr-only">
+              {searching
+                ? "Loading catalog…"
+                : `${total.toLocaleString("en-US")} ${total === 1 ? "card" : "cards"}`}
+            </p>
+            <button
+              type="button"
+              className="yk-mobile-filter-trigger"
+              aria-expanded={filtersOpen}
+              aria-controls="catalogue-filters"
+              onClick={() => setFiltersOpen(true)}
+            >
+              <svg
+                aria-hidden="true"
+                width="17"
+                height="17"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+              >
+                <path d="M4 6h16M7 12h10M10 18h4" />
+              </svg>
+              Filters{query || category || rarity ? <span>•</span> : null}
+            </button>
+          </div>
           {searchError && (
             <p role="alert" className="mb-5 text-sm text-danger">
               {searchError}
@@ -2907,7 +2910,7 @@ export function CommunityView({
         id="main-content"
         className={`mx-auto w-full ${screen === "search" || screen === "market" || screen === "auction" || screen === "wishlist" ? "max-w-[var(--layout-collection-max)]" : "max-w-6xl"} px-6 py-10`}
       >
-        {screen !== "market" && (
+        {screen !== "market" && screen !== "search" && (
           <div>
             {screen === "auction" && (
               <Link href="/market" className="yk-back-link">
@@ -2928,7 +2931,11 @@ export function CommunityView({
             {error}
           </p>
         )}
-        <div className={screen === "market" ? undefined : "mt-8"}>
+        <div
+          className={
+            screen === "market" || screen === "search" ? undefined : "mt-8"
+          }
+        >
           {screen === "profile" && (
             <ProfileView
               name={name}
@@ -2982,7 +2989,16 @@ export function CommunityView({
               onToggleWatch={auction ? watchAuction : undefined}
             />
           )}{" "}
-          {screen === "search" && <SearchView />}
+          {screen === "search" && (
+            <SearchView
+              pageHeading={
+                <>
+                  <p className="eyebrow">{overline}</p>
+                  <h1 className="yk-title mt-3">{title}</h1>
+                </>
+              }
+            />
+          )}
           {screen === "trades" && <TradesView />}
           {screen === "wishlist" && <WishlistView />}
         </div>

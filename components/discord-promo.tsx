@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 
 function dismissalKey(userId: string) {
@@ -8,11 +9,13 @@ function dismissalKey(userId: string) {
 }
 
 export function DiscordPromo({ enabled }: { enabled: boolean }) {
+  const pathname = usePathname();
+  const isHome = pathname === "/" || pathname === "/design-system/home-preview";
   const [visible, setVisible] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || isHome) return;
 
     let active = true;
     const supabase = createClient();
@@ -32,14 +35,14 @@ export function DiscordPromo({ enabled }: { enabled: boolean }) {
     return () => {
       active = false;
     };
-  }, [enabled]);
+  }, [enabled, isHome]);
 
   function dismiss() {
     if (userId) localStorage.setItem(dismissalKey(userId), "1");
     setVisible(false);
   }
 
-  if (!visible) return null;
+  if (!visible || isHome) return null;
 
   return (
     <aside

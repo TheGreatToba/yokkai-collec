@@ -27,20 +27,37 @@ function load(path, imports) {
   return loadedModule.exports;
 }
 
-test("the home page renders the same signup and shell with referral parameters intact", () => {
+test("the anonymous home page renders the same signup and shell with referral parameters intact", async () => {
   const AuthLayout = () => null;
   const SignUpPage = () => null;
   const home = load("app/page.tsx", {
+    "@/lib/auth/session": { getCurrentUser: async () => null },
+    "@/components/home-dashboard": { HomeDashboard: () => null },
     "./(auth)/layout": { default: AuthLayout, __esModule: true },
     "./(auth)/signup/page": { default: SignUpPage, __esModule: true }
   });
   const searchParams = Promise.resolve({ ref: "0123456789ab" });
-  const tree = home.default({ searchParams });
+  const tree = await home.default({ searchParams });
   assert.equal(tree.type, AuthLayout);
   assert.equal(tree.props.children.type, SignUpPage);
   assert.equal(tree.props.children.props.searchParams, searchParams);
   assert.equal(home.metadata.alternates.canonical, "/");
   assert.equal(home.metadata.openGraph.url, "/");
+});
+
+test("the connected home page renders the dashboard for the authenticated player", async () => {
+  const HomeDashboard = () => null;
+  const home = load("app/page.tsx", {
+    "@/lib/auth/session": {
+      getCurrentUser: async () => ({ id: "home-player" })
+    },
+    "@/components/home-dashboard": { HomeDashboard },
+    "./(auth)/layout": { default: () => null, __esModule: true },
+    "./(auth)/signup/page": { default: () => null, __esModule: true }
+  });
+  const tree = await home.default({ searchParams: Promise.resolve({}) });
+  assert.equal(tree.type, HomeDashboard);
+  assert.equal(tree.props.userId, "home-player");
 });
 
 function shell(getCurrentUser, redirect) {

@@ -190,7 +190,8 @@ export function CollectionView({
   loadPaniniAlbums,
   loadPaniniAlbumCards,
   onSetPaniniAlbumFavorite,
-  loadCardDiscovery = getCardDiscovery
+  loadCardDiscovery = getCardDiscovery,
+  pageHeading
 }: {
   cards: CollectedCard[];
   categories: string[];
@@ -243,6 +244,7 @@ export function CollectionView({
     license: string,
     favorite: boolean
   ) => Promise<void>;
+  pageHeading?: React.ReactNode;
   loadCardDiscovery?: (
     cardId: string
   ) => Promise<{ marketValue: number | null }>;
@@ -1123,6 +1125,160 @@ export function CollectionView({
       </button>
     </>
   );
+  const toolbar = (
+    <div className="yk-collection-toolbar">
+      <button
+        type="button"
+        className="yk-mobile-filter-trigger"
+        aria-expanded={filtersOpen}
+        aria-controls="collection-filters"
+        onClick={() => setFiltersOpen(true)}
+      >
+        <svg
+          aria-hidden="true"
+          width="17"
+          height="17"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        >
+          <path d="M4 6h16M7 12h10M10 18h4" />
+        </svg>
+        Filters
+        {query || rarity || category || folder || auctionOnly ? (
+          <span>•</span>
+        ) : null}
+      </button>
+      <div className="yk-collection-toolbar-actions">
+        {!readOnly && <MyCardShares />}
+        <label className="yk-sort-control">
+          <span>Sort by:</span>
+          <strong aria-hidden="true">
+            {COLLECTION_SORTS.find(option => option.value === sort)?.label}
+          </strong>
+          <svg
+            aria-hidden="true"
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+          >
+            <path d="m7 10 5 5 5-5" />
+          </svg>
+          <select
+            aria-label="Sort collection"
+            value={sort}
+            onChange={e => {
+              if (isCollectionSort(e.target.value)) {
+                setSort(e.target.value);
+                setPage(1);
+              }
+            }}
+          >
+            {COLLECTION_SORTS.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        {!readOnly && (
+          <SelectionModeButton
+            active={selecting}
+            onClick={() => {
+              setSelecting(!selecting);
+              setSelection(new Set());
+            }}
+          />
+        )}
+        <Button
+          variant="secondary"
+          className="yk-panini-mode"
+          aria-pressed={viewMode === "panini"}
+          onClick={() => {
+            setViewMode(current => (current === "panini" ? "grid" : "panini"));
+            setSelectedLicense(null);
+            setSelecting(false);
+            setSelection(new Set());
+          }}
+        >
+          <svg
+            aria-hidden="true"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+          >
+            <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v17H6.5A2.5 2.5 0 0 0 4 22V5.5Z" />
+            <path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v17h4.5A2.5 2.5 0 0 1 20 22V5.5Z" />
+          </svg>
+          <span>Binder</span>
+        </Button>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={shinyOnly}
+        className="yk-shiny-toggle"
+        onClick={() => {
+          setShinyOnly(current => !current);
+          setPage(1);
+        }}
+      >
+        <span>Shiny only</span>
+        <i />
+      </button>
+      <div className="yk-view-toggle" aria-label="Display mode">
+        <button
+          type="button"
+          aria-label="Grid view"
+          aria-pressed={viewMode === "grid"}
+          onClick={() => setViewMode("grid")}
+        >
+          <svg
+            aria-hidden="true"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+          >
+            <rect x="4" y="4" width="6" height="6" />
+            <rect x="14" y="4" width="6" height="6" />
+            <rect x="4" y="14" width="6" height="6" />
+            <rect x="14" y="14" width="6" height="6" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          aria-label="List view"
+          aria-pressed={viewMode === "list"}
+          onClick={() => setViewMode("list")}
+        >
+          <svg
+            aria-hidden="true"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+          >
+            <path d="M8 6h12M8 12h12M8 18h12" />
+            <circle cx="4" cy="6" r="1" fill="currentColor" />
+            <circle cx="4" cy="12" r="1" fill="currentColor" />
+            <circle cx="4" cy="18" r="1" fill="currentColor" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
   return (
     <section
       aria-label={detailOnly ? "Card details" : "Card collection"}
@@ -1139,6 +1295,12 @@ export function CollectionView({
               aria-label="Close filters"
               onClick={() => setFiltersOpen(false)}
             />
+          )}
+          {pageHeading && (
+            <header className="yk-market-heading">
+              {pageHeading}
+              {toolbar}
+            </header>
           )}
           <div className="yk-collection-layout">
             <aside
@@ -1159,163 +1321,7 @@ export function CollectionView({
               {filters}
             </aside>
             <div className="yk-collection-main">
-              <div className="yk-collection-toolbar">
-                <button
-                  type="button"
-                  className="yk-mobile-filter-trigger"
-                  aria-expanded={filtersOpen}
-                  aria-controls="collection-filters"
-                  onClick={() => setFiltersOpen(true)}
-                >
-                  <svg
-                    aria-hidden="true"
-                    width="17"
-                    height="17"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                  >
-                    <path d="M4 6h16M7 12h10M10 18h4" />
-                  </svg>
-                  Filters
-                  {query || rarity || category || folder || auctionOnly ? (
-                    <span>•</span>
-                  ) : null}
-                </button>
-                <div className="yk-collection-toolbar-actions">
-                  {!readOnly && <MyCardShares />}
-                  <label className="yk-sort-control">
-                    <span>Sort by:</span>
-                    <strong aria-hidden="true">
-                      {
-                        COLLECTION_SORTS.find(option => option.value === sort)
-                          ?.label
-                      }
-                    </strong>
-                    <svg
-                      aria-hidden="true"
-                      width="13"
-                      height="13"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                    >
-                      <path d="m7 10 5 5 5-5" />
-                    </svg>
-                    <select
-                      aria-label="Sort collection"
-                      value={sort}
-                      onChange={e => {
-                        if (isCollectionSort(e.target.value)) {
-                          setSort(e.target.value);
-                          setPage(1);
-                        }
-                      }}
-                    >
-                      {COLLECTION_SORTS.map(option => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  {!readOnly && (
-                    <SelectionModeButton
-                      active={selecting}
-                      onClick={() => {
-                        setSelecting(!selecting);
-                        setSelection(new Set());
-                      }}
-                    />
-                  )}
-                  <Button
-                    variant="secondary"
-                    className="yk-panini-mode"
-                    aria-pressed={viewMode === "panini"}
-                    onClick={() => {
-                      setViewMode(current =>
-                        current === "panini" ? "grid" : "panini"
-                      );
-                      setSelectedLicense(null);
-                      setSelecting(false);
-                      setSelection(new Set());
-                    }}
-                  >
-                    <svg
-                      aria-hidden="true"
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                    >
-                      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v17H6.5A2.5 2.5 0 0 0 4 22V5.5Z" />
-                      <path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v17h4.5A2.5 2.5 0 0 1 20 22V5.5Z" />
-                    </svg>
-                    <span>Binder</span>
-                  </Button>
-                </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={shinyOnly}
-                  className="yk-shiny-toggle"
-                  onClick={() => {
-                    setShinyOnly(current => !current);
-                    setPage(1);
-                  }}
-                >
-                  <span>Shiny only</span>
-                  <i />
-                </button>
-                <div className="yk-view-toggle" aria-label="Display mode">
-                  <button
-                    type="button"
-                    aria-label="Grid view"
-                    aria-pressed={viewMode === "grid"}
-                    onClick={() => setViewMode("grid")}
-                  >
-                    <svg
-                      aria-hidden="true"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                    >
-                      <rect x="4" y="4" width="6" height="6" />
-                      <rect x="14" y="4" width="6" height="6" />
-                      <rect x="4" y="14" width="6" height="6" />
-                      <rect x="14" y="14" width="6" height="6" />
-                    </svg>
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="List view"
-                    aria-pressed={viewMode === "list"}
-                    onClick={() => setViewMode("list")}
-                  >
-                    <svg
-                      aria-hidden="true"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                    >
-                      <path d="M8 6h12M8 12h12M8 18h12" />
-                      <circle cx="4" cy="6" r="1" fill="currentColor" />
-                      <circle cx="4" cy="12" r="1" fill="currentColor" />
-                      <circle cx="4" cy="18" r="1" fill="currentColor" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
+              {!pageHeading && toolbar}
               {viewMode === "panini" ? (
                 <section className="yk-panini" aria-label="License binders">
                   {selectedLicense ? (
@@ -1754,21 +1760,13 @@ export function CollectionView({
                             </span>
                           )}
                         </button>
-                        <div className="yk-collection-card-meta">
-                          {historyGroup.isFirstOwner ? (
+                        {historyGroup.isFirstOwner && (
+                          <div className="yk-collection-card-meta">
                             <p className="text-[11px] font-semibold text-rarity-lr">
-                              First owner, obtained on{" "}
-                              {formatDate(historyGroup.firstObtainedAt)}
+                              First owner
                             </p>
-                          ) : (
-                            <p className="text-[11px] tracking-wider text-ink-3 uppercase">
-                              Obtained on{" "}
-                              <time dateTime={historyGroup.firstObtainedAt}>
-                                {formatDate(historyGroup.firstObtainedAt)}
-                              </time>
-                            </p>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </li>
                     );
                   })}
