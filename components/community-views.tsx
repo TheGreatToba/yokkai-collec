@@ -987,13 +987,15 @@ export function MarketView({
                 </Button>
               )}
               <p role="status" className="text-sm text-ink-2">
-                {loadingMore
-                  ? "Loading auctions…"
-                  : marketPage?.hasMore && marketLimit >= MARKET_MAX_ITEMS
-                    ? "Showing the first 1,000 auctions. Refine your filters to see more."
-                    : marketPage && !marketPage.hasMore
-                      ? "All matching auctions loaded."
-                      : ""}
+                {loadingMore ? (
+                  "Loading auctions…"
+                ) : marketPage?.hasMore && marketLimit >= MARKET_MAX_ITEMS ? (
+                  "Showing the first 1,000 auctions. Refine your filters to see more."
+                ) : marketPage && !marketPage.hasMore ? (
+                  <span className="sr-only">All matching auctions loaded.</span>
+                ) : (
+                  ""
+                )}
               </p>
             </div>
           )}
