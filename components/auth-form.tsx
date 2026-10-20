@@ -157,8 +157,7 @@ export function AuthForm({
               />
               {!pseudoError && pseudoAvailability === "idle" && (
                 <p id="pseudo-help" className="mt-2 text-xs text-white/50">
-                  3–30 characters. Spaces between characters and accents are
-                  allowed. No emoji.
+                  3–30 characters.
                 </p>
               )}
               {!pseudoError && pseudoAvailability !== "idle" && (

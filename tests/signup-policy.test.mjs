@@ -217,6 +217,7 @@ test("the checkbox is signup-only, controlled, required, and linked accessibly t
   assert.match(source, /aria-label="Terms of Use \(opens in a new tab\)"/);
   assert.match(source, /aria-label="Community rules \(opens in a new tab\)"/);
   assert.match(source, /pattern=\{PSEUDO_NO_EMOJI_PATTERN\}/);
-  assert.match(source, /No emoji\./);
+  assert.match(source, /id="pseudo-help"[^>]*>\s*3–30 characters\.\s*<\/p>/);
+  assert.doesNotMatch(source, /Spaces between characters|allowed\. No emoji\./);
   assert.doesNotMatch(source, /accents, and emoji/);
 });
