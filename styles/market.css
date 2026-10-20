@@ -387,26 +387,34 @@
 .yk-bid-quick {
   width: 100%;
   min-height: 52px;
-  border-color: var(--color-accent-gold);
-  background: color-mix(
-    in srgb,
-    var(--color-accent-gold) 16%,
-    var(--color-veil)
+  border-color: var(--color-pack-accent);
+  border-radius: 999px;
+  color: var(--color-pack-button-ink);
+  background: linear-gradient(
+    110deg,
+    var(--color-pack-button-start),
+    var(--color-pack-button-middle) 55%,
+    var(--color-pack-button-end)
   );
-  box-shadow: var(--shadow-gold);
+  box-shadow:
+    0 0 24px color-mix(in srgb, var(--color-pack-accent) 30%, transparent),
+    inset 0 1px 0
+      color-mix(in srgb, var(--color-pack-button-ink) 16%, transparent);
   font-size: 15px;
 }
 .yk-bid-quick span {
-  color: var(--color-karas);
+  color: inherit;
   font-weight: 600;
 }
 .yk-bid-quick:hover:not(:disabled) {
-  background: color-mix(
-    in srgb,
-    var(--color-accent-gold) 26%,
-    var(--color-veil)
+  background: linear-gradient(
+    110deg,
+    var(--color-pack-button-start),
+    var(--color-pack-button-middle) 55%,
+    var(--color-pack-button-end)
   );
-  box-shadow: var(--shadow-gold);
+  box-shadow: 0 0 24px
+    color-mix(in srgb, var(--color-pack-accent) 25%, transparent);
 }
 .yk-auction-offer-row {
   display: grid;

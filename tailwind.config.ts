@@ -32,7 +32,7 @@ const config = {
         "accent-gold": "#E8C26A",
         "accent-neon": "#A77BFF",
         "accent-cyan": "#3FE0D0",
-        karas: "#FFCC33",
+        karas: "#F2F0FF",
         success: "#00E699",
         warning: "#FF9900",
         danger: "#FF3355",
@@ -64,7 +64,7 @@ const config = {
         chip: "0 0 8px rgba(82,68,181,.4)"
       },
       backgroundImage: {
-        karas: "linear-gradient(135deg,#FFF3C4,#E8C26A 55%,#9A7420)"
+        karas: "linear-gradient(135deg,#F2F0FF,#C0C5FF 55%,#8A84AB)"
       },
       transitionTimingFunction: { yokkai: "cubic-bezier(.2,.8,.2,1)" }
     }
