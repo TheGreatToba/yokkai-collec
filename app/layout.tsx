@@ -18,6 +18,8 @@ import "../styles/boosters.css";
 import "../styles/pack-tear.css";
 import "../styles/boosters-showcase.css";
 import "../styles/market.css";
+import "../styles/site-footer.css";
+import "../styles/info-pages.css";
 
 const cinzel = Cinzel({
   subsets: ["latin"],

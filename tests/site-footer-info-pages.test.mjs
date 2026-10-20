@@ -1,0 +1,43 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import test from "node:test";
+
+const read = path => readFileSync(path, "utf8");
+
+test("the site footer links the public guide pages and Discord accessibly", () => {
+  const footer = read("components/site-footer.tsx");
+
+  for (const route of ["/rarities", "/rules", "/info"]) {
+    assert.match(footer, new RegExp(`href=["']${route}["']`));
+  }
+  assert.match(footer, /href="\/discord"/);
+  assert.match(footer, /aria-label="Join the Yokkai Discord"/);
+  assert.match(footer, /target="_blank"/);
+  assert.match(footer, /rel="noopener noreferrer"/);
+});
+
+test("public guide pages have English metadata and useful content", () => {
+  const rarities = read("app/rarities/page.tsx");
+  const rules = read("app/rules/page.tsx");
+  const info = read("app/info/page.tsx");
+
+  for (const rarity of ["C", "R", "SR", "SSR", "LR"]) {
+    assert.match(rarities, new RegExp(`["']${rarity}["']`));
+  }
+  for (const rate of ["72.4%", "20%", "7%", "0.5%", "0.1%"])
+    assert.match(rarities, new RegExp(rate.replace(".", "\\.")));
+  assert.match(rules, /Do not automate pack openings/);
+  assert.match(rules, /Do not create accounts to farm referrals/);
+  assert.match(info, /unofficial fan project/i);
+  assert.match(info, /respective rights holders/);
+});
+
+test("the landing and player pack shell use the expanded footer", () => {
+  const landing = read("app/page.tsx");
+  const game = read("components/game.tsx");
+
+  assert.match(landing, /<FooterNavigation \/>/);
+  assert.match(landing, /className="yk-site-footer-discord"/);
+  assert.match(game, /<SiteFooter/);
+  assert.match(game, /discordEnabled=\{discordEnabled\}/);
+});
