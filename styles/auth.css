@@ -4,7 +4,7 @@
   display: flex;
   width: min(100%, 1360px);
   min-width: 0;
-  overflow-x: clip;
+  overflow: clip;
   min-height: 100dvh;
   margin-inline: auto;
   flex-direction: column;
@@ -76,6 +76,9 @@
   flex: 1;
   place-items: center;
   padding-block: calc(var(--layout-gutter) * 2);
+}
+.yk-auth-shell > .yk-site-footer {
+  background: transparent;
 }
 .yk-auth-experience {
   display: grid;
@@ -731,14 +734,6 @@
   font-size: 13px;
   line-height: 1.7;
 }
-.yk-auth-footer {
-  border-top: 1px solid var(--color-veil);
-  padding-block: calc(var(--spacing) * 6);
-  color: var(--color-ink-3);
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
 @keyframes yk-auth-enter {
   from {
     opacity: 0;
@@ -771,9 +766,6 @@
   }
   .yk-auth-intro {
     margin-bottom: calc(var(--spacing) * 6);
-  }
-  .yk-auth-footer {
-    text-align: center;
   }
 }
 @media (max-width: 1000px) {
