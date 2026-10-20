@@ -2426,17 +2426,13 @@ test("la Collection groupe les tuiles et sélectionne tous les exemplaires dispo
     normalizeWhitespace(source),
     normalizeWhitespace(/Last copy obtained on/)
   );
-  assert.match(
-    normalizeWhitespace(source),
-    normalizeWhitespace(
-      />Obtained on <time dateTime=\{historyGroup\.firstObtainedAt\}>\{formatDate\(historyGroup\.firstObtainedAt\)\}<\/time>/
-    )
+  assert.doesNotMatch(
+    source,
+    /<time dateTime=\{historyGroup\.firstObtainedAt\}/
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(
-      /First owner, obtained on \{formatDate\(historyGroup\.firstObtainedAt\)\}/
-    )
+    normalizeWhitespace(/>First owner</)
   );
   assert.match(
     normalizeWhitespace(source),

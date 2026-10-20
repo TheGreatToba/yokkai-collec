@@ -1754,21 +1754,13 @@ export function CollectionView({
                             </span>
                           )}
                         </button>
-                        <div className="yk-collection-card-meta">
-                          {historyGroup.isFirstOwner ? (
+                        {historyGroup.isFirstOwner && (
+                          <div className="yk-collection-card-meta">
                             <p className="text-[11px] font-semibold text-rarity-lr">
-                              First owner, obtained on{" "}
-                              {formatDate(historyGroup.firstObtainedAt)}
+                              First owner
                             </p>
-                          ) : (
-                            <p className="text-[11px] tracking-wider text-ink-3 uppercase">
-                              Obtained on{" "}
-                              <time dateTime={historyGroup.firstObtainedAt}>
-                                {formatDate(historyGroup.firstObtainedAt)}
-                              </time>
-                            </p>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </li>
                     );
                   })}
