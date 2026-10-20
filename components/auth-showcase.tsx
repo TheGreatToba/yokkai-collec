@@ -167,31 +167,31 @@ export function AuthShowcase() {
               </div>
               <small>4% complete</small>
             </div>
-            <div className="yk-auth-binder-tile">
-              <div>
-                <strong>YOUR FAVORITE SERIES</strong>
-                <span aria-hidden="true">☆</span>
-              </div>
-              <p>
-                <b>12</b> / 48 cards
-              </p>
-              <div className="yk-auth-binder-progress">
-                <span style={{ width: "25%" }} />
-              </div>
-              <small>25% complete</small>
-            </div>
             <div className="yk-auth-binder-tile yk-auth-binder-favorite">
               <div>
-                <strong>K-POP FAVORITES</strong>
+                <strong>GAME OF THRONES</strong>
                 <span aria-hidden="true">★</span>
               </div>
               <p>
-                <b>6</b> / 10 cards
+                <b>2</b> / 31 cards
               </p>
               <div className="yk-auth-binder-progress">
-                <span style={{ width: "60%" }} />
+                <span style={{ width: "6%" }} />
               </div>
-              <small>60% complete</small>
+              <small>6% complete</small>
+            </div>
+            <div className="yk-auth-binder-tile yk-auth-binder-favorite">
+              <div>
+                <strong>KPOP</strong>
+                <span aria-hidden="true">★</span>
+              </div>
+              <p>
+                <b>3</b> / 127 cards
+              </p>
+              <div className="yk-auth-binder-progress">
+                <span style={{ width: "2%" }} />
+              </div>
+              <small>2% complete</small>
             </div>
             <p className="yk-auth-preview-caption">
               Example binders. Every card brings you closer.
