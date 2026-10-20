@@ -82,10 +82,10 @@ export type CommunityScreen =
   | "wishlist";
 const headings = {
   profile: ["Collector", "My profile"],
-  friends: ["Between collectors", "My friends"],
+  friends: ["Between collectors", "Friends"],
   market: ["The auction house", "Market"],
   auction: ["Market · Auction", "Auction details"],
-  trades: ["Between collectors", "Offer a trade"],
+  trades: ["Between collectors", "Trades"],
   search: ["Every card in the game", "Catalog"],
   wishlist: ["Cards you're looking for", "My wishlist"]
 };
@@ -2936,7 +2936,7 @@ export function CommunityView({
             screen === "market" || screen === "search"
               ? undefined
               : screen === "friends" || screen === "trades"
-                ? "mx-auto mt-8 max-w-[calc(var(--container-6xl)-3rem)]"
+                ? "mt-4"
                 : "mt-8"
           }
         >
