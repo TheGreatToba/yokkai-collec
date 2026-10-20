@@ -36,6 +36,7 @@ const form = (values = {}) => {
     email: "joueur@example.com",
     password: "  secret123  ",
     pseudo: "  Yokkai  ",
+    acceptedPolicies: "2026-10-20-draft",
     ...values
   })) {
     data.set(key, value);
@@ -320,7 +321,7 @@ test("inscription : règles du pseudo et comptage Unicode", () => {
       /can't contain/
     );
   }
-  for (const pseudo of [" Émi ", "Yōkai 👺", "😀".repeat(30)]) {
+  for (const pseudo of [" Émi ", "Yōkai 東京", "𐐀".repeat(30)]) {
     assert.equal(
       forms.validateCredentials(form({ pseudo }), true).fields.pseudo,
       undefined
