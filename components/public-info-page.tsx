@@ -8,16 +8,18 @@ export function PublicInfoPage({
   title,
   intro,
   children,
-  discordEnabled
+  discordEnabled,
+  tone
 }: {
   eyebrow: string;
   title: string;
   intro: string;
   children: ReactNode;
   discordEnabled: boolean;
+  tone?: "navy";
 }) {
   return (
-    <div className="yk-info-page">
+    <div className="yk-info-page" data-tone={tone}>
       <header className="yk-info-header">
         <Link
           href="/"

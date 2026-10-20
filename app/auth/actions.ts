@@ -10,6 +10,8 @@ import {
   captchaOptions,
   normalizeReferralCode,
   pseudoValidationError,
+  SIGNUP_POLICY_VERSION,
+  signupPolicyValidationError,
   validateCredentials,
   validateEmail,
   validateNewPassword,
@@ -174,7 +176,16 @@ export async function signUp(
   const input = validateCredentials(form, true);
   const values = { email: input.email, pseudo: input.pseudo };
   const referralCode = normalizeReferralCode(form.get("referralCode"));
-  if (!input.valid) return { fields: input.fields, values };
+  const policyError = signupPolicyValidationError(form);
+  if (!input.valid || policyError) {
+    return {
+      fields: {
+        ...input.fields,
+        ...(policyError ? { acceptedPolicies: policyError } : {})
+      },
+      values
+    };
+  }
   const captcha = captchaOptions(
     form,
     process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
@@ -206,6 +217,10 @@ export async function signUp(
         ...captcha,
         data: {
           pseudo: input.pseudo,
+          signup_policies: {
+            version: SIGNUP_POLICY_VERSION,
+            accepted_at: new Date().toISOString()
+          },
           ...(referralCode ? { referral_code: referralCode } : {})
         },
         emailRedirectTo: `${siteOrigin}/auth/confirm`

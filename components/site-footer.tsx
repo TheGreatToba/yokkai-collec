@@ -14,6 +14,7 @@ export function FooterNavigation() {
       <Link href="/rarities">Rarities</Link>
       <Link href="/rules">Rules</Link>
       <Link href="/info">Info</Link>
+      <Link href="/terms">Terms of Use</Link>
     </nav>
   );
 }

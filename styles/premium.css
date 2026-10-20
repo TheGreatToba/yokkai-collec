@@ -2,7 +2,7 @@
   --font-heading: var(--font-sora);
   min-height: 100dvh;
   background:
-    radial-gradient(ellipse at 73% 19%, #25203950, transparent 42%), #090810;
+    radial-gradient(ellipse at 73% 19%, #20283950, transparent 42%), #080b10;
   color: #efedf8;
   font-family: var(--font-sora), sans-serif;
 }
@@ -23,7 +23,7 @@
 .yk-premium-nav > span {
   font-size: 10px;
   letter-spacing: 0.18em;
-  color: #9b94ad;
+  color: #949cad;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -38,7 +38,7 @@
 }
 .yk-premium-nav > a:last-child {
   font-size: 12px;
-  color: #aaa3b9;
+  color: #a3aab9;
 }
 .yk-premium-main {
   max-width: 1220px;
@@ -49,19 +49,19 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #b6b0c4;
+  color: #b0b7c4;
   font-size: 11px;
-  border: 1px solid #b69aff28;
+  border: 1px solid #9abcff28;
   border-radius: 9px;
   padding: 12px 15px;
-  background: #b69aff06;
+  background: #9abcff06;
 }
 .yk-premium-test-note > span {
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.12em;
   white-space: nowrap;
-  color: #c5afff;
+  color: #afcaff;
 }
 .yk-premium-hero {
   display: grid;
@@ -85,17 +85,17 @@
 .yk-premium-page .eyebrow {
   font-size: 10px;
   letter-spacing: 0.2em;
-  color: var(--plus-accent, #b69aff);
+  color: var(--plus-accent, #9abcff);
   text-transform: uppercase;
 }
 .yk-premium-intro {
   font-size: 14px;
   line-height: 1.9;
-  color: #aaa4ba;
+  color: #a4abba;
   max-width: 450px;
 }
 .yk-premium-intro strong {
-  color: #e3ddec;
+  color: #dde2ec;
   font-weight: 500;
 }
 .yk-premium-tags {
@@ -103,7 +103,7 @@
   gap: 14px;
   flex-wrap: wrap;
   margin: 24px 0;
-  color: #8e879f;
+  color: #878f9f;
   font-size: 10px;
 }
 .yk-premium-tags span::before {
@@ -119,13 +119,13 @@
   margin-top: 32px;
 }
 .yk-premium-page .yk-button-primary {
-  background: #c4aff0;
-  color: #171020;
-  border: 1px solid #d2bdf7;
+  background: #afc5f0;
+  color: #101520;
+  border: 1px solid #bdd0f7;
   box-shadow: none;
 }
 .yk-premium-page .yk-button-primary:hover {
-  background: #dbc9fa;
+  background: #c9d9fa;
 }
 .yk-premium-page .yk-button {
   font-size: 12px;
@@ -133,7 +133,7 @@
 }
 .yk-premium-text-button {
   font-size: 11px;
-  color: #bcb4ce;
+  color: #b4bdce;
   cursor: pointer;
   text-align: left;
 }
@@ -155,19 +155,19 @@
   width: 390px;
   max-width: 100%;
   aspect-ratio: 1;
-  border: 1px solid #b69aff12;
+  border: 1px solid #9abcff12;
   border-radius: 50%;
   transform: rotate(-18deg);
   box-shadow:
-    0 0 0 35px #b69aff04,
-    0 0 0 70px #b69aff02;
+    0 0 0 35px #9abcff04,
+    0 0 0 70px #9abcff02;
   pointer-events: none;
 }
 .yk-premium-profile {
   width: 300px;
   max-width: 100%;
   border-radius: 20px;
-  background: #14111e;
+  background: #11151e;
   border: 1px solid #ffffff14;
   transform: rotate(-4deg);
   box-shadow: 0 24px 70px #0005;
@@ -188,7 +188,7 @@
   padding: 22px;
   background:
     radial-gradient(ellipse at 70% 110%, var(--plus-accent), transparent 65%),
-    linear-gradient(140deg, #24203d, #3e31574f);
+    linear-gradient(140deg, #202a3d, #313e574f);
   color: #ffffffa0;
 }
 .yk-premium-banner > span:first-child {
@@ -209,8 +209,8 @@
   height: 64px;
   display: grid;
   place-items: center;
-  background: #242032;
-  border: 4px solid #14111e;
+  background: #202632;
+  border: 4px solid #11151e;
   border-radius: 50%;
   font:
     600 27px var(--font-sora),
@@ -223,7 +223,7 @@
   bottom: -2px;
   right: -4px;
   background: var(--plus-accent);
-  color: #292037;
+  color: #202837;
   border-radius: 50%;
   font-size: 14px;
   width: 21px;
@@ -248,16 +248,16 @@
 .yk-premium-badge {
   font-size: 8px;
   letter-spacing: 0.09em;
-  color: var(--plus-accent, #c6b0ef);
-  border: 1px solid #c6b0ef40;
-  background: #c6b0ef10;
+  color: var(--plus-accent, #b0c5ef);
+  border: 1px solid #b0c5ef40;
+  background: #b0c5ef10;
   border-radius: 4px;
   padding: 4px 6px;
   white-space: nowrap;
 }
 .yk-premium-profile-body > p {
   font-size: 10px;
-  color: #a59db7;
+  color: #9da6b7;
   line-height: 1.9;
   margin-top: 10px;
 }
@@ -278,7 +278,7 @@
 .yk-premium-preview-label {
   font-size: 6px;
   letter-spacing: 0.2em;
-  color: #81788f;
+  color: #78808f;
 }
 .yk-premium-floating-note {
   position: absolute;
@@ -286,11 +286,11 @@
   right: -10px;
   transform: rotate(5deg);
   padding: 16px 22px;
-  background: #211b2b;
+  background: #1b202b;
   border: 1px solid #ffffff12;
   border-radius: 10px;
   font-size: 10px;
-  color: #aea5c2;
+  color: #a5afc2;
   box-shadow: 0 14px 35px #0004;
 }
 .yk-premium-floating-note strong {
@@ -320,7 +320,7 @@
 .yk-premium-membership p,
 .yk-premium-faq p {
   font-size: 12px;
-  color: #9c94af;
+  color: #949daf;
   line-height: 1.9;
 }
 .yk-premium-studio {
@@ -338,7 +338,7 @@
   margin: 12px 0;
 }
 .yk-premium-muted {
-  color: #70697f !important;
+  color: #69707f !important;
   font-size: 10px !important;
   max-width: 450px;
   margin-top: 12px;
@@ -360,7 +360,7 @@
   align-items: center;
   gap: 9px;
   font-size: 9px;
-  color: #9a90aa;
+  color: #9099aa;
   border: 1px solid #ffffff12;
   border-radius: 10px;
   padding: 12px 15px;
@@ -401,7 +401,7 @@
   display: grid;
   gap: 14px;
   font-size: 12px;
-  color: #c6bed4;
+  color: #bec5d4;
 }
 .yk-premium-membership li::before {
   content: "✓";
@@ -409,9 +409,9 @@
   margin-right: 12px;
 }
 .yk-premium-price-card {
-  border: 1px solid #b69aff40;
+  border: 1px solid #9abcff40;
   border-radius: 18px;
-  background: linear-gradient(145deg, #20192e, #121018);
+  background: linear-gradient(145deg, #19202e, #101318);
   padding: 30px;
 }
 .yk-premium-plan-heading {
@@ -432,7 +432,7 @@
 .yk-premium-plan-heading > span {
   font-size: 8px;
   letter-spacing: 0.15em;
-  color: #9585ad;
+  color: #8592ad;
 }
 .yk-premium-price-card .yk-premium-price {
   font:
@@ -446,7 +446,7 @@
   font:
     11px var(--font-sora),
     sans-serif;
-  color: #9d90af;
+  color: #909aaf;
   letter-spacing: 0;
 }
 .yk-premium-price-card > p {
@@ -468,7 +468,7 @@
   display: flex;
   gap: 8px;
   align-items: center;
-  color: #b8aec7;
+  color: #aeb6c7;
   font-size: 10px;
 }
 .yk-premium-checkout-note {
@@ -480,7 +480,7 @@
 .yk-premium-notices p {
   padding: 14px 18px;
   border-left: 3px solid #80c9a6;
-  background: #17151f;
+  background: #15181f;
   font-size: 12px;
   border-radius: 6px;
   margin-bottom: 15px;
@@ -506,7 +506,7 @@
 .yk-premium-faq summary {
   cursor: pointer;
   font-size: 12px;
-  color: #c8bfd8;
+  color: #bfc7d8;
 }
 .yk-premium-faq p {
   margin-top: 15px;
@@ -518,7 +518,7 @@
   padding: 25px 40px;
   width: 100%;
   border-top: 1px solid #ffffff10;
-  color: #797084;
+  color: #707784;
   font-size: 10px;
 }
 .yk-premium-demo {
@@ -528,7 +528,7 @@
   gap: 20px;
   font-size: 13px;
   line-height: 1.8;
-  color: #b6acc7;
+  color: #acb5c7;
 }
 .yk-premium-demo h3 {
   font-size: 20px;
@@ -560,7 +560,7 @@
   border-bottom: 1px solid #ffffff10;
   list-style: none;
   font-size: 12px;
-  color: #c6bed4;
+  color: #bec5d4;
   line-height: 1.6;
 }
 .yk-pro-checkout-includes li::before {
@@ -570,13 +570,13 @@
 }
 .yk-pro-checkout .yk-pro-checkout-account {
   font-size: 12px;
-  color: #c6bed4;
+  color: #bec5d4;
   margin-bottom: 14px;
 }
 .yk-pro-checkout .yk-pro-checkout-unavailable,
 .yk-pro-offer-footnote {
   font-size: 12px;
-  color: #aaa2b9;
+  color: #a2aab9;
   line-height: 1.8;
 }
 .yk-pro-checkout .yk-pro-subscription-active {
@@ -599,7 +599,7 @@
   border-top: 1px solid #ffffff10;
 }
 .yk-pro-offer-bottom p {
-  color: #c6bed4;
+  color: #bec5d4;
   font-size: 14px;
 }
 .yk-pro-banner-showcase {
@@ -622,7 +622,7 @@
   font-style: normal;
 }
 .yk-pro-banner-copy > p:not(.eyebrow) {
-  color: #aaa2b9;
+  color: #a2aab9;
   font-size: 13px;
   line-height: 1.8;
   max-width: 360px;
@@ -632,21 +632,21 @@
   align-items: center;
   gap: 9px;
   margin: 22px 0 14px;
-  color: #d6c4ff;
+  color: #c4d8ff;
   font-size: 12px;
 }
 .yk-pro-banner-copy > .yk-pro-banner-disclaimer {
   font-size: 11px;
-  color: #a198b2;
+  color: #98a1b2;
 }
 .yk-pro-banner-example {
   min-width: 0;
 }
 .yk-pro-banner-card {
-  border: 1px solid #b69aff30;
+  border: 1px solid #9abcff30;
   border-radius: 17px;
   overflow: hidden;
-  background: linear-gradient(150deg, #181225, #100d19);
+  background: linear-gradient(150deg, #121825, #0d1119);
   box-shadow: 0 20px 70px #00000030;
 }
 .yk-pro-live-banner {
@@ -660,7 +660,7 @@
   isolation: isolate;
   aspect-ratio: 2.3;
   overflow: hidden;
-  background: #100c1a;
+  background: #0c111a;
 }
 .yk-pro-live-banner:focus-visible {
   outline: 2px solid var(--plus-accent);
@@ -684,7 +684,7 @@
   padding: 6px 9px;
   border: 1px solid #ffffff35;
   border-radius: 5px;
-  background: #090810cc;
+  background: #080b10cc;
   color: #f0eafb;
   font-size: 9px;
   letter-spacing: 0.08em;
@@ -695,7 +695,7 @@
   display: grid;
   place-content: center;
   font-size: 13px;
-  color: #b6acc7;
+  color: #acb5c7;
 }
 .yk-pro-banner-card-body {
   position: relative;
@@ -707,7 +707,7 @@
   height: 78px;
   border-radius: 50%;
   object-fit: cover;
-  border: 4px solid #15101f;
+  border: 4px solid #10151f;
   margin-top: -30px;
   margin-bottom: 14px;
 }
@@ -724,16 +724,16 @@
 }
 .yk-pro-banner-name > span {
   padding: 5px 7px;
-  border: 1px solid #b69aff35;
+  border: 1px solid #9abcff35;
   border-radius: 5px;
-  color: #d6c4ff;
-  background: #b69aff0c;
+  color: #c4d8ff;
+  background: #9abcff0c;
   font-size: 8px;
   letter-spacing: 0.06em;
 }
 .yk-pro-banner-card-body > p {
   margin-top: 13px;
-  color: #aaa2b9;
+  color: #a2aab9;
   font-size: 12px;
 }
 .yk-pro-banner-controls {
@@ -745,7 +745,7 @@
   margin-top: 16px;
 }
 .yk-pro-banner-controls > span {
-  color: #a198b2;
+  color: #98a1b2;
   font-size: 10px;
 }
 .yk-pro-personalization-examples {
@@ -790,10 +790,10 @@
 .yk-pro-personalization-examples .yk-pro-banner-example {
   display: flex;
   flex-direction: column;
-  border: 1px solid #b69aff30;
+  border: 1px solid #9abcff30;
   border-radius: 17px;
   overflow: hidden;
-  background: linear-gradient(150deg, #181225, #100d19);
+  background: linear-gradient(150deg, #121825, #0d1119);
   box-shadow: 0 20px 70px #00000030;
 }
 .yk-pro-personalization-examples .yk-pro-banner-card {
@@ -817,9 +817,9 @@
   flex-direction: column;
   gap: 22px;
   padding: 22px 12px;
-  border: 1px solid #b69aff30;
+  border: 1px solid #9abcff30;
   border-radius: 17px;
-  background: linear-gradient(150deg, #181225, #100d19);
+  background: linear-gradient(150deg, #121825, #0d1119);
 }
 .yk-pro-artwork-pair {
   display: grid;
@@ -840,18 +840,18 @@
   margin-bottom: 15px;
   min-height: 22px;
   font-size: 11px;
-  color: #c6bed4;
+  color: #bec5d4;
   text-align: center;
 }
 .yk-pro-artwork-pair figcaption span {
   padding: 3px 5px;
-  color: #d6c4ff;
-  border: 1px solid #b69aff40;
+  color: #c4d8ff;
+  border: 1px solid #9abcff40;
   border-radius: 4px;
   font-size: 8px;
 }
 .yk-pro-artwork-arrow {
-  color: #c5afff;
+  color: #afcaff;
   font-size: 22px;
 }
 .yk-pro-custom-card-toggle {
@@ -873,7 +873,7 @@
   font-size: 11px;
   line-height: 1.6;
   text-align: center;
-  color: #aaa2b9;
+  color: #a2aab9;
 }
 @media (max-width: 960px) {
   .yk-pro-personalization-examples {
@@ -929,12 +929,12 @@
 }
 .yk-pro-comparison tbody th {
   font-weight: 400;
-  color: #b6acc7;
+  color: #acb5c7;
 }
 .yk-pro-comparison td:last-child,
 .yk-pro-comparison thead th:last-child {
-  background: #b69aff0a;
-  color: #d6c4ff;
+  background: #9abcff0a;
+  color: #c4d8ff;
 }
 .yk-pro-section-heading {
   display: flex;
@@ -956,12 +956,12 @@
   border: 1px solid #ffffff16;
   background: #ffffff03;
   font-size: 12px;
-  color: #aaa2b9;
+  color: #a2aab9;
 }
 .yk-pro-plan-toggle button[aria-pressed="true"],
 .yk-pro-clock button[aria-pressed="true"] {
-  background: #b69aff16;
-  border-color: #b69aff70;
+  background: #9abcff16;
+  border-color: #9abcff70;
   color: #e6dbff;
 }
 .yk-pro-clock {
@@ -980,20 +980,20 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 14px;
-  background: #b69aff04;
+  background: #9abcff04;
 }
 .yk-pro-sim-grid article > span,
 .yk-pro-showcase-preview > span {
   font-size: 12px;
-  color: #b6acc7;
+  color: #acb5c7;
 }
 .yk-pro-sim-grid strong {
   font-size: 30px;
   font-weight: 500;
-  color: #d6c4ff;
+  color: #c4d8ff;
 }
 .yk-pro-sim-grid p {
-  color: #aaa2b9;
+  color: #a2aab9;
   font-size: 12px;
 }
 .yk-pro-sim-grid .yk-button {
@@ -1015,9 +1015,9 @@
   align-items: center;
   justify-content: center;
   border-radius: 9px;
-  border: 1px dashed #b69aff48;
-  background: linear-gradient(140deg, #b69aff12, #b69aff03);
-  color: #aa97d0;
+  border: 1px dashed #9abcff48;
+  background: linear-gradient(140deg, #9abcff12, #9abcff03);
+  color: #97aad0;
   font-size: 13px;
 }
 .yk-pro-feature-grid {
@@ -1033,7 +1033,7 @@
   background: #ffffff02;
 }
 .yk-pro-feature-grid article > span {
-  color: #9e8dbb;
+  color: #8d9cbb;
   font-size: 8px;
   letter-spacing: 0.14em;
 }
@@ -1043,7 +1043,7 @@
   font-weight: 500;
 }
 .yk-pro-feature-grid p {
-  color: #aaa2b9;
+  color: #a2aab9;
   font-size: 12px;
   line-height: 1.8;
 }
@@ -1149,7 +1149,7 @@
   }
   .yk-premium-benefits article {
     padding-left: 22px;
-    border-left: 1px solid #b69aff30;
+    border-left: 1px solid #9abcff30;
   }
   .yk-premium-studio {
     flex-direction: column;

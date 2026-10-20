@@ -183,8 +183,7 @@ a[aria-current="page"] {
   transform: rotate(45deg);
   border-radius: 2px;
   background: var(--background-karas);
-  box-shadow: 0 0 10px
-    color-mix(in srgb, var(--color-accent-gold) 32%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-karas) 32%, transparent);
 }
 .yk-modal {
   margin: auto;
