@@ -38,3 +38,16 @@ test("the auth footer keeps the page background continuous", () => {
     /\.yk-auth-shell > \.yk-site-footer\s*\{[^}]*background:\s*transparent\s*;/
   );
 });
+
+test("auth entry never enlarges the page beyond the mobile viewport", () => {
+  const css = readFileSync("styles/auth.css", "utf8");
+  const transition = css.match(
+    /\.yk-page-transition:has\(\.yk-auth-shell\)\s*\{([^}]+)\}/
+  )?.[1];
+  assert.ok(
+    transition,
+    "The auth transition must be scoped to its page wrapper"
+  );
+  assert.match(transition, /--page-enter-scale:\s*1\s*;/);
+  assert.doesNotMatch(transition, /overflow(?:-x|-y)?:\s*hidden/);
+});

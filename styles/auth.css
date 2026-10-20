@@ -1,3 +1,7 @@
+.yk-page-transition:has(.yk-auth-shell) {
+  /* Fade the auth page in without scaling the viewport beyond its edges. */
+  --page-enter-scale: 1;
+}
 .yk-auth-shell {
   position: relative;
   isolation: isolate;
