@@ -4,7 +4,7 @@ import vm from "node:vm";
 import test from "node:test";
 import ts from "typescript";
 
-test("wheel scrolls the strip and releases the page at either end", () => {
+test("wheel loops in both directions without moving the page", () => {
   const loaded = { exports: {} };
   vm.runInNewContext(
     ts.transpileModule(readFileSync("lib/ui/horizontal-wheel.ts", "utf8"), {
@@ -43,16 +43,26 @@ test("wheel scrolls the strip and releases the page at either end", () => {
     });
     return prevented;
   };
-  assert.equal(wheel(-10), false);
+  assert.equal(wheel(-10), true);
+  assert.equal(element.scrollLeft, 800);
+  assert.equal(wheel(10), true);
+  assert.equal(element.scrollLeft, 0);
   assert.equal(wheel(120), true);
   assert.equal(element.scrollLeft, 120);
   assert.equal(wheel(2, { deltaMode: 1 }), true);
   assert.equal(element.scrollLeft, 152);
   assert.equal(wheel(100, { ctrlKey: true }), false);
-  assert.equal(wheel(2, { deltaX: 30 }), false);
+  assert.equal(wheel(2, { deltaX: 30 }), true);
+  assert.equal(element.scrollLeft, 182);
   assert.equal(wheel(10000), true);
   assert.equal(element.scrollLeft, 800);
+  assert.equal(wheel(120), true);
+  assert.equal(element.scrollLeft, 0);
+  assert.equal(wheel(-120), true);
+  assert.equal(element.scrollLeft, 800);
+  element.scrollWidth = element.clientWidth;
   assert.equal(wheel(120), false);
+  assert.equal(wheel(0), false);
   cleanup();
   assert.equal(listener, null);
 });
