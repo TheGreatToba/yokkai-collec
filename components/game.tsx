@@ -391,6 +391,12 @@ export function Game({
     .padStart(2, "0")}:${Math.floor((decisionSeconds % 3600) / 60)
     .toString()
     .padStart(2, "0")}:${(decisionSeconds % 60).toString().padStart(2, "0")}`;
+  const collectionHeading = (
+    <div>
+      <p className="eyebrow">Every card you own</p>
+      <h1 className="yk-title mt-3">My collection</h1>
+    </div>
+  );
   return (
     <div
       className={view === "packs" ? "flex min-h-dvh w-full flex-col" : "w-full"}
@@ -418,9 +424,7 @@ export function Game({
             </p>
           </header>
         ) : (
-          <h1 className="text-2xl font-semibold tracking-tight text-ink">
-            My collection
-          </h1>
+          !status && collectionHeading
         )}
         {error && (
           <p
@@ -528,6 +532,7 @@ export function Game({
 
         {view === "collection" && status && (
           <CollectionView
+            pageHeading={collectionHeading}
             cards={collection}
             categories={info?.categories || []}
             loadPaniniAlbums={getPaniniAlbumsPage}

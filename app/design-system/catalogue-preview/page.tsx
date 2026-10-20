@@ -44,29 +44,12 @@ export default function CataloguePreview() {
     <>
       <Topbar view="search" name="Kitsune" karas={4920} notifications={[]} />
       <main className="mx-auto w-full max-w-[var(--layout-collection-max)] px-6 py-10">
-        <p className="eyebrow">Toutes les cartes du jeu</p>
-        <h1 className="yk-title mt-3">Catalogue</h1>
-        <section className="yk-catalogue mt-8">
-          <div className="yk-catalogue-heading">
-            <p role="status" className="sr-only">
-              103 379 cartes
-            </p>
-            <button type="button" className="yk-mobile-filter-trigger">
-              <svg
-                aria-hidden="true"
-                width="17"
-                height="17"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-              >
-                <path d="M4 6h16M7 12h10M10 18h4" />
-              </svg>
-              Filtres
-            </button>
-          </div>
+        <section className="yk-catalogue">
           <div className="yk-collection-layout">
+            <header className="yk-catalogue-title">
+              <p className="eyebrow">Toutes les cartes du jeu</p>
+              <h1 className="yk-title mt-3">Catalogue</h1>
+            </header>
             <aside className="yk-collection-sidebar">
               <div className="yk-filter-search">
                 <svg
@@ -125,6 +108,25 @@ export default function CataloguePreview() {
               </button>
             </aside>
             <div className="yk-collection-main">
+              <div className="yk-catalogue-heading">
+                <p role="status" className="sr-only">
+                  103 379 cartes
+                </p>
+                <button type="button" className="yk-mobile-filter-trigger">
+                  <svg
+                    aria-hidden="true"
+                    width="17"
+                    height="17"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                  >
+                    <path d="M4 6h16M7 12h10M10 18h4" />
+                  </svg>
+                  Filtres
+                </button>
+              </div>
               <ul className="yk-card-grid yk-catalogue-grid">
                 {cards.map(card => (
                   <li key={card.id}>
