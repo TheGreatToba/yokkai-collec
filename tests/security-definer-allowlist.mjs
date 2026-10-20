@@ -4,6 +4,9 @@ export const ownerOnly = [
 ]; // Only the owning SECURITY DEFINER wrapper may bypass billing preparation; never service_role.
 
 const allowlist = {
+  "public.get_friend_wall_feed(timestamp with time zone, uuid, integer)": [
+    "authenticated"
+  ], // Bounded accepted-friend wall feed for auth.uid(); existing wall ACL, bilateral blocks, bans and deletion fences. Requires Walid ACL review before production.
   "public.get_recent_big_pulls(integer)": ["authenticated"], // Bounded public pulls; private identity/appearance are null, blocked/banned/deleted players excluded.
   "public.browse_auctions_page(integer, text, text, text, text, text)": [
     "authenticated"

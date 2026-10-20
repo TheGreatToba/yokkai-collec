@@ -1268,7 +1268,9 @@ export function ProfileExperience({
   const [wishlistCard, setWishlistCard] = useState<WishlistCard | null>(null);
   const [friendCards, setFriendCards] = useState<CollectedCard[]>();
   const [collectionError, setCollectionError] = useState("");
-  const [tab, setTab] = useState("tableau");
+  const [tab, setTab] = useState(
+    searchParams.get("tab") === "wall" ? "wall" : "tableau"
+  );
   const [details, setDetails] = useState<ProfileDetails>();
   const [detailsError, setDetailsError] = useState("");
   const [preferencesOpen, setPreferencesOpen] = useState(false);

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Topbar } from "@/components/topbar";
 import { SiteFooter } from "@/components/site-footer";
 import { HomePanel } from "@/components/home-dashboard";
+import { HomeFriendFeedPreview } from "@/components/home-friend-feed-preview";
 import { HomeHero, HomeLinks, HomePacks } from "@/components/home-content";
 import {
   HomePackTimer,
@@ -85,6 +86,7 @@ export default function HomePreview() {
         <HomePanel id="home-big" title="Big pulls">
           <BigPulls pulls={pulls} />
         </HomePanel>
+        <HomeFriendFeedPreview />
         <HomePanel
           id="home-market"
           title="The market"
