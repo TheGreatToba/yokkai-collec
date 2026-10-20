@@ -1,4 +1,5 @@
 import { normalizeWhitespace } from "./helpers/normalize-whitespace.mjs";
+import { homePresentation } from "./helpers/home-presentation.mjs";
 import {
   assertPngAsset,
   assertTearAssets,
@@ -353,10 +354,11 @@ test("les titres H1 utilisent la police locale HYWenHei-85W", () => {
 });
 
 test("la page d’accueil utilise le même logo que la navigation", () => {
-  const landing = readFileSync(path.join(root, "app/page.tsx"), "utf8");
-  const css = readFileSync(path.join(root, "styles/landing.css"), "utf8");
+  const presentation = homePresentation();
+  const landing = presentation.header;
+  const css = presentation.css;
   assert.equal(
-    imageAsset(landing, "yk-landing-brand-image"),
+    imageAsset(landing, presentation.brandImageClass),
     imageAsset(
       readFileSync(path.join(root, "components/topbar.tsx"), "utf8"),
       "yk-brand-image"
@@ -364,12 +366,16 @@ test("la page d’accueil utilise le même logo que la navigation", () => {
   );
   assert.match(
     normalizeWhitespace(landing),
-    normalizeWhitespace(/className="yk-landing-brand-image"/)
+    normalizeWhitespace(
+      new RegExp(`className="${presentation.brandImageClass}"`)
+    )
   );
   assert.match(
     normalizeWhitespace(css),
     normalizeWhitespace(
-      /\.yk-landing-brand \{ display: inline-flex; width: 112px;/
+      presentation.shared
+        ? /\.yk-auth-brand \{ display: flex; width: 112px;/
+        : /\.yk-landing-brand \{ display: inline-flex; width: 112px;/
     )
   );
 });

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import { homePresentation } from "./helpers/home-presentation.mjs";
 
 const read = path => readFileSync(path, "utf8");
 
@@ -33,7 +34,7 @@ test("public guide pages have English metadata and useful content", () => {
 });
 
 test("the landing and player pack shell use the expanded footer", () => {
-  const landing = read("app/page.tsx");
+  const landing = homePresentation().footer;
   const game = read("components/game.tsx");
 
   assert.match(landing, /<FooterNavigation \/>/);
