@@ -61,6 +61,35 @@
   font-size: 13px;
   transition: color var(--duration-fast) var(--ease-standard);
 }
+.yk-auth-policy-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.yk-auth-policy-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  margin-top: 3px;
+  accent-color: var(--color-focus-ring);
+  cursor: pointer;
+}
+.yk-auth-policy-row input:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+.yk-auth-policy-row label {
+  min-width: 0;
+  color: var(--color-ink-2);
+  font-size: 12px;
+  line-height: 1.8;
+}
+.yk-auth-policy-note {
+  margin-top: 8px;
+  color: var(--color-ink-3);
+  font-size: 11px;
+  line-height: 1.6;
+}
 .yk-auth-return:hover {
   color: var(--color-ink);
 }

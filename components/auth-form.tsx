@@ -10,7 +10,12 @@ import {
   signIn,
   signUp
 } from "@/app/auth/actions";
-import { pseudoValidationError, type AuthState } from "@/lib/auth/forms";
+import {
+  PSEUDO_NO_EMOJI_PATTERN,
+  pseudoValidationError,
+  SIGNUP_POLICY_VERSION,
+  type AuthState
+} from "@/lib/auth/forms";
 
 type PseudoAvailability = "idle" | "checking" | "available" | "taken";
 
@@ -33,6 +38,10 @@ export function AuthForm({
     {}
   );
   const [pseudo, setPseudo] = useState(state.values?.pseudo ?? "");
+  const [policiesAccepted, setPoliciesAccepted] = useState(false);
+  const pseudoError =
+    (signup && pseudo ? pseudoValidationError(pseudo.trim()) : undefined) ||
+    (pseudo.trim() === state.values?.pseudo ? state.fields?.pseudo : undefined);
   const [pseudoAvailability, setPseudoAvailability] =
     useState<PseudoAvailability>("idle");
   const pseudoRequest = useRef(0);
@@ -123,30 +132,36 @@ export function AuthForm({
                 name="pseudo"
                 autoComplete="nickname"
                 required
+                pattern={PSEUDO_NO_EMOJI_PATTERN}
+                title="Choose a username without emoji."
                 value={pseudo}
                 onChange={event => {
                   pseudoRequest.current += 1;
                   setPseudo(event.target.value);
                   setPseudoAvailability("idle");
+                  event.currentTarget.setCustomValidity(
+                    pseudoValidationError(event.currentTarget.value.trim()) ??
+                      ""
+                  );
                 }}
                 className="auth-input"
                 placeholder="Your collector name"
-                aria-invalid={Boolean(state.fields?.pseudo)}
+                aria-invalid={Boolean(pseudoError)}
                 aria-describedby={
-                  state.fields?.pseudo
+                  pseudoError
                     ? "pseudo-error"
                     : pseudoAvailability !== "idle"
                       ? "pseudo-availability"
                       : "pseudo-help"
                 }
               />
-              {!state.fields?.pseudo && pseudoAvailability === "idle" && (
+              {!pseudoError && pseudoAvailability === "idle" && (
                 <p id="pseudo-help" className="mt-2 text-xs text-white/50">
-                  3–30 characters. Spaces between characters, accents, and emoji
-                  are allowed.
+                  3–30 characters. Spaces between characters and accents are
+                  allowed. No emoji.
                 </p>
               )}
-              {!state.fields?.pseudo && pseudoAvailability !== "idle" && (
+              {!pseudoError && pseudoAvailability !== "idle" && (
                 <p
                   id="pseudo-availability"
                   className={`mt-2 text-xs ${pseudoAvailability === "available" ? "text-lime-300" : pseudoAvailability === "taken" ? "text-red-200" : "text-white/50"}`}
@@ -159,13 +174,13 @@ export function AuthForm({
                       : "Already taken"}
                 </p>
               )}
-              {state.fields?.pseudo && (
+              {pseudoError && (
                 <p
                   id="pseudo-error"
                   className="mt-2 text-sm text-red-200"
                   role="alert"
                 >
-                  {state.fields.pseudo}
+                  {pseudoError}
                 </p>
               )}
             </div>
@@ -234,6 +249,58 @@ export function AuthForm({
               </p>
             )}
           </div>
+          {signup && (
+            <div className="yk-auth-policy">
+              <div className="yk-auth-policy-row">
+                <input
+                  id="accepted-policies"
+                  name="acceptedPolicies"
+                  type="checkbox"
+                  value={SIGNUP_POLICY_VERSION}
+                  required
+                  checked={policiesAccepted}
+                  onChange={event => setPoliciesAccepted(event.target.checked)}
+                  aria-invalid={Boolean(state.fields?.acceptedPolicies)}
+                  aria-describedby={
+                    state.fields?.acceptedPolicies
+                      ? "policy-draft-note policy-error"
+                      : "policy-draft-note"
+                  }
+                />
+                <label htmlFor="accepted-policies">
+                  I agree to the{" "}
+                  <Link
+                    href="/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="yk-auth-link"
+                    aria-label="Terms of Use (opens in a new tab)"
+                  >
+                    Terms of Use
+                  </Link>{" "}
+                  and{" "}
+                  <Link
+                    href="/rules"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="yk-auth-link"
+                    aria-label="Community rules (opens in a new tab)"
+                  >
+                    Community rules
+                  </Link>
+                  .
+                </label>
+              </div>
+              <p id="policy-draft-note" className="yk-auth-policy-note">
+                Preview only: the Terms are a draft awaiting legal review.
+              </p>
+              {state.fields?.acceptedPolicies && (
+                <p id="policy-error" className="auth-error" role="alert">
+                  {state.fields.acceptedPolicies}
+                </p>
+              )}
+            </div>
+          )}
           <AuthTurnstile />
           <button
             type="submit"

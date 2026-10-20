@@ -24,8 +24,9 @@ pas résolus. Aucun déploiement n'est inclus dans cette tâche.
   d'interdiction générale des mineurs ni de seuil mondial arbitraire.
 - Vérifier les mécanismes nécessaires : information adaptée à l'âge, vérification
   proportionnée, autorisation parentale si requise et éventuels parcours d'achat
-  spécifiques. **Une clause de CGU ne remplace pas ces mécanismes.** Cette PR ne
-  modifie ni l'inscription, ni la facturation, ni le recueil des consentements.
+  spécifiques. **Une clause de CGU ne remplace pas ces mécanismes.** Cette PR
+  ne met en œuvre ni vérification d'âge ni accord parental. La case d'inscription
+  n'est pas un consentement RGPD ou une autorisation parentale.
 - Préparer/valider l'information relative à la vie privée et aux traitements de
   données : ces conditions ne sont pas une politique de confidentialité. Aucun
   lien vers une route `/privacy` inexistante n'est ajouté.
@@ -62,6 +63,23 @@ Ces ressources ne remplacent pas un avis juridique adapté au service.
 - Fond bleu nuit `#060913` sur cette page uniquement (encadré et footer assortis),
   via une variante optionnelle du composant d'information ; les autres pages
   gardent leur thème existant.
-- Aucun changement des limites d'âge techniques, du compte ou des achats.
+- Ajoute à l'inscription une case obligatoire conditions/règles, décochée au
+  départ, contrôlée par la Server Action avant tout appel Supabase. Les liens
+  s'ouvrent dans un nouvel onglet pour préserver le formulaire.
+- Pseudos : les emojis sont refusés par la validation partagée, le pattern HTML,
+  la Server Action et la vérification de disponibilité. Les comptes existants ne
+  sont pas renommés et leur connexion reste possible. Les accents, espaces,
+  nombres et écritures non latines restent autorisés.
+- La version `2026-10-20-draft` et l'heure calculée par le serveur sont transmises
+  en métadonnées Auth `signup_policies`. Ces métadonnées sont modifiables par leur
+  propriétaire : ce n'est **pas** un registre de preuve immuable.
+- Périmètre : contrôle des parcours d'inscription du site, pas du point d'entrée
+  Auth direct. Une inscription directe à l'API Supabase ne passe pas par la Server
+  Action ; aucun nouveau trigger SQL n'est ajouté. Un durcissement global de l'API
+  et un registre de preuve nécessiteraient une évolution serveur/SQL séparée,
+  revue et coordonnée. Ne pas présenter cette PR comme une garantie de conformité.
+- Aucun changement des limites d'âge techniques ou des achats.
+- Avant production : valider/publier les textes, puis versionner explicitement
+  leur acceptation ; la note du formulaire indique le statut de prévisualisation.
 - Aucun test existant assoupli ; nouveaux tests dédiés au brouillon.
 - **Aucune migration Supabase. Aucune migration appliquée au VPS.**

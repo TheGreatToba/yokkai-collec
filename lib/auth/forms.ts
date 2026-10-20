@@ -4,7 +4,12 @@ export type AuthState = {
   retryAfter?: number;
   fields?: Partial<
     Record<
-      "email" | "currentPassword" | "password" | "confirmPassword" | "pseudo",
+      | "email"
+      | "currentPassword"
+      | "password"
+      | "confirmPassword"
+      | "pseudo"
+      | "acceptedPolicies",
       string
     >
   >;
@@ -12,6 +17,22 @@ export type AuthState = {
 };
 
 const FORBIDDEN_PSEUDO_CHARACTERS = /[/\\?#%<>\p{Cc}]/u;
+
+// Do not use \p{Emoji}: it also includes ordinary digits, #, and *.
+const PSEUDO_EMOJI_CHARACTERS =
+  /[\p{Extended_Pictographic}\p{Regional_Indicator}\p{Emoji_Modifier}\u20E3\uFE0F\u{E0020}-\u{E007F}]/u;
+export const PSEUDO_NO_EMOJI_PATTERN = String.raw`(?!.*[\p{Extended_Pictographic}\p{Regional_Indicator}\p{Emoji_Modifier}\u20E3\uFE0F\u{E0020}-\u{E007F}]).*`;
+
+// This is a review draft, not a published legal agreement. Change this version
+// only after the linked Terms and rules have been reviewed for publication.
+export const SIGNUP_POLICY_VERSION = "2026-10-20-draft";
+
+export function signupPolicyValidationError(form: FormData) {
+  const acceptance = form.getAll("acceptedPolicies");
+  return acceptance.length === 1 && acceptance[0] === SIGNUP_POLICY_VERSION
+    ? undefined
+    : "Accept the Terms of Use and Community rules to create your account.";
+}
 
 export function normalizeReferralCode(value: unknown) {
   if (typeof value !== "string") return null;
@@ -25,6 +46,9 @@ export function pseudoValidationError(pseudo: string) {
   if (length > 30) return "Choose a username with no more than 30 characters.";
   if (FORBIDDEN_PSEUDO_CHARACTERS.test(pseudo)) {
     return "Your username can't contain / \\ ? # % < > or control characters.";
+  }
+  if (PSEUDO_EMOJI_CHARACTERS.test(pseudo)) {
+    return "Choose a username without emoji.";
   }
   return undefined;
 }
