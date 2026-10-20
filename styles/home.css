@@ -138,6 +138,10 @@
   scrollbar-color: #59508a transparent;
 }
 .yk-home-card-button {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: transparent;
   cursor: pointer;
   width: 100%;
   border-radius: 8px;
