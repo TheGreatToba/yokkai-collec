@@ -12,12 +12,16 @@ test("shared pack countdown rounds up and clamps expired or full reserves", () =
     }).outputText,
     { exports: loaded.exports }
   );
-  const { packCountdown } = loaded.exports;
+  const { packCountdown, auctionCountdown } = loaded.exports;
   assert.equal(packCountdown(61001, 0), "01:02");
   assert.equal(packCountdown(61000, 0), "01:01");
   assert.equal(packCountdown(1000, 2000), "00:00");
   assert.equal(packCountdown(null, 2000), "00:00");
   assert.equal(packCountdown(3601001, 0, true), "01:00:02");
+  assert.equal(auctionCountdown(9600000, 0), "2h 40m");
+  assert.equal(auctionCountdown(3600000, 0), "1h 0m");
+  assert.equal(auctionCountdown(3599000, 0), "59:59");
+  assert.equal(auctionCountdown(0, 1000), "00:00");
 });
 
 test("Decision panel keeps the daily quota and pending choice", () => {

@@ -6,7 +6,12 @@ import { AccountMenu } from "@/components/account-menu";
 import { Topbar } from "@/components/topbar";
 import { SiteFooter } from "@/components/site-footer";
 import { getDiscordInviteUrl } from "@/lib/discord-invite";
-import { HomeHero, HomeLinks, HomeSkeleton } from "@/components/home-content";
+import {
+  HomeHero,
+  HomeLinks,
+  HomePacks,
+  HomeSkeleton
+} from "@/components/home-content";
 import {
   HomeRefresh,
   HomePackTimer,
@@ -187,16 +192,15 @@ export function HomeDashboard({ userId }: { userId: string }) {
       <HomeRefresh />
       <main id="main-content" className="yk-home-main">
         <HomeHero />
-        <HomePanel id="home-packs" title="Regular Pack">
+        <HomePacks>
           <Suspense fallback={<HomeSkeleton />}>
             <PanelData load={() => packs()} />
           </Suspense>
-        </HomePanel>
-        <HomePanel id="home-decision" title="Decision Pack">
+
           <Suspense fallback={<HomeSkeleton />}>
             <PanelData load={() => packs("decision")} />
           </Suspense>
-        </HomePanel>
+        </HomePacks>
         <HomePanel
           id="home-latest"
           title="Your latest pulls"

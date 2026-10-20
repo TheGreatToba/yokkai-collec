@@ -38,7 +38,10 @@ export function ReferralPanel({
   }
 
   return (
-    <section className="mt-6 rounded-panel border border-veil bg-surface p-6">
+    <section
+      id="referrals"
+      className="mt-6 rounded-panel border border-veil bg-surface p-6"
+    >
       <p className="eyebrow">Invite friends</p>
       <div className="mt-2 flex flex-wrap items-start justify-between gap-6">
         <div className="max-w-2xl">

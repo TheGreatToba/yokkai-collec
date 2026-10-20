@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Topbar } from "@/components/topbar";
 import { SiteFooter } from "@/components/site-footer";
 import { HomePanel } from "@/components/home-dashboard";
-import { HomeHero, HomeLinks } from "@/components/home-content";
+import { HomeHero, HomeLinks, HomePacks } from "@/components/home-content";
 import {
   HomePackTimer,
   LatestPulls,
@@ -27,12 +27,14 @@ export default function HomePreview() {
     obtainedAt: new Date(now - index * 120000).toISOString(),
     shiny: index === 1
   }));
-  const pulls: BigPull[] = cards.slice(0, 6).map((card, index) => ({
+  const pulls: BigPull[] = cards.map((card, index) => ({
     instanceId: card.instanceId,
     obtainedAt: card.obtainedAt,
     card,
-    playerId: "preview-player",
-    playerName: ["Kitsune", "Moonflower", "Raven"][index % 3]
+    playerId: index === 2 ? null : `preview-player-${index % 3}`,
+    avatarUrl: index === 2 ? null : AUTH_MARQUEE_CARDS[index % 3].image,
+    playerName:
+      index === 2 ? null : ["Kitsune", "Moonflower", "Raven"][index % 3]
   }));
   const auctions: AuctionData[] = cards.slice(0, 6).map((card, index) => ({
     id: `preview-${index}`,
@@ -50,7 +52,7 @@ export default function HomePreview() {
       <Topbar view="home" name="Kitsune" karas={4920} notifications={[]} />
       <main id="main-content" className="yk-home-main">
         <HomeHero />
-        <HomePanel id="home-packs" title="Regular Pack">
+        <HomePacks>
           <HomePackTimer
             initial={{
               available: 3,
@@ -60,8 +62,7 @@ export default function HomePreview() {
             }}
             preview
           />
-        </HomePanel>
-        <HomePanel id="home-decision" title="Decision Pack">
+
           <HomePackTimer
             kind="decision"
             initial={{
@@ -72,7 +73,7 @@ export default function HomePreview() {
             }}
             preview
           />
-        </HomePanel>
+        </HomePacks>
         <HomePanel
           id="home-latest"
           title="Your latest pulls"

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   getPackStatus,
@@ -11,7 +11,7 @@ import {
 } from "@/lib/data/cards";
 import { browseAuctions, type AuctionData } from "@/lib/data/market";
 import { subscribePlayerSnapshotInvalidation } from "@/lib/data/player-state";
-import { packCountdown } from "@/lib/ui/pack-countdown";
+import { packCountdown, auctionCountdown } from "@/lib/ui/pack-countdown";
 import {
   decisionPackSummary,
   type BigPull,
@@ -21,7 +21,17 @@ import {
 import { StyledPlayerName } from "@/components/styled-player-name";
 import { YokaiCard } from "@/components/yokai-card";
 import { CatalogueCardModal } from "@/components/catalogue-card-modal";
-import { Button, Karas } from "@/components/ui";
+import { Avatar, Button, Karas } from "@/components/ui";
+
+import { enableHorizontalWheel } from "@/lib/ui/horizontal-wheel";
+
+function useHorizontalWheel(enabled: boolean) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (enabled && ref.current) return enableHorizontalWheel(ref.current);
+  }, [enabled]);
+  return ref;
+}
 
 function useClock(interval = 1000) {
   const [now, setNow] = useState<number | null>(null);
@@ -133,13 +143,14 @@ export function HomePackTimer({
         className="yk-home-pack-art"
       />
       <div>
-        <h3 aria-live="polite">
+        <h3>{kind === "decision" ? "Decision Pack" : "Regular Pack"}</h3>
+        <p className="yk-home-pack-state" aria-live="polite">
           {status.canResume
             ? "Finish your pack"
             : status.available > 0
               ? `${status.available} ${status.available === 1 ? "pack" : "packs"} ready`
               : "Available in"}
-        </h3>
+        </p>
         <p>
           {status.available} / {status.maximum} packs
           {full ? " · Full" : kind === "decision" ? " today" : " in reserve"}
@@ -166,24 +177,17 @@ export function HomePackTimer({
           </p>
         )}
       </div>
-      <Link href="/boosters" className="yk-home-pack-link">
-        {status.canResume
-          ? "Resume pack"
-          : status.available > 0
-            ? "Open a booster"
-            : "Visit packs"}{" "}
-        ↗
-      </Link>
     </div>
   );
 }
 
 export function LatestPulls({ cards }: { cards: HomeCard[] }) {
+  const scrollRef = useHorizontalWheel(cards.length > 0);
   const [selected, setSelected] = useState<HomeCard | null>(null);
   return (
     <>
       {cards.length ? (
-        <div className="yk-home-card-grid">
+        <div className="yk-home-card-grid" ref={scrollRef}>
           {cards.map(card => (
             <button
               type="button"
@@ -210,57 +214,46 @@ export function LatestPulls({ cards }: { cards: HomeCard[] }) {
 }
 
 export function BigPulls({ pulls }: { pulls: BigPull[] }) {
-  const now = useClock(60_000);
-  const relative = (date: string) => {
-    if (now === null) return "Recently";
-    const minutes = Math.max(0, Math.floor((now - Date.parse(date)) / 60_000));
-    return minutes < 1
-      ? "Just now"
-      : minutes < 60
-        ? `${minutes.toLocaleString("en-US")}m ago`
-        : minutes < 1440
-          ? `${Math.floor(minutes / 60).toLocaleString("en-US")}h ago`
-          : `${Math.floor(minutes / 1440).toLocaleString("en-US")}d ago`;
-  };
+  const scrollRef = useHorizontalWheel(pulls.length > 0);
   return pulls.length ? (
-    <div className="yk-home-big">
-      <div
-        className="yk-home-big-window"
-        tabIndex={0}
-        role="region"
-        aria-label="Recent big pulls, scroll to explore"
-      >
-        <div className="yk-home-big-track">
-          {[0, 1].map(copy => (
-            <div
-              className="yk-home-big-set"
-              key={copy}
-              aria-hidden={copy === 1 ? true : undefined}
-              inert={copy === 1 ? true : undefined}
-            >
-              {pulls.map(pull => (
-                <article className="yk-home-big-pull" key={pull.instanceId}>
-                  <YokaiCard {...pull.card} animated={false} />
-                  <div>
-                    <span className="eyebrow">
-                      {pull.card.shiny ? "Shiny" : pull.card.rarity} pull
-                    </span>
-                    <h3>{pull.card.name}</h3>
-                    <Link href={`/profile/${pull.playerId}`}>
-                      <StyledPlayerName
-                        name={pull.playerName}
-                        cosmetics={pull.profileStyle}
-                      />
-                    </Link>
-                    <time dateTime={pull.obtainedAt}>
-                      {relative(pull.obtainedAt)}
-                    </time>
-                  </div>
-                </article>
-              ))}
-            </div>
-          ))}
-        </div>
+    <div
+      className="yk-home-big-window"
+      ref={scrollRef}
+      tabIndex={0}
+      role="region"
+      aria-label="Recent big pulls, scroll to explore"
+    >
+      <div className="yk-home-big-track">
+        {pulls.map(pull => (
+          <article className="yk-home-big-pull" key={pull.instanceId}>
+            <YokaiCard {...pull.card} animated={false} />
+            {pull.playerId && pull.playerName ? (
+              <Link
+                className="yk-home-pull-player"
+                href={`/profile/${pull.playerId}`}
+              >
+                <Avatar
+                  name={pull.playerName}
+                  image={pull.avatarUrl ?? undefined}
+                  size={22}
+                />
+                <span className="yk-home-pull-name">
+                  <StyledPlayerName
+                    name={pull.playerName}
+                    cosmetics={pull.profileStyle ?? undefined}
+                  />
+                </span>
+              </Link>
+            ) : (
+              <span className="yk-home-pull-player">
+                <span className="yk-home-private-avatar" aria-hidden="true">
+                  ?
+                </span>
+                <span>Private player</span>
+              </span>
+            )}
+          </article>
+        ))}
       </div>
     </div>
   ) : (
@@ -335,15 +328,16 @@ export function HomeMarket({
               key={auction.id}
             >
               <YokaiCard {...auction.card} animated={false} />
-              <h3>{auction.card.name}</h3>
-              <Karas amount={auction.amount} />
-              <span role="timer" aria-live="off">
-                {now === null
-                  ? "Ending soon"
-                  : Date.parse(auction.endsAt) <= now
-                    ? "Ended"
-                    : `${packCountdown(Date.parse(auction.endsAt), now)} left`}
-              </span>
+              <div className="yk-home-auction-meta">
+                <Karas amount={auction.amount} />
+                <span role="timer" aria-live="off" aria-label="Time remaining">
+                  {now === null
+                    ? "Ending soon"
+                    : Date.parse(auction.endsAt) <= now
+                      ? "Ended"
+                      : auctionCountdown(Date.parse(auction.endsAt), now)}
+                </span>
+              </div>
             </Link>
           ))}
         </div>

@@ -19,3 +19,9 @@ export function packCountdown(
     .toString()
     .padStart(2, "0")}:${(seconds % 60).toString().padStart(2, "0")}`;
 }
+
+export function auctionCountdown(endsAt: number, now: number) {
+  const seconds = Math.max(0, Math.ceil((endsAt - now) / 1000));
+  if (seconds < 3600) return packCountdown(endsAt, now);
+  return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
+}

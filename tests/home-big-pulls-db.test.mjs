@@ -24,6 +24,14 @@ test("big pulls enforce rarity, original ownership, visibility, moderation and a
   }
   const [viewer, owner, banned, deleted, hidden, blocked] = users;
   await db.query(
+    "insert into public.profile_media_assets(path,user_id,purpose,mime_type,animated,public_url) values($1,$2,'avatar','image/png',false,$3)",
+    [owner + "/avatar.png", owner, "https://example.com/avatar.png"]
+  );
+  await db.query(
+    "update public.user_profiles set avatar_url=$1 where user_id=$2",
+    ["https://example.com/avatar.png", owner]
+  );
+  await db.query(
     "update auth.users set banned_until=now()+interval '1 day' where id=$1",
     [banned]
   );
@@ -61,8 +69,8 @@ test("big pulls enforce rarity, original ownership, visibility, moderation and a
   for (const rarity of ["C", "R", "SR"]) await add(rarity);
   await add("LR", { original: false });
   await add("SSR", { shiny: true, evolved: true });
-  for (const user of [banned, deleted, hidden, blocked])
-    await add("LR", { user });
+  const hiddenPull = await add("LR", { user: hidden });
+  for (const user of [banned, deleted, blocked]) await add("LR", { user });
   const as = async (role, user, limit = 20) => {
     await db.exec(`set role ${role}`);
     await db.query("select set_config('request.jwt.claim.sub',$1,false)", [
@@ -84,15 +92,26 @@ test("big pulls enforce rarity, original ownership, visibility, moderation and a
   const pulls = await as("authenticated", viewer);
   assert.deepEqual(
     new Set(pulls.map(pull => pull.instanceId)),
-    new Set([ssr, lr, shiny])
+    new Set([ssr, lr, shiny, hiddenPull])
   );
-  assert.equal(pulls.length, 3);
+  assert.equal(pulls.length, 4);
   assert.equal((await as("authenticated", viewer, 1)).length, 1);
-  assert.equal((await as("authenticated", viewer, null)).length, 3);
-  assert.ok(pulls.every(pull => pull.playerId === owner));
+  assert.equal((await as("authenticated", viewer, null)).length, 4);
+  assert.equal(pulls.filter(pull => pull.playerId === owner).length, 3);
+  const anonymous = pulls.find(pull => pull.instanceId === hiddenPull);
+  assert.equal(anonymous.playerId, null);
+  assert.equal(anonymous.playerName, null);
+  assert.equal(anonymous.avatarUrl, null);
+  assert.equal(anonymous.profileStyle, null);
+  assert.ok(
+    pulls
+      .filter(pull => pull.playerId === owner)
+      .every(pull => pull.avatarUrl === "https://example.com/avatar.png")
+  );
   assert.deepEqual(
     Object.keys(pulls[0]).sort(),
     [
+      "avatarUrl",
       "card",
       "instanceId",
       "obtainedAt",
@@ -117,17 +136,19 @@ test("big pulls enforce rarity, original ownership, visibility, moderation and a
     [viewer, hidden]
   );
   assert.equal(
-    (await as("authenticated", viewer)).filter(pull => pull.playerId === hidden)
-      .length,
-    1
+    (await as("authenticated", viewer)).find(
+      pull => pull.instanceId === hiddenPull
+    ).playerId,
+    null
   );
   await db.query(
     "insert into public.user_blocks(blocker_id,blocked_id) values($1,$2)",
     [viewer, hidden]
   );
   assert.equal(
-    (await as("authenticated", viewer)).filter(pull => pull.playerId === hidden)
-      .length,
-    0
+    (await as("authenticated", viewer)).some(
+      pull => pull.instanceId === hiddenPull
+    ),
+    false
   );
 });

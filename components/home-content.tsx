@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { YokaiCard } from "@/components/yokai-card";
 import { AUTH_MARQUEE_CARDS } from "@/lib/auth/showcase-cards";
@@ -22,9 +23,6 @@ export function HomeHero() {
           <br />
           Trade with friends and sell at auction.
         </p>
-        <Link href="/boosters" className="yk-button yk-button-primary">
-          Open a booster <span aria-hidden="true">↗</span>
-        </Link>
       </div>
       <div className="yk-home-ribbon-window" aria-hidden="true">
         <div className="yk-home-ribbon">
@@ -46,21 +44,39 @@ export function HomeHero() {
 export function HomeLinks({ discordEnabled }: { discordEnabled: boolean }) {
   return (
     <>
-      {discordEnabled && (
-        <section aria-labelledby="home-discord" className="yk-home-discord">
+      <div className="yk-home-community-grid">
+        {discordEnabled && (
+          <section aria-labelledby="home-discord" className="yk-home-discord">
+            <div>
+              <p className="eyebrow">Better together</p>
+              <h2 id="home-discord">Join the Yokkai community</h2>
+              <p>
+                Share your pulls, find trading partners, and meet fellow
+                collectors.
+              </p>
+            </div>
+            <Link href="/discord" className="yk-button yk-button-secondary">
+              Join Discord ↗
+            </Link>
+          </section>
+        )}
+        <section aria-labelledby="home-referral" className="yk-home-referral">
           <div>
-            <p className="eyebrow">Better together</p>
-            <h2 id="home-discord">Join the Yokkai community</h2>
+            <p className="eyebrow">Better with friends</p>
+            <h2 id="home-referral">Invite friends. Earn packs.</h2>
             <p>
-              Share your pulls, find trading partners, and meet fellow
-              collectors.
+              Share your referral link and earn 5 bonus Regular Packs when a
+              friend signs up and verifies their email.
             </p>
           </div>
-          <Link href="/discord" className="yk-button yk-button-secondary">
-            Join Discord ↗
+          <Link
+            href="/settings#referrals"
+            className="yk-button yk-button-primary"
+          >
+            Get your referral link <span aria-hidden="true">↗</span>
           </Link>
         </section>
-      )}
+      </div>
       <section aria-labelledby="home-learn" className="yk-home-panel">
         <h2 id="home-learn">Learn more</h2>
         <div className="yk-home-guides">
@@ -98,5 +114,19 @@ export function HomeSkeleton() {
       <div />
       <div />
     </div>
+  );
+}
+
+export function HomePacks({ children }: { children: ReactNode }) {
+  return (
+    <section className="yk-home-panel" aria-labelledby="home-packs">
+      <header className="yk-home-panel-heading">
+        <h2 id="home-packs">Your packs</h2>
+        <Link href="/boosters" className="yk-button yk-button-primary">
+          Open a booster <span aria-hidden="true">↗</span>
+        </Link>
+      </header>
+      <div className="yk-home-packs-grid">{children}</div>
+    </section>
   );
 }
