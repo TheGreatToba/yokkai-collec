@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { YokaiCard } from "@/components/yokai-card";
-import { AUTH_MARQUEE_CARDS } from "@/lib/auth/showcase-cards";
+import { HOME_HERO_CARDS } from "@/lib/home-hero-cards";
 import "@/styles/home.css";
 
 export function HomeHero() {
@@ -28,7 +28,7 @@ export function HomeHero() {
         <div className="yk-home-ribbon">
           {[0, 1].map(copy => (
             <div className="yk-home-ribbon-set" key={copy}>
-              {AUTH_MARQUEE_CARDS.map(card => (
+              {HOME_HERO_CARDS.map(card => (
                 <div className="yk-home-display-card" key={card.id}>
                   <YokaiCard {...card} animated={false} />
                 </div>
