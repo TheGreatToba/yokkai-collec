@@ -688,7 +688,7 @@ export function FriendsPanel({
           </Button>
         )}
         {data && !hasMore && tab !== "blocked" && (
-          <p role="status" className="yk-search-hint">
+          <p role="status" className="sr-only">
             All relationships loaded.
           </p>
         )}
