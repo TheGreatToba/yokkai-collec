@@ -1526,3 +1526,23 @@
     margin-bottom: calc(var(--spacing) * 4);
   }
 }
+.yk-social-page-content > :first-child {
+  margin-top: 0;
+}
+@media (min-width: 1024px) {
+  .yk-social-page {
+    display: grid;
+    grid-template-columns: var(--collection-sidebar-width) minmax(0, 1fr);
+    align-items: start;
+    gap: var(--layout-gutter);
+  }
+  .yk-social-page > .yk-social-page-content {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+    margin-top: 0;
+  }
+  .yk-social-page > [role="alert"] {
+    grid-column: 1 / -1;
+  }
+}
