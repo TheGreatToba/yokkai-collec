@@ -68,6 +68,8 @@ function franchiseInputs(form: FormData) {
 
 function albumFranchises(franchises: string[], category: string) {
   const normalizedCategory = category.trim().toUpperCase();
+  if (normalizedCategory === "ARTIST")
+    return franchises.length ? franchises : [normalizedCategory];
   if (CATEGORY_ALBUMS.has(normalizedCategory)) return [normalizedCategory];
   return franchises;
 }

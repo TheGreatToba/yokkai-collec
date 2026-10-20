@@ -102,6 +102,17 @@ test("les catégories éditoriales deviennent des albums Panini uniques", () => 
   );
 });
 
+test("ARTIST cards use their explicit license as their Panini album", () => {
+  assert.equal(
+    paniniAlbumForCard(card("kpop-artist", "kpop-artist", "KPOP", "ARTIST")),
+    "KPOP"
+  );
+  assert.equal(
+    paniniAlbumForCard(card("generic-artist", "generic-artist", "", "ARTIST")),
+    "ARTIST"
+  );
+});
+
 test("les possessions sont comptées dans leur album de catégorie", () => {
   const progress = buildLicenseProgress(
     [card("film-1", "film-1", "Alien", "FILM")],

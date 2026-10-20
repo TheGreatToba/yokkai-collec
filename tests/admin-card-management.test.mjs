@@ -916,6 +916,14 @@ test("une carte admin accepte plusieurs licences et conserve la premiere comme l
   assert.match(migration, /references public\.cards\(id\) on delete cascade/i);
 });
 
+test("une carte ARTIST conserve ses licences explicites", async () => {
+  const actions = await read("app/admin/cards/actions.ts");
+  assert.match(
+    actions,
+    /normalizedCategory === "ARTIST"[\s\S]+franchises\.length \? franchises : \[normalizedCategory\]/
+  );
+});
+
 test("la migration supprime uniquement Devil May Cry de la categorie ANIME/MANGA", async () => {
   const migration = await read(
     "supabase/migrations/20261013000002_remove_devil_may_cry_anime_cards.sql"

@@ -17,6 +17,7 @@ export function paniniAlbumForCard(
   card: Pick<Card, "anime" | "category">
 ): string {
   const category = card.category?.trim().toUpperCase();
+  if (category === "ARTIST") return card.anime?.trim() || category;
   if (CATEGORY_ALBUMS.has(category)) return category;
   return card.anime?.trim() ?? "";
 }
