@@ -1,3 +1,7 @@
+.yk-page-transition:has(.yk-info-page) {
+  /* Keep the fade without temporarily scaling a full-width legal page. */
+  --page-enter-scale: 1;
+}
 .yk-info-page {
   display: flex;
   min-height: 100dvh;
