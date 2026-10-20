@@ -23,7 +23,10 @@ import { YokaiCard } from "@/components/yokai-card";
 import { CatalogueCardModal } from "@/components/catalogue-card-modal";
 import { Avatar, Button, Karas } from "@/components/ui";
 
-import { enableHorizontalWheel } from "@/lib/ui/horizontal-wheel";
+import {
+  enableHorizontalWheel,
+  enableAutomaticScroll
+} from "@/lib/ui/horizontal-wheel";
 
 function useHorizontalWheel(enabled: boolean) {
   const ref = useRef<HTMLDivElement>(null);
@@ -215,49 +218,69 @@ export function LatestPulls({ cards }: { cards: HomeCard[] }) {
 
 export function BigPulls({ pulls }: { pulls: BigPull[] }) {
   const scrollRef = useHorizontalWheel(pulls.length > 0);
-  return pulls.length ? (
-    <div
-      className="yk-home-big-window"
-      ref={scrollRef}
-      tabIndex={0}
-      role="region"
-      aria-label="Recent big pulls, scroll to explore"
-    >
-      <div className="yk-home-big-track">
-        {pulls.map(pull => (
-          <article className="yk-home-big-pull" key={pull.instanceId}>
-            <YokaiCard {...pull.card} animated={false} />
-            {pull.playerId && pull.playerName ? (
-              <Link
-                className="yk-home-pull-player"
-                href={`/profile/${pull.playerId}`}
-              >
-                <Avatar
-                  name={pull.playerName}
-                  image={pull.avatarUrl ?? undefined}
-                  size={22}
-                />
-                <span className="yk-home-pull-name">
-                  <StyledPlayerName
-                    name={pull.playerName}
-                    cosmetics={pull.profileStyle ?? undefined}
-                  />
-                </span>
-              </Link>
-            ) : (
-              <span className="yk-home-pull-player">
-                <span className="yk-home-private-avatar" aria-hidden="true">
-                  ?
-                </span>
-                <span>Private player</span>
-              </span>
-            )}
-          </article>
-        ))}
-      </div>
-    </div>
-  ) : (
-    <p className="yk-home-empty">The next big pull could be yours.</p>
+  const [selected, setSelected] = useState<BigPull["card"] | null>(null);
+  useEffect(() => {
+    if (scrollRef.current && !selected)
+      return enableAutomaticScroll(scrollRef.current);
+  }, [pulls.length, selected, scrollRef]);
+  return (
+    <>
+      {pulls.length ? (
+        <div
+          className="yk-home-big-window"
+          ref={scrollRef}
+          tabIndex={0}
+          role="region"
+          aria-label="Recent big pulls, scroll to explore"
+        >
+          <div className="yk-home-big-track">
+            {pulls.map(pull => (
+              <article className="yk-home-big-pull" key={pull.instanceId}>
+                <button
+                  type="button"
+                  className="yk-home-card-button"
+                  aria-label={`View ${pull.card.name}${pull.card.shiny ? ", shiny" : ""}`}
+                  onClick={() => setSelected(pull.card)}
+                >
+                  <YokaiCard {...pull.card} animated={false} />
+                </button>
+                {pull.playerId && pull.playerName ? (
+                  <Link
+                    className="yk-home-pull-player"
+                    href={`/profile/${pull.playerId}`}
+                  >
+                    <Avatar
+                      name={pull.playerName}
+                      image={pull.avatarUrl ?? undefined}
+                      size={22}
+                    />
+                    <span className="yk-home-pull-name">
+                      <StyledPlayerName
+                        name={pull.playerName}
+                        cosmetics={pull.profileStyle ?? undefined}
+                      />
+                    </span>
+                  </Link>
+                ) : (
+                  <span className="yk-home-pull-player">
+                    <span className="yk-home-private-avatar" aria-hidden="true">
+                      ?
+                    </span>
+                    <span>Private player</span>
+                  </span>
+                )}
+              </article>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <p className="yk-home-empty">The next big pull could be yours.</p>
+      )}
+      <CatalogueCardModal
+        selected={selected}
+        onClose={() => setSelected(null)}
+      />
+    </>
   );
 }
 
