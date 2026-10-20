@@ -97,3 +97,21 @@ test("the shared Home/profile wall textarea cannot be manually resized and keeps
   assert.match(rule, /resize:\s*none/);
   assert.match(rule, /overflow-y:\s*auto/);
 });
+
+test("the Home wall uses the same shared panel background as the surrounding dashboard", () => {
+  const home = readFileSync("styles/home.css", "utf8");
+  const feed = readFileSync("styles/friend-feed.css", "utf8");
+  assert.match(home, /--home-panel-background:\s*linear-gradient\(/);
+  assert.match(
+    home,
+    /\.yk-home-panel\s*\{[^}]*background:\s*var\(--home-panel-background\)/
+  );
+  assert.match(
+    feed,
+    /\.yk-friend-feed\s*\{[^}]*background:\s*var\(--home-panel-background,/
+  );
+  assert.match(
+    feed,
+    /\.yk-feed-composer \.yk-wall-composer\s*\{[^}]*background:\s*transparent/
+  );
+});
