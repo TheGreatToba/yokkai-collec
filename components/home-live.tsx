@@ -191,16 +191,35 @@ export function LatestPulls({ cards }: { cards: HomeCard[] }) {
     <>
       {cards.length ? (
         <div className="yk-home-card-grid" ref={scrollRef}>
-          {cards.map(card => (
-            <button
-              type="button"
-              className="yk-home-card-button"
-              key={card.instanceId}
-              aria-label={`View ${card.name}${card.shiny ? ", shiny" : ""}`}
-              onClick={() => setSelected(card)}
+          {[0, 1, 2].map(copy => (
+            <div
+              className="yk-home-latest-set"
+              key={copy}
+              data-scroll-period={copy === 1 ? "" : undefined}
+              data-scroll-clone={copy !== 1 ? "" : undefined}
+              aria-hidden={copy !== 1 ? true : undefined}
             >
-              <YokaiCard {...card} animated={false} />
-            </button>
+              {cards.map((card, index) => (
+                <button
+                  type="button"
+                  className="yk-home-card-button"
+                  key={card.instanceId}
+                  tabIndex={copy === 1 ? undefined : -1}
+                  aria-label={`View ${card.name}${card.shiny ? ", shiny" : ""}`}
+                  onClick={() => {
+                    if (copy !== 1)
+                      scrollRef.current
+                        ?.querySelectorAll<HTMLButtonElement>(
+                          "[data-scroll-period] button"
+                        )
+                        [index]?.focus({ preventScroll: true });
+                    setSelected(card);
+                  }}
+                >
+                  <YokaiCard {...card} animated={false} />
+                </button>
+              ))}
+            </div>
           ))}
         </div>
       ) : (
@@ -234,42 +253,65 @@ export function BigPulls({ pulls }: { pulls: BigPull[] }) {
           aria-label="Recent big pulls, scroll to explore"
         >
           <div className="yk-home-big-track">
-            {pulls.map(pull => (
-              <article className="yk-home-big-pull" key={pull.instanceId}>
-                <button
-                  type="button"
-                  className="yk-home-card-button"
-                  aria-label={`View ${pull.card.name}${pull.card.shiny ? ", shiny" : ""}`}
-                  onClick={() => setSelected(pull.card)}
-                >
-                  <YokaiCard {...pull.card} animated={false} />
-                </button>
-                {pull.playerId && pull.playerName ? (
-                  <Link
-                    className="yk-home-pull-player"
-                    href={`/profile/${pull.playerId}`}
-                  >
-                    <Avatar
-                      name={pull.playerName}
-                      image={pull.avatarUrl ?? undefined}
-                      size={22}
-                    />
-                    <span className="yk-home-pull-name">
-                      <StyledPlayerName
-                        name={pull.playerName}
-                        cosmetics={pull.profileStyle ?? undefined}
-                      />
-                    </span>
-                  </Link>
-                ) : (
-                  <span className="yk-home-pull-player">
-                    <span className="yk-home-private-avatar" aria-hidden="true">
-                      ?
-                    </span>
-                    <span>Private player</span>
-                  </span>
-                )}
-              </article>
+            {[0, 1, 2].map(copy => (
+              <div
+                className="yk-home-big-set"
+                key={copy}
+                data-scroll-period={copy === 1 ? "" : undefined}
+                data-scroll-clone={copy !== 1 ? "" : undefined}
+                aria-hidden={copy !== 1 ? true : undefined}
+              >
+                {pulls.map((pull, index) => (
+                  <article className="yk-home-big-pull" key={pull.instanceId}>
+                    <button
+                      type="button"
+                      className="yk-home-card-button"
+                      aria-label={`View ${pull.card.name}${pull.card.shiny ? ", shiny" : ""}`}
+                      tabIndex={copy === 1 ? undefined : -1}
+                      onClick={() => {
+                        if (copy !== 1)
+                          scrollRef.current
+                            ?.querySelectorAll<HTMLButtonElement>(
+                              "[data-scroll-period] button"
+                            )
+                            [index]?.focus({ preventScroll: true });
+                        setSelected(pull.card);
+                      }}
+                    >
+                      <YokaiCard {...pull.card} animated={false} />
+                    </button>
+                    {pull.playerId && pull.playerName ? (
+                      <Link
+                        className="yk-home-pull-player"
+                        href={`/profile/${pull.playerId}`}
+                        tabIndex={copy === 1 ? undefined : -1}
+                      >
+                        <Avatar
+                          name={pull.playerName}
+                          image={pull.avatarUrl ?? undefined}
+                          size={22}
+                        />
+                        <span className="yk-home-pull-name">
+                          <StyledPlayerName
+                            name={pull.playerName}
+                            cosmetics={pull.profileStyle ?? undefined}
+                          />
+                        </span>
+                      </Link>
+                    ) : (
+                      <span className="yk-home-pull-player">
+                        <span
+                          className="yk-home-private-avatar"
+                          aria-hidden="true"
+                        >
+                          ?
+                        </span>
+                        <span>Private player</span>
+                      </span>
+                    )}
+                  </article>
+                ))}
+              </div>
             ))}
           </div>
         </div>

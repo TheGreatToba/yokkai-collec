@@ -1,7 +1,45 @@
+function periodWidth(element: HTMLElement) {
+  const width =
+    element.querySelector<HTMLElement>("[data-scroll-period]")?.offsetWidth ??
+    0;
+  return width > element.clientWidth ? width : 0;
+}
+
+// Recenter on the identical middle copy, preserving the exact offset.
+export function scrollStripBy(element: HTMLElement, delta: number) {
+  const period = periodWidth(element);
+  element.scrollLeft = period
+    ? period +
+      ((((element.scrollLeft - period + delta) % period) + period) % period)
+    : Math.max(
+        0,
+        Math.min(
+          element.scrollWidth - element.clientWidth,
+          element.scrollLeft + delta
+        )
+      );
+}
+
 export function enableHorizontalWheel(element: HTMLElement) {
+  const layout = () => {
+    const period = periodWidth(element);
+    element
+      .querySelectorAll<HTMLElement>("[data-scroll-clone]")
+      .forEach(copy => {
+        copy.hidden = !period;
+      });
+    if (period) scrollStripBy(element, 0);
+  };
+  const recenter = () => {
+    // Keyboard focus remains on the accessible copy; native focus scrolling wins.
+    if (
+      document.activeElement === element ||
+      !element.contains(document.activeElement)
+    )
+      scrollStripBy(element, 0);
+  };
   const scroll = (event: WheelEvent) => {
     if (event.ctrlKey) return;
-    const end = element.scrollWidth - element.clientWidth;
     const delta =
       (Math.abs(event.deltaX) > Math.abs(event.deltaY)
         ? event.deltaX
@@ -11,17 +49,22 @@ export function enableHorizontalWheel(element: HTMLElement) {
         : event.deltaMode === 2
           ? element.clientWidth
           : 1);
-    if (end <= 0 || delta === 0) return;
+    if (element.scrollWidth <= element.clientWidth || !delta) return;
     event.preventDefault();
-    element.scrollLeft =
-      delta > 0 && element.scrollLeft >= end - 1
-        ? 0
-        : delta < 0 && element.scrollLeft <= 1
-          ? end
-          : Math.max(0, Math.min(end, element.scrollLeft + delta));
+    scrollStripBy(element, delta);
   };
+  layout();
+  const observer = new ResizeObserver(layout);
+  observer.observe(element);
+  const period = element.querySelector("[data-scroll-period]");
+  if (period) observer.observe(period);
   element.addEventListener("wheel", scroll, { passive: false });
-  return () => element.removeEventListener("wheel", scroll);
+  element.addEventListener("scroll", recenter);
+  return () => {
+    observer.disconnect();
+    element.removeEventListener("wheel", scroll);
+    element.removeEventListener("scroll", recenter);
+  };
 }
 
 // Use the same scroll position for automatic movement and manual navigation.
@@ -41,12 +84,7 @@ export function enableAutomaticScroll(element: HTMLElement) {
       element.matches(":hover, :focus-within")
     )
       return;
-    const end = element.scrollWidth - element.clientWidth;
-    if (end > 0)
-      element.scrollLeft =
-        element.scrollLeft >= end - 1
-          ? 0
-          : Math.min(end, element.scrollLeft + 2);
+    scrollStripBy(element, 2);
   }, 50);
   return () => {
     window.clearInterval(timer);
