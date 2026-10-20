@@ -4,7 +4,7 @@
   background:
     radial-gradient(
       900px 600px at 78% 25%,
-      rgba(167, 123, 255, 0.13),
+      rgba(123, 167, 255, 0.13),
       transparent 65%
     ),
     radial-gradient(
@@ -148,7 +148,7 @@
   background: radial-gradient(
     circle,
     rgba(232, 194, 106, 0.13),
-    rgba(167, 123, 255, 0.09) 35%,
+    rgba(123, 167, 255, 0.09) 35%,
     transparent 68%
   );
   filter: blur(6px);

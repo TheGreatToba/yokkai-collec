@@ -6,33 +6,33 @@ const config = {
   theme: {
     extend: {
       colors: {
-        // Existing Packs UI palette, preserved exactly from boosters-showcase.css.
-        "pack-shadow": "#07061780",
-        "pack-glow": "#acbfff26",
-        "pack-accent": "#c0c5ff",
+        // Shared midnight-blue UI, derived from the navigation's RGB(6, 9, 19).
+        "pack-shadow": "#06091380",
+        "pack-glow": "#8dadff26",
+        "pack-accent": "#bccdff",
         "pack-ink": "#eeebff",
         "pack-button-ink": "#eeeaff",
-        "pack-button-start": "#4a436f",
-        "pack-button-middle": "#36476d",
-        "pack-button-end": "#4c406c",
+        "pack-button-start": "#0d1728",
+        "pack-button-middle": "#080f1c",
+        "pack-button-end": "#101b2e",
         "pack-success": "#72d6bc",
         "pack-warning": "#dbc695",
-        void: "#04000B",
-        night: "#090714",
-        surface: "#0F0C1D",
-        elevated: "#16122B",
-        veil: "#1D1844",
-        "veil-strong": "#2E276D",
-        focus: "#5244B5",
-        "focus-ring": "#A77BFF",
+        void: "#04070F",
+        night: "#060913",
+        surface: "#060913",
+        elevated: "#0A1120",
+        veil: "#111D30",
+        "veil-strong": "#243751",
+        focus: "#527BAF",
+        "focus-ring": "#A8C7F5",
         ink: "#F2F0FF",
-        "ink-2": "#A29DBE",
-        "ink-3": "#8A84AB",
-        disabled: "#3E385D",
+        "ink-2": "#A4B1C9",
+        "ink-3": "#8493AD",
+        disabled: "#38475E",
         "accent-gold": "#E8C26A",
-        "accent-neon": "#A77BFF",
+        "accent-neon": "#8DADFF",
         "accent-cyan": "#3FE0D0",
-        karas: "#FFCC33",
+        karas: "#F2F0FF",
         success: "#00E699",
         warning: "#FF9900",
         danger: "#FF3355",
@@ -52,19 +52,19 @@ const config = {
         pill: "24px"
       },
       boxShadow: {
-        card: "0 8px 24px -4px rgba(4,0,11,.8),0 0 0 1px #1D1844",
-        hover: "0 12px 32px -4px rgba(4,0,11,.95),0 0 12px rgba(82,68,181,.4)",
+        card: "0 8px 24px -4px rgba(4,7,15,.8),0 0 0 1px #111D30",
+        hover: "0 12px 32px -4px rgba(4,7,15,.95),0 0 12px rgba(82,123,175,.4)",
         modal: "0 20px 50px rgba(0,0,0,.9)",
         gold: "0 0 30px rgba(232,194,106,.35)",
         inset: "inset 0 2px 6px rgba(0,0,0,.6)",
-        interactive: "0 0 16px rgba(82,68,181,.5)",
-        focus: "0 0 10px rgba(82,68,181,.3)",
+        interactive: "0 0 16px rgba(82,123,175,.5)",
+        focus: "0 0 10px rgba(82,123,175,.3)",
         tab: "0 2px 8px rgba(0,0,0,.5)",
         toast: "0 10px 25px rgba(0,0,0,.8)",
-        chip: "0 0 8px rgba(82,68,181,.4)"
+        chip: "0 0 8px rgba(82,123,175,.4)"
       },
       backgroundImage: {
-        karas: "linear-gradient(135deg,#FFF3C4,#E8C26A 55%,#9A7420)"
+        karas: "linear-gradient(135deg,#F2F0FF,#C0C5FF 55%,#8A84AB)"
       },
       transitionTimingFunction: { yokkai: "cubic-bezier(.2,.8,.2,1)" }
     }

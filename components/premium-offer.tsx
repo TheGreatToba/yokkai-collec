@@ -18,7 +18,7 @@ export function PremiumOffer({
   return (
     <div
       className="yk-pro-offer"
-      style={{ "--plus-accent": "#b69aff" } as CSSProperties}
+      style={{ "--plus-accent": "var(--color-accent-neon)" } as CSSProperties}
     >
       <section className="yk-premium-hero yk-pro-offer-hero">
         <div className="yk-premium-copy">

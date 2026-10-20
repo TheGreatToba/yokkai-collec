@@ -5,10 +5,22 @@
   background:
     radial-gradient(
       850px 420px at 15% 0%,
-      rgba(82, 68, 181, 0.16),
+      rgba(68, 106, 181, 0.16),
       transparent 70%
     ),
     var(--color-night);
+}
+.yk-info-page[data-tone="navy"] {
+  --color-night: #060913;
+  --color-void: #050810;
+  --color-surface: #080d18;
+  --color-veil: #111d30;
+  --color-veil-strong: #22324c;
+  --color-focus-ring: #bccdff;
+  background: var(--color-night);
+}
+.yk-info-page[data-tone="navy"] .yk-info-brand img {
+  filter: drop-shadow(0 0 8px rgba(151, 190, 255, 0.18));
 }
 .yk-info-header {
   display: flex;
@@ -26,7 +38,7 @@
 .yk-info-brand img {
   width: 100%;
   height: auto;
-  filter: drop-shadow(0 0 8px rgba(167, 123, 255, 0.24));
+  filter: drop-shadow(0 0 8px rgba(123, 167, 255, 0.24));
 }
 .yk-info-play-link {
   border: 1px solid var(--color-veil-strong);

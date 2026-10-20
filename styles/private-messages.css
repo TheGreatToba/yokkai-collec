@@ -118,9 +118,9 @@
 }
 .yk-private-message.is-own {
   margin-left: auto;
-  border-color: #8e7be352;
+  border-color: #7b9ee352;
   border-radius: 14px 14px 4px 14px;
-  background: linear-gradient(130deg, #43365f, #29213e);
+  background: linear-gradient(130deg, #36445f, #212b3e);
 }
 .yk-private-message p {
   margin: 0;
@@ -133,7 +133,7 @@
 .yk-private-message time {
   display: block;
   margin-top: 5px;
-  color: #b3a9c7;
+  color: #a9b3c7;
   font-size: 9px;
   text-align: right;
 }
@@ -165,7 +165,7 @@
 }
 .yk-conversation-trade.is-own {
   margin-left: auto;
-  border-color: #8e7be352;
+  border-color: #7b9ee352;
   border-radius: 16px 16px 4px 16px;
 }
 .yk-conversation-trade header,
@@ -263,7 +263,7 @@
   font-size: 13px;
 }
 .yk-private-messages-compose textarea:focus-visible {
-  outline: 2px solid #b69aff;
+  outline: 2px solid #9abcff;
   outline-offset: 2px;
 }
 .yk-private-messages-compose > div {

@@ -3,9 +3,9 @@
   overflow: hidden;
   background: radial-gradient(
     ellipse at 50% 40%,
-    #201345,
-    #0c0920 51%,
-    #05040e
+    #132445,
+    #091120 51%,
+    #04070e
   );
 }
 .yk-opening-stage.yk-opening-kind-regular:has(.yk-pack-tear) {
@@ -13,7 +13,7 @@
     no-repeat;
 }
 .yk-opening-stage.yk-opening-kind-decision:has(.yk-pack-tear) {
-  background: #080308 url("/assets/decision-opening-nebula.webp") center / cover
+  background: #030508 url("/assets/decision-opening-nebula.webp") center / cover
     no-repeat;
 }
 .yk-opening-stage .yk-pack-tear {
@@ -141,7 +141,7 @@
     90deg,
     transparent,
     #ffe7ba 18%,
-    #dca2ff 51%,
+    #a2c1ff 51%,
     #f8dd9b 85%,
     transparent
   );

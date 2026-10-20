@@ -760,7 +760,7 @@ main:has(.yk-profile-hub) {
 }
 .yk-profile-event-label {
   font-size: 10px;
-  color: #b9a1ef;
+  color: #a1bbef;
   margin: 0;
 }
 .yk-profile-event-label.is-sold {
@@ -883,11 +883,11 @@ main:has(.yk-profile-hub) {
   background: var(--color-veil);
 }
 .yk-profile-album-progress progress::-webkit-progress-value {
-  background: linear-gradient(90deg, #a782ed, var(--color-accent-gold));
+  background: linear-gradient(90deg, #82a6ed, var(--color-accent-gold));
   border-radius: 5px;
 }
 .yk-profile-album-progress progress::-moz-progress-bar {
-  background: linear-gradient(90deg, #a782ed, var(--color-accent-gold));
+  background: linear-gradient(90deg, #82a6ed, var(--color-accent-gold));
 }
 .yk-profile-album-progress small {
   color: var(--color-ink-3);

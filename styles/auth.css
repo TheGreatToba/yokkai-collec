@@ -61,6 +61,29 @@
   font-size: 13px;
   transition: color var(--duration-fast) var(--ease-standard);
 }
+.yk-auth-policy-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.yk-auth-policy-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  margin-top: 3px;
+  accent-color: var(--color-focus-ring);
+  cursor: pointer;
+}
+.yk-auth-policy-row input:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+.yk-auth-policy-row label {
+  min-width: 0;
+  color: var(--color-ink-2);
+  font-size: 12px;
+  line-height: 1.8;
+}
 .yk-auth-return:hover {
   color: var(--color-ink);
 }
@@ -154,7 +177,7 @@
   margin-block: 26px 30px;
   padding-block: 28px;
   border-block: 1px solid var(--color-veil);
-  background: radial-gradient(ellipse at center, #7461bd22, transparent 70%);
+  background: radial-gradient(ellipse at center, #6180bd22, transparent 70%);
 }
 .yk-auth-card-window::after {
   position: absolute;
@@ -193,22 +216,22 @@
   animation-play-state: paused;
 }
 .yk-auth-feature-custom {
-  background: radial-gradient(ellipse at 85% 50%, #8571d71a, transparent 70%);
+  background: radial-gradient(ellipse at 85% 50%, #7193d71a, transparent 70%);
 }
 .yk-auth-pro-link {
   display: inline-flex;
   margin-top: 16px;
   align-items: center;
   gap: 8px;
-  border: 1px solid #aaa1ff55;
+  border: 1px solid #a1c0ff55;
   border-radius: var(--radius-pill);
   padding: 6px 12px;
-  color: #c8bfff;
+  color: #bfd4ff;
   font-size: 11px;
 }
 .yk-auth-pro-link:hover {
-  border-color: #c8bfff;
-  background: #a99aff15;
+  border-color: #bfd4ff;
+  background: #9abcff15;
 }
 .yk-auth-custom-preview {
   min-width: 0;
@@ -231,8 +254,8 @@
   margin-left: 3px;
   border-radius: 4px;
   padding: 2px 4px;
-  background: #b4a4ff26;
-  color: #c8bfff;
+  background: #a4c2ff26;
+  color: #bfd4ff;
   font-size: 8px;
 }
 .yk-auth-custom-arrow {
@@ -286,12 +309,12 @@
   display: grid;
   min-height: 200px;
   place-items: center;
-  background: radial-gradient(ellipse, #7966cc25, transparent 65%);
+  background: radial-gradient(ellipse, #6688cc25, transparent 65%);
 }
 .yk-auth-pack-preview img {
   width: 108px;
   height: auto;
-  filter: drop-shadow(0 10px 20px #bcb3ff28);
+  filter: drop-shadow(0 10px 20px #b3ccff28);
   animation: yk-auth-pack-float 6s ease-in-out infinite;
 }
 .yk-auth-pack-preview > span {
@@ -440,7 +463,7 @@
 .yk-auth-binder-progress span {
   display: block;
   height: 100%;
-  background: #b4a8f2;
+  background: #a8c1f2;
   border-radius: inherit;
 }
 .yk-auth-binder-tile small {
@@ -468,7 +491,7 @@
   border-radius: 16px;
   padding: 16px;
   background:
-    linear-gradient(145deg, #b2a1ff0b, transparent), var(--color-surface);
+    linear-gradient(145deg, #a1c0ff0b, transparent), var(--color-surface);
 }
 .yk-auth-preview-label {
   display: flex;
@@ -493,7 +516,7 @@
   place-items: center;
   border: 1px dashed var(--color-veil-strong);
   border-radius: 8px;
-  background: #b2a1ff06;
+  background: #a1c0ff06;
   color: var(--color-ink-3);
   font-size: 24px;
 }
@@ -509,7 +532,7 @@
   width: 66.67%;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #8174c8, #c6bdff);
+  background: linear-gradient(90deg, #7490c8, #bdd3ff);
 }
 .yk-auth-album-preview > p {
   margin-top: 9px;
@@ -564,7 +587,7 @@
   margin-top: 10px;
   margin-left: auto;
   border-radius: 12px 12px 3px 12px;
-  background: #b2a1ff15;
+  background: #a1c0ff15;
   color: var(--color-ink);
 }
 .yk-auth-chat-preview p span {
