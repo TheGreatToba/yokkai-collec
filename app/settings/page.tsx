@@ -6,7 +6,9 @@ import { DataExportForm } from "@/components/data-export-form";
 import { AccountDeletionForm } from "@/components/account-deletion-form";
 import { SubscriptionSettings } from "@/components/subscription-settings";
 import { ReferralPanel } from "@/components/referral-panel";
+import { SiteFooter } from "@/components/site-footer";
 import { getBillingSettings } from "@/lib/billing/settings";
+import { getDiscordInviteUrl } from "@/lib/discord-invite";
 import { getReferralStatus } from "@/lib/referrals/server";
 import {
   getCurrentKarasBalance,
@@ -32,7 +34,7 @@ export default async function SettingsPage() {
     }
   })();
   return (
-    <div className="w-full">
+    <div className="flex min-h-dvh w-full flex-col">
       <Topbar
         view="settings"
         account={<AccountMenu />}
@@ -54,6 +56,7 @@ export default async function SettingsPage() {
           )}
         </div>
       </main>
+      <SiteFooter discordEnabled={Boolean(getDiscordInviteUrl())} />
     </div>
   );
 }

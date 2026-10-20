@@ -41,3 +41,25 @@ test("the landing and player pack shell use the expanded footer", () => {
   assert.match(game, /<SiteFooter/);
   assert.match(game, /discordEnabled=\{discordEnabled\}/);
 });
+
+test("the shared player shells render the site footer", () => {
+  const community = read("components/community-page.tsx");
+  const settings = read("app/settings/page.tsx");
+  const achievements = read("app/achievements/page.tsx");
+
+  for (const source of [community, settings, achievements]) {
+    assert.match(source, /<SiteFooter/);
+    assert.match(source, /Boolean\(getDiscordInviteUrl\(\)\)/);
+  }
+
+  for (const route of [
+    "friends",
+    "market",
+    "profile",
+    "trades",
+    "wishlist",
+    "catalog"
+  ]) {
+    assert.match(read(`app/${route}/page.tsx`), /<CommunityPage/);
+  }
+});
