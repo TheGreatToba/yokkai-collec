@@ -10,36 +10,24 @@
   margin-inline: auto;
   flex-direction: column;
   padding-inline: var(--layout-gutter);
-}
-.yk-auth-shell::before,
-.yk-auth-shell::after {
-  position: absolute;
-  z-index: -1;
-  border-radius: var(--radius-pill);
-  content: "";
-  pointer-events: none;
-}
-.yk-auth-shell::before {
-  width: min(62vw, 760px);
-  aspect-ratio: 1;
-  top: -42%;
-  left: -18%;
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--color-focus) 16%, transparent),
-    transparent 68%
-  );
-}
-.yk-auth-shell::after {
-  width: min(48vw, 620px);
-  aspect-ratio: 1;
-  right: -16%;
-  bottom: -38%;
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--color-accent-gold) 10%, transparent),
-    transparent 68%
-  );
+  --auth-top-halo-size: min(62vw, 760px);
+  --auth-bottom-halo-size: min(48vw, 620px);
+  /* Preserve the ambient glows without boxes extending the scrollable viewport. */
+  background-image:
+    radial-gradient(
+      circle calc(var(--auth-top-halo-size) * 0.707107) at
+        calc(var(--auth-top-halo-size) * 0.5 - 18%)
+        calc(var(--auth-top-halo-size) * 0.5 - 42%),
+      color-mix(in srgb, var(--color-focus) 16%, transparent),
+      transparent 68%
+    ),
+    radial-gradient(
+      circle calc(var(--auth-bottom-halo-size) * 0.707107) at
+        calc(116% - var(--auth-bottom-halo-size) * 0.5)
+        calc(138% - var(--auth-bottom-halo-size) * 0.5),
+      color-mix(in srgb, var(--color-accent-gold) 10%, transparent),
+      transparent 68%
+    );
 }
 .yk-auth-header {
   display: flex;
