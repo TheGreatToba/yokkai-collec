@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui";
 import { createClient } from "@/utils/supabase/client";
 
@@ -23,12 +24,15 @@ function fallbackCopy(value: string) {
 }
 
 export function ReferralReminder() {
+  const pathname = usePathname();
+  const isHome = pathname === "/" || pathname === "/design-system/home-preview";
   const [visible, setVisible] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [code, setCode] = useState<string | null>(null);
   const [copyState, setCopyState] = useState<CopyState>("idle");
 
   useEffect(() => {
+    if (isHome) return;
     let active = true;
     const supabase = createClient();
 
@@ -64,7 +68,7 @@ export function ReferralReminder() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [isHome]);
 
   function dismiss() {
     if (userId) localStorage.setItem(dismissalKey(userId), "1");
@@ -91,7 +95,7 @@ export function ReferralReminder() {
     }
   }
 
-  if (!visible) return null;
+  if (!visible || isHome) return null;
 
   return (
     <aside

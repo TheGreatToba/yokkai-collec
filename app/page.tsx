@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import AuthLayout from "./(auth)/layout";
 import SignUpPage from "./(auth)/signup/page";
+import { getCurrentUser } from "@/lib/auth/session";
+import { HomeDashboard } from "@/components/home-dashboard";
 
 export const metadata: Metadata = {
   title: "Yokkai Collec' · Start your collection",
@@ -26,11 +28,13 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image", images: ["/og-home.png"] }
 };
 
-export default function Home({
+export default async function Home({
   searchParams
 }: {
   searchParams: Promise<{ ref?: string | string[] }>;
 }) {
+  const user = await getCurrentUser();
+  if (user) return <HomeDashboard userId={user.id} />;
   return (
     <AuthLayout>
       <SignUpPage searchParams={searchParams} />

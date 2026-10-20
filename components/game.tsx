@@ -1,4 +1,5 @@
 "use client";
+import { packCountdown } from "@/lib/ui/pack-countdown";
 import dynamic from "next/dynamic";
 import { Topbar } from "@/components/topbar";
 import {
@@ -381,12 +382,7 @@ export function Game({
       setRevealed(current => (current === index ? current + 1 : current)),
     []
   );
-  const seconds = status?.nextPackAt
-    ? Math.max(0, Math.ceil((status.nextPackAt - now) / 1000))
-    : 0;
-  const countdown = `${Math.floor(seconds / 60)
-    .toString()
-    .padStart(2, "0")}:${(seconds % 60).toString().padStart(2, "0")}`;
+  const countdown = packCountdown(status?.nextPackAt, now);
   const decisionSeconds = decisionStatus?.nextPackAt
     ? Math.max(0, Math.ceil((decisionStatus.nextPackAt - now) / 1000))
     : 0;

@@ -4,6 +4,7 @@ export const ownerOnly = [
 ]; // Only the owning SECURITY DEFINER wrapper may bypass billing preparation; never service_role.
 
 const allowlist = {
+  "public.get_recent_big_pulls(integer)": ["authenticated"], // Bounded public pulls; private identity/appearance are null, blocked/banned/deleted players excluded.
   "public.browse_auctions_page(integer, text, text, text, text, text)": [
     "authenticated"
   ], // Bounded market prefixes, same viewer visibility as list_auctions_page; no anonymous access. Requires Walid ACL review.
