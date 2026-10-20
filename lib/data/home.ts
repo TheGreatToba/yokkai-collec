@@ -1,6 +1,10 @@
-import type { Card, PackStatus } from "@/lib/data/cards";
+import type { Card, PackStatus, DecisionPackStatus } from "@/lib/data/cards";
 import type { PlayerCosmetics } from "@/components/styled-player-name";
 
 export type HomeCard = Card & { instanceId: string; obtainedAt: string; shiny: boolean };
 export type BigPull = { instanceId: string; obtainedAt: string; card: Card & { shiny: boolean }; playerId: string; playerName: string; profileStyle?: PlayerCosmetics };
-export type HomePackStatus = PackStatus & { serverNow: number };
+export type HomePackStatus = PackStatus & { serverNow: number; canResume?: boolean };
+
+export function decisionPackSummary(status: DecisionPackStatus): PackStatus & { canResume: boolean } {
+  return { available: status.remaining ?? Number(status.available), maximum: status.maximum ?? 1, nextPackAt: status.nextPackAt, canResume: status.pending.length > 0 };
+}

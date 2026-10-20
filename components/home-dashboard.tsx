@@ -14,7 +14,12 @@ import {
   BigPulls,
   HomeMarket
 } from "@/components/home-live";
-import type { BigPull, HomeCard, HomePackStatus } from "@/lib/data/home";
+import {
+  decisionPackSummary,
+  type BigPull,
+  type HomeCard,
+  type HomePackStatus
+} from "@/lib/data/home";
 import type { Rarity } from "@/lib/data/cards";
 import type { MarketPage } from "@/lib/data/market";
 
@@ -100,13 +105,26 @@ async function latest(userId: string) {
   return <LatestPulls cards={cards} />;
 }
 
-async function packs() {
+async function packs(kind: "regular" | "decision" = "regular") {
   const client = createClient(await cookies());
   const { data, error } = await client
-    .rpc("get_regular_pack_status")
+    .rpc(
+      kind === "decision"
+        ? "get_decision_pack_status"
+        : "get_regular_pack_status"
+    )
     .abortSignal(AbortSignal.timeout(12000));
   if (error) throw error;
-  return <HomePackTimer initial={data as HomePackStatus} />;
+  return (
+    <HomePackTimer
+      kind={kind}
+      initial={
+        kind === "decision"
+          ? { ...decisionPackSummary(data), serverNow: data.serverNow }
+          : (data as HomePackStatus)
+      }
+    />
+  );
 }
 
 async function bigPulls() {
@@ -169,9 +187,14 @@ export function HomeDashboard({ userId }: { userId: string }) {
       <HomeRefresh />
       <main id="main-content" className="yk-home-main">
         <HomeHero />
-        <HomePanel id="home-packs" title="Next booster">
+        <HomePanel id="home-packs" title="Regular Pack">
           <Suspense fallback={<HomeSkeleton />}>
-            <PanelData load={packs} />
+            <PanelData load={() => packs()} />
+          </Suspense>
+        </HomePanel>
+        <HomePanel id="home-decision" title="Decision Pack">
+          <Suspense fallback={<HomeSkeleton />}>
+            <PanelData load={() => packs("decision")} />
           </Suspense>
         </HomePanel>
         <HomePanel

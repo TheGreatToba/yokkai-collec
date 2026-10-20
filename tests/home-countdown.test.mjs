@@ -17,4 +17,32 @@ test("shared pack countdown rounds up and clamps expired or full reserves", () =
   assert.equal(packCountdown(61000, 0), "01:01");
   assert.equal(packCountdown(1000, 2000), "00:00");
   assert.equal(packCountdown(null, 2000), "00:00");
+  assert.equal(packCountdown(3601001, 0, true), "01:00:02");
+});
+
+test("Decision panel keeps the daily quota and pending choice", () => {
+  const loaded = { exports: {} };
+  vm.runInNewContext(
+    ts.transpileModule(readFileSync("lib/data/home.ts", "utf8"), {
+      compilerOptions: { module: ts.ModuleKind.CommonJS }
+    }).outputText,
+    { exports: loaded.exports }
+  );
+  const { decisionPackSummary } = loaded.exports;
+  const status = {
+    available: false,
+    remaining: 1,
+    maximum: 2,
+    nextPackAt: 10000,
+    pending: [{}]
+  };
+  const summary = decisionPackSummary(status);
+  assert.equal(summary.available, 1);
+  assert.equal(summary.maximum, 2);
+  assert.equal(summary.canResume, true);
+  assert.equal(summary.nextPackAt, 10000);
+  assert.equal(
+    decisionPackSummary({ ...status, pending: [] }).canResume,
+    false
+  );
 });

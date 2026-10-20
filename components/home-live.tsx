@@ -1,13 +1,23 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getPackStatus, type PackStatus } from "@/lib/data/cards";
+import {
+  getPackStatus,
+  getDecisionPackStatus,
+  type PackStatus
+} from "@/lib/data/cards";
 import { browseAuctions, type AuctionData } from "@/lib/data/market";
 import { subscribePlayerSnapshotInvalidation } from "@/lib/data/player-state";
 import { packCountdown } from "@/lib/ui/pack-countdown";
-import type { BigPull, HomeCard, HomePackStatus } from "@/lib/data/home";
+import {
+  decisionPackSummary,
+  type BigPull,
+  type HomeCard,
+  type HomePackStatus
+} from "@/lib/data/home";
 import { StyledPlayerName } from "@/components/styled-player-name";
 import { YokaiCard } from "@/components/yokai-card";
 import { CatalogueCardModal } from "@/components/catalogue-card-modal";
@@ -56,12 +66,16 @@ export function HomeRefresh() {
 
 export function HomePackTimer({
   initial,
-  preview = false
+  preview = false,
+  kind = "regular"
 }: {
   initial: HomePackStatus;
+  kind?: "regular" | "decision";
   preview?: boolean;
 }) {
-  const [loadedStatus, setStatus] = useState<PackStatus | null>(null);
+  const [loadedStatus, setStatus] = useState<
+    (PackStatus & { canResume?: boolean }) | null
+  >(null);
   const status = loadedStatus ?? initial;
   const [error, setError] = useState(false);
   const [retry, setRetry] = useState(0);
@@ -71,7 +85,10 @@ export function HomePackTimer({
     let deadline: ReturnType<typeof setTimeout> | undefined;
     const load = async () => {
       try {
-        const value = await getPackStatus();
+        const value =
+          kind === "decision"
+            ? decisionPackSummary(await getDecisionPackStatus(false))
+            : await getPackStatus();
         if (!active) return;
         setStatus(value);
         setError(false);
@@ -100,28 +117,40 @@ export function HomePackTimer({
       unsubscribe();
       window.removeEventListener("focus", refresh);
     };
-  }, [initial, preview, retry]);
+  }, [initial, preview, retry, kind]);
   const full = status.nextPackAt === null && status.available >= status.maximum;
   return (
-    <div className="yk-home-pack-content">
+    <div className={`yk-home-pack-content yk-home-pack-${kind}`}>
+      <Image
+        src={
+          kind === "decision"
+            ? "/assets/chrome-decision-booster-v1.png"
+            : "/assets/chrome-regular-booster-v1.png"
+        }
+        alt=""
+        width={68}
+        height={116}
+        className="yk-home-pack-art"
+      />
       <div>
-        <p className="eyebrow">Your next discovery</p>
         <h3 aria-live="polite">
-          {status.available > 0
-            ? `${status.available} packs ready`
-            : "Your next pack is on its way"}
+          {status.canResume
+            ? "Finish your pack"
+            : status.available > 0
+              ? `${status.available} ${status.available === 1 ? "pack" : "packs"} ready`
+              : "Available in"}
         </h3>
         <p>
           {status.available} / {status.maximum} packs
-          {full ? " · Full" : " in reserve"}
+          {full ? " · Full" : kind === "decision" ? " today" : " in reserve"}
         </p>
         {!full && status.nextPackAt !== null && (
           <p className="yk-home-clock">
-            Next pack in{" "}
+            {kind === "decision" ? "Daily reset " : "Next pack "}
             <span role="timer" aria-live="off">
-              {now === null || !loadedStatus
+              {now === null || (!loadedStatus && !preview)
                 ? "—:—"
-                : packCountdown(status.nextPackAt, now)}
+                : packCountdown(status.nextPackAt, now, kind === "decision")}
             </span>
           </p>
         )}
@@ -137,8 +166,13 @@ export function HomePackTimer({
           </p>
         )}
       </div>
-      <Link href="/boosters" className="yk-button yk-button-primary">
-        {status.available > 0 ? "Open a booster" : "Visit packs"} ↗
+      <Link href="/boosters" className="yk-home-pack-link">
+        {status.canResume
+          ? "Resume pack"
+          : status.available > 0
+            ? "Open a booster"
+            : "Visit packs"}{" "}
+        ↗
       </Link>
     </div>
   );
@@ -190,10 +224,6 @@ export function BigPulls({ pulls }: { pulls: BigPull[] }) {
   };
   return pulls.length ? (
     <div className="yk-home-big">
-      <label className="yk-home-motion-control">
-        <input type="checkbox" />
-        Pause animation
-      </label>
       <div
         className="yk-home-big-window"
         tabIndex={0}

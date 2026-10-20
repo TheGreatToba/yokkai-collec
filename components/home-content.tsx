@@ -25,10 +25,6 @@ export function HomeHero() {
         <Link href="/boosters" className="yk-button yk-button-primary">
           Open a booster <span aria-hidden="true">↗</span>
         </Link>
-        <label className="yk-home-motion-control">
-          <input type="checkbox" />
-          Pause animation
-        </label>
       </div>
       <div className="yk-home-ribbon-window" aria-hidden="true">
         <div className="yk-home-ribbon">

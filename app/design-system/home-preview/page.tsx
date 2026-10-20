@@ -50,12 +50,24 @@ export default function HomePreview() {
       <Topbar view="home" name="Kitsune" karas={4920} notifications={[]} />
       <main id="main-content" className="yk-home-main">
         <HomeHero />
-        <HomePanel id="home-packs" title="Next booster">
+        <HomePanel id="home-packs" title="Regular Pack">
           <HomePackTimer
             initial={{
               available: 3,
               maximum: 3,
               nextPackAt: null,
+              serverNow: now
+            }}
+            preview
+          />
+        </HomePanel>
+        <HomePanel id="home-decision" title="Decision Pack">
+          <HomePackTimer
+            kind="decision"
+            initial={{
+              available: 1,
+              maximum: 1,
+              nextPackAt: now + 3600000,
               serverNow: now
             }}
             preview
