@@ -616,6 +616,7 @@
   }
   .yk-catalogue-heading .yk-mobile-filter-trigger {
     display: inline-flex;
+    min-height: 44px;
     width: auto;
   }
 }
