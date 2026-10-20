@@ -76,6 +76,10 @@ export function HomeFriendFeedPreview() {
       if (!state.has(post))
         state.set(post, {
           likes: 3,
+          reactions: [
+            { emoji: "fire", count: 2, reactedByMe: false },
+            { emoji: "heart", count: 1, reactedByMe: false }
+          ],
           likedByMe: false,
           replyCount: 1,
           items: [
@@ -93,6 +97,22 @@ export function HomeFriendFeedPreview() {
     };
     return {
       read,
+      react: async (post, emoji, reacted) => {
+        const value = await read(post);
+        value.reactions ??= [
+          { emoji: "fire", count: 2, reactedByMe: false },
+          { emoji: "heart", count: 1, reactedByMe: false }
+        ];
+        const current = value.reactions.find(item => item.emoji === emoji);
+        if (current) {
+          current.count += Number(reacted) - Number(current.reactedByMe);
+          current.reactedByMe = reacted;
+        } else if (reacted)
+          value.reactions.push({ emoji, count: 1, reactedByMe: true });
+        value.reactions = value.reactions.filter(item => item.count > 0);
+        state.set(post, value);
+        return value;
+      },
       like: async (post, liked) => {
         const value = await read(post);
         value.likes += Number(liked) - Number(value.likedByMe);

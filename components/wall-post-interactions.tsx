@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Avatar, Button } from "@/components/ui";
+import { EmojiReactionPicker } from "@/components/emoji-reaction-picker";
+import { reactionEmoji } from "@/lib/ui/reaction-emojis";
 import {
   liveWallInteractions,
   type WallActivity,
@@ -51,7 +53,7 @@ export function WallPostInteractions({
   }, [adapter, postId, retry, cancel]);
 
   async function update(
-    kind: "like" | "reply" | "more" | "remove",
+    kind: "like" | "reply" | "more" | "remove" | "react",
     id?: string
   ) {
     if (lock.current || !activity) return;
@@ -65,7 +67,10 @@ export function WallPostInteractions({
       let next: WallActivity;
       if (kind === "like")
         next = await adapter.like(postId, !activity.likedByMe);
-      else if (kind === "reply") {
+      else if (kind === "react") {
+        const current = activity.reactions?.find(item => item.emoji === id);
+        next = await adapter.react(postId, id!, !current?.reactedByMe);
+      } else if (kind === "reply") {
         replyId.current ??= crypto.randomUUID();
         next = await adapter.reply(postId, replyId.current, text.trim());
       } else if (kind === "remove") next = await adapter.remove(postId, id!);
@@ -115,9 +120,24 @@ export function WallPostInteractions({
           disabled={busy || !activity}
           onClick={() => void update("like")}
         >
-          <span aria-hidden="true">{activity?.likedByMe ? "♥" : "♡"}</span>{" "}
-          {activity?.likedByMe ? "Liked" : "Like"}
-          {activity ? ` · ${activity.likes.toLocaleString("en-US")}` : ""}
+          <svg
+            width="17"
+            height="17"
+            viewBox="0 0 24 24"
+            fill={activity?.likedByMe ? "currentColor" : "none"}
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z" />
+          </svg>
+          <span>{activity?.likedByMe ? "Liked" : "Like"}</span>
+          {activity && (
+            <strong className="yk-action-count">
+              {activity.likes.toLocaleString("en-US")}
+            </strong>
+          )}
         </button>
         <button
           type="button"
@@ -126,10 +146,61 @@ export function WallPostInteractions({
           disabled={!activity}
           onClick={() => setOpen(value => !value)}
         >
-          <span aria-hidden="true">↩</span> Reply
-          {activity ? ` · ${activity.replyCount.toLocaleString("en-US")}` : ""}
+          <svg
+            width="17"
+            height="17"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H4l-3 3V11.5a8.5 8.5 0 0 1 8.5-8.5h3a8.5 8.5 0 0 1 8.5 8.5Z" />
+          </svg>
+          <span>Reply</span>
+          {activity && (
+            <strong className="yk-action-count">
+              {activity.replyCount.toLocaleString("en-US")}
+            </strong>
+          )}
         </button>
+        <EmojiReactionPicker
+          disabled={busy || !activity}
+          selected={
+            activity?.reactions
+              ?.filter(item => item.reactedByMe)
+              .map(item => item.emoji) ?? []
+          }
+          onSelect={emoji => void update("react", emoji)}
+        />
       </div>
+      {!!activity?.reactions?.length && (
+        <div className="yk-reaction-chips" aria-label="Post reactions">
+          {activity.reactions.map(item => {
+            const choice = reactionEmoji(item.emoji);
+            if (!choice) return null;
+            return (
+              <button
+                key={item.emoji}
+                type="button"
+                aria-label={`${choice.label}: ${item.count.toLocaleString("en-US")} ${item.count === 1 ? "reaction" : "reactions"}`}
+                aria-pressed={item.reactedByMe}
+                disabled={busy}
+                title={
+                  item.reactedByMe
+                    ? `Remove ${choice.label} reaction`
+                    : `React with ${choice.label}`
+                }
+                onClick={() => void update("react", item.emoji)}
+              >
+                <span aria-hidden="true">{choice.emoji}</span>
+                <strong>{item.count.toLocaleString("en-US")}</strong>
+              </button>
+            );
+          })}
+        </div>
+      )}
       {error && (
         <div role="alert" className="yk-post-error">
           <p>{error}</p>
@@ -151,6 +222,13 @@ export function WallPostInteractions({
       )}
       {open && (
         <div id={`${fieldId}-thread`} className="yk-post-thread">
+          <div className="yk-thread-heading">
+            <strong>Conversation</strong>
+            <span>
+              {activity?.replyCount ?? 0}{" "}
+              {(activity?.replyCount ?? 0) === 1 ? "reply" : "replies"}
+            </span>
+          </div>
           <form
             onSubmit={event => {
               event.preventDefault();
@@ -189,7 +267,7 @@ export function WallPostInteractions({
               <Avatar
                 name={reply.author.name}
                 image={reply.author.avatarUrl ?? undefined}
-                size={28}
+                size={32}
               />
               <div>
                 <header>

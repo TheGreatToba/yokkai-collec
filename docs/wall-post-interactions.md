@@ -29,3 +29,21 @@ réservation/suppression et les plafonds globaux de lignes et de taille.
   les RPC ; aucune publication de test n'est ajoutée en production.
 - Pas de notifications, de pièces jointes dans les réponses, ni de sous-réponses
   imbriquées dans cette première version.
+
+## Réactions emoji et présentation
+
+Sélecteur accessible de 24 emojis, recherche et catégories. Les réactions
+apparaissent en pastilles avec compteurs ; celles du lecteur sont surlignées et
+peuvent être retirées en cliquant à nouveau. Au maximum 8 emojis différents par
+post et par compte. Les clés autorisées sont partagées avec la contrainte SQL
+et contrôlées par un test de synchronisation du catalogue.
+
+`20261021020000_wall_emoji_reactions.sql` est appliquée uniquement en local,
+**pas sur le VPS**. Nouveau RPC authentifié `set_wall_post_reaction`, mêmes ACL
+que les likes/réponses. Tables sans droit direct, helpers owner-only, export de
+ses seules réactions, nettoyage à la suppression du post/compte. Les anciennes
+lectures et mutations restent compatibles avec l'activité enrichie.
+
+La barre d'actions, les bulles des réponses et le sélecteur reprennent le bleu
+nuit du site. La fenêtre réutilise le dialog du site, avec clavier, fermeture
+Échap et restauration du focus ; affichage adapté au mobile et au mouvement réduit.

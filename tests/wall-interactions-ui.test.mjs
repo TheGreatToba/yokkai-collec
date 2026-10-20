@@ -45,6 +45,10 @@ function render({ activity = initial, error = "", draft = "" } = {}) {
       }
     },
     "@/lib/data/wall-interactions": { liveWallInteractions: {} },
+    "@/components/emoji-reaction-picker": { EmojiReactionPicker: () => null },
+    "@/lib/ui/reaction-emojis": {
+      reactionEmoji: id => ({ label: id, emoji: "🔥" })
+    },
     "@/styles/wall-interactions.css": {}
   };
   const js = ts.transpileModule(
@@ -92,4 +96,20 @@ test("failed interactions clear private replies while retaining the draft and of
   assert.match(html, /Keep my draft/);
   assert.doesNotMatch(html, /data-wall-reply=/);
   assert.match(html, /type="submit" disabled=""/);
+});
+
+test("emoji reaction chips expose counts and whether the current player has reacted", () => {
+  const html = render({
+    activity: {
+      ...initial,
+      reactions: [
+        { emoji: "fire", count: 3, reactedByMe: true },
+        { emoji: "heart", count: 1, reactedByMe: false }
+      ]
+    }
+  });
+  assert.match(html, /aria-label="Post reactions"/);
+  assert.match(html, /aria-label="fire: 3 reactions" aria-pressed="true"/);
+  assert.match(html, /aria-label="heart: 1 reaction" aria-pressed="false"/);
+  assert.match(html, /Remove fire reaction/);
 });

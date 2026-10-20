@@ -4,10 +4,14 @@ export const ownerOnly = [
   "public.build_data_export_without_wall_interactions(uuid, uuid)",
   "public.wall_actor_visible(uuid)",
   "public.wall_interaction_owner(uuid)",
-  "public.cleanup_wall_interactions()"
+  "public.cleanup_wall_interactions()",
+  "public.get_wall_post_activity_without_reactions(uuid, timestamp with time zone, uuid)",
+  "public.build_data_export_without_reactions(uuid, uuid)",
+  "public.cleanup_wall_reactions()"
 ]; // Internal helpers: owning SECURITY DEFINER wrappers/triggers only, never service_role or players.
 
 const allowlist = {
+  "public.set_wall_post_reaction(uuid, text, boolean)": ["authenticated"], // Allowed emoji only, own desired state, live friend/self post ACL, serialized maximum 8 reactions per post. Walid review required.
   "public.get_wall_post_activity(uuid, timestamp with time zone, uuid)": [
     "authenticated"
   ], // Accepted friend/self post; live wall ACL and filtered reply authors, bounded page. Walid review required.
