@@ -81,7 +81,7 @@ test("le bouton Classeur revient à la collection normale au second clic", () =>
   );
   assert.match(
     collection,
-    /setViewMode\(current =>\s*current === "panini" \? "grid" : "panini"\s*\)/
+    /setViewMode\(current =>\s*\(?current === "panini" \? "grid" : "panini"\)?\s*\)/
   );
 });
 
