@@ -1,5 +1,6 @@
 import { YokaiCard, type YokaiCardProps } from "@/components/yokai-card";
 import { AuthCardCustomization } from "@/components/auth-card-customization";
+import { AuthDecisionPreview } from "@/components/auth-decision-preview";
 
 const cards = [
   {
@@ -91,44 +92,9 @@ export function AuthShowcase() {
             />
             <span>✦</span>
           </div>
-          <div className="yk-auth-decision-preview">
-            <div className="yk-auth-decision-heading">
-              <div>
-                <span className="yk-auth-feature-number">
-                  THE DAILY DECISION PACK
-                </span>
-                <h4>Which one will you choose?</h4>
-                <p>Reveal five cards. Keep one. Turn the others into Karas.</p>
-              </div>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/assets/chrome-decision-booster-v1.png"
-                alt="Decision Pack"
-                width="952"
-                height="1664"
-                loading="lazy"
-              />
-            </div>
-            <div
-              className="yk-auth-decision-cards"
-              aria-label="Illustrative Decision Pack reveal with SSR and LR cards"
-            >
-              {[cards[0], cards[1], cards[2], cards[1], cards[0]].map(
-                (card, index) => (
-                  <div
-                    className="yk-auth-decision-card"
-                    key={`${card.name}-${index}`}
-                  >
-                    <YokaiCard {...card} animated={false} />
-                  </div>
-                )
-              )}
-            </div>
-            <div className="yk-auth-decision-caption">
-              <span>Five possibilities. One favorite.</span>
-              <small>Illustrative reveal. Rarities vary.</small>
-            </div>
-          </div>
+          <AuthDecisionPreview
+            cards={[cards[0], cards[1], cards[2], cards[1], cards[0]]}
+          />
         </article>
 
         <article className="yk-auth-feature">
@@ -166,7 +132,76 @@ export function AuthShowcase() {
 
         <article className="yk-auth-feature">
           <div className="yk-auth-feature-copy">
-            <span className="yk-auth-feature-number">04 / THE MARKET</span>
+            <span className="yk-auth-feature-number">
+              04 / YOUR FAVORITE WORLDS
+            </span>
+            <h3>A binder for every obsession.</h3>
+            <p>
+              Your favorite manga. The series you can&apos;t stop watching. The
+              cartoons you grew up with. Your favorite K-pop group. Complete
+              their collections, track every missing card, and pin your favorite
+              binders so they&apos;re always close.
+            </p>
+            <div className="yk-auth-binder-tags" aria-label="Binder categories">
+              <span>Manga</span>
+              <span>Series</span>
+              <span>Cartoons</span>
+              <span>K-pop</span>
+            </div>
+          </div>
+          <div
+            className="yk-auth-binder-preview"
+            aria-label="Example favorite binders and collection progress"
+          >
+            <span className="yk-auth-preview-label">Your binders</span>
+            <div className="yk-auth-binder-tile yk-auth-binder-favorite">
+              <div>
+                <strong>JUJUTSU KAISEN</strong>
+                <span aria-hidden="true">★</span>
+              </div>
+              <p>
+                <b>7</b> / 183 cards
+              </p>
+              <div className="yk-auth-binder-progress">
+                <span style={{ width: "4%" }} />
+              </div>
+              <small>4% complete</small>
+            </div>
+            <div className="yk-auth-binder-tile">
+              <div>
+                <strong>YOUR FAVORITE SERIES</strong>
+                <span aria-hidden="true">☆</span>
+              </div>
+              <p>
+                <b>12</b> / 48 cards
+              </p>
+              <div className="yk-auth-binder-progress">
+                <span style={{ width: "25%" }} />
+              </div>
+              <small>25% complete</small>
+            </div>
+            <div className="yk-auth-binder-tile yk-auth-binder-favorite">
+              <div>
+                <strong>K-POP FAVORITES</strong>
+                <span aria-hidden="true">★</span>
+              </div>
+              <p>
+                <b>6</b> / 10 cards
+              </p>
+              <div className="yk-auth-binder-progress">
+                <span style={{ width: "60%" }} />
+              </div>
+              <small>60% complete</small>
+            </div>
+            <p className="yk-auth-preview-caption">
+              Example binders. Every card brings you closer.
+            </p>
+          </div>
+        </article>
+
+        <article className="yk-auth-feature">
+          <div className="yk-auth-feature-copy">
+            <span className="yk-auth-feature-number">05 / THE MARKET</span>
             <h3>Find your next great deal.</h3>
             <p>
               Put your cards up for auction or bid on a new favorite with Karas,
@@ -196,7 +231,7 @@ export function AuthShowcase() {
 
         <article className="yk-auth-feature yk-auth-feature-social">
           <div className="yk-auth-feature-copy">
-            <span className="yk-auth-feature-number">05 / THE COMMUNITY</span>
+            <span className="yk-auth-feature-number">06 / THE COMMUNITY</span>
             <h3>Better finds. Better together.</h3>
             <p>
               Add friends, chat, and trade your duplicates for the cards you
