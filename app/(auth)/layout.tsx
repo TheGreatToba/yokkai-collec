@@ -31,8 +31,8 @@ export default async function AuthLayout({
           <span aria-hidden="true">←</span> Back to home
         </Link>
       </header>
-      <main className="yk-auth-main">
-        <section className="yk-auth-panel">{children}</section>
+      <main id="main-content" className="yk-auth-main">
+        {children}
       </main>
       <footer className="yk-auth-footer">
         Yokkai Collec’ · A new discovery in every card.

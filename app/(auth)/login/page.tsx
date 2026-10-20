@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AuthForm } from "@/components/auth-form";
+import { AuthExperience } from "@/components/auth-experience";
 
 export const metadata: Metadata = {
   title: "Sign in · Yokkai Collec’",
@@ -14,7 +15,7 @@ export default async function SignInPage({
 }) {
   const { confirmation, "mot-de-passe": passwordStatus } = await searchParams;
   return (
-    <>
+    <AuthExperience>
       <p className="eyebrow">The hunt continues</p>
       <h1 className="yk-auth-title">Welcome back</h1>
       <p className="yk-auth-intro">
@@ -30,6 +31,6 @@ export default async function SignInPage({
         confirmationError={confirmation === "erreur"}
         confirmationUnavailable={confirmation === "service"}
       />
-    </>
+    </AuthExperience>
   );
 }

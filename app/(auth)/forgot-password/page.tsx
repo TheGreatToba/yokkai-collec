@@ -12,7 +12,7 @@ export default async function ForgotPasswordPage({
 }) {
   const { lien } = await searchParams;
   return (
-    <>
+    <section className="yk-auth-panel">
       <p className="eyebrow">Return to your collection</p>
       <h1 className="yk-auth-title">Reset your password</h1>
       <p className="yk-auth-intro">
@@ -22,6 +22,6 @@ export default async function ForgotPasswordPage({
         invalidLink={lien === "erreur"}
         confirmationUnavailable={lien === "service"}
       />
-    </>
+    </section>
   );
 }
