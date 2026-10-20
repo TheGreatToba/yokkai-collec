@@ -13,8 +13,8 @@ export function FooterNavigation() {
     <nav className="yk-site-footer-nav" aria-label="About Yokkai">
       <Link href="/rarities">Rarities</Link>
       <Link href="/rules">Rules</Link>
-      <Link href="/info">Info</Link>
       <Link href="/terms">Terms of Use</Link>
+      <Link href="/info">Info</Link>
     </nav>
   );
 }
