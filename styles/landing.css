@@ -271,14 +271,13 @@
   display: flex;
   width: min(1240px, calc(100% - 48px));
   margin: auto;
+  align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 28px 0;
+  padding: 22px 0;
   border-top: 1px solid rgba(241, 238, 255, 0.09);
   color: var(--color-ink-3);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  font-size: 12px;
 }
 @keyframes yk-landing-float {
   0%,

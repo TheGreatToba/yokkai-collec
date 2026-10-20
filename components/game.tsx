@@ -42,6 +42,7 @@ import { useSfx } from "@/hooks/use-sfx";
 import { runPackOpeningOnce } from "@/lib/ui/pack-opening";
 import { releaseBoostersBackground } from "@/components/boosters-load-priority";
 import { startVisiblePolling } from "@/lib/ui/visible-polling";
+import { SiteFooter } from "@/components/site-footer";
 
 const CollectionView = dynamic(
   () => import("@/components/collection").then(module => module.CollectionView),
@@ -67,11 +68,13 @@ type Info = Awaited<ReturnType<typeof getGameInfo>>;
 export function Game({
   view,
   account,
-  previewData
+  previewData,
+  discordEnabled = false
 }: {
   view: "packs" | "collection";
   account?: ReactNode;
   previewData?: typeof gameReads;
+  discordEnabled?: boolean;
 }) {
   const [info, setInfo] = useState<Info | null>(null);
   const [status, setStatus] = useState<PackStatus | null>(null);
@@ -557,12 +560,10 @@ export function Game({
           />
         )}
       </main>
-      <footer
-        className={`mx-auto mt-6 flex w-full ${view === "collection" ? "max-w-[var(--layout-collection-max)]" : "max-w-6xl"} flex-wrap justify-between gap-3 border-t border-veil px-6 py-6 text-xs text-ink-3`}
-      >
-        <span>Yokkai Collec’ · v0.2</span>
-        <span>Your collection is saved to your account</span>
-      </footer>
+      <SiteFooter
+        note="Your collection is saved to your account"
+        discordEnabled={discordEnabled}
+      />
     </div>
   );
 }

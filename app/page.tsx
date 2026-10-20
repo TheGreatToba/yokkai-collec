@@ -4,6 +4,7 @@ import Image from "next/image";
 import { YokaiCard } from "@/components/yokai-card";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getDiscordInviteUrl } from "@/lib/discord-invite";
+import { DISCORD_MARK_PATH, FooterNavigation } from "@/components/site-footer";
 import "@/styles/landing.css";
 
 export const metadata: Metadata = {
@@ -193,18 +194,38 @@ export default async function Home() {
         </section>
       </main>
       <footer className="yk-landing-footer">
-        <span>Yokkai Collec’</span>
-        <span>A new discovery in every card.</span>
-        {discordEnabled && (
-          <a href="/discord" target="_blank" rel="noopener noreferrer">
-            Join our Discord
-          </a>
-        )}
-        {process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() && (
-          <a href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL.trim()}`}>
-            {process.env.NEXT_PUBLIC_CONTACT_EMAIL.trim()}
-          </a>
-        )}
+        <p className="yk-site-footer-brand">
+          <Link href="/">Yokkai Collec&apos;</Link>
+          <span>A new discovery in every card.</span>
+        </p>
+        <div className="yk-site-footer-actions">
+          <FooterNavigation />
+          {process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() && (
+            <a href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL.trim()}`}>
+              Contact
+            </a>
+          )}
+          {discordEnabled && (
+            <a
+              href="/discord"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="yk-site-footer-discord"
+              aria-label="Join our Discord"
+              title="Join our Discord"
+            >
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                width="20"
+                height="20"
+                fill="currentColor"
+              >
+                <path d={DISCORD_MARK_PATH} />
+              </svg>
+            </a>
+          )}
+        </div>
       </footer>
     </div>
   );
