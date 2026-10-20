@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { YokaiCard } from "@/components/yokai-card";
 import { getCurrentUser } from "@/lib/auth/session";
+import { getDiscordInviteUrl } from "@/lib/discord-invite";
 import "@/styles/landing.css";
 
 export const metadata: Metadata = {
@@ -58,6 +59,7 @@ const steps = [
 
 export default async function Home() {
   const user = await getCurrentUser();
+  const discordEnabled = Boolean(getDiscordInviteUrl());
   const primaryHref = user ? "/boosters" : "/signup";
   return (
     <div className="yk-landing">
@@ -193,6 +195,11 @@ export default async function Home() {
       <footer className="yk-landing-footer">
         <span>Yokkai Collec’</span>
         <span>A new discovery in every card.</span>
+        {discordEnabled && (
+          <a href="/discord" target="_blank" rel="noopener noreferrer">
+            Join our Discord
+          </a>
+        )}
         {process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() && (
           <a href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL.trim()}`}>
             {process.env.NEXT_PUBLIC_CONTACT_EMAIL.trim()}

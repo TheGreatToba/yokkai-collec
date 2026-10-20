@@ -5,6 +5,8 @@ import { BoostersLoadPriority } from "@/components/boosters-load-priority";
 import { PresenceHeartbeat } from "@/components/presence-heartbeat";
 import { ProAccessProvider } from "@/components/pro-access";
 import { ReferralReminder } from "@/components/referral-reminder";
+import { DiscordPromo } from "@/components/discord-promo";
+import { getDiscordInviteUrl } from "@/lib/discord-invite";
 import "./globals.css";
 import "../styles/ui.css";
 import "../styles/community.css";
@@ -64,6 +66,8 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const discordEnabled = Boolean(getDiscordInviteUrl());
+
   return (
     <html
       lang="en"
@@ -84,6 +88,7 @@ export default function RootLayout({
           <ProAccessProvider>
             {children}
             <ReferralReminder />
+            <DiscordPromo enabled={discordEnabled} />
           </ProAccessProvider>
         </BoostersLoadPriority>
       </body>
