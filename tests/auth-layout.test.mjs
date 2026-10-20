@@ -23,6 +23,7 @@ test("auth halos cannot extend scrolling past the footer or disable sticky posit
   assert.ok(shell);
   // clip bounds decorative overflow on both axes without creating a scroll container.
   assert.match(shell, /overflow:\s*clip\s*;/);
+  assert.match(shell, /contain:\s*paint\s*;/);
   assert.match(shell, /min-height:\s*100dvh\s*;/);
   assert.doesNotMatch(shell, /(?:^|;)\s*height\s*:/);
   assert.match(css, /\.yk-auth-account\s*\{[^}]*position:\s*sticky\s*;/);
