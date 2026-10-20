@@ -176,7 +176,7 @@
 .yk-auth-card-ribbon {
   display: flex;
   width: max-content;
-  animation: yk-auth-card-scroll 48s linear infinite;
+  animation: yk-auth-card-scroll 112s linear infinite;
   will-change: transform;
 }
 .yk-auth-card-set {

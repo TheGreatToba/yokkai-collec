@@ -4,6 +4,7 @@ import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { YokaiCard } from "@/components/yokai-card";
 import { PREMIUM_CARD_ARTWORK_EXAMPLE as example } from "@/lib/premium/card-artwork-example";
+import { AUTH_SHOWCASE_CARDS } from "@/lib/auth/showcase-cards";
 
 function subscribeMotionPreference(onChange: () => void) {
   const query = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -42,7 +43,7 @@ export function AuthCardCustomization() {
         <div className="yk-auth-custom-pair">
           <figure>
             <figcaption>Original</figcaption>
-            <YokaiCard {...example.card} animated={false} />
+            <YokaiCard {...AUTH_SHOWCASE_CARDS[0]} animated={false} />
           </figure>
           <span className="yk-auth-custom-arrow" aria-hidden="true">
             →
@@ -52,7 +53,7 @@ export function AuthCardCustomization() {
               Your style <span>GIF</span>
             </figcaption>
             <YokaiCard
-              {...example.card}
+              {...AUTH_SHOWCASE_CARDS[0]}
               image={reducedMotion ? example.still : example.customGif}
               fallbackImage={example.still}
               animated={false}

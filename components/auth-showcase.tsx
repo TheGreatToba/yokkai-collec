@@ -1,31 +1,10 @@
-import { YokaiCard, type YokaiCardProps } from "@/components/yokai-card";
+import { YokaiCard } from "@/components/yokai-card";
 import { AuthCardCustomization } from "@/components/auth-card-customization";
 import { AuthDecisionPreview } from "@/components/auth-decision-preview";
-
-const cards = [
-  {
-    name: "Satoru Gojou",
-    rarity: "LR",
-    shiny: true,
-    category: "Anime/Manga",
-    anime: "Jujutsu Kaisen",
-    image: "/assets/landing/gojou.webp"
-  },
-  {
-    name: "Levi",
-    rarity: "SSR",
-    category: "Anime/Manga",
-    anime: "Attack on Titan",
-    image: "/assets/landing/levi.webp"
-  },
-  {
-    name: "Luffy Monkey",
-    rarity: "LR",
-    category: "Anime/Manga",
-    anime: "One Piece",
-    image: "/assets/landing/luffy.webp"
-  }
-] satisfies YokaiCardProps[];
+import {
+  AUTH_SHOWCASE_CARDS as cards,
+  AUTH_MARQUEE_CARDS
+} from "@/lib/auth/showcase-cards";
 
 export function AuthShowcase() {
   return (
@@ -50,20 +29,22 @@ export function AuthShowcase() {
         <div className="yk-auth-card-ribbon" aria-hidden="true">
           {[0, 1].map(copy => (
             <div className="yk-auth-card-set" key={copy}>
-              {[...cards, ...cards].map((card, index) => (
-                <div
-                  className="yk-auth-display-card"
-                  key={`${card.name}-${index}`}
-                >
-                  <YokaiCard {...card} animated={false} />
-                </div>
-              ))}
+              {[...AUTH_MARQUEE_CARDS, ...AUTH_MARQUEE_CARDS].map(
+                (card, index) => (
+                  <div
+                    className="yk-auth-display-card"
+                    key={`${card.name}-${index}`}
+                  >
+                    <YokaiCard {...card} animated={false} />
+                  </div>
+                )
+              )}
             </div>
           ))}
         </div>
         <p className="sr-only">
-          Discover collectible cards including Satoru Gojou from Jujutsu Kaisen,
-          Levi from Attack on Titan, and Luffy Monkey from One Piece.
+          Discover collectible cards:{" "}
+          {AUTH_MARQUEE_CARDS.map(card => card.name).join(", ")}.
         </p>
       </div>
 
@@ -92,9 +73,7 @@ export function AuthShowcase() {
             />
             <span>✦</span>
           </div>
-          <AuthDecisionPreview
-            cards={[cards[0], cards[1], cards[2], cards[1], cards[0]]}
-          />
+          <AuthDecisionPreview cards={cards} />
         </article>
 
         <article className="yk-auth-feature">
@@ -215,7 +194,7 @@ export function AuthShowcase() {
             <YokaiCard {...cards[1]} animated={false} />
             <div>
               <span className="yk-auth-preview-label">Auction preview</span>
-              <strong>Levi</strong>
+              <strong>{cards[1].name}</strong>
               <span className="yk-auth-auction-bid">
                 <span aria-hidden="true">◆</span> 1,240 <small>Karas</small>
               </span>
@@ -243,7 +222,7 @@ export function AuthShowcase() {
             className="yk-auth-chat-preview"
             aria-label="Illustrative conversation and trade preview"
           >
-            <p>Got a spare Levi?</p>
+            <p>Got a spare NEWJEANS?</p>
             <p>
               For your Luffy? <span aria-hidden="true">✦</span>
             </p>

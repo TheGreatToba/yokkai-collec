@@ -29,7 +29,7 @@ export function AuthDecisionPreview({ cards }: { cards: YokaiCardProps[] }) {
         </div>
         <ol
           className="yk-reveal-grid"
-          aria-label="Example Decision Pack with five SSR and LR cards"
+          aria-label="Example Decision Pack reveal with five cards"
         >
           {cards.map((card, index) => (
             <li className="yk-reveal-slot" key={`${card.name}-${index}`}>
