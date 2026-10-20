@@ -1,0 +1,90 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import vm from "node:vm";
+import test from "node:test";
+import ts from "typescript";
+
+const require = createRequire(import.meta.url);
+
+function load(path, imports) {
+  const source = readFileSync(path, "utf8");
+  const { outputText } = ts.transpileModule(source, {
+    compilerOptions: {
+      module: ts.ModuleKind.CommonJS,
+      jsx: ts.JsxEmit.ReactJSX,
+      esModuleInterop: true
+    }
+  });
+  const loadedModule = { exports: {} };
+  vm.runInNewContext(outputText, {
+    module: loadedModule,
+    exports: loadedModule.exports,
+    require: name =>
+      Object.hasOwn(imports, name) ? imports[name] : require(name),
+    process: { env: {} }
+  });
+  return loadedModule.exports;
+}
+
+test("the home page renders the same signup and shell with referral parameters intact", () => {
+  const AuthLayout = () => null;
+  const SignUpPage = () => null;
+  const home = load("app/page.tsx", {
+    "./(auth)/layout": { default: AuthLayout, __esModule: true },
+    "./(auth)/signup/page": { default: SignUpPage, __esModule: true }
+  });
+  const searchParams = Promise.resolve({ ref: "0123456789ab" });
+  const tree = home.default({ searchParams });
+  assert.equal(tree.type, AuthLayout);
+  assert.equal(tree.props.children.type, SignUpPage);
+  assert.equal(tree.props.children.props.searchParams, searchParams);
+  assert.equal(home.metadata.alternates.canonical, "/");
+  assert.equal(home.metadata.openGraph.url, "/");
+});
+
+function shell(getCurrentUser, redirect) {
+  const SiteFooter = () => null;
+  const { default: AuthLayout } = load("app/(auth)/layout.tsx", {
+    "next/link": { default: () => null, __esModule: true },
+    "next/image": { default: () => null, __esModule: true },
+    "next/navigation": { redirect },
+    "@/lib/auth/session": { getCurrentUser },
+    "@/components/site-footer": { SiteFooter },
+    "@/lib/discord-invite": {
+      getDiscordInviteUrl: () => "https://discord.gg/dDVjCJyJs"
+    },
+    "@/styles/auth.css": {}
+  });
+  return { AuthLayout, SiteFooter };
+}
+
+test("a signed-in visitor goes directly to their packs instead of registration", async () => {
+  const redirected = new Error("redirected");
+  const { AuthLayout } = shell(
+    async () => ({ id: "local-player" }),
+    path => {
+      assert.equal(path, "/boosters");
+      throw redirected;
+    }
+  );
+  await assert.rejects(
+    AuthLayout({ children: "signup" }),
+    error => error === redirected
+  );
+});
+
+test("an anonymous visitor gets signup content and the shared Discord footer", async () => {
+  const { AuthLayout, SiteFooter } = shell(
+    async () => null,
+    () => {
+      assert.fail("An anonymous visitor must see registration, not a redirect");
+    }
+  );
+  const tree = await AuthLayout({ children: "signup" });
+  const children = tree.props.children;
+  assert.equal(children[1].type, "main");
+  assert.equal(children[1].props.children, "signup");
+  assert.equal(children[2].type, SiteFooter);
+  assert.equal(children[2].props.discordEnabled, true);
+});

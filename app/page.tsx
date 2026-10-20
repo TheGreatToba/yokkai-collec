@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import Image from "next/image";
-import { YokaiCard } from "@/components/yokai-card";
-import { getCurrentUser } from "@/lib/auth/session";
-import { getDiscordInviteUrl } from "@/lib/discord-invite";
-import { DISCORD_MARK_PATH, FooterNavigation } from "@/components/site-footer";
-import "@/styles/landing.css";
+import AuthLayout from "./(auth)/layout";
+import SignUpPage from "./(auth)/signup/page";
 
 export const metadata: Metadata = {
+  title: "Yokkai Collec' · Start your collection",
+  description:
+    "Create your free account, collect your favorite characters, customize your cards, complete binders, and trade with friends.",
+  alternates: { canonical: "/" },
   openGraph: {
     title: "Yokkai Collec'",
     description:
@@ -27,206 +26,14 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image", images: ["/og-home.png"] }
 };
 
-const featuredCards = [
-  {
-    name: "Levi",
-    rarity: "SSR" as const,
-    category: "Anime/Manga",
-    anime: "Attack on Titan",
-    image: "/assets/landing/levi.webp"
-  },
-  {
-    name: "Satoru Gojou",
-    rarity: "LR" as const,
-    shiny: true,
-    category: "Anime/Manga",
-    anime: "Jujutsu Kaisen",
-    image: "/assets/landing/gojou.webp"
-  },
-  {
-    name: "Luffy Monkey",
-    rarity: "LR" as const,
-    category: "Anime/Manga",
-    anime: "One Piece",
-    image: "/assets/landing/luffy.webp"
-  }
-];
-
-const steps = [
-  ["01", "Open", "Get a fresh five-card pack regularly."],
-  ["02", "Collect", "Discover characters from every universe."],
-  ["03", "Trade", "Complete your collection by trading with other players."]
-];
-
-export default async function Home() {
-  const user = await getCurrentUser();
-  const discordEnabled = Boolean(getDiscordInviteUrl());
-  const primaryHref = user ? "/boosters" : "/signup";
+export default function Home({
+  searchParams
+}: {
+  searchParams: Promise<{ ref?: string | string[] }>;
+}) {
   return (
-    <div className="yk-landing">
-      <header className="yk-landing-header">
-        <Link
-          href="/"
-          className="yk-landing-brand"
-          aria-label="Yokkai Collec’, home"
-        >
-          <Image
-            className="yk-landing-brand-image"
-            src="/assets/brand-logo-chrome.png"
-            alt=""
-            width={1672}
-            height={941}
-            priority
-          />
-        </Link>
-        <nav aria-label="Home navigation" className="yk-landing-nav">
-          <a href="#concept">How it works</a>
-          {user ? (
-            <Link href="/boosters" className="yk-landing-login">
-              Play now
-            </Link>
-          ) : (
-            <Link href="/login" className="yk-landing-login">
-              Sign in
-            </Link>
-          )}
-        </nav>
-      </header>
-      <main id="main-content">
-        <section className="yk-landing-hero">
-          <div className="yk-landing-copy">
-            <p className="eyebrow">Your collection starts here</p>
-            <h1>
-              Summon.
-              <br />
-              Collect.
-              <br />
-              <em>Complete.</em>
-            </h1>
-            <p className="yk-landing-lead">
-              Open packs, reveal iconic characters, and build a collection
-              that&apos;s yours alone.
-            </p>
-            <div className="yk-landing-actions">
-              <Link
-                href={primaryHref}
-                className="yk-button yk-button-primary yk-landing-cta"
-              >
-                {user ? "Open my pack" : "Start collecting"}
-                <span aria-hidden="true">✦</span>
-              </Link>
-              {!user && (
-                <Link href="/login" className="yk-button yk-button-secondary">
-                  I already have an account
-                </Link>
-              )}
-            </div>
-            <div className="yk-landing-proof" aria-label="Key features">
-              <span>
-                <b>5</b> cards per pack
-              </span>
-              <span>
-                <b>5</b> rarities
-              </span>
-              <span>
-                <b>∞</b> possible collections
-              </span>
-            </div>
-          </div>
-          <div
-            id="collection"
-            className="yk-landing-cards"
-            aria-label="Collectible card preview"
-          >
-            <div className="yk-landing-aura" />
-            {featuredCards.map((card, index) => (
-              <div
-                className={`yk-landing-card yk-landing-card-${index + 1}`}
-                key={card.name}
-              >
-                <YokaiCard {...card} imageSizes="100vw" />
-              </div>
-            ))}
-            <span
-              className="yk-landing-spark yk-landing-spark-1"
-              aria-hidden="true"
-            >
-              ✦
-            </span>
-            <span
-              className="yk-landing-spark yk-landing-spark-2"
-              aria-hidden="true"
-            >
-              ✦
-            </span>
-          </div>
-        </section>
-        <section
-          id="concept"
-          className="yk-landing-concept"
-          aria-labelledby="concept-title"
-        >
-          <div className="yk-landing-section-heading">
-            <div>
-              <p className="eyebrow">The ritual</p>
-              <h2 id="concept-title">A collection that keeps growing.</h2>
-            </div>
-          </div>
-          <div className="yk-landing-steps">
-            {steps.map(([number, title, text]) => (
-              <article key={number}>
-                <span>{number}</span>
-                <h3>{title}</h3>
-                <p>{text}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-        <section className="yk-landing-final">
-          <p className="eyebrow">Ready to try your luck?</p>
-          <h2>Your next favorite character is waiting.</h2>
-          <Link
-            href={primaryHref}
-            className="yk-button yk-button-primary yk-landing-cta"
-          >
-            {user ? "View my packs" : "Start my collection"}
-          </Link>
-        </section>
-      </main>
-      <footer className="yk-landing-footer">
-        <p className="yk-site-footer-brand">
-          <Link href="/">Yokkai Collec&apos;</Link>
-          <span>A new discovery in every card.</span>
-        </p>
-        <div className="yk-site-footer-actions">
-          <FooterNavigation />
-          {process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() && (
-            <a href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL.trim()}`}>
-              Contact
-            </a>
-          )}
-          {discordEnabled && (
-            <a
-              href="/discord"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="yk-site-footer-discord"
-              aria-label="Join our Discord"
-              title="Join our Discord"
-            >
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 24 24"
-                width="20"
-                height="20"
-                fill="currentColor"
-              >
-                <path d={DISCORD_MARK_PATH} />
-              </svg>
-            </a>
-          )}
-        </div>
-      </footer>
-    </div>
+    <AuthLayout>
+      <SignUpPage searchParams={searchParams} />
+    </AuthLayout>
   );
 }

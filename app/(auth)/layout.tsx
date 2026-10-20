@@ -2,6 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/session";
+import { SiteFooter } from "@/components/site-footer";
+import { getDiscordInviteUrl } from "@/lib/discord-invite";
 import "@/styles/auth.css";
 
 export default async function AuthLayout({
@@ -27,25 +29,17 @@ export default async function AuthLayout({
             priority
           />
         </Link>
-        <Link href="/" className="yk-auth-return">
-          <span aria-hidden="true">←</span> Back to home
+        <Link href="/login" className="yk-auth-return">
+          Sign in
         </Link>
       </header>
-      <main className="yk-auth-main">
-        <section className="yk-auth-panel">{children}</section>
+      <main id="main-content" className="yk-auth-main">
+        {children}
       </main>
-      <footer className="yk-auth-footer">
-        Yokkai Collec’ · A new discovery in every card.
-        {process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() && (
-          <>
-            {" "}
-            ·{" "}
-            <a href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL.trim()}`}>
-              {process.env.NEXT_PUBLIC_CONTACT_EMAIL.trim()}
-            </a>
-          </>
-        )}
-      </footer>
+      <SiteFooter
+        discordEnabled={Boolean(getDiscordInviteUrl())}
+        contactEmail={process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim()}
+      />
     </div>
   );
 }
