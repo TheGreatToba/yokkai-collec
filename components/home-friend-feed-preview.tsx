@@ -5,6 +5,7 @@ import { HomeFriendFeed } from "@/components/home-friend-feed";
 import { Button } from "@/components/ui";
 import type { FriendFeedLoader, FriendFeedPost } from "@/lib/data/friend-feed";
 import { AUTH_MARQUEE_CARDS } from "@/lib/auth/showcase-cards";
+import type { WallAdapter } from "@/lib/data/profile-wall";
 
 const posts: FriendFeedPost[] = [
   {
@@ -57,6 +58,30 @@ const posts: FriendFeedPost[] = [
 export function HomeFriendFeedPreview() {
   const [empty, setEmpty] = useState(false);
   const [fail, setFail] = useState(false);
+  const [failPublish, setFailPublish] = useState(false);
+  const [published, setPublished] = useState("");
+  const [publishCount, setPublishCount] = useState(0);
+  const wallAdapter = useMemo<WallAdapter>(
+    () => ({
+      list: async () => {
+        throw new Error("Composer must not fetch the wall");
+      },
+      publish: async input => {
+        await new Promise(resolve => setTimeout(resolve, 200));
+        if (failPublish)
+          throw new Error(
+            "Couldn't publish your post. Your draft has been kept."
+          );
+        setPublished(input.text || "Media post");
+        setPublishCount(count => count + 1);
+        return { ...input, createdAt: new Date().toISOString() };
+      },
+      upload: async (_file, ownerId) => `${ownerId}/preview.png`,
+      remove: async () => null,
+      discard: async () => {}
+    }),
+    [failPublish]
+  );
   const initial = useMemo(
     () => ({
       items: empty ? [] : posts.slice(0, 3),
@@ -91,9 +116,27 @@ export function HomeFriendFeedPreview() {
           />{" "}
           Fail feed requests
         </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={failPublish}
+            onChange={event => setFailPublish(event.target.checked)}
+          />{" "}
+          Fail wall publishing
+        </label>
         <p>Local preview only. Sample posts; no real players are contacted.</p>
+        {published && (
+          <p role="status" data-preview-published={publishCount}>
+            Preview post published: {published}
+          </p>
+        )}
       </div>
-      <HomeFriendFeed initial={initial} load={load} />
+      <HomeFriendFeed
+        initial={initial}
+        load={load}
+        viewer={posts[2].author}
+        wallAdapter={wallAdapter}
+      />
     </div>
   );
 }

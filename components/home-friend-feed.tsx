@@ -5,10 +5,13 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Avatar, Button } from "@/components/ui";
 import { StyledPlayerName } from "@/components/styled-player-name";
+import { ProfileWall } from "@/components/profile-wall";
+import type { WallAdapter } from "@/lib/data/profile-wall";
 import {
   appendFeedPage,
   getFriendFeed,
   type FriendFeedPage,
+  type FriendFeedPost,
   type FriendFeedLoader
 } from "@/lib/data/friend-feed";
 import "@/styles/friend-feed.css";
@@ -16,10 +19,14 @@ import "@/styles/friend-feed.css";
 export function HomeFriendFeed({
   initial,
   initialError = "",
+  viewer,
+  wallAdapter,
   load = getFriendFeed
 }: {
   initial: FriendFeedPage;
   initialError?: string;
+  viewer?: FriendFeedPost["author"];
+  wallAdapter?: WallAdapter;
   load?: FriendFeedLoader;
 }) {
   const [page, setPage] = useState(initial);
@@ -116,9 +123,28 @@ export function HomeFriendFeed({
           <p>Fresh from your friends&apos; walls. Newest first.</p>
         </div>
         <Link href="/profile?tab=wall" className="yk-button yk-button-primary">
-          Post on my wall <span aria-hidden="true">↗</span>
+          View my wall <span aria-hidden="true">↗</span>
         </Link>
       </header>
+      {viewer && (
+        <div className="yk-feed-composer">
+          <ProfileWall
+            ownerId={viewer.id}
+            pseudo={viewer.name}
+            avatarUrl={viewer.avatarUrl}
+            isMe
+            isPublic={false}
+            canRead
+            active
+            composerOnly
+            adapter={wallAdapter}
+          />
+          <p className="yk-feed-publish-note">
+            Posts appear on your wall and in your friends&apos; feeds. Your
+            profile visibility still applies.
+          </p>
+        </div>
+      )}
       <div className="yk-feed-toolbar">
         <span className="yk-feed-following">
           Friends only <span aria-hidden="true">✦</span>

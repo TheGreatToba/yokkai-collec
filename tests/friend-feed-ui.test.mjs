@@ -44,6 +44,14 @@ const { HomeFriendFeed } = load("components/home-friend-feed.tsx", {
   "@/components/styled-player-name": {
     StyledPlayerName: ({ name }) => React.createElement("span", null, name)
   },
+  "@/components/profile-wall": {
+    ProfileWall: props =>
+      React.createElement("div", {
+        "data-wall-composer": props.composerOnly,
+        "data-wall-owner": props.ownerId,
+        "data-wall-name": props.pseudo
+      })
+  },
   "@/lib/data/friend-feed": data,
   "@/styles/friend-feed.css": {}
 });
@@ -109,4 +117,19 @@ test("initial server errors keep a named feed and a usable refresh action", () =
   assert.match(html, /role="alert"/);
   assert.match(html, /Refresh/);
   assert.doesNotMatch(html, /Your timeline starts/);
+});
+
+test("Home embeds the existing own-wall composer even if the friend feed fails", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(HomeFriendFeed, {
+      initial: { items: [], next: null },
+      initialError: "Couldn't load posts.",
+      viewer: post.author
+    })
+  );
+  assert.match(html, /data-wall-composer="true"/);
+  assert.match(html, /data-wall-owner="friend-1"/);
+  assert.match(html, /data-wall-name="Kitsune"/);
+  assert.match(html, /Your profile visibility still applies/);
+  assert.match(html, /role="alert"/);
 });

@@ -161,18 +161,30 @@ async function market() {
   return <HomeMarket initial={(data as MarketPage).items} />;
 }
 
-async function friendFeed() {
+async function friendFeed(userId: string) {
+  const client = createClient(await cookies());
+  const profile = await client
+    .rpc("get_profile", { p_identifier: null })
+    .abortSignal(AbortSignal.timeout(12000));
+  const viewer =
+    !profile.error && profile.data?.id === userId
+      ? {
+          id: profile.data.id,
+          name: profile.data.pseudo,
+          avatarUrl: profile.data.avatarUrl
+        }
+      : undefined;
   try {
-    const client = createClient(await cookies());
     const { data, error } = await client
       .rpc("get_friend_wall_feed", { p_limit: 10 })
       .abortSignal(AbortSignal.timeout(12000));
     if (error) throw error;
-    return <HomeFriendFeed initial={data as FriendFeedPage} />;
+    return <HomeFriendFeed initial={data as FriendFeedPage} viewer={viewer} />;
   } catch {
     return (
       <HomeFriendFeed
         initial={{ items: [], next: null }}
+        viewer={viewer}
         initialError="Couldn't load your friends' posts. Refresh to try again."
       />
     );
@@ -237,7 +249,7 @@ export function HomeDashboard({ userId }: { userId: string }) {
           </Suspense>
         </HomePanel>
         <Suspense fallback={<HomeSkeleton />}>
-          <PanelData load={friendFeed} />
+          <PanelData load={() => friendFeed(userId)} />
         </Suspense>
         <HomePanel
           id="home-market"

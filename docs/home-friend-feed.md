@@ -16,6 +16,16 @@ Actualisation au retour sur l'onglet et lors d'un blocage local. Une erreur
 retire les données affichées avant de proposer une nouvelle lecture. Les médias
 sont chargés à la demande. Aucun like, commentaire ou republication fictif.
 
+Home intègre également `ProfileWall` en mode `composerOnly` au-dessus du fil :
+même texte, image/GIF, quotas, idempotence et conservation du brouillon après
+erreur que sur le profil. Ce mode ne charge pas la liste du mur. Le profil
+de l'auteur provient du RPC `get_profile` existant avec `p_identifier=null`,
+et doit correspondre à l'identité déjà authentifiée de Home. Aucune lecture
+directe de `user_profiles` ni extension de ses droits. Le RPC d'écriture utilise
+toujours `auth.uid()` ; aucun nouveau droit ni migration pour le composeur.
+Après publication, la confirmation est affichée et le post se trouve sur son
+mur, pas dans le fil réservé aux amis.
+
 ## Migrations / publication
 
 - `20261020230000_home_friend_feed.sql` : nouvelle lecture bornée uniquement.
