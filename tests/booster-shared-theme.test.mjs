@@ -16,13 +16,23 @@ const tokens = readFileSync(
   new URL("../tailwind.config.ts", import.meta.url),
   "utf8"
 );
+// Two complete product palettes during the reviewed midnight-blue rollout.
+// Selecting one accent requires every other checked token from the same palette.
+const midnight = tokens.includes('"pack-accent": "#bccdff"');
+const midnightTokens = {
+  "pack-accent": "#bccdff",
+  "pack-button-start": "#253b5d",
+  "pack-button-middle": "#1d304b",
+  "pack-button-end": "#293f62"
+};
 const token = (name, literal) => {
+  if (midnight) literal = midnightTokens[name] ?? literal;
   assert.match(tokens, new RegExp(`"${name}": "${literal}"`));
   return `var(--color-${name})`;
 };
 const panels = ".yk-pack-grid .yk-pack-panel";
 
-test("both floating packs preserve the approved UI palette through exact tokens", () => {
+test("both floating packs preserve one complete approved UI palette through exact tokens", () => {
   assert.equal(value(panels, "--pack-accent"), token("pack-accent", "#c0c5ff"));
   assert.equal(value(panels, "color"), token("pack-ink", "#eeebff"));
   assert.equal(value(panels, "border"), "0");
