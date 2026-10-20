@@ -2014,18 +2014,11 @@ export function SearchView({
   return (
     <section className="yk-catalogue">
       <div className="yk-catalogue-heading">
-        <div>
-          <p role="status" className="font-display text-xl">
-            {searching
-              ? "Loading catalog…"
-              : `${total.toLocaleString("en-US")} ${total === 1 ? "card" : "cards"}`}
-          </p>
-          <p className="mt-1 text-xs text-ink-3">
-            {query || category || rarity
-              ? "Results matching your filters"
-              : "Every card in the game"}
-          </p>
-        </div>
+        <p role="status" className="sr-only">
+          {searching
+            ? "Loading catalog…"
+            : `${total.toLocaleString("en-US")} ${total === 1 ? "card" : "cards"}`}
+        </p>
         <button
           type="button"
           className="yk-mobile-filter-trigger"

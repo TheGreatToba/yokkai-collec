@@ -48,12 +48,9 @@ export default function CataloguePreview() {
         <h1 className="yk-title mt-3">Catalogue</h1>
         <section className="yk-catalogue mt-8">
           <div className="yk-catalogue-heading">
-            <div>
-              <p className="font-display text-xl">103 379 cartes</p>
-              <p className="mt-1 text-xs text-ink-3">
-                Toutes les cartes du jeu
-              </p>
-            </div>
+            <p role="status" className="sr-only">
+              103 379 cartes
+            </p>
             <button type="button" className="yk-mobile-filter-trigger">
               <svg
                 aria-hidden="true"
