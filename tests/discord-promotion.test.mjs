@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import { homePresentation } from "./helpers/home-presentation.mjs";
 
 const read = path => readFileSync(path, "utf8");
 
@@ -21,7 +22,8 @@ test("Discord links use one internal redirect backed by a server-only setting", 
 
 test("the account menu and public footer expose the Discord invitation safely", () => {
   const account = read("components/account-menu.tsx");
-  const landing = read("app/page.tsx");
+  const presentation = homePresentation();
+  const landing = presentation.footer;
 
   for (const source of [account, landing]) {
     assert.match(source, /href="\/discord"/);
@@ -30,7 +32,10 @@ test("the account menu and public footer expose the Discord invitation safely", 
     assert.match(source, /discordEnabled/);
   }
   assert.match(account, /Join the Yokkai Discord/);
-  assert.match(landing, /Join our Discord/);
+  assert.match(
+    landing,
+    presentation.shared ? /Join the Yokkai Discord/ : /Join our Discord/
+  );
 });
 
 test("authenticated players get a dismissible one-time Discord promotion", () => {
