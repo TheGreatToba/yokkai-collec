@@ -91,6 +91,44 @@ export function AuthShowcase() {
             />
             <span>✦</span>
           </div>
+          <div className="yk-auth-decision-preview">
+            <div className="yk-auth-decision-heading">
+              <div>
+                <span className="yk-auth-feature-number">
+                  THE DAILY DECISION PACK
+                </span>
+                <h4>Which one will you choose?</h4>
+                <p>Reveal five cards. Keep one. Turn the others into Karas.</p>
+              </div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/assets/chrome-decision-booster-v1.png"
+                alt="Decision Pack"
+                width="952"
+                height="1664"
+                loading="lazy"
+              />
+            </div>
+            <div
+              className="yk-auth-decision-cards"
+              aria-label="Illustrative Decision Pack reveal with SSR and LR cards"
+            >
+              {[cards[0], cards[1], cards[2], cards[1], cards[0]].map(
+                (card, index) => (
+                  <div
+                    className="yk-auth-decision-card"
+                    key={`${card.name}-${index}`}
+                  >
+                    <YokaiCard {...card} animated={false} />
+                  </div>
+                )
+              )}
+            </div>
+            <div className="yk-auth-decision-caption">
+              <span>Five possibilities. One favorite.</span>
+              <small>Illustrative reveal. Rarities vary.</small>
+            </div>
+          </div>
         </article>
 
         <article className="yk-auth-feature">
