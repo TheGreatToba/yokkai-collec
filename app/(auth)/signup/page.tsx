@@ -4,6 +4,7 @@ import { AuthExperience } from "@/components/auth-experience";
 import { normalizeReferralCode } from "@/lib/auth/forms";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/" },
   title: "Sign up · Yokkai Collec’",
   description:
     "Create your Yokkai Collec’ account and start collecting your favorite characters with your first packs."

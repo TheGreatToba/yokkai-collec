@@ -29,8 +29,8 @@ export default async function AuthLayout({
             priority
           />
         </Link>
-        <Link href="/" className="yk-auth-return">
-          <span aria-hidden="true">←</span> Back to home
+        <Link href="/login" className="yk-auth-return">
+          Sign in
         </Link>
       </header>
       <main id="main-content" className="yk-auth-main">
