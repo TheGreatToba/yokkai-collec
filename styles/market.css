@@ -1013,3 +1013,8 @@
     animation: none;
   }
 }
+/* "Collection" must stay on one line inside the 15rem filter column. */
+.yk-collection .yk-market-heading .yk-title {
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}

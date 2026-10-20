@@ -70,7 +70,7 @@ export default function CollectionPreview() {
           pageHeading={
             <div>
               <p className="eyebrow">Collection personnelle</p>
-              <h1 className="yk-title mt-3">Ma Collection</h1>
+              <h1 className="yk-title mt-3">Collection</h1>
             </div>
           }
         />
