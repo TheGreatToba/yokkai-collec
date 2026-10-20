@@ -394,7 +394,7 @@ export function Game({
   const collectionHeading = (
     <div>
       <p className="eyebrow">Every card you own</p>
-      <h1 className="yk-title mt-3">My collection</h1>
+      <h1 className="yk-title mt-3">Collection</h1>
     </div>
   );
   return (
