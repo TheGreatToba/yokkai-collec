@@ -2908,7 +2908,7 @@ export function CommunityView({
       />
       <main
         id="main-content"
-        className={`mx-auto w-full ${screen === "search" || screen === "market" || screen === "auction" || screen === "wishlist" ? "max-w-[var(--layout-collection-max)]" : "max-w-6xl"} px-6 py-10`}
+        className={`mx-auto w-full ${screen === "search" || screen === "market" || screen === "auction" || screen === "wishlist" || screen === "friends" || screen === "trades" ? "max-w-[var(--layout-collection-max)]" : "max-w-6xl"} px-6 py-10`}
       >
         {screen !== "market" && screen !== "search" && (
           <div>
@@ -2933,7 +2933,11 @@ export function CommunityView({
         )}
         <div
           className={
-            screen === "market" || screen === "search" ? undefined : "mt-8"
+            screen === "market" || screen === "search"
+              ? undefined
+              : screen === "friends" || screen === "trades"
+                ? "mx-auto mt-8 max-w-[calc(var(--container-6xl)-3rem)]"
+                : "mt-8"
           }
         >
           {screen === "profile" && (
