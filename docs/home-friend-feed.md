@@ -16,6 +16,10 @@ Actualisation au retour sur l'onglet et lors d'un blocage local. Une erreur
 retire les données affichées avant de proposer une nouvelle lecture. Les médias
 sont chargés à la demande. Aucun like, commentaire ou republication fictif.
 
+Les interactions persistantes (likes et réponses) sont décrites dans
+[wall-post-interactions.md](wall-post-interactions.md). Elles sont disponibles
+dans le fil et sur le mur du profil pour l'auteur ou ses amis acceptés.
+
 Home intègre également `ProfileWall` en mode `composerOnly` au-dessus du fil :
 même texte, image/GIF, quotas, idempotence et conservation du brouillon après
 erreur que sur le profil. Ce mode ne charge pas la liste du mur. Le profil

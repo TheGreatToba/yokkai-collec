@@ -1,0 +1,110 @@
+.yk-wall-interactions {
+  margin-top: 16px;
+  min-width: 0;
+}
+.yk-post-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.yk-post-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-ink-3);
+  padding: 6px 0;
+}
+.yk-post-actions button[aria-pressed="true"] {
+  color: var(--color-ink);
+}
+.yk-post-actions button span {
+  font-size: 19px;
+}
+.yk-post-actions button:hover:not(:disabled) {
+  color: var(--color-ink);
+}
+.yk-post-actions button:disabled {
+  opacity: 0.5;
+}
+.yk-post-thread {
+  display: grid;
+  gap: 16px;
+  margin-top: 14px;
+  border-top: 1px solid var(--color-veil);
+  padding-top: 16px;
+}
+.yk-post-thread form {
+  display: grid;
+  gap: 10px;
+}
+.yk-post-thread label,
+.yk-post-status,
+.yk-post-error {
+  font-size: 12px;
+  color: var(--color-ink-3);
+}
+.yk-post-thread textarea {
+  resize: none;
+  overflow-y: auto;
+  min-height: 80px;
+  width: 100%;
+}
+.yk-post-thread form > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--color-ink-3);
+}
+.yk-post-thread .yk-button {
+  padding: 8px 12px;
+  font-size: 12px;
+}
+.yk-post-reply {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 10px;
+}
+.yk-post-reply > div {
+  min-width: 0;
+}
+.yk-post-reply header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12px;
+}
+.yk-post-reply header a {
+  font-weight: 600;
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+}
+.yk-post-reply time {
+  font-size: 10px;
+  color: var(--color-ink-3);
+}
+.yk-post-reply p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  line-height: 1.7;
+  margin: 6px 0;
+  color: var(--color-ink-2);
+}
+.yk-post-reply button {
+  font-size: 11px;
+  color: var(--color-ink-3);
+}
+.yk-post-error {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+.yk-wall-interactions :is(button, a, textarea):focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}

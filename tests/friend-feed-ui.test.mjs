@@ -52,6 +52,10 @@ const { HomeFriendFeed } = load("components/home-friend-feed.tsx", {
         "data-wall-name": props.pseudo
       })
   },
+  "@/components/wall-post-interactions": {
+    WallPostInteractions: ({ postId }) =>
+      React.createElement("div", { "data-post-activity": postId })
+  },
   "@/lib/data/friend-feed": data,
   "@/styles/friend-feed.css": {}
 });

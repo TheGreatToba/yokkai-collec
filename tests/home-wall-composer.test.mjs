@@ -10,6 +10,7 @@ import ts from "typescript";
 const require = createRequire(import.meta.url);
 const testModule = { exports: {} };
 const mocks = {
+  "@/components/wall-post-interactions": { WallPostInteractions: () => null },
   "@/components/ui": {
     Avatar: ({ name }) => React.createElement("span", null, name),
     Button: ({ children, variant, ...props }) => {

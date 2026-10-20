@@ -6,6 +6,10 @@ import { Button } from "@/components/ui";
 import type { FriendFeedLoader, FriendFeedPost } from "@/lib/data/friend-feed";
 import { AUTH_MARQUEE_CARDS } from "@/lib/auth/showcase-cards";
 import type { WallAdapter } from "@/lib/data/profile-wall";
+import type {
+  WallActivity,
+  WallInteractions
+} from "@/lib/data/wall-interactions";
 
 const posts: FriendFeedPost[] = [
   {
@@ -61,6 +65,65 @@ export function HomeFriendFeedPreview() {
   const [failPublish, setFailPublish] = useState(false);
   const [published, setPublished] = useState("");
   const [publishCount, setPublishCount] = useState(0);
+  const [failInteractions, setFailInteractions] = useState(false);
+  const interactions = useMemo<WallInteractions>(() => {
+    const state = new Map<string, WallActivity>();
+    const read = async (post: string) => {
+      if (failInteractions)
+        throw new Error(
+          "Preview interaction failure. Your draft has been kept."
+        );
+      if (!state.has(post))
+        state.set(post, {
+          likes: 3,
+          likedByMe: false,
+          replyCount: 1,
+          items: [
+            {
+              id: `reply-${post}`,
+              text: "Great pull! That card is on my wishlist too.",
+              createdAt: "2026-10-20T19:00:00Z",
+              isMe: false,
+              author: posts[1].author
+            }
+          ],
+          next: null
+        });
+      return structuredClone(state.get(post)!);
+    };
+    return {
+      read,
+      like: async (post, liked) => {
+        const value = await read(post);
+        value.likes += Number(liked) - Number(value.likedByMe);
+        value.likedByMe = liked;
+        state.set(post, value);
+        return value;
+      },
+      reply: async (post, id, text) => {
+        const value = await read(post);
+        if (!value.items.some(item => item.id === id)) {
+          value.items.unshift({
+            id,
+            text,
+            createdAt: new Date().toISOString(),
+            isMe: true,
+            author: posts[2].author
+          });
+          value.replyCount++;
+        }
+        state.set(post, value);
+        return value;
+      },
+      remove: async (post, id) => {
+        const value = await read(post);
+        value.items = value.items.filter(item => item.id !== id || !item.isMe);
+        value.replyCount = value.items.length;
+        state.set(post, value);
+        return value;
+      }
+    };
+  }, [failInteractions]);
   const wallAdapter = useMemo<WallAdapter>(
     () => ({
       list: async () => {
@@ -125,6 +188,14 @@ export function HomeFriendFeedPreview() {
           Fail wall publishing
         </label>
         <p>Local preview only. Sample posts; no real players are contacted.</p>
+        <label>
+          <input
+            type="checkbox"
+            checked={failInteractions}
+            onChange={event => setFailInteractions(event.target.checked)}
+          />{" "}
+          Fail post interactions
+        </label>
         {published && (
           <p role="status" data-preview-published={publishCount}>
             Preview post published: {published}
@@ -136,6 +207,7 @@ export function HomeFriendFeedPreview() {
         load={load}
         viewer={posts[2].author}
         wallAdapter={wallAdapter}
+        interactions={interactions}
       />
     </div>
   );

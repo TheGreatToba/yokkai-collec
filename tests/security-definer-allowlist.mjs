@@ -1,9 +1,19 @@
 // Exact overloads and roles only. Every addition requires an access justification.
 export const ownerOnly = [
-  "public.prepare_account_deletion_without_billing(uuid)"
-]; // Only the owning SECURITY DEFINER wrapper may bypass billing preparation; never service_role.
+  "public.prepare_account_deletion_without_billing(uuid)",
+  "public.build_data_export_without_wall_interactions(uuid, uuid)",
+  "public.wall_actor_visible(uuid)",
+  "public.wall_interaction_owner(uuid)",
+  "public.cleanup_wall_interactions()"
+]; // Internal helpers: owning SECURITY DEFINER wrappers/triggers only, never service_role or players.
 
 const allowlist = {
+  "public.get_wall_post_activity(uuid, timestamp with time zone, uuid)": [
+    "authenticated"
+  ], // Accepted friend/self post; live wall ACL and filtered reply authors, bounded page. Walid review required.
+  "public.set_wall_post_like(uuid, boolean)": ["authenticated"], // Idempotent desired state for auth.uid() only; same post ACL.
+  "public.publish_wall_post_reply(uuid, uuid, text)": ["authenticated"], // Own bounded text reply, idempotent UUID, serialized rate limit, same post ACL.
+  "public.delete_wall_post_reply(uuid, uuid)": ["authenticated"], // Only auth.uid()'s own reply on an accessible post.
   "public.get_friend_wall_feed(timestamp with time zone, uuid, integer)": [
     "authenticated"
   ], // Bounded accepted-friend wall feed for auth.uid(); existing wall ACL, bilateral blocks, bans and deletion fences. Requires Walid ACL review before production.

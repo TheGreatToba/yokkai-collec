@@ -7,6 +7,8 @@ import { Avatar, Button } from "@/components/ui";
 import { StyledPlayerName } from "@/components/styled-player-name";
 import { ProfileWall } from "@/components/profile-wall";
 import type { WallAdapter } from "@/lib/data/profile-wall";
+import { WallPostInteractions } from "@/components/wall-post-interactions";
+import type { WallInteractions } from "@/lib/data/wall-interactions";
 import {
   appendFeedPage,
   getFriendFeed,
@@ -21,12 +23,14 @@ export function HomeFriendFeed({
   initialError = "",
   viewer,
   wallAdapter,
+  interactions,
   load = getFriendFeed
 }: {
   initial: FriendFeedPage;
   initialError?: string;
   viewer?: FriendFeedPost["author"];
   wallAdapter?: WallAdapter;
+  interactions?: WallInteractions;
   load?: FriendFeedLoader;
 }) {
   const [page, setPage] = useState(initial);
@@ -237,6 +241,7 @@ export function HomeFriendFeed({
                     className="yk-feed-media"
                   />
                 )}
+                <WallPostInteractions postId={post.id} adapter={interactions} />
                 <Link href={wall} className="yk-feed-wall-link">
                   View wall <span aria-hidden="true">↗</span>
                 </Link>

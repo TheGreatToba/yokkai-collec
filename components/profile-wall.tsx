@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Avatar, Button, Modal, Toast } from "@/components/ui";
 import { GifPicker } from "@/components/gif-picker";
+import { WallPostInteractions } from "@/components/wall-post-interactions";
 import {
   liveWall,
   type WallAdapter,
@@ -19,6 +20,7 @@ export function ProfileWall({
   canRead,
   active,
   composerOnly = false,
+  canInteract = isMe,
   adapter = liveWall
 }: {
   ownerId: string;
@@ -29,6 +31,7 @@ export function ProfileWall({
   canRead: boolean;
   active: boolean;
   composerOnly?: boolean;
+  canInteract?: boolean;
   adapter?: WallAdapter;
 }) {
   const [posts, setPosts] = useState<WallPost[]>([]);
@@ -404,6 +407,9 @@ export function ProfileWall({
                   loading="lazy"
                   decoding="async"
                 />
+              )}
+              {canInteract && adapter === liveWall && (
+                <WallPostInteractions postId={post.id} />
               )}
             </article>
           ))}

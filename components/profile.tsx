@@ -1742,6 +1742,7 @@ export function ProfileExperience({
               isPublic={profile.isPublic}
               canRead={profile.canViewCollection}
               active={tab === "wall"}
+              canInteract={isMe || profile.friendshipStatus === "accepted"}
               adapter={adapter.wall}
             />
           </div>
