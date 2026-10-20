@@ -9,7 +9,7 @@ import ts from "typescript";
 
 const require = createRequire(import.meta.url);
 function load(file, mocks) {
-  const module = { exports: {} };
+  const testModule = { exports: {} };
   const js = ts.transpileModule(readFileSync(file, "utf8"), {
     compilerOptions: {
       module: ts.ModuleKind.CommonJS,
@@ -18,11 +18,11 @@ function load(file, mocks) {
     }
   }).outputText;
   vm.runInNewContext(js, {
-    module,
-    exports: module.exports,
+    module: testModule,
+    exports: testModule.exports,
     require: name => (name in mocks ? mocks[name] : require(name))
   });
-  return module.exports;
+  return testModule.exports;
 }
 const data = load("lib/data/friend-feed.ts", {
   "@/utils/supabase/client": {},
@@ -36,8 +36,10 @@ const { HomeFriendFeed } = load("components/home-friend-feed.tsx", {
   },
   "@/components/ui": {
     Avatar: ({ name }) => React.createElement("span", null, name),
-    Button: ({ children, variant: _variant, ...props }) =>
-      React.createElement("button", props, children)
+    Button: ({ children, variant: _variant, ...props }) => {
+      void _variant;
+      return React.createElement("button", props, children);
+    }
   },
   "@/components/styled-player-name": {
     StyledPlayerName: ({ name }) => React.createElement("span", null, name)
