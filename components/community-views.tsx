@@ -2161,11 +2161,6 @@ export function TradesView() {
   const searchParams = useSearchParams();
   return (
     <>
-      <div className="my-8 rounded-panel border border-accent-neon/25 bg-accent-neon/10 p-5">
-        <p className="text-sm text-accent-neon">
-          Trade cards and Karas with your friends.
-        </p>
-      </div>
       <TradesPanel
         initialOfferId={searchParams.get("offre") ?? undefined}
         initialFriendId={searchParams.get("ami") ?? undefined}
