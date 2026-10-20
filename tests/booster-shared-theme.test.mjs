@@ -21,9 +21,9 @@ const tokens = readFileSync(
 const midnight = tokens.includes('"pack-accent": "#bccdff"');
 const midnightTokens = {
   "pack-accent": "#bccdff",
-  "pack-button-start": "#253b5d",
-  "pack-button-middle": "#1d304b",
-  "pack-button-end": "#293f62"
+  "pack-button-start": "#0d1728",
+  "pack-button-middle": "#080f1c",
+  "pack-button-end": "#101b2e"
 };
 const token = (name, literal) => {
   if (midnight) literal = midnightTokens[name] ?? literal;
