@@ -8,6 +8,30 @@
   color: #efedf8;
   font-family: var(--font-sans);
 }
+/* A soft bloom on display type only: body copy and controls stay crisp. */
+.yk-premium-page
+  :is(
+    .yk-premium-copy h1,
+    .yk-pro-showcase-heading h2,
+    .yk-pro-banner-copy h2,
+    .yk-pro-profile-heading h2,
+    .yk-pro-comparison h2,
+    .yk-premium-faq h2
+  ) {
+  text-shadow: 0 0 24px #efedf81f;
+}
+.yk-premium-page
+  :is(.yk-premium-copy h1, .yk-pro-banner-copy h2, .yk-pro-profile-heading h2)
+  em {
+  text-shadow:
+    0 0 18px color-mix(in srgb, currentColor 30%, transparent),
+    0 0 44px color-mix(in srgb, currentColor 14%, transparent);
+}
+@media (prefers-contrast: more), (forced-colors: active) {
+  .yk-premium-page :is(h1, h2, h1 em, h2 em) {
+    text-shadow: none !important;
+  }
+}
 .yk-premium-nav {
   max-width: 1440px;
   margin: auto;
@@ -43,7 +67,7 @@
   color: #a3aab9;
 }
 .yk-premium-main {
-  max-width: 1220px;
+  max-width: 1340px;
   margin: auto;
   padding: 34px 40px 70px;
 }
@@ -72,6 +96,80 @@
   gap: 65px;
   padding: 92px 0 65px;
 }
+.yk-pro-offer-hero {
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 64px;
+  min-height: 640px;
+  padding: 72px 0 88px;
+}
+.yk-pro-offer-hero .yk-premium-copy {
+  min-width: 0;
+}
+.yk-pro-offer-hero .yk-premium-copy h1 {
+  font-size: clamp(48px, 5.8vw, 80px);
+  font-weight: 750;
+  line-height: 1.04;
+  letter-spacing: -0.055em;
+}
+.yk-pro-offer-hero .yk-premium-hero-actions {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 28px;
+}
+.yk-pro-offer-hero .yk-premium-hero-actions > .yk-premium-price-card {
+  width: 100%;
+  max-width: 500px;
+  scroll-margin-top: 30px;
+}
+.yk-pro-offer-hero .yk-premium-hero-actions > a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 13px 20px;
+  border-radius: 24px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.yk-pro-compare-button {
+  color: #bec5d4;
+  border: 1px solid #a8c7f52b;
+  background: transparent;
+}
+.yk-pro-compare-button:hover {
+  border-color: #a8c7f570;
+  color: #efedf8;
+}
+.yk-pro-compare-button:focus-visible {
+  outline: 2px solid var(--plus-accent);
+  outline-offset: 4px;
+}
+.yk-pro-hero-showcase {
+  min-width: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.yk-pro-showcase-heading {
+  padding: 28px 24px 0;
+}
+.yk-pro-showcase-heading h2 {
+  margin-top: 9px;
+  font-size: clamp(22px, 2vw, 29px);
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  line-height: 1.3;
+}
+.yk-pro-showcase-footnote {
+  padding: 0 24px 24px;
+  color: #a4b1c9;
+  font-size: 10px;
+  line-height: 1.7;
+  text-align: center;
+}
 .yk-premium-copy h1 {
   font-family: var(--font-display);
   font-size: clamp(38px, 4.5vw, 65px);
@@ -99,6 +197,138 @@
 .yk-premium-intro strong {
   color: #dde2ec;
   font-weight: 500;
+}
+.yk-pro-card-gains {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 24px;
+}
+.yk-pro-card-gains > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  padding: 18px 14px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  text-align: center;
+}
+.yk-pro-card-gains .yk-pro-pack-image {
+  width: 160px;
+  max-width: 100%;
+  height: 284px;
+  margin-inline: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 14px #8dadff28);
+}
+.yk-pro-pack-copy {
+  min-width: 0;
+}
+.yk-pro-pack-stack {
+  position: relative;
+  isolation: isolate;
+  width: min(100%, 240px);
+  height: 324px;
+  margin-inline: auto;
+}
+.yk-pro-pack-stack .yk-pro-pack-image {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  margin: 0;
+  transform: translateX(-32%) rotate(9deg);
+  transform-origin: 50% 85%;
+  z-index: 1;
+}
+.yk-pro-pack-stack .yk-pro-pack-back {
+  top: 13px;
+  transform: translateX(-75%) rotate(-12deg);
+  filter: brightness(0.86) drop-shadow(0 5px 14px #8dadff28);
+  z-index: 0;
+}
+@media (max-width: 600px) {
+  .yk-pro-pack-stack {
+    width: min(100%, 144px);
+    height: 205px;
+  }
+  .yk-pro-pack-stack .yk-pro-pack-image {
+    top: 16px;
+  }
+  .yk-pro-pack-stack .yk-pro-pack-back {
+    top: 10px;
+  }
+}
+.yk-pro-card-gains [data-pack-kind="decision"] strong::after {
+  content: "×";
+}
+.yk-pro-card-gains strong {
+  margin-right: 8px;
+  color: #c4d8ff;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.05em;
+}
+.yk-pro-card-gains span {
+  color: #dce6f7;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.yk-pro-card-gains p {
+  margin-top: 7px;
+  color: #a4b1c9;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.yk-pro-card-gains b {
+  color: #dce6f7;
+  font-weight: 600;
+}
+@media (max-width: 960px) {
+  .yk-pro-offer-hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 36px;
+    min-height: 0;
+    padding: 48px 0;
+  }
+  .yk-pro-offer-hero .yk-premium-copy {
+    max-width: 620px;
+  }
+  .yk-pro-offer-hero .yk-premium-copy h1 {
+    font-size: clamp(48px, 8vw, 72px);
+  }
+  .yk-pro-hero-showcase {
+    width: 100%;
+    max-width: 640px;
+    justify-self: center;
+  }
+}
+@media (max-width: 600px) {
+  .yk-pro-card-gains {
+    gap: 10px;
+    margin: 20px 14px;
+  }
+  .yk-pro-card-gains > div {
+    padding: 16px 10px;
+  }
+  .yk-pro-card-gains .yk-pro-pack-image {
+    width: 96px;
+    height: 171px;
+  }
+  .yk-pro-showcase-heading {
+    padding: 22px 18px 0;
+  }
+  .yk-pro-showcase-heading .eyebrow {
+    font-size: 8px;
+  }
+  .yk-pro-showcase-footnote {
+    padding: 0 18px 20px;
+  }
+  .yk-pro-offer-hero .yk-premium-hero-actions > a {
+    padding: 12px 17px;
+  }
 }
 .yk-premium-tags {
   display: flex;
@@ -750,6 +980,379 @@
   color: #98a1b2;
   font-size: 10px;
 }
+.yk-pro-profile-showcase {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  align-items: center;
+  gap: 64px;
+  padding: 64px 0;
+  border-top: 1px solid #ffffff10;
+}
+.yk-pro-profile-heading h2 {
+  margin: 18px 0 22px;
+  font-size: clamp(32px, 3.4vw, 48px);
+  font-weight: 650;
+  line-height: 1.15;
+  letter-spacing: -0.045em;
+}
+.yk-pro-profile-heading h2 em {
+  color: var(--plus-accent);
+  font-style: normal;
+}
+.yk-pro-profile-heading > p:last-child {
+  max-width: 440px;
+  color: #a4abba;
+  font-size: 14px;
+  line-height: 1.9;
+}
+.yk-pro-profile-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 30px 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.yk-pro-profile-details li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+.yk-pro-profile-details li > span {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border: 1px solid #9abcff30;
+  border-radius: 11px;
+  background: #9abcff0a;
+  color: #c4d8ff;
+  font-size: 15px;
+  font-weight: 650;
+}
+.yk-pro-profile-details h3 {
+  margin: 1px 0 8px;
+  color: #efedf8;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.yk-pro-profile-details p {
+  margin: 0;
+  color: #a4b1c9;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.yk-pro-native-profile {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(240px, 0.7fr) minmax(0, 2fr);
+  gap: 24px;
+  min-width: 0;
+  align-items: stretch;
+}
+.yk-pro-native-identity,
+.yk-pro-native-showcase {
+  min-width: 0;
+  border: 1px solid #9abcff30;
+  border-radius: 18px;
+  background: #060913;
+}
+.yk-pro-native-identity {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.yk-pro-native-banner {
+  position: relative;
+  flex-shrink: 0;
+  aspect-ratio: 2.3;
+  overflow: hidden;
+}
+.yk-pro-native-banner img {
+  object-fit: contain;
+}
+.yk-pro-native-avatar {
+  position: relative;
+  flex-shrink: 0;
+  width: 88px;
+  height: 88px;
+  margin: -36px 0 0 24px;
+  border: 4px solid #060913;
+  border-radius: 50%;
+  box-shadow: 0 0 22px #ffb08d70;
+  overflow: hidden;
+}
+.yk-pro-native-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.yk-pro-native-about {
+  padding: 24px;
+}
+.yk-pro-native-about h3 {
+  margin: 16px 0;
+  font-size: clamp(22px, 2.2vw, 30px);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.yk-pro-native-about > p:not(.eyebrow),
+.yk-pro-native-caption {
+  color: #a4b1c9;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.yk-pro-native-about a {
+  display: inline-flex;
+  gap: 12px;
+  align-items: center;
+  min-height: 40px;
+  margin-top: 24px;
+  color: #c4d8ff;
+  font-size: 12px;
+}
+.yk-pro-native-signature {
+  margin: auto 24px 0;
+  padding: 24px 0;
+  border-top: 1px solid #9abcff26;
+}
+.yk-pro-native-signature ul {
+  display: grid;
+  gap: 22px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.yk-pro-native-signature li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.yk-pro-native-signature strong {
+  color: #e7eaf4;
+  font-size: 12px;
+  font-weight: 600;
+}
+.yk-pro-native-signature li p {
+  margin-top: 5px;
+  color: #a4b1c9;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.yk-pro-native-colors,
+.yk-pro-native-detail-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #9abcff26;
+  border-radius: 10px;
+  background: #0d1728;
+  color: #c4d8ff;
+  font-size: 15px;
+  font-weight: 650;
+}
+.yk-pro-native-colors i {
+  width: 11px;
+  height: 11px;
+  border: 1px solid #060913;
+  border-radius: 50%;
+}
+.yk-pro-native-colors i + i {
+  margin-left: -4px;
+}
+.yk-pro-native-showcase {
+  padding: 24px;
+}
+.yk-pro-native-showcase > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+.yk-pro-native-showcase h3 {
+  margin-top: 10px;
+  color: #efedf8;
+  font-size: 19px;
+  font-weight: 650;
+}
+.yk-pro-native-showcase button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 10px 14px;
+  border: 1px solid #9abcff70;
+  border-radius: 22px;
+  background: #0d1728;
+  color: #efedf8;
+  font-size: 11px;
+  cursor: pointer;
+}
+.yk-pro-native-showcase button:hover {
+  background: #20334d;
+}
+.yk-pro-native-showcase button:focus-visible,
+.yk-pro-native-about a:focus-visible {
+  outline: 2px solid #c4d8ff;
+  outline-offset: 4px;
+}
+.yk-pro-native-cards {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.yk-pro-native-cards > li,
+.yk-pro-native-cards .yk-card {
+  min-width: 0;
+  width: 100%;
+}
+.yk-pro-native-caption {
+  margin-top: 24px;
+}
+.yk-pro-native-profile[data-playing="false"] *,
+.yk-pro-native-profile[data-playing="false"] *::before,
+.yk-pro-native-profile[data-playing="false"] *::after {
+  animation-play-state: paused !important;
+}
+@media (max-width: 1050px) {
+  .yk-pro-native-profile {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .yk-pro-native-identity {
+    max-width: 440px;
+    width: 100%;
+  }
+}
+@media (max-width: 600px) {
+  .yk-pro-native-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 12px;
+  }
+  .yk-pro-native-showcase {
+    padding: 18px 14px;
+  }
+}
+.yk-pro-profile-photo {
+  grid-column: 1 / -1;
+  min-width: 0;
+  margin: 0;
+}
+.yk-pro-profile-photo-crop {
+  position: relative;
+  aspect-ratio: 1392 / 696;
+  overflow: hidden;
+  border: 1px solid #9abcff30;
+  border-radius: 16px;
+  background: #080b10;
+  box-shadow: 0 24px 70px #00000030;
+}
+/* Show the profile itself, not the browser tabs and navigation in the capture. */
+.yk-pro-profile-photo-crop > img {
+  position: absolute;
+  top: -48.275862%;
+  left: -18.390805%;
+  width: 137.931034%;
+  max-width: none;
+  height: auto;
+}
+.yk-pro-profile-motion {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.yk-pro-profile-motion-media {
+  position: absolute;
+  overflow: hidden;
+  border-radius: 12px;
+}
+.yk-pro-profile-motion-media img {
+  object-fit: cover;
+}
+.yk-pro-profile-motion-media.is-banner {
+  border-radius: 16px 16px 0 0;
+  /* Keep the avatar and its glow above the banner, as in the real profile. */
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 100%,
+    31% 100%,
+    30% 90%,
+    26% 81%,
+    20% 77%,
+    14% 80%,
+    9% 89%,
+    8% 100%,
+    0 100%
+  );
+}
+.yk-pro-profile-motion-media.is-banner img {
+  object-position: 50% 28%;
+}
+.yk-pro-profile-motion-media.is-card {
+  /* Keep the original frame, rarity badge, category and card title intact. */
+  clip-path: inset(4px 5px 4px round 10px);
+  mask-image: linear-gradient(
+    transparent 7%,
+    #000 22%,
+    #000 55%,
+    transparent 78%
+  );
+}
+.yk-pro-profile-motion-toggle {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid #9abcff70;
+  border-radius: 20px;
+  background: #0d1728;
+  color: #efedf8;
+  font-size: 11px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.yk-pro-profile-motion-toggle:hover {
+  background: #20334d;
+}
+.yk-pro-profile-motion-toggle:focus-visible {
+  outline: 2px solid #c4d8ff;
+  outline-offset: 3px;
+}
+.yk-pro-profile-photo figcaption {
+  margin-top: 16px;
+  color: #a4b1c9;
+  font-size: 11px;
+  line-height: 1.7;
+  text-align: center;
+}
+@media (max-width: 960px) {
+  .yk-pro-profile-showcase {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+    padding: 48px 0;
+  }
+}
+@media (max-width: 600px) {
+  .yk-pro-profile-details {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+}
 .yk-pro-personalization-examples {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -919,24 +1522,109 @@
 }
 .yk-pro-comparison table {
   width: 100%;
-  margin: 24px 0 16px;
+  table-layout: fixed;
   border-collapse: collapse;
   text-align: left;
   font-size: 13px;
 }
+.yk-pro-comparison {
+  scroll-margin-top: 28px;
+}
+.yk-pro-comparison-heading {
+  margin-bottom: 30px;
+  text-align: center;
+}
+.yk-pro-comparison-heading > p:last-child {
+  color: #a4b1c9;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.yk-pro-comparison-frame {
+  overflow: hidden;
+  border: 1px solid #a8c7f530;
+  border-radius: 16px;
+  background: #060913;
+}
 .yk-pro-comparison th,
 .yk-pro-comparison td {
-  padding: 16px;
-  border-bottom: 1px solid #ffffff0c;
+  padding: 17px 24px;
+  border-bottom: 1px solid #a8c7f514;
+  line-height: 1.6;
+}
+.yk-pro-comparison thead th {
+  padding-top: 26px;
+  padding-bottom: 26px;
+  color: #a4b1c9;
+  font-size: 11px;
+  font-weight: 500;
+}
+.yk-pro-comparison thead th:first-child {
+  width: 54%;
+}
+.yk-pro-comparison td,
+.yk-pro-comparison thead th:not(:first-child) {
+  text-align: center;
+  border-left: 1px solid #a8c7f514;
+}
+.yk-pro-plan-name,
+.yk-pro-plan-description {
+  display: block;
+}
+.yk-pro-plan-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: #f2f0ff;
+}
+.yk-pro-plan-name > span {
+  color: #c4d8ff;
+}
+.yk-pro-plan-description {
+  margin-top: 5px;
+  color: #a4b1c9;
+  font-size: 11px;
+  font-weight: 400;
 }
 .yk-pro-comparison tbody th {
-  font-weight: 400;
-  color: #acb5c7;
+  font-weight: 500;
+  color: #dce6f7;
 }
 .yk-pro-comparison td:last-child,
 .yk-pro-comparison thead th:last-child {
-  background: #9abcff0a;
+  background: #a8c7f50c;
+  color: #dceaff;
+}
+.yk-pro-comparison .yk-pro-comparison-group th {
+  padding-top: 13px;
+  padding-bottom: 13px;
+  background: #0a1120;
+  color: #a8c7f5;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.yk-pro-comparison tbody:last-child tr:last-child > * {
+  border-bottom: 0;
+}
+.yk-pro-plan-availability {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  color: #8493ad;
+  vertical-align: middle;
+}
+.yk-pro-plan-availability.is-included {
   color: #c4d8ff;
+}
+.yk-pro-comparison > .yk-pro-offer-footnote {
+  max-width: 760px;
+  margin: 18px auto 0;
+  text-align: center;
+}
+@media (hover: hover) {
+  .yk-pro-comparison tbody tr:not(.yk-pro-comparison-group):hover {
+    background: #a8c7f507;
+  }
 }
 .yk-pro-section-heading {
   display: flex;
@@ -1100,8 +1788,20 @@
   }
   .yk-pro-comparison th,
   .yk-pro-comparison td {
-    padding: 14px 6px;
+    padding: 13px 10px;
     font-size: 11px;
+  }
+  .yk-pro-comparison thead th:first-child {
+    width: 46%;
+  }
+  .yk-pro-comparison thead th {
+    padding: 20px 8px;
+  }
+  .yk-pro-plan-name {
+    font-size: 14px;
+  }
+  .yk-pro-plan-description {
+    font-size: 10px;
   }
   .yk-pro-clock button {
     padding: 10px;
