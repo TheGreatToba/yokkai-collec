@@ -118,6 +118,23 @@ test("Basic and Pro compare real pack quotas and accessible inclusion marks", ()
   );
 });
 
+test("pack highlights use official booster artwork and a quota-derived hourly pace", () => {
+  const html = renderOffer();
+  assert.match(html, /data-pack-kind="regular"/);
+  assert.match(html, /chrome-regular-booster-v1\.png/);
+  assert.match(html, /alt="Regular Pack"/);
+  assert.match(html, /data-pack-kind="decision"/);
+  assert.match(html, /chrome-decision-booster-v1\.png/);
+  assert.match(html, /alt="Decision Pack"/);
+  assert.match(html, /1 pack every 5 minutes\./);
+  assert.match(html, /Up to <b>12 packs per hour<\/b> when opened regularly\./);
+  const css = readFileSync(resolve(root, "styles/premium.css"), "utf8");
+  assert.match(
+    css,
+    /\[data-pack-kind="decision"\] strong::after\s*\{\s*content: "×";/
+  );
+});
+
 test("comparison keeps responsive plan columns and uses more than color to convey inclusion", () => {
   const css = readFileSync(resolve(root, "styles/premium.css"), "utf8");
   assert.match(css, /\.yk-pro-comparison table\s*\{[^}]*table-layout: fixed;/);

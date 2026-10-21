@@ -107,10 +107,26 @@
   margin: 28px 0 24px;
 }
 .yk-pro-card-gains > div {
-  padding: 17px 18px;
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  padding: 18px 14px;
   border: 1px solid #a8c7f52b;
   border-radius: 12px;
   background: linear-gradient(135deg, #a8c7f50d, #060913);
+}
+.yk-pro-card-gains .yk-pro-pack-image {
+  width: 64px;
+  height: 114px;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 14px #8dadff28);
+}
+.yk-pro-pack-copy {
+  min-width: 0;
+}
+.yk-pro-card-gains [data-pack-kind="decision"] strong::after {
+  content: "×";
 }
 .yk-pro-card-gains strong {
   margin-right: 8px;
@@ -130,6 +146,19 @@
   color: #a4b1c9;
   font-size: 11px;
   line-height: 1.6;
+}
+.yk-pro-card-gains b {
+  color: #dce6f7;
+  font-weight: 600;
+}
+@media (max-width: 1100px) {
+  .yk-pro-card-gains > div {
+    grid-template-columns: minmax(0, 1fr);
+    text-align: center;
+  }
+  .yk-pro-card-gains .yk-pro-pack-image {
+    margin-inline: auto;
+  }
 }
 .yk-premium-tags {
   display: flex;

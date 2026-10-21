@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import Image from "next/image";
 import type { BillingSettings } from "@/lib/billing/settings";
 import { PremiumBannerPreview } from "@/components/premium-banner-preview";
 import { PremiumCardArtworkPreview } from "@/components/premium-card-artwork-preview";
@@ -56,17 +57,46 @@ export function PremiumOffer({
             own.
           </p>
           <div className="yk-pro-card-gains" aria-label="More packs with Pro">
-            <div>
-              <strong>
-                {rules.basic.regularPackMinutes / rules.pro.regularPackMinutes}×
-              </strong>
-              <span>as often</span>
-              <p>Regular Packs every {rules.pro.regularPackMinutes} minutes</p>
+            <div data-pack-kind="regular">
+              <Image
+                src="/assets/chrome-regular-booster-v1.png"
+                alt="Regular Pack"
+                width={72}
+                height={128}
+                sizes="64px"
+                className="yk-pro-pack-image"
+              />
+              <div className="yk-pro-pack-copy">
+                <strong>
+                  {rules.basic.regularPackMinutes /
+                    rules.pro.regularPackMinutes}
+                  ×
+                </strong>
+                <span>as often</span>
+                <p>1 pack every {rules.pro.regularPackMinutes} minutes.</p>
+                <p>
+                  Up to{" "}
+                  <b>{60 / rules.pro.regularPackMinutes} packs per hour</b> when
+                  opened regularly.
+                </p>
+              </div>
             </div>
-            <div>
-              <strong>{rules.pro.decisionPacksPerDay}</strong>
-              <span>every day</span>
-              <p>Decision Packs instead of {rules.basic.decisionPacksPerDay}</p>
+            <div data-pack-kind="decision">
+              <Image
+                src="/assets/chrome-decision-booster-v1.png"
+                alt="Decision Pack"
+                width={72}
+                height={128}
+                sizes="64px"
+                className="yk-pro-pack-image"
+              />
+              <div className="yk-pro-pack-copy">
+                <strong>{rules.pro.decisionPacksPerDay}</strong>
+                <span>every day</span>
+                <p>
+                  Decision Packs instead of {rules.basic.decisionPacksPerDay}.
+                </p>
+              </div>
             </div>
           </div>
           <a href="#plan-comparison" className="yk-premium-text-button">
