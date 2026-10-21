@@ -102,13 +102,52 @@ test("wheel loops in both directions without moving the page", () => {
 });
 
 test("automatic scrolling yields to interaction, reduced motion and hidden tabs", () => {
-  const loaded = { exports: {} };
-  let tick,
-    cleared = false,
-    now = 0;
-  const motion = { matches: false },
-    document = { hidden: false };
-  const listeners = new Map();
+  const loaded = { exports: {} },
+    listeners = new Map(),
+    globalListeners = new Map();
+  let now = 0,
+    timer,
+    animation,
+    count = 0,
+    hovered = false,
+    disconnected = false;
+  const motion = {
+    matches: false,
+    addEventListener: (name, fn) => globalListeners.set("motion", fn),
+    removeEventListener: () => globalListeners.delete("motion")
+  };
+  const document = {
+    hidden: false,
+    addEventListener: (name, fn) => globalListeners.set(name, fn),
+    removeEventListener: name => globalListeners.delete(name)
+  };
+  const period = { offsetWidth: 1000 };
+  const element = {
+    scrollLeft: 1100,
+    scrollWidth: 3000,
+    clientWidth: 200,
+    querySelector: () => period,
+    firstElementChild: {
+      animate(frames, options) {
+        assert.equal(frames[1].transform, "translateX(-1000px)");
+        assert.equal(options.duration, 25000);
+        assert.equal(options.iterations, Infinity);
+        assert.equal(options.easing, "linear");
+        count++;
+        animation = {
+          currentTime: 0,
+          cancelled: false,
+          cancel() {
+            this.cancelled = true;
+          }
+        };
+        return animation;
+      }
+    },
+    matches: () => hovered,
+    addEventListener: (name, fn) => listeners.set(name, fn),
+    removeEventListener: name => listeners.delete(name)
+  };
   vm.runInNewContext(
     ts.transpileModule(readFileSync("lib/ui/horizontal-wheel.ts", "utf8"), {
       compilerOptions: { module: ts.ModuleKind.CommonJS }
@@ -117,56 +156,68 @@ test("automatic scrolling yields to interaction, reduced motion and hidden tabs"
       exports: loaded.exports,
       document,
       Date: { now: () => now },
-      window: {
-        matchMedia: () => motion,
-        setInterval: fn => {
-          tick = fn;
-          return 1;
-        },
-        clearInterval: () => {
-          cleared = true;
+      window: { matchMedia: () => motion },
+      setTimeout: fn => {
+        timer = fn;
+        return 1;
+      },
+      clearTimeout: () => {
+        timer = undefined;
+      },
+      ResizeObserver: class {
+        observe() {}
+        disconnect() {
+          disconnected = true;
         }
       }
     }
   );
-  let hovered = false;
-  const period = { offsetWidth: 1000 };
-  const element = {
-    scrollLeft: 1000,
-    scrollWidth: 3000,
-    querySelector: () => period,
-    clientWidth: 200,
-    matches: () => hovered,
-    addEventListener: (name, fn) => listeners.set(name, fn),
-    removeEventListener: name => listeners.delete(name)
-  };
   const cleanup = loaded.exports.enableAutomaticScroll(element);
-  tick();
-  assert.equal(element.scrollLeft, 1002);
+  assert.equal(count, 1);
+  assert.equal(element.scrollLeft, 1000);
+  assert.equal(animation.currentTime, 2500);
+  animation.currentTime = 3000;
   hovered = true;
-  tick();
-  assert.equal(element.scrollLeft, 1002);
-  hovered = false;
+  listeners.get("mouseenter")();
+  assert.equal(animation.cancelled, true);
+  assert.equal(element.scrollLeft, 1120);
   listeners.get("wheel")();
-  element.scrollLeft = 1100;
+  element.scrollLeft = 1400;
   now = 5000;
-  tick();
-  assert.equal(element.scrollLeft, 1100);
+  hovered = false;
+  timer();
+  assert.equal(count, 1);
+  assert.equal(element.scrollLeft, 1400);
   now = 6001;
-  tick();
-  assert.equal(element.scrollLeft, 1102);
-  motion.matches = true;
-  tick();
-  assert.equal(element.scrollLeft, 1102);
-  motion.matches = false;
+  timer();
+  assert.equal(count, 2);
+  assert.equal(animation.currentTime, 10000);
   document.hidden = true;
-  tick();
-  assert.equal(element.scrollLeft, 1102);
+  globalListeners.get("visibilitychange")();
+  assert.equal(animation.cancelled, true);
+  assert.equal(count, 2);
+  assert.equal(element.scrollLeft, 1400);
   document.hidden = false;
-  element.scrollLeft = 1999;
-  tick();
-  assert.equal(element.scrollLeft, 1001);
+  globalListeners.get("visibilitychange")();
+  assert.equal(count, 3);
+  motion.matches = true;
+  globalListeners.get("motion")();
+  assert.equal(animation.cancelled, true);
+  assert.equal(count, 3);
+  motion.matches = false;
+  globalListeners.get("motion")();
+  assert.equal(count, 4);
+  listeners.get("focusin")();
+  assert.equal(animation.cancelled, true);
+  listeners.get("focusout")();
+  timer();
+  assert.equal(count, 5);
+  animation.currentTime = 25001;
   cleanup();
-  assert.equal(cleared, true);
+  assert.equal(animation.cancelled, true);
+  assert.ok(Math.abs(element.scrollLeft - 1000.04) < 0.001);
+  assert.equal(disconnected, true);
+  assert.equal(timer, undefined);
   assert.equal(listeners.size, 0);
+  assert.equal(globalListeners.size, 0);
 });
