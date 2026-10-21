@@ -310,3 +310,8 @@
 .yk-feed-post[data-has-media="false"] .yk-feed-wall-link {
   grid-row: 3;
 }
+
+.yk-home-main .yk-button.yk-feed-refresh {
+  width: 44px;
+  padding: 0;
+}

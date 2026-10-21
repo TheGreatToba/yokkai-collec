@@ -224,11 +224,29 @@ export function HomeFriendFeed({
         </span>
         <Button
           variant="primary"
-          className="yk-home-panel-action"
+          className="yk-home-panel-action yk-feed-refresh"
+          aria-label={busy ? "Refreshing feed" : "Refresh feed"}
+          title="Refresh feed"
           disabled={busy}
           onClick={() => void reload()}
         >
-          {busy ? "Loading…" : "Refresh"}
+          <svg
+            aria-hidden="true"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={
+              busy ? "animate-spin motion-reduce:animate-none" : undefined
+            }
+          >
+            <path d="M20 7v5h-5M4 17v-5h5" />
+            <path d="M6.1 7a7 7 0 0 1 11.5-1.6L20 8M4 16l2.4 2.6A7 7 0 0 0 17.9 17" />
+          </svg>
         </Button>
       </div>
       <div
