@@ -11,7 +11,7 @@ Its edges match the page content: Home's 1248px container minus 28px gutters (16
 - Membership is independent of profile-style availability: missing cosmetics do not turn a paid player into a promotion target.
 - Hidden on every other page, and waits for the navigation's existing secondary-load stage.
 - Home always displays the banner for Basic members, without a close button, regardless of the Boosters dismissal preference.
-- Boosters keeps its close button: closing hides it for seven days on this browser using `yokkai:pro-promotion:v1:dismissed-at`. This preference only affects Boosters and synchronizes across tabs. No identity or analytics is stored.
+- Boosters keeps its close button: closing hides it for the rest of the browser's local calendar day using `yokkai:pro-promotion:v1:dismissed-at`. It returns at the next local midnight, including in an open tab; focus/visibility changes recheck suspended tabs. This is not a rolling 24-hour delay, and follows daylight-saving transitions. This preference only affects Boosters and synchronizes across tabs. No identity or analytics is stored.
 - When browser storage is blocked, closing still hides the banner for the current mount.
 
 ## Preview and validation

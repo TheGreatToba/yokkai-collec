@@ -5,7 +5,8 @@ import { useEffect, useState } from "react";
 import { useProMembershipStatus } from "@/components/pro-access";
 import {
   PRO_PROMOTION_KEY,
-  proPromotionDismissed
+  proPromotionDismissed,
+  proPromotionNextDay
 } from "@/lib/ui/pro-promotion";
 import "@/styles/pro-promotion.css";
 
@@ -59,8 +60,8 @@ export function ProPromotionBanner({
           type="button"
           className="yk-pro-promo-dismiss"
           onClick={onDismiss}
-          aria-label="Hide Pro promotion for 7 days"
-          title="Hide for 7 days"
+          aria-label="Hide Pro promotion until tomorrow"
+          title="Hide until tomorrow"
         >
           <svg
             aria-hidden="true"
@@ -92,6 +93,7 @@ export function ProPromotion({
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     if (!enabled || !dismissible || membership !== false) return;
+    let rollover: number | undefined;
     const readPreference = () => {
       try {
         setVisible(
@@ -100,6 +102,11 @@ export function ProPromotion({
       } catch {
         setVisible(true);
       }
+      window.clearTimeout(rollover);
+      rollover = window.setTimeout(
+        readPreference,
+        Math.max(1, proPromotionNextDay() - Date.now())
+      );
     };
     const timer = window.setTimeout(readPreference, 600);
     const syncPreference = (event: StorageEvent) => {
@@ -107,9 +114,17 @@ export function ProPromotion({
         readPreference();
     };
     window.addEventListener("storage", syncPreference);
+    const resume = () => {
+      if (document.visibilityState === "visible") readPreference();
+    };
+    window.addEventListener("focus", resume);
+    document.addEventListener("visibilitychange", resume);
     return () => {
       window.clearTimeout(timer);
+      window.clearTimeout(rollover);
       window.removeEventListener("storage", syncPreference);
+      window.removeEventListener("focus", resume);
+      document.removeEventListener("visibilitychange", resume);
     };
   }, [enabled, dismissible, membership]);
 

@@ -32,19 +32,20 @@ function load(file, mocks = {}, globals = {}) {
               React.createElement("a", props, children)
           };
         if (name === "@/lib/ui/pro-promotion")
-          return load("lib/ui/pro-promotion.ts");
+          return load("lib/ui/pro-promotion.ts", {}, globals);
         return require(name);
       }
     }
   );
   return exports;
 }
-test("promotion snooze lasts exactly seven days and rejects invalid or future values", () => {
-  const { proPromotionDismissed, PRO_PROMOTION_SNOOZE } = load(
+test("Boosters dismissal lasts only the current local calendar day and rejects invalid or future values", () => {
+  const { proPromotionDismissed, proPromotionNextDay } = load(
     "lib/ui/pro-promotion.ts"
   );
-  const now = 2_000_000_000_000;
-  assert.equal(PRO_PROMOTION_SNOOZE, 604800000);
+  const now = new Date(2026, 9, 21, 23, 59, 59, 999).getTime();
+  const midnight = new Date(2026, 9, 22).getTime();
+  assert.equal(proPromotionNextDay(now), midnight);
   for (const value of [
     null,
     "",
@@ -59,13 +60,32 @@ test("promotion snooze lasts exactly seven days and rejects invalid or future va
     assert.equal(proPromotionDismissed(value, now), false);
   assert.equal(proPromotionDismissed(String(now), now), true);
   assert.equal(
-    proPromotionDismissed(String(now - PRO_PROMOTION_SNOOZE + 1), now),
+    proPromotionDismissed(String(new Date(2026, 9, 21).getTime()), now),
     true
   );
   assert.equal(
-    proPromotionDismissed(String(now - PRO_PROMOTION_SNOOZE), now),
+    proPromotionDismissed(String(new Date(2026, 9, 21).getTime() - 1), now),
     false
   );
+  assert.equal(proPromotionDismissed(String(now), midnight), false);
+  assert.equal(proPromotionDismissed(String(now), midnight + 1), false);
+  assert.equal(
+    proPromotionNextDay(new Date(2026, 11, 31, 12).getTime()),
+    new Date(2027, 0, 1).getTime()
+  );
+  // Paris and New York daylight-saving transition dates, also valid in UTC.
+  for (const [year, month, day] of [
+    [2026, 2, 29],
+    [2026, 9, 25],
+    [2026, 2, 8],
+    [2026, 10, 1]
+  ]) {
+    const start = new Date(year, month, day).getTime();
+    const next = new Date(year, month, day + 1).getTime();
+    assert.equal(proPromotionNextDay(start), next);
+    assert.equal(proPromotionDismissed(String(start), next - 1), true);
+    assert.equal(proPromotionDismissed(String(start), next), false);
+  }
 });
 
 test("banner has a single offer link, an accessible close action and no checkout or urgency", () => {
@@ -80,7 +100,7 @@ test("banner has a single offer link, an accessible close action and no checkout
   assert.match(html, /Your images\. Your GIFs/);
   assert.match(html, /Faster packs/);
   assert.equal((html.match(/href="\/premium"/g) || []).length, 1);
-  assert.match(html, /aria-label="Hide Pro promotion for 7 days"/);
+  assert.match(html, /aria-label="Hide Pro promotion until tomorrow"/);
   assert.doesNotMatch(
     html,
     /checkout|limited.time|last.chance|role="dialog"|autofocus|€|\$/i
@@ -88,13 +108,26 @@ test("banner has a single offer link, an accessible close action and no checkout
 });
 
 function harness(initialStatus) {
+  let now = Date.now(),
+    timerId = 0;
+  class Clock extends Date {
+    static now() {
+      return now;
+    }
+  }
   let status = initialStatus,
     visible = false,
     effect,
     storageBlocked = false;
   const storage = new Map(),
     timers = new Map(),
-    listeners = new Map();
+    listeners = new Map(),
+    documentListeners = new Map();
+  const document = {
+    visibilityState: "visible",
+    addEventListener: (key, fn) => documentListeners.set(key, fn),
+    removeEventListener: key => documentListeners.delete(key)
+  };
   const fakeReact = {
     ...React,
     useState: () => [
@@ -114,6 +147,8 @@ function harness(initialStatus) {
       "@/components/pro-access": { useProMembershipStatus: () => status }
     },
     {
+      Date: Clock,
+      document,
       localStorage: {
         getItem: key => {
           if (storageBlocked) throw Error("blocked");
@@ -125,9 +160,9 @@ function harness(initialStatus) {
         }
       },
       window: {
-        setTimeout: fn => {
-          timers.set(1, fn);
-          return 1;
+        setTimeout: (fn, delay) => {
+          timers.set(++timerId, { fn, delay });
+          return timerId;
         },
         clearTimeout: id => timers.delete(id),
         addEventListener: (key, fn) => listeners.set(key, fn),
@@ -140,12 +175,21 @@ function harness(initialStatus) {
       ProPromotion({ enabled, dismissible }),
     start: () => effect(),
     flush: () => {
-      for (const fn of timers.values()) fn();
+      const scheduled = [...timers.values()];
       timers.clear();
+      for (const { fn } of scheduled) fn();
     },
     storage,
     listeners,
     timers,
+    document,
+    documentListeners,
+    get now() {
+      return now;
+    },
+    setNow: value => {
+      now = value;
+    },
     setStatus: value => {
       status = value;
     },
@@ -180,6 +224,40 @@ test("promotion waits for verified Basic status and never flashes for Pro, anony
   disabled.flush();
   assert.equal(disabled.render(false), null);
 });
+
+test("Boosters returns at midnight in an open tab and rechecks on return from a suspended tab", () => {
+  const s = harness(false);
+  const before = new Date(2026, 9, 21, 23, 59, 59).getTime();
+  s.setNow(before);
+  s.render();
+  const stop = s.start();
+  s.flush();
+  assert.ok(s.render());
+  assert.equal([...s.timers.values()][0].delay, 1000);
+  s.render().props.onDismiss();
+  assert.equal(s.render(), null);
+  s.setNow(before + 1000);
+  s.flush();
+  assert.ok(s.render(), "Midnight timer reveals the banner without reload");
+  s.render().props.onDismiss();
+  assert.equal(s.render(), null);
+  s.setNow(new Date(2026, 9, 23).getTime());
+  s.listeners.get("focus")();
+  assert.ok(s.render());
+  s.render().props.onDismiss();
+  assert.equal(s.render(), null);
+  s.document.visibilityState = "hidden";
+  s.setNow(new Date(2026, 9, 24).getTime());
+  s.documentListeners.get("visibilitychange")();
+  assert.equal(s.render(), null);
+  s.document.visibilityState = "visible";
+  s.documentListeners.get("visibilitychange")();
+  assert.ok(s.render());
+  stop();
+  assert.equal(s.timers.size, 0);
+  assert.equal(s.listeners.size, 0);
+  assert.equal(s.documentListeners.size, 0);
+});
 test("dismissal persists, syncs between tabs, and stays closable when storage is blocked", () => {
   const key = "yokkai:pro-promotion:v1:dismissed-at";
   const s = harness(false);
@@ -192,7 +270,7 @@ test("dismissal persists, syncs between tabs, and stays closable when storage is
   s.storage.delete(key);
   s.listeners.get("storage")({ key });
   assert.ok(s.render());
-  s.storage.set(key, String(Date.now()));
+  s.storage.set(key, String(s.now));
   s.listeners.get("storage")({ key });
   assert.equal(s.render(), null);
   stop();
