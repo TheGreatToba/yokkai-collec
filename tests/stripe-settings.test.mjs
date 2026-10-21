@@ -67,7 +67,8 @@ test("settings expose only safe billing presentation, keep purchases closed and 
   }
   let config,
     failure,
-    calls = 0;
+    calls = 0,
+    quotaCalls = 0;
   const { getBillingSettings } = load("lib/billing/settings.ts", {
     "./config": {
       BillingError,
@@ -76,10 +77,18 @@ test("settings expose only safe billing presentation, keep purchases closed and 
         return config;
       }
     },
+    "./rate-limit": {
+      consumeBillingRequest: async (id, action) => {
+        assert.equal(id, "current-user");
+        assert.equal(action, "status");
+        quotaCalls++;
+      }
+    },
     "./server": {
       configuredBillingService: () => ({
         status: async id => {
           calls++;
+          assert.equal(quotaCalls, calls);
           assert.equal(id, "current-user");
           return state;
         }
@@ -92,6 +101,7 @@ test("settings expose only safe billing presentation, keep purchases closed and 
   assert.equal(disabled.checkoutEnabled, false);
   assert.equal(disabled.unavailable, false);
   assert.equal(calls, 0);
+  assert.equal(quotaCalls, 0);
   failure = new Error("private provider diagnostic");
   const unavailable = await getBillingSettings("current-user");
   assert.equal(unavailable.status, null);
@@ -111,6 +121,7 @@ test("settings expose only safe billing presentation, keep purchases closed and 
   assert.equal(result.checkoutEnabled, false);
   assert.equal(result.status.active, true);
   assert.equal(result.sandbox, true);
+  assert.equal(quotaCalls, 1);
   assert.doesNotMatch(JSON.stringify(result), /never-serialize/);
 });
 
