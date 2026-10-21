@@ -83,10 +83,12 @@ export function ProPromotionBanner({
 export function ProPromotion({
   enabled = true,
   dismissible = true,
+  compact = false,
   page = "home"
 }: {
   enabled?: boolean;
   dismissible?: boolean;
+  compact?: boolean;
   page?: "home" | "packs";
 }) {
   const membership = useProMembershipStatus();
@@ -138,6 +140,14 @@ export function ProPromotion({
   }
   if (!enabled || membership !== false || (dismissible && !visible))
     return null;
+  if (compact)
+    return (
+      <div className="mt-6 flex justify-center">
+        <Link href="/premium" className="yk-button yk-button-secondary">
+          More boosters
+        </Link>
+      </div>
+    );
   return (
     <ProPromotionBanner
       page={page}

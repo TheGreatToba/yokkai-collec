@@ -171,8 +171,8 @@ function harness(initialStatus) {
     }
   );
   return {
-    render: (enabled = true, dismissible = true) =>
-      ProPromotion({ enabled, dismissible }),
+    render: (enabled = true, dismissible = true, compact = false) =>
+      ProPromotion({ enabled, dismissible, compact }),
     start: () => effect(),
     flush: () => {
       const scheduled = [...timers.values()];
@@ -299,8 +299,8 @@ test("integration reuses membership request and only advertises on Home and Boos
   );
   const game = readFileSync("components/game.tsx", "utf8");
   assert.match(
-    game,
-    /view === "packs" && <ProPromotion page="packs" dismissible=\{false\} \/>/
+    game.replace(/\s+/g, " "),
+    /view === "packs" && status\?\.available === 0 && decisionStatus && !decisionStatus\.available && decisionStatus\.pending\.length === 0 && \( <ProPromotion page="packs" dismissible=\{false\} compact \/> \)/
   );
   assert.ok(
     game.indexOf('<ProPromotion page="packs"') > game.indexOf("<Boosters")
@@ -416,4 +416,13 @@ test("membership status distinguishes Basic, Pro without profile style, and unav
     );
     stop();
   }
+});
+
+test("empty pack promotion is a single compact Pro link without a banner or close action", () => {
+  const s = harness(false);
+  const html = renderToStaticMarkup(s.render(true, false, true));
+  assert.equal((html.match(/href="\/premium"/g) || []).length, 1);
+  assert.match(html, /More boosters/);
+  assert.doesNotMatch(html, /yk-pro-promo|<aside|<button/);
+  assert.equal(harness(true).render(true, false, true), null);
 });

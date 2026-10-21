@@ -530,7 +530,13 @@ export function Game({
             onSound={sound.play}
           />
         )}
-        {view === "packs" && <ProPromotion page="packs" dismissible={false} />}
+        {view === "packs" &&
+          status?.available === 0 &&
+          decisionStatus &&
+          !decisionStatus.available &&
+          decisionStatus.pending.length === 0 && (
+            <ProPromotion page="packs" dismissible={false} compact />
+          )}
 
         {view === "collection" && status && (
           <CollectionView
