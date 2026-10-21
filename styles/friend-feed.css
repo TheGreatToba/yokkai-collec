@@ -20,8 +20,8 @@
   font-size: 25px;
 }
 .yk-feed-heading > div > p:last-child {
-  color: var(--color-ink-3);
-  font-size: 12px;
+  color: #b9c9df;
+  font-size: 14px;
 }
 .yk-feed-heading .yk-button {
   flex-shrink: 0;
@@ -52,13 +52,13 @@
 }
 .yk-feed-publish-note {
   margin-top: 12px;
-  color: var(--color-ink-3);
-  font-size: 11px;
+  color: #b9c9df;
+  font-size: 12px;
   line-height: 1.6;
 }
 .yk-feed-following {
   color: var(--color-ink);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
 }
 .yk-feed-following span {
@@ -66,7 +66,7 @@
   color: var(--color-accent-neon);
 }
 .yk-feed-toolbar .yk-button {
-  font-size: 11px;
+  font-size: 12px;
   padding: 7px 12px;
 }
 .yk-feed-timeline {
@@ -74,14 +74,17 @@
   overflow-y: auto;
   overscroll-behavior-y: contain;
   scrollbar-width: thin;
-  scrollbar-color: var(--color-veil-strong) transparent;
+  scrollbar-color: #607b9e transparent;
 }
 .yk-feed-post {
   display: grid;
   grid-template-columns: 42px minmax(0, 1fr);
   gap: 14px;
-  padding: 22px 24px;
-  border-bottom: 1px solid var(--color-veil);
+  margin: 12px;
+  padding: 22px;
+  border: 1px solid #344964;
+  border-radius: 16px;
+  background: #142136;
 }
 .yk-feed-avatar {
   align-self: start;
@@ -94,22 +97,22 @@
   align-items: baseline;
   flex-wrap: wrap;
   gap: 7px;
-  color: var(--color-ink-3);
-  font-size: 11px;
+  color: #b9c9df;
+  font-size: 12px;
 }
 .yk-feed-author {
   min-width: 0;
   overflow-wrap: anywhere;
-  color: var(--color-ink);
-  font-size: 13px;
+  color: #f3f7ff;
+  font-size: 15px;
   font-weight: 600;
 }
 .yk-feed-text {
   margin-top: 9px;
-  color: var(--color-ink-2);
+  color: #edf3fc;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.75;
 }
 .yk-feed-media {
@@ -126,8 +129,8 @@
   display: inline-flex;
   gap: 6px;
   margin-top: 14px;
-  color: var(--color-ink-3);
-  font-size: 11px;
+  color: #c4d9f5;
+  font-size: 12px;
 }
 .yk-feed-wall-link:hover,
 .yk-feed-author:hover {
@@ -135,8 +138,8 @@
 }
 .yk-feed-empty {
   padding: 36px 24px;
-  color: var(--color-ink-2);
-  font-size: 13px;
+  color: #b9c9df;
+  font-size: 14px;
   line-height: 1.8;
 }
 .yk-feed-empty h3 {
@@ -156,8 +159,8 @@
 .yk-feed-end {
   padding: 20px;
   text-align: center;
-  color: var(--color-ink-3);
-  font-size: 11px;
+  color: #b9c9df;
+  font-size: 12px;
 }
 .yk-friend-feed :is(a, button, .yk-feed-timeline):focus-visible {
   outline: 2px solid var(--color-focus-ring);
@@ -184,10 +187,20 @@
   }
   .yk-feed-post {
     gap: 10px;
-    padding: 20px 16px;
+    margin: 10px;
+    padding: 16px 12px;
     grid-template-columns: 42px minmax(0, 1fr);
   }
+  .yk-feed-post-content {
+    display: contents;
+  }
+  .yk-feed-post-content > header {
+    align-self: center;
+  }
+  .yk-feed-post-content > :not(header) {
+    grid-column: 1 / -1;
+  }
   .yk-feed-text {
-    font-size: 13px;
+    font-size: 15px;
   }
 }
