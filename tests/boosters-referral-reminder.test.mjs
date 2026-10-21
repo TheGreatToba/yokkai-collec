@@ -52,6 +52,7 @@ function reminder(pathname, dismissed = false) {
         useRef: () => ({ current: null }),
         useEffect: fn => effects.push(fn)
       },
+      "react-dom": { createPortal: content => content },
       "next/link": {
         __esModule: true,
         default: ({ children, ...props }) =>
@@ -86,6 +87,7 @@ function reminder(pathname, dismissed = false) {
       }
     },
     {
+      document: { body: {} },
       localStorage: {
         getItem: () => (dismissed ? "1" : null),
         setItem: (...args) => writes.push(args)
@@ -322,6 +324,10 @@ test("compact desktop selection reserves space for the reminder without clipping
   assert.match(referral, /left:\s*12px/);
   assert.match(referral, /376px/);
   assert.match(referral, /16px \+ env\(safe-area-inset-bottom/);
-  assert.match(referral, /--yk-referral-footer-offset/);
+  assert.doesNotMatch(referral, /--yk-referral-footer-offset/);
+  assert.match(
+    readFileSync("components/referral-reminder.tsx", "utf8"),
+    /createPortal\(content, document\.body\)/
+  );
   assert.match(referral, /padding-bottom:\s*88px/);
 });

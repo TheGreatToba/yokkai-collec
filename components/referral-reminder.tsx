@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import { Button, Modal } from "@/components/ui";
 import { createClient } from "@/utils/supabase/client";
-import { trackReferralFooter } from "@/lib/ui/referral-footer";
 import "@/styles/referral-reminder.css";
 
 type CopyState = "idle" | "copied" | "error";
@@ -35,7 +35,6 @@ export function ReferralReminder({
   const pathname = usePathname();
   const isHome = pathname === "/" || pathname === "/design-system/home-preview";
   const isBoosters = pathname === "/boosters";
-  const reminder = useRef<HTMLElement>(null);
   const [visible, setVisible] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [code, setCode] = useState<string | null>(null);
@@ -83,11 +82,6 @@ export function ReferralReminder({
     };
   }, [isHome, isBoosters, packChoices]);
 
-  useEffect(() => {
-    if (!isBoosters || !visible || !reminder.current) return;
-    return trackReferralFooter(reminder.current);
-  }, [isBoosters, visible]);
-
   function dismiss() {
     if (userId) localStorage.setItem(dismissalKey(userId), "1");
     setVisible(false);
@@ -115,10 +109,9 @@ export function ReferralReminder({
 
   if (!visible || isHome || (isBoosters && !packChoices)) return null;
 
-  return (
+  const content = (
     <>
       <aside
-        ref={reminder}
         style={choicesOpen ? { display: "none" } : undefined}
         aria-label="Referral reward"
         className={
@@ -212,4 +205,5 @@ export function ReferralReminder({
       </Modal>
     </>
   );
+  return packChoices ? createPortal(content, document.body) : content;
 }
