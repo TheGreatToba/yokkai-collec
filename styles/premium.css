@@ -202,6 +202,40 @@
 .yk-pro-pack-copy {
   min-width: 0;
 }
+.yk-pro-pack-stack {
+  position: relative;
+  isolation: isolate;
+  width: min(100%, 240px);
+  height: 324px;
+  margin-inline: auto;
+}
+.yk-pro-pack-stack .yk-pro-pack-image {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  margin: 0;
+  transform: translateX(-32%) rotate(9deg);
+  transform-origin: 50% 85%;
+  z-index: 1;
+}
+.yk-pro-pack-stack .yk-pro-pack-back {
+  top: 13px;
+  transform: translateX(-75%) rotate(-12deg);
+  filter: brightness(0.86) drop-shadow(0 5px 14px #8dadff28);
+  z-index: 0;
+}
+@media (max-width: 600px) {
+  .yk-pro-pack-stack {
+    width: min(100%, 144px);
+    height: 205px;
+  }
+  .yk-pro-pack-stack .yk-pro-pack-image {
+    top: 16px;
+  }
+  .yk-pro-pack-stack .yk-pro-pack-back {
+    top: 10px;
+  }
+}
 .yk-pro-card-gains [data-pack-kind="decision"] strong::after {
   content: "×";
 }
