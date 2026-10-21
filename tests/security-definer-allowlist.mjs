@@ -1,5 +1,6 @@
 // Exact overloads and roles only. Every addition requires an access justification.
 export const ownerOnly = [
+  "public.build_data_export_without_referrals(uuid, uuid)", // New internal snapshot helper: only the owning export wrapper, never service_role or players.
   "public.guard_wall_media_binding()",
   "public.build_data_export_without_reply_media(uuid, uuid)",
   "public.notify_wall_post_reply()",

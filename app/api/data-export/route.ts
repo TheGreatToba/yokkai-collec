@@ -202,7 +202,7 @@ export async function POST(request: Request) {
       error instanceof Error && error.message === "EXPORT_TOO_LARGE";
     return reply(oversized ? 413 : 503, {
       error: oversized
-        ? "Your data exceeds the automatic download size limit. Contact the team for a complete export."
+        ? "Your data exceeds the automatic download size limit. Email yokkaicollec@gmail.com with the subject Data export request from your account email address to request a complete export. Do not send your password or sign-in codes. This attempt does not count toward your download limit."
         : "We couldn't prepare your data. Try again; this attempt won't count toward your download limit."
     });
   } finally {
