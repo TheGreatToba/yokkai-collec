@@ -188,7 +188,7 @@ export function ReferralReminder({
             </Button>
             {copyState === "error" && (
               <p role="alert" className="mt-3 text-sm text-danger">
-                Couldn't copy the link. Please try again.
+                Couldn&apos;t copy the link. Please try again.
               </p>
             )}
           </section>
