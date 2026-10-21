@@ -36,6 +36,19 @@ const readable = (foreground, background) => {
   assert.ok(ratio >= 4.5, `Text contrast is ${ratio.toFixed(2)}:1`);
 };
 
+test("feed post surfaces use the navigation's midnight-blue base", () => {
+  const navigation = readFileSync("styles/topbar.css", "utf8");
+  const channels = rule(navigation, ".yk-topbar").match(
+    /rgba\((\d+),\s*(\d+),\s*(\d+),/
+  );
+  assert.ok(channels, "Navigation must define its base color");
+  const base = `#${channels
+    .slice(1, 4)
+    .map(channel => Number(channel).toString(16).padStart(2, "0"))
+    .join("")}`;
+  assert.equal(property(rule(feed, ".yk-feed-post"), "background"), base);
+});
+
 test("feed posts have distinct surfaces, readable text and a bounded timeline", () => {
   const post = rule(feed, ".yk-feed-post");
   const background = property(post, "background");
