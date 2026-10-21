@@ -176,7 +176,7 @@ test("home composer is behind a closed native Add post disclosure", () => {
   );
   assert.match(
     html,
-    /<details class="yk-feed-composer"><summary class="yk-button yk-button-secondary">Add post<\/summary>/
+    /<details class="yk-feed-composer"><summary class="yk-button yk-button-primary yk-home-panel-action">Add post<\/summary>/
   );
   assert.doesNotMatch(html, /<details[^>]*\bopen(?:=|\s|>)/);
   assert.match(

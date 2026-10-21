@@ -1,4 +1,5 @@
 .yk-home-main {
+  --home-panel-title-size: 25px;
   --home-panel-background: linear-gradient(145deg, #111426ee, #090d19ee);
   width: 100%;
   max-width: 1248px;
@@ -80,13 +81,13 @@
 }
 .yk-home-panel-heading {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 16px;
 }
 .yk-home-panel h2 {
-  font-size: 14px;
+  font-size: var(--home-panel-title-size);
   line-height: 1.4;
   font-weight: 600;
 }
@@ -247,18 +248,13 @@
 .yk-home-discord h2 {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 22px;
+  font-size: var(--home-panel-title-size);
   margin-block: 8px;
 }
 .yk-home-discord p:not(.eyebrow) {
   color: var(--color-ink-2);
   font-size: 12px;
   line-height: 1.8;
-}
-.yk-home-discord .yk-button {
-  background: #5865f2;
-  border-color: #5865f2;
-  color: white;
 }
 .yk-home-guides {
   display: grid;
@@ -488,7 +484,7 @@
 .yk-home-referral h2 {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 22px;
+  font-size: var(--home-panel-title-size);
   margin-block: 8px;
 }
 .yk-home-referral p:not(.eyebrow) {
@@ -531,4 +527,21 @@
 .yk-home-latest-set[hidden],
 .yk-home-big-set[hidden] {
   display: none;
+}
+
+@media (max-width: 639px) {
+  .yk-home-main {
+    --home-panel-title-size: 22px;
+  }
+}
+
+.yk-home-main .yk-button.yk-home-panel-action {
+  min-height: 44px;
+  padding: 11px 20px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--color-ink-2);
+  white-space: nowrap;
+  flex-shrink: 0;
 }

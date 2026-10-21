@@ -92,7 +92,8 @@ test("a successful Home publication reloads the first page and includes the own 
       }
     })
   );
-  assert.match(html, /Your posts and your friends/);
+  assert.match(html, /Friend feed/);
+  assert.doesNotMatch(html, /Your posts and your friends|Between friends/);
   assert.match(html, /You &amp; friends/);
   assert.equal(typeof onPublished, "function");
   onPublished();

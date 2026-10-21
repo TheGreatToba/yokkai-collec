@@ -183,17 +183,20 @@ export function HomeFriendFeed({
     <section className="yk-friend-feed" aria-labelledby="home-friend-feed">
       <header className="yk-feed-heading">
         <div>
-          <p className="eyebrow">Between friends</p>
           <h2 id="home-friend-feed">Friend feed</h2>
-          <p>Your posts and your friends&apos; walls. Newest first.</p>
         </div>
-        <Link href="/profile?tab=wall" className="yk-button yk-button-primary">
+        <Link
+          href="/profile?tab=wall"
+          className="yk-button yk-button-primary yk-home-panel-action"
+        >
           View my wall <span aria-hidden="true">↗</span>
         </Link>
       </header>
       {viewer && (
         <details className="yk-feed-composer">
-          <summary className="yk-button yk-button-secondary">Add post</summary>
+          <summary className="yk-button yk-button-primary yk-home-panel-action">
+            Add post
+          </summary>
           <ProfileWall
             ownerId={viewer.id}
             pseudo={viewer.name}
@@ -220,7 +223,8 @@ export function HomeFriendFeed({
           You &amp; friends <span aria-hidden="true">✦</span>
         </span>
         <Button
-          variant="secondary"
+          variant="primary"
+          className="yk-home-panel-action"
           disabled={busy}
           onClick={() => void reload()}
         >

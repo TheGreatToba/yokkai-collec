@@ -42,3 +42,22 @@ test("the emphasized home line uses the same upright style as authentication", (
     "var(--color-accent-gold)"
   );
 });
+
+test("panel headings share the Friend feed title size", () => {
+  for (const selector of [
+    ".yk-home-panel h2",
+    ".yk-home-discord h2",
+    ".yk-home-referral h2"
+  ]) {
+    assert.equal(
+      declarations(home, selector)["font-size"],
+      "var(--home-panel-title-size)"
+    );
+  }
+  assert.equal(
+    declarations(home, ".yk-home-main")["--home-panel-title-size"],
+    "25px"
+  );
+  const feed = readFileSync("styles/friend-feed.css", "utf8");
+  assert.match(feed, /font-size: var\(--home-panel-title-size, 25px\)/);
+});

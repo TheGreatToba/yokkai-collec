@@ -60,7 +60,10 @@ export function HomePanel({
       <header className="yk-home-panel-heading">
         <h2 id={id}>{title}</h2>
         {href && (
-          <Link href={href}>
+          <Link
+            href={href}
+            className="yk-button yk-button-primary yk-home-panel-action"
+          >
             {link} <span aria-hidden="true">↗</span>
           </Link>
         )}
