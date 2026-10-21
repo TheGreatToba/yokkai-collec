@@ -128,8 +128,8 @@ async function fixture(t) {
     const load = file => {
       const path = resolve(root, file);
       if (cache.has(path)) return cache.get(path);
-      const module = { exports: {} };
-      cache.set(path, module.exports);
+      const compiled = { exports: {} };
+      cache.set(path, compiled.exports);
       vm.runInNewContext(
         ts.transpileModule(readFileSync(path, "utf8"), {
           compilerOptions: {
@@ -140,8 +140,8 @@ async function fixture(t) {
           }
         }).outputText,
         {
-          module,
-          exports: module.exports,
+          module: compiled,
+          exports: compiled.exports,
           URL,
           Request,
           Response,
@@ -160,7 +160,7 @@ async function fixture(t) {
           }
         }
       );
-      return module.exports;
+      return compiled.exports;
     };
     return {
       settings: load("app/settings/page.tsx").default,
