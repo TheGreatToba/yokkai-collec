@@ -1,5 +1,12 @@
 # Export personnel
 
+Mise à jour M01 : voir [l’inventaire des relations](data-export-inventory.json)
+et [le contrat parrainage / procédure support](audits/M01-referral-data-export.md).
+La migration `20261021100000_referral_data_export.sql` ajoute `referral_codes`
+et `referrals` ; elle n’est pas encore appliquée sur le VPS. Les exclusions
+documentées ci-dessous sont historiques : l’inventaire distingue maintenant
+les projections, référentiels et données nécessitant une revue manuelle.
+
 Migration : `20261014000005_data_export.sql`, **non appliquée au VPS**.
 Le bouton `/settings` télécharge directement un JSON UTF-8 version 1 ; aucune
 copie persistante, URL publique ou donnée d’export dans les journaux.

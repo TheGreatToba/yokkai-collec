@@ -81,6 +81,17 @@ export function DataExportForm() {
         included, but image files aren&apos;t. You must have signed in within
         the last five minutes. You can download your data once every 24 hours.
       </p>
+      <p className="mt-2 text-sm leading-6 text-ink-2">
+        If your account exceeds the automatic export limit, email{" "}
+        <a
+          className="underline underline-offset-2"
+          href="mailto:yokkaicollec@gmail.com?subject=Data%20export%20request"
+        >
+          yokkaicollec@gmail.com
+        </a>{" "}
+        from your account email address to request a complete export. Never
+        include your password or sign-in codes.
+      </p>
       <div className="mt-6" aria-busy={pending}>
         <Button
           type="button"

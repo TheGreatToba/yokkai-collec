@@ -201,3 +201,26 @@ test("installed Next distinguishes successful HTTP finish from close/error; stre
   failed.errored = new Error("transport failed");
   assert.equal(signalFromNodeResponse(failed).aborted, true);
 });
+
+test("both oversized-export paths provide a safe support procedure without consuming the download", async () => {
+  for (const options of [
+    { failure: "build_data_export", rpcError: "EXPORT_TOO_LARGE" },
+    { big: true }
+  ]) {
+    const h = harness(options);
+    const response = await h.POST(h.request());
+    assert.equal(response.status, 413);
+    assert.match(response.headers.get("Cache-Control"), /private, no-store/);
+    const { error } = await response.json();
+    assert.match(error, /yokkaicollec@gmail\.com/);
+    assert.match(error, /subject Data export request/);
+    assert.match(error, /account email address/);
+    assert.match(error, /complete export/);
+    assert.match(error, /Do not send your password or sign-in codes/);
+    assert.doesNotMatch(error, /player-a|request-id/);
+    assert.equal(h.calls.at(-1)[0], "finish_data_export");
+    assert.equal(h.calls.at(-1)[1].p_sent, false);
+    assert.equal(h.callbacks.length, 0);
+    assert.ok(!h.calls.some(([name]) => name === "mark_data_export_sending"));
+  }
+});
