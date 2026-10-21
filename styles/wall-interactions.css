@@ -35,6 +35,9 @@
 .yk-post-actions > button span {
   font-size: inherit;
 }
+.yk-post-actions > .yk-post-like[aria-pressed="true"] > svg {
+  color: #ff6b9d;
+}
 .yk-action-count {
   font-size: 12px;
   font-weight: 600;

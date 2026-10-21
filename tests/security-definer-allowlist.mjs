@@ -1,5 +1,7 @@
 // Exact overloads and roles only. Every addition requires an access justification.
 export const ownerOnly = [
+  "public.notify_wall_post_reply()",
+  "public.cleanup_wall_reply_notifications()",
   "public.prepare_account_deletion_without_billing(uuid)",
   "public.build_data_export_without_wall_interactions(uuid, uuid)",
   "public.wall_actor_visible(uuid)",

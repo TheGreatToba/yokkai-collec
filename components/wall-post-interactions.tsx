@@ -116,6 +116,7 @@ export function WallPostInteractions({
       <div className="yk-post-actions">
         <button
           type="button"
+          className="yk-post-like"
           aria-pressed={activity?.likedByMe ?? false}
           disabled={busy || !activity}
           onClick={() => void update("like")}
