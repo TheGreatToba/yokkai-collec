@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import Image from "next/image";
 import type { BillingSettings } from "@/lib/billing/settings";
 import { PremiumBannerPreview } from "@/components/premium-banner-preview";
@@ -33,10 +33,14 @@ function PlanAvailability({ included }: { included: boolean }) {
 
 export function PremiumOffer({
   signedIn,
-  billing
+  billing,
+  profileMotion,
+  profilePreview
 }: {
   signedIn: boolean;
   billing: BillingSettings | null;
+  profileMotion?: ReactNode;
+  profilePreview?: ReactNode;
 }) {
   return (
     <div
@@ -124,6 +128,73 @@ export function PremiumOffer({
         <PremiumBannerPreview />
         <PremiumCardArtworkPreview />
       </div>
+      <section
+        className="yk-pro-profile-showcase"
+        aria-labelledby="profile-customization-title"
+      >
+        <div className="yk-pro-profile-heading">
+          <p className="eyebrow">Profile customization</p>
+          <h2 id="profile-customization-title">
+            Your profile.
+            <br />
+            <em>Your signature.</em>
+          </h2>
+          <p>
+            Give your collection a home that feels like you. Bring your name,
+            avatar and favorite cards together in your own style.
+          </p>
+        </div>
+        <ul className="yk-pro-profile-details">
+          <li>
+            <span aria-hidden="true">Aa</span>
+            <div>
+              <h3>A name that stands out</h3>
+              <p>Choose your name font, colors and effects.</p>
+            </div>
+          </li>
+          <li>
+            <span aria-hidden="true">✦</span>
+            <div>
+              <h3>The finishing touches</h3>
+              <p>Pair your avatar frame with decorative badges.</p>
+            </div>
+          </li>
+          <li>
+            <span aria-hidden="true">◈</span>
+            <div>
+              <h3>Set your own mood</h3>
+              <p>Pick a profile theme to match your style.</p>
+            </div>
+          </li>
+          <li>
+            <span aria-hidden="true">10</span>
+            <div>
+              <h3>More room for your favorites</h3>
+              <p>
+                Feature up to {rules.pro.showcaseSlots} cards and add showcase
+                effects.
+              </p>
+            </div>
+          </li>
+        </ul>
+        {profilePreview ?? (
+          <figure className="yk-pro-profile-photo">
+            <div className="yk-pro-profile-photo-crop">
+              <Image
+                src="/assets/premium-examples/bbdou-profile.png"
+                alt="BBDOU's customized profile with an anime banner, glowing avatar, styled name, decorative badges and a ten-card showcase."
+                width={1920}
+                height={1032}
+                sizes="(max-width: 600px) 138vw, (max-width: 1340px) 128vw, 1738px"
+              />
+              {profileMotion}
+            </div>
+            <figcaption>
+              Your style, from the first impression to your favorite cards.
+            </figcaption>
+          </figure>
+        )}
+      </section>
       <section
         id="plan-comparison"
         className="yk-pro-comparison"
