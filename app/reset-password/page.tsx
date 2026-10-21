@@ -22,10 +22,10 @@ export default async function ResetPasswordPage() {
         >
           <Image
             className="yk-auth-brand-image"
-            src="/assets/brand-logo-blue.png"
+            src="/assets/brand-logo-ice-retro.png"
             alt=""
-            width={1448}
-            height={1086}
+            width={1672}
+            height={941}
             priority
           />
         </Link>
