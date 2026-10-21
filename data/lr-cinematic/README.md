@@ -9,6 +9,14 @@ No pack or database access is needed. Use **Replay cinematic** to restart the
 whole sequence, or **Pause animations** to pause it. The prototype also keeps
 its own `prefers-reduced-motion` fallback.
 
+For complete pack openings, open **http://localhost:3000/design-system/lr-packs**.
+Regular and Decision demo packs can be reopened indefinitely. Every pack has
+five cards, ending with exactly one LR; Madara, Omni-Man and Shadow rotate
+between openings. All illustrations are existing local assets. The demo uses
+the real opening/reveal components, but no pack RPC, real reward, sharing,
+destruction or referral action. The displayed rarities are demo fixtures, not
+the live catalog or drop rates. Decision Pack choices are simulated as well.
+
 In development, LR cards in the normal pack reveal use the prototype. Continue
 returns to the existing reveal flow. The final pack summary allows replaying
 each LR without opening another pack or adding cards.

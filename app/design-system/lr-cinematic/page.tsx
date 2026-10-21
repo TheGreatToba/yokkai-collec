@@ -17,9 +17,17 @@ export default function LrCinematicPage() {
           <h1>Legendary cinematic</h1>
           <p>Local preview only. No packs consumed, no collection changes.</p>
         </div>
-        <Link href="/boosters" className="yk-button yk-button-secondary">
-          Back to packs
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/design-system/lr-packs"
+            className="yk-button yk-button-primary"
+          >
+            Test packs with a final LR
+          </Link>
+          <Link href="/boosters" className="yk-button yk-button-secondary">
+            Back to packs
+          </Link>
+        </div>
       </header>
       <LocalLrCinematic />
     </main>

@@ -74,6 +74,7 @@ type Decision = {
 };
 
 export function BoosterReveal({
+  previewOnly = false,
   cards,
   collection = [],
   folders = [],
@@ -93,6 +94,7 @@ export function BoosterReveal({
   onComplete,
   onSound
 }: {
+  previewOnly?: boolean;
   cards: RevealCard[];
   revealed: number;
   onReveal: (index: number) => void;
@@ -119,6 +121,7 @@ export function BoosterReveal({
   onComplete?: () => void;
   onSound?: (sound: Sound) => void;
 }) {
+  const localPreview = process.env.NODE_ENV === "development" && previewOnly;
   const [faceUp, setFaceUp] = useState(false);
   const [revealLocked, setRevealLocked] = useState(false);
   const [spot, setSpot] = useState<RevealCard | null>(null);
@@ -374,7 +377,7 @@ export function BoosterReveal({
                 : `Tap the pack to reveal each card · ${revealed} / ${cards.length}`}
           </p>
         </div>
-        {done && !decision && visibleCards.length > 0 && (
+        {!localPreview && done && !decision && visibleCards.length > 0 && (
           <SelectionModeButton
             active={selecting}
             inactiveLabel="Select"
@@ -665,7 +668,7 @@ export function BoosterReveal({
                   </span>
                 </span>
               )}
-              {done &&
+              {!localPreview && done &&
                 !choosing &&
                 !lost &&
                 !selecting &&
@@ -959,6 +962,7 @@ export function BoosterReveal({
 }
 
 export function Boosters({
+  previewOnly = false,
   statusError,
   decisionError,
   onRetryRegular,
@@ -988,6 +992,7 @@ export function Boosters({
   onReveal,
   onSound
 }: {
+  previewOnly?: boolean;
   statusError?: string;
   decisionError?: string;
   onRetryRegular?: () => void;
@@ -1024,6 +1029,7 @@ export function Boosters({
   onReveal: (index: number) => void;
   onSound?: (sound: Sound) => void;
 }) {
+  const localPreview = process.env.NODE_ENV === "development" && previewOnly;
   const [openingPhase, setOpeningPhase] = useState<"idle" | "tension" | "seal">(
     "idle"
   );
@@ -1309,6 +1315,8 @@ export function Boosters({
         </div>
       ) : revealing ? (
         <BoosterReveal
+          previewOnly={localPreview}
+          onComplete={localPreview ? () => setShowDraw(false) : undefined}
           key={draw[0].instanceId}
           cards={revealCards}
           collection={collection}
@@ -1321,7 +1329,7 @@ export function Boosters({
           nextLabel={
             status?.available === 0 ? `Next in ${countdown}` : "Next pack"
           }
-          onDiscard={drawKind === "regular" ? onDiscard : undefined}
+          onDiscard={!localPreview && drawKind === "regular" ? onDiscard : undefined}
           onAuction={drawKind === "regular" ? onAuction : undefined}
           onMoveCard={drawKind === "regular" ? onMoveCard : undefined}
           onSetLocked={drawKind === "regular" ? onSetLocked : undefined}
@@ -1538,7 +1546,7 @@ export function Boosters({
           </article>
         </div>
       )}
-      {!opening && !revealing && <ReferralReminder packChoices />}
+      {!localPreview && !opening && !revealing && <ReferralReminder packChoices />}
 
     </>
   );

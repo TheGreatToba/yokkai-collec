@@ -36,6 +36,7 @@ export function LocalLrCinematic({
       if (value !== undefined) params.set(key, value);
     }
     let active = true;
+    if (image) params.set("image", new URL(image, window.location.origin).href);
     fetch(`/design-system/lr-cinematic/document?${params}`, {
       signal: controller.signal,
       cache: "no-store"
