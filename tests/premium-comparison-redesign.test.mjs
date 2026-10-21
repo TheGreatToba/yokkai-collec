@@ -145,3 +145,29 @@ test("comparison keeps responsive plan columns and uses more than color to conve
   assert.match(html, /d="M7 12h10"/);
   assert.match(html, /<span class="sr-only">Not included<\/span>/);
 });
+
+test("landing hero separates the headline and booster visual from the subscription card", () => {
+  const html = renderOffer();
+  const hero = html.match(
+    /<section class="yk-premium-hero yk-pro-offer-hero">([\s\S]*?)<\/section>/
+  )?.[1];
+  assert.ok(hero);
+  assert.match(hero, /class="yk-premium-hero-actions"/);
+  assert.match(hero, /href="#membership"/);
+  assert.match(hero, /href="#plan-comparison"/);
+  assert.match(hero, /aria-label="Preview of Pro pack benefits"/);
+  assert.match(hero, /data-pack-kind="regular"/);
+  assert.match(hero, /data-pack-kind="decision"/);
+  assert.doesNotMatch(hero, /Existing membership checkout/);
+  assert.ok(
+    html.indexOf("Existing membership checkout") > html.indexOf("</table>")
+  );
+  const css = readFileSync(resolve(root, "styles/premium.css"), "utf8");
+  const page = css.match(/\.yk-premium-page\s*\{([^}]+)\}/)?.[1];
+  assert.ok(page);
+  assert.match(
+    page,
+    /radial-gradient\(ellipse at 73% 19%, #20283950, transparent 42%\), #080b10;/
+  );
+  assert.doesNotMatch(page, /repeating-linear-gradient|background-size/);
+});
