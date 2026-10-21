@@ -27,7 +27,11 @@ import {
   normalizeProfileStyle,
   type ProfileStyle
 } from "@/lib/ui/profile-style";
-import { useProAccess, ProFeatureNotice } from "@/components/pro-access";
+import {
+  useProAccess,
+  useProMembershipStatus,
+  ProFeatureNotice
+} from "@/components/pro-access";
 import type { BannerFrame } from "@/lib/ui/banner-frame";
 import type { CatalogueCardAdapter } from "@/components/community-views";
 import type { WallAdapter } from "@/lib/data/profile-wall";
@@ -830,6 +834,7 @@ function ProfileStyleEditor({
   onClose: () => void;
 }) {
   const pro = useProAccess();
+  const membership = useProMembershipStatus();
   const initialStyle = normalizeProfileStyle({
     ...DEFAULT_PROFILE_STYLE,
     ...profile.profileStyle?.style
@@ -880,8 +885,11 @@ function ProfileStyleEditor({
       <div className="yk-profile-style-actions">
         {!pro && (
           <p>
-            Preview is free. Saving and publishing a profile style requires
-            Yokkai Pro.
+            {membership === true
+              ? "Profile style unavailable. Your Yokkai Pro membership is active. Please try again shortly."
+              : membership === null
+                ? "Membership status unavailable. Please try again shortly."
+                : "Preview is free. Saving and publishing a profile style requires Yokkai Pro."}
           </p>
         )}
         <div>
@@ -893,12 +901,24 @@ function ProfileStyleEditor({
             aria-describedby={!pro ? "profile-style-save-help" : undefined}
             onClick={() => void submit()}
           >
-            {busy ? "Saving…" : pro ? "Save & apply" : "Pro required"}
+            {busy
+              ? "Saving…"
+              : pro
+                ? "Save & apply"
+                : membership === true
+                  ? "Style unavailable"
+                  : membership === null
+                    ? "Status unavailable"
+                    : "Pro required"}
           </Button>
         </div>
         {!pro && (
           <span id="profile-style-save-help" className="sr-only">
-            Upgrade to Yokkai Pro to save and publish this style.
+            {membership === true
+              ? "Your Yokkai Pro membership is active. Try again when the profile style is available."
+              : membership === null
+                ? "Wait for your membership status before saving this style."
+                : "Upgrade to Yokkai Pro to save and publish this style."}
           </span>
         )}
       </div>

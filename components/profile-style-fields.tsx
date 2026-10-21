@@ -8,7 +8,7 @@ import {
   STYLE_BADGES,
   DEFAULT_PROFILE_STYLE
 } from "@/lib/ui/profile-style";
-import { useProAccess } from "@/components/pro-access";
+import { useProAccess, useProMembershipStatus } from "@/components/pro-access";
 import { StyledPlayerName } from "@/components/styled-player-name";
 
 function hexToRgb(hex: string) {
@@ -85,6 +85,7 @@ export function ProfileStyleFields({
   name: string;
 }) {
   const pro = useProAccess();
+  const membership = useProMembershipStatus();
   return (
     <section
       className="yk-style-embedded"
@@ -92,13 +93,30 @@ export function ProfileStyleFields({
     >
       <div className="yk-style-embedded-heading">
         <h3 id="profile-style-heading">Profile style</h3>
-        <span>{pro ? "PRO ACTIVE" : "PREVIEW ONLY"}</span>
+        <span>
+          {membership === true
+            ? "PRO ACTIVE"
+            : membership === false
+              ? "PREVIEW ONLY"
+              : "STATUS UNAVAILABLE"}
+        </span>
       </div>
       {!pro && (
         <p className="yk-style-trial-note" role="status">
-          Try every option and preview the result here. Your live profile stays
-          unchanged until you upgrade to <Link href="/premium">Yokkai Pro</Link>
-          .
+          {membership === true ? (
+            <>
+              Profile style unavailable. Your Yokkai Pro membership is active.
+              Please try again shortly.
+            </>
+          ) : membership === null ? (
+            <>Membership status unavailable. Please try again shortly.</>
+          ) : (
+            <>
+              Try every option and preview the result here. Your live profile
+              stays unchanged until you upgrade to{" "}
+              <Link href="/premium">Yokkai Pro</Link>.
+            </>
+          )}
         </p>
       )}
       <div className="yk-style-workspace">
