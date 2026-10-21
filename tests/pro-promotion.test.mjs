@@ -136,7 +136,8 @@ function harness(initialStatus) {
     }
   );
   return {
-    render: (enabled = true) => ProPromotion({ enabled }),
+    render: (enabled = true, dismissible = true) =>
+      ProPromotion({ enabled, dismissible }),
     start: () => effect(),
     flush: () => {
       for (const fn of timers.values()) fn();
@@ -204,7 +205,7 @@ test("dismissal persists, syncs between tabs, and stays closable when storage is
   blocked.render().props.onDismiss();
   assert.equal(blocked.render(), null);
 });
-test("integration reuses the existing membership request and does not advertise on admin/settings", () => {
+test("integration reuses membership request and only advertises on Home and Boosters with closing on Boosters only", () => {
   const source = readFileSync("components/pro-access.tsx", "utf8");
   assert.match(
     source,
@@ -221,7 +222,37 @@ test("integration reuses the existing membership request and does not advertise 
   const topbar = readFileSync("components/topbar.tsx", "utf8");
   assert.match(
     topbar,
-    /<ProPromotion[\s\S]*?secondaryReady && view !== "admin" && view !== "settings"/
+    /<ProPromotion\s+enabled=\{secondaryReady && \(view === "home" \|\| view === "packs"\)\}\s+dismissible=\{view === "packs"\}/
+  );
+});
+
+test("Home stays visible without a close action even after the Boosters banner was dismissed", () => {
+  const s = harness(false);
+  s.storage.set("yokkai:pro-promotion:v1:dismissed-at", String(Date.now()));
+  const home = s.render(true, false);
+  assert.ok(home);
+  assert.equal(home.props.onDismiss, undefined);
+  s.start();
+  assert.equal(s.timers.size, 0);
+  assert.equal(s.listeners.size, 0);
+  s.block();
+  assert.ok(s.render(true, false));
+  s.setStatus(true);
+  assert.equal(s.render(true, false), null);
+  s.setStatus(null);
+  assert.equal(s.render(true, false), null);
+  s.setStatus(false);
+  assert.equal(s.render(false, false), null);
+  const { ProPromotionBanner } = load("components/pro-promotion.tsx", {
+    "@/components/pro-access": { useProMembershipStatus: () => null }
+  });
+  const html = renderToStaticMarkup(React.createElement(ProPromotionBanner));
+  assert.match(html, /href="\/premium"/);
+  assert.doesNotMatch(html, /<button|Hide Pro promotion/);
+  assert.equal(
+    s.render(true),
+    null,
+    "Boosters still honors its dismissal preference"
   );
 });
 

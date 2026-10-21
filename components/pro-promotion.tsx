@@ -9,7 +9,7 @@ import {
 } from "@/lib/ui/pro-promotion";
 import "@/styles/pro-promotion.css";
 
-export function ProPromotionBanner({ onDismiss }: { onDismiss: () => void }) {
+export function ProPromotionBanner({ onDismiss }: { onDismiss?: () => void }) {
   return (
     <aside className="yk-pro-promo" aria-label="Discover Yokkai Pro">
       <div className="yk-pro-promo-emblem" aria-hidden="true">
@@ -44,34 +44,42 @@ export function ProPromotionBanner({ onDismiss }: { onDismiss: () => void }) {
       <Link href="/premium" className="yk-pro-promo-link">
         Explore Pro <span aria-hidden="true">↗</span>
       </Link>
-      <button
-        type="button"
-        className="yk-pro-promo-dismiss"
-        onClick={onDismiss}
-        aria-label="Hide Pro promotion for 7 days"
-        title="Hide for 7 days"
-      >
-        <svg
-          aria-hidden="true"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
+      {onDismiss && (
+        <button
+          type="button"
+          className="yk-pro-promo-dismiss"
+          onClick={onDismiss}
+          aria-label="Hide Pro promotion for 7 days"
+          title="Hide for 7 days"
         >
-          <path d="m6 6 12 12M18 6 6 18" />
-        </svg>
-      </button>
+          <svg
+            aria-hidden="true"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+          >
+            <path d="m6 6 12 12M18 6 6 18" />
+          </svg>
+        </button>
+      )}
     </aside>
   );
 }
 
-export function ProPromotion({ enabled = true }: { enabled?: boolean }) {
+export function ProPromotion({
+  enabled = true,
+  dismissible = true
+}: {
+  enabled?: boolean;
+  dismissible?: boolean;
+}) {
   const membership = useProMembershipStatus();
   const [visible, setVisible] = useState(false);
   useEffect(() => {
-    if (!enabled || membership !== false) return;
+    if (!enabled || !dismissible || membership !== false) return;
     const readPreference = () => {
       try {
         setVisible(
@@ -91,7 +99,7 @@ export function ProPromotion({ enabled = true }: { enabled?: boolean }) {
       window.clearTimeout(timer);
       window.removeEventListener("storage", syncPreference);
     };
-  }, [enabled, membership]);
+  }, [enabled, dismissible, membership]);
 
   function dismiss() {
     setVisible(false);
@@ -101,6 +109,7 @@ export function ProPromotion({ enabled = true }: { enabled?: boolean }) {
       /* Closing still works when browser storage is unavailable. */
     }
   }
-  if (!enabled || membership !== false || !visible) return null;
-  return <ProPromotionBanner onDismiss={dismiss} />;
+  if (!enabled || membership !== false || (dismissible && !visible))
+    return null;
+  return <ProPromotionBanner onDismiss={dismissible ? dismiss : undefined} />;
 }
