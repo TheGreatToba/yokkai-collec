@@ -350,27 +350,6 @@ export function HomeFriendFeed({
           <p className="yk-feed-end">You&apos;re all caught up.</p>
         )}
       </div>
-      <footer className="yk-feed-footer">
-        <span className="yk-feed-footer-signature">
-          <svg
-            aria-hidden="true"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M22 21v-2a4 4 0 0 0-3-3.87" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-          </svg>
-          Your circle. Your stories.
-        </span>
-        <span className="yk-feed-footer-note">Share. React. Connect.</span>
-      </footer>
       {!!cleanup.length && (
         <div className="yk-feed-empty" role="alert">
           <p>
