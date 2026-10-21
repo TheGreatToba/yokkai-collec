@@ -19,8 +19,9 @@ language plpgsql security definer set search_path='' as $$
 begin
   if new.media_path is null then return new; end if;
   perform pg_advisory_xact_lock(hashtextextended('wall-media-binding:'||new.media_path,0));
+  -- Publication RPCs validate file existence. Lock an existing object against
+  -- concurrent deletion, without rejecting owner-maintained historical rows.
   perform 1 from storage.objects where bucket_id='profile-wall-media' and name=new.media_path for update;
-  if not found then raise exception 'WALL_MEDIA_INVALID'; end if;
   if exists(select 1 from public.profile_wall_posts where media_path=new.media_path
       and (tg_table_name<>'profile_wall_posts' or id<>new.id))
     or exists(select 1 from public.wall_post_replies where media_path=new.media_path

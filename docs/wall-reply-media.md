@@ -12,7 +12,7 @@ Home propose aussi `Delete post` en rouge sur les seuls posts du joueur connect�
 
 - Appliquée uniquement au Supabase local pour les essais.
 - Non appliquée sur le VPS ; aucune donnée de production modifiée.
-- Nouvelle revue des droits SQL/Storage par Walid requise avant une future mise en production.
+- Revue des droits SQL/Storage validée par Walid et créneau VPS confirmé par l'utilisateur le 21 octobre 2026 ; publication en préparation.
 - Aucune assertion existante supprimée, assouplie ou ignorée. Les mocks d'interface prennent en charge les nouveaux imports et états ; de nouveaux cas couvrent les médias et la suppression.
 
 ## Contrôles ajoutés

@@ -78,6 +78,14 @@ test("reply images/GIFs preserve ownership, parent/author privacy, retries, noti
     publish(id(30), "", `${author}/${id(21)}.png`),
     /WALL_MEDIA_INVALID/
   );
+  await assert.rejects(
+    db.query("select public.publish_profile_wall_post($1,'',$2,null)", [
+      id(30),
+      `${author}/${id(21)}.png`
+    ]),
+    /WALL_MEDIA_INVALID/,
+    "the original post publication API still rejects missing uploads"
+  );
   const first = await publish(imageReply, "", path);
   assert.equal(first.replyCount, 1);
   assert.equal(first.items[0].text, "");
