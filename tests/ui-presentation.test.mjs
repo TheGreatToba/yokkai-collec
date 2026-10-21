@@ -323,23 +323,32 @@ const card = {
   obtainedAt: "2026-09-24T10:00:00Z"
 };
 
-test("les titres H1 utilisent la police locale HYWenHei-85W", () => {
+test("les titres H1 utilisent la police locale livrée, Inter après sa migration", () => {
   const layout = readFileSync(path.join(root, "app/layout.tsx"), "utf8");
   const css = readFileSync(path.join(root, "app/globals.css"), "utf8");
+  const inter = existsSync(
+    path.join(root, "app/fonts/inter/InterVariable.ttf")
+  );
   assert.match(
     normalizeWhitespace(layout),
     normalizeWhitespace(
-      /localFont\(\{[\s\S]*HYWenHei-85W\.ttf[\s\S]*variable: "--font-hy-wen-hei"/
+      inter
+        ? /localFont\(\{[\s\S]*InterVariable\.ttf[\s\S]*weight: "100 900"[\s\S]*variable: "--font-inter"/
+        : /localFont\(\{[\s\S]*HYWenHei-85W\.ttf[\s\S]*variable: "--font-hy-wen-hei"/
     )
   );
   assert.match(
     normalizeWhitespace(layout),
-    normalizeWhitespace(/\$\{hyWenHei\.variable\}/)
+    normalizeWhitespace(
+      inter ? /\$\{inter\.variable\}/ : /\$\{hyWenHei\.variable\}/
+    )
   );
   assert.match(
     normalizeWhitespace(css),
     normalizeWhitespace(
-      /--font-heading: var\(--font-hy-wen-hei\), Arial, sans-serif/
+      inter
+        ? /--font-heading: var\(--font-inter\), system-ui, sans-serif/
+        : /--font-heading: var\(--font-hy-wen-hei\), Arial, sans-serif/
     )
   );
   assert.match(
@@ -349,7 +358,14 @@ test("les titres H1 utilisent la police locale HYWenHei-85W", () => {
     )
   );
   assert.ok(
-    existsSync(path.join(root, "app/fonts/hywenhei-85w/HYWenHei-85W.ttf"))
+    existsSync(
+      path.join(
+        root,
+        inter
+          ? "app/fonts/inter/InterVariable.ttf"
+          : "app/fonts/hywenhei-85w/HYWenHei-85W.ttf"
+      )
+    )
   );
 });
 
@@ -395,18 +411,17 @@ test("les pages d’authentification utilisent le même logo que la navigation",
   assert.match(css, /\.yk-auth-brand-image\s*\{/);
 });
 
-test("la police HYWenHei remplace la police d'affichage sauf pour les noms sur les cartes", () => {
+test("la police locale livrée pilote l'affichage sans changer les noms sur les cartes", () => {
   const css = readFileSync(path.join(root, "app/globals.css"), "utf8");
   const ui = readFileSync(path.join(root, "styles/ui.css"), "utf8");
   const cards = readFileSync(path.join(root, "styles/cards.css"), "utf8");
-  assert.match(
-    css,
-    /--font-display: var\(--font-hy-wen-hei\), Arial, sans-serif/
-  );
-  assert.match(
-    ui,
-    /--font-display: var\(--font-hy-wen-hei\), Arial, sans-serif/
-  );
+  const display = existsSync(
+    path.join(root, "app/fonts/inter/InterVariable.ttf")
+  )
+    ? /--font-display: var\(--font-inter\), system-ui, sans-serif/
+    : /--font-display: var\(--font-hy-wen-hei\), Arial, sans-serif/;
+  assert.match(css, display);
+  assert.match(ui, display);
   assert.match(ui, /--font-card-name: var\(--font-cinzel\), Georgia, serif/);
   assert.match(
     cards,
