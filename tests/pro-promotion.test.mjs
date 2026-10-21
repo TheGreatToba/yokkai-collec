@@ -208,7 +208,7 @@ test("integration reuses the existing membership request and does not advertise 
   const source = readFileSync("components/pro-access.tsx", "utf8");
   assert.match(
     source,
-    /setMembership\(typeof result\?\.active === "boolean" \? result\.active : null\)/
+    /setMembership\(\s*typeof result\?\.active === "boolean" \? result\.active : null\s*\)/
   );
   assert.equal(
     (source.match(/fetch\("\/api\/pro\/benefits"/g) || []).length,
