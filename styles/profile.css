@@ -110,7 +110,8 @@ main:has(.yk-profile-hub) {
 }
 .yk-wall-composer textarea {
   min-height: 130px;
-  resize: vertical;
+  resize: none;
+  overflow-y: auto;
   padding: 14px;
 }
 .yk-wall-author {

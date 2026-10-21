@@ -40,6 +40,7 @@ export type NotificationItem = {
     | "sold"
     | "mention"
     | "message"
+    | "reply"
     | "friend"
     | "mission";
 };
@@ -56,6 +57,7 @@ const notificationStyle = {
   sold: ["◆", "text-accent-gold bg-accent-gold/14"],
   mention: ["@", "text-accent-neon bg-accent-neon/14"],
   message: ["✉", "text-accent-neon bg-accent-neon/14"],
+  reply: ["↩", "text-accent-neon bg-accent-neon/14"],
   friend: ["+", "text-accent-neon bg-accent-neon/14"],
   mission: ["✦", "text-success bg-success/14"]
 };
@@ -67,6 +69,14 @@ export function notificationItem(
     time: new Date(notification.createdAt).toLocaleString("en-US"),
     read: !!notification.readAt
   };
+  if (notification.type === "wall_post_reply")
+    return {
+      ...common,
+      title: "New reply to your post",
+      text: `${notification.actorPseudo ?? "A friend"} replied to your post.`,
+      href: "/profile?tab=wall",
+      kind: "reply"
+    };
   if (notification.type === "private_message_received")
     return {
       ...common,

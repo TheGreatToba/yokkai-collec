@@ -14,7 +14,8 @@ export type KnownNotificationType =
   | "auction_sold"
   | "auction_chat_mention"
   | "achievement_completed"
-  | "private_message_received";
+  | "private_message_received"
+  | "wall_post_reply";
 export type AppNotification = {
   id: string;
   type: KnownNotificationType | (string & {});

@@ -1,4 +1,5 @@
 .yk-home-main {
+  --home-panel-background: linear-gradient(145deg, #111426ee, #090d19ee);
   width: 100%;
   max-width: 1248px;
   margin-inline: auto;
@@ -75,7 +76,7 @@
   padding: 18px;
   border: 1px solid var(--color-veil);
   border-radius: 14px;
-  background: linear-gradient(145deg, #111426ee, #090d19ee);
+  background: var(--home-panel-background);
 }
 .yk-home-panel-heading {
   display: flex;
