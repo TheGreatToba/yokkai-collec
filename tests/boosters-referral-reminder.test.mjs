@@ -52,8 +52,15 @@ function reminder(pathname, dismissed = false) {
         useRef: () => ({ current: null }),
         useEffect: fn => effects.push(fn)
       },
+      "next/link": {
+        __esModule: true,
+        default: ({ children, ...props }) =>
+          React.createElement("a", props, children)
+      },
       "next/navigation": { usePathname: () => pathname },
       "@/components/ui": {
+        Modal: ({ open, children }) =>
+          open ? React.createElement("div", null, children) : null,
         Button: ({ children, ...props }) =>
           React.createElement("button", props, children)
       },
@@ -97,7 +104,7 @@ function reminder(pathname, dismissed = false) {
     render: () => {
       index = 0;
       effects.length = 0;
-      return ReferralReminder();
+      return ReferralReminder({ packChoices: pathname === "/boosters" });
     },
     start: () => effects[0](),
     writes,
@@ -115,12 +122,24 @@ test("Boosters reminder ignores old dismissals, has no close action, and keeps c
   const tree = s.render(),
     html = renderToStaticMarkup(tree);
   assert.match(html, /yk-referral-reminder--boosters/);
-  assert.match(html, /Invite friends · \+5 bonus packs/);
+  assert.match(html, /Want more boosters\?/);
   assert.doesNotMatch(html, /Dismiss referral reminder/);
   assert.equal((html.match(/<button/g) ?? []).length, 1);
-  const copy = tree.props.children.find(child =>
+  const explore = tree.props.children[0].props.children.find(child =>
     child?.props?.className?.includes("yk-referral-reminder-copy")
   );
+  explore.props.onClick();
+  const modalTree = s.render();
+  const findCopy = node => {
+    if (!node || typeof node !== "object") return;
+    if (node.props?.children === "Copy link") return node;
+    for (const child of React.Children.toArray(node.props?.children)) {
+      const found = findCopy(child);
+      if (found) return found;
+    }
+  };
+  const copy = findCopy(modalTree);
+  assert.ok(copy);
   copy.props.onClick();
   await flush();
   assert.deepEqual(s.copied, ["https://example.test/signup?ref=my%20code"]);
@@ -141,7 +160,7 @@ test("other pages keep their dismissal and Home keeps its inline invitation", as
   await flush();
   const tree = other.render();
   assert.match(renderToStaticMarkup(tree), /Dismiss referral reminder/);
-  tree.props.children
+  tree.props.children[0].props.children
     .find(child => child?.props?.["aria-label"] === "Dismiss referral reminder")
     .props.onClick();
   assert.equal(other.render(), null);
