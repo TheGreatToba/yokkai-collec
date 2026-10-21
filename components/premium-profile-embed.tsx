@@ -76,6 +76,40 @@ export function PremiumProfileEmbed() {
             View BBDOU&apos;s profile <span aria-hidden="true">↗</span>
           </Link>
         </div>
+        <div className="yk-pro-native-signature">
+          <p className="eyebrow">Made personal with Pro</p>
+          <ul>
+            <li>
+              <span className="yk-pro-native-colors" aria-hidden="true">
+                <i style={{ backgroundColor: style.color }} />
+                <i style={{ backgroundColor: style.secondary }} />
+                <i style={{ backgroundColor: "#9ccaff" }} />
+              </span>
+              <div>
+                <strong>Your colors.</strong>
+                <p>Custom name fonts and effects.</p>
+              </div>
+            </li>
+            <li>
+              <span className="yk-pro-native-detail-icon" aria-hidden="true">
+                ✦
+              </span>
+              <div>
+                <strong>Your finishing touches.</strong>
+                <p>Avatar frames and decorative badges.</p>
+              </div>
+            </li>
+            <li>
+              <span className="yk-pro-native-detail-icon" aria-hidden="true">
+                {profile.cards.length}
+              </span>
+              <div>
+                <strong>Your favorite cards.</strong>
+                <p>A bigger showcase, in your own style.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
       </aside>
       <section
         className="yk-pro-native-showcase"
