@@ -100,6 +100,37 @@
   color: #dde2ec;
   font-weight: 500;
 }
+.yk-pro-card-gains {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 28px 0 24px;
+}
+.yk-pro-card-gains > div {
+  padding: 17px 18px;
+  border: 1px solid #a8c7f52b;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #a8c7f50d, #060913);
+}
+.yk-pro-card-gains strong {
+  margin-right: 8px;
+  color: #c4d8ff;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.05em;
+}
+.yk-pro-card-gains span {
+  color: #dce6f7;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.yk-pro-card-gains p {
+  margin-top: 7px;
+  color: #a4b1c9;
+  font-size: 11px;
+  line-height: 1.6;
+}
 .yk-premium-tags {
   display: flex;
   gap: 14px;
@@ -919,24 +950,109 @@
 }
 .yk-pro-comparison table {
   width: 100%;
-  margin: 24px 0 16px;
+  table-layout: fixed;
   border-collapse: collapse;
   text-align: left;
   font-size: 13px;
 }
+.yk-pro-comparison {
+  scroll-margin-top: 28px;
+}
+.yk-pro-comparison-heading {
+  margin-bottom: 30px;
+  text-align: center;
+}
+.yk-pro-comparison-heading > p:last-child {
+  color: #a4b1c9;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.yk-pro-comparison-frame {
+  overflow: hidden;
+  border: 1px solid #a8c7f530;
+  border-radius: 16px;
+  background: #060913;
+}
 .yk-pro-comparison th,
 .yk-pro-comparison td {
-  padding: 16px;
-  border-bottom: 1px solid #ffffff0c;
+  padding: 17px 24px;
+  border-bottom: 1px solid #a8c7f514;
+  line-height: 1.6;
+}
+.yk-pro-comparison thead th {
+  padding-top: 26px;
+  padding-bottom: 26px;
+  color: #a4b1c9;
+  font-size: 11px;
+  font-weight: 500;
+}
+.yk-pro-comparison thead th:first-child {
+  width: 54%;
+}
+.yk-pro-comparison td,
+.yk-pro-comparison thead th:not(:first-child) {
+  text-align: center;
+  border-left: 1px solid #a8c7f514;
+}
+.yk-pro-plan-name,
+.yk-pro-plan-description {
+  display: block;
+}
+.yk-pro-plan-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: #f2f0ff;
+}
+.yk-pro-plan-name > span {
+  color: #c4d8ff;
+}
+.yk-pro-plan-description {
+  margin-top: 5px;
+  color: #a4b1c9;
+  font-size: 11px;
+  font-weight: 400;
 }
 .yk-pro-comparison tbody th {
-  font-weight: 400;
-  color: #acb5c7;
+  font-weight: 500;
+  color: #dce6f7;
 }
 .yk-pro-comparison td:last-child,
 .yk-pro-comparison thead th:last-child {
-  background: #9abcff0a;
+  background: #a8c7f50c;
+  color: #dceaff;
+}
+.yk-pro-comparison .yk-pro-comparison-group th {
+  padding-top: 13px;
+  padding-bottom: 13px;
+  background: #0a1120;
+  color: #a8c7f5;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.yk-pro-comparison tbody:last-child tr:last-child > * {
+  border-bottom: 0;
+}
+.yk-pro-plan-availability {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  color: #8493ad;
+  vertical-align: middle;
+}
+.yk-pro-plan-availability.is-included {
   color: #c4d8ff;
+}
+.yk-pro-comparison > .yk-pro-offer-footnote {
+  max-width: 760px;
+  margin: 18px auto 0;
+  text-align: center;
+}
+@media (hover: hover) {
+  .yk-pro-comparison tbody tr:not(.yk-pro-comparison-group):hover {
+    background: #a8c7f507;
+  }
 }
 .yk-pro-section-heading {
   display: flex;
@@ -1100,8 +1216,20 @@
   }
   .yk-pro-comparison th,
   .yk-pro-comparison td {
-    padding: 14px 6px;
+    padding: 13px 10px;
     font-size: 11px;
+  }
+  .yk-pro-comparison thead th:first-child {
+    width: 46%;
+  }
+  .yk-pro-comparison thead th {
+    padding: 20px 8px;
+  }
+  .yk-pro-plan-name {
+    font-size: 14px;
+  }
+  .yk-pro-plan-description {
+    font-size: 10px;
   }
   .yk-pro-clock button {
     padding: 10px;

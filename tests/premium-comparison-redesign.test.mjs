@@ -1,0 +1,127 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { resolve } from "node:path";
+import test from "node:test";
+import vm from "node:vm";
+import ts from "typescript";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+
+const require = createRequire(import.meta.url);
+const root = resolve(import.meta.dirname, "..");
+function renderOffer() {
+  const module = { exports: {} };
+  const rulesModule = { exports: {} };
+  const compile = file =>
+    ts.transpileModule(readFileSync(resolve(root, file), "utf8"), {
+      compilerOptions: {
+        module: ts.ModuleKind.CommonJS,
+        target: ts.ScriptTarget.ES2022,
+        jsx: ts.JsxEmit.ReactJSX,
+        esModuleInterop: true
+      }
+    }).outputText;
+  vm.runInNewContext(compile("lib/premium/offer.ts"), {
+    module: rulesModule,
+    exports: rulesModule.exports,
+    require
+  });
+  const marker = text => () => React.createElement("div", null, text);
+  vm.runInNewContext(compile("components/premium-offer.tsx"), {
+    module,
+    exports: module.exports,
+    require: id => {
+      if (id === "@/lib/premium/offer") return rulesModule.exports;
+      if (id === "@/components/premium-banner-preview")
+        return { PremiumBannerPreview: marker("Animated banner preview") };
+      if (id === "@/components/premium-card-artwork-preview")
+        return {
+          PremiumCardArtworkPreview: marker("Custom card artwork preview")
+        };
+      if (id === "@/components/premium-checkout")
+        return { PremiumCheckout: marker("Existing membership checkout") };
+      return require(id);
+    }
+  });
+  return renderToStaticMarkup(
+    React.createElement(module.exports.PremiumOffer, {
+      signedIn: false,
+      billing: null
+    })
+  );
+}
+
+test("Premium leads with more cards, then both visual previews before the comparison", () => {
+  const html = renderOffer();
+  assert.match(html, /<h1>More style\.<br\/><em>More cards\.<\/em><\/h1>/);
+  assert.match(html, /Regular Packs twice as often/);
+  assert.match(html, /<strong>2×<\/strong>/);
+  assert.match(html, /<strong>2<\/strong><span>every day<\/span>/);
+  assert.match(html, /Existing membership checkout/);
+  assert.ok(html.indexOf("Animated banner preview") > html.indexOf("</h1>"));
+  assert.ok(
+    html.indexOf("Custom card artwork preview") >
+      html.indexOf("Animated banner preview")
+  );
+  assert.ok(
+    html.indexOf('id="plan-comparison"') >
+      html.indexOf("Custom card artwork preview")
+  );
+  assert.match(html, /href="#plan-comparison"/);
+  assert.doesNotMatch(
+    html,
+    /Everything in Pro|yk-pro-feature-grid|More possibilities/
+  );
+});
+
+test("Basic and Pro compare real pack quotas and accessible inclusion marks", () => {
+  const html = renderOffer();
+  assert.match(
+    html,
+    /<caption class="sr-only">Basic and Pro membership comparison<\/caption>/
+  );
+  assert.match(html, /<tbody aria-label="More cards">/);
+  assert.match(
+    html,
+    /<th scope="row">Regular Pack<\/th><td>Every 10 min<\/td><td>Every 5 min<\/td>/
+  );
+  assert.match(
+    html,
+    /<th scope="row">Decision Pack<\/th><td>1 per day<\/td><td>2 per day<\/td>/
+  );
+  assert.match(
+    html,
+    /<th scope="row">Active auctions<\/th><td>3<\/td><td>6<\/td>/
+  );
+  assert.match(
+    html,
+    /<th scope="row">Showcase characters<\/th><td>5<\/td><td>10<\/td>/
+  );
+  const cosmetics = html.match(
+    /<tbody aria-label="Make it yours">([\s\S]*?)<\/tbody>/
+  )?.[1];
+  assert.ok(cosmetics);
+  assert.equal((cosmetics.match(/>Not included<\/span>/g) || []).length, 7);
+  assert.equal((cosmetics.match(/>Included<\/span>/g) || []).length, 7);
+  assert.match(cosmetics, /Custom card artwork &amp; GIFs/);
+  assert.match(cosmetics, /Custom &amp; animated banners/);
+  assert.match(html, /Rarity odds per card stay the same for everyone/);
+  assert.match(html, /Both Pro packs are available at once/);
+  assert.match(html, /Unused packs do not carry over/);
+  assert.doesNotMatch(
+    html,
+    /Your own site background|Additional achievements and Karas/
+  );
+});
+
+test("comparison keeps responsive plan columns and uses more than color to convey inclusion", () => {
+  const css = readFileSync(resolve(root, "styles/premium.css"), "utf8");
+  assert.match(css, /\.yk-pro-comparison table\s*\{[^}]*table-layout: fixed;/);
+  assert.match(css, /\.yk-pro-comparison-frame\s*\{[^}]*border-radius: 16px;/);
+  assert.match(css, /\.yk-pro-plan-availability\.is-included\s*\{/);
+  const html = renderOffer();
+  assert.match(html, /d="m5 12 4 4L19 6"/);
+  assert.match(html, /d="M7 12h10"/);
+  assert.match(html, /<span class="sr-only">Not included<\/span>/);
+});

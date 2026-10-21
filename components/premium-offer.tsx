@@ -3,10 +3,32 @@ import type { BillingSettings } from "@/lib/billing/settings";
 import { PremiumBannerPreview } from "@/components/premium-banner-preview";
 import { PremiumCardArtworkPreview } from "@/components/premium-card-artwork-preview";
 import { PremiumCheckout } from "@/components/premium-checkout";
-import {
-  PROPOSED_PLAN_RULES as rules,
-  PROPOSED_PRO_FEATURES as features
-} from "@/lib/premium/offer";
+import { PROPOSED_PLAN_RULES as rules } from "@/lib/premium/offer";
+
+function PlanAvailability({ included }: { included: boolean }) {
+  return (
+    <span
+      className={`yk-pro-plan-availability${included ? " is-included" : ""}`}
+    >
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        aria-hidden="true"
+      >
+        <path
+          d={included ? "m5 12 4 4L19 6" : "M7 12h10"}
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+      <span className="sr-only">{included ? "Included" : "Not included"}</span>
+    </span>
+  );
+}
 
 export function PremiumOffer({
   signedIn,
@@ -26,92 +48,153 @@ export function PremiumOffer({
           <h1>
             More style.
             <br />
-            <em>More possibilities.</em>
+            <em>More cards.</em>
           </h1>
           <p className="yk-premium-intro">
-            Make Yokkai your own. Personalize your profile and cards, open packs
-            more often and give your collection more room to shine.
+            Open Regular Packs twice as often. Choose from two daily Decision
+            Packs. Grow your collection faster, then make every favorite your
+            own.
           </p>
-          <div className="yk-premium-tags">
-            <span>Regular Packs every 5 minutes</span>
-            <span>Two Decision Packs per day</span>
-            <span>Your own signature style</span>
+          <div className="yk-pro-card-gains" aria-label="More packs with Pro">
+            <div>
+              <strong>
+                {rules.basic.regularPackMinutes / rules.pro.regularPackMinutes}×
+              </strong>
+              <span>as often</span>
+              <p>Regular Packs every {rules.pro.regularPackMinutes} minutes</p>
+            </div>
+            <div>
+              <strong>{rules.pro.decisionPacksPerDay}</strong>
+              <span>every day</span>
+              <p>Decision Packs instead of {rules.basic.decisionPacksPerDay}</p>
+            </div>
           </div>
-          <a href="#pro-benefits" className="yk-premium-text-button">
-            See all Pro benefits ↓
+          <a href="#plan-comparison" className="yk-premium-text-button">
+            Compare Basic and Pro ↓
           </a>
         </div>
         <PremiumCheckout signedIn={signedIn} billing={billing} />
-      </section>
-      <section className="yk-pro-comparison" aria-labelledby="comparison-title">
-        <p className="eyebrow">A little more room to collect</p>
-        <h2 id="comparison-title">Basic or Pro. Your way to collect.</h2>
-        <table>
-          <caption className="sr-only">
-            Basic and Pro membership comparison
-          </caption>
-          <thead>
-            <tr>
-              <th scope="col">Feature</th>
-              <th scope="col">Basic</th>
-              <th scope="col">Pro</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">Regular Pack</th>
-              <td>Every {rules.basic.regularPackMinutes} min</td>
-              <td>Every {rules.pro.regularPackMinutes} min</td>
-            </tr>
-            <tr>
-              <th scope="row">Decision Pack</th>
-              <td>{rules.basic.decisionPacksPerDay} per day</td>
-              <td>{rules.pro.decisionPacksPerDay} per day</td>
-            </tr>
-            <tr>
-              <th scope="row">Active auctions</th>
-              <td>{rules.basic.concurrentAuctions}</td>
-              <td>{rules.pro.concurrentAuctions}</td>
-            </tr>
-            <tr>
-              <th scope="row">Showcase characters</th>
-              <td>{rules.basic.showcaseSlots}</td>
-              <td>{rules.pro.showcaseSlots}</td>
-            </tr>
-            <tr>
-              <th scope="row">Rarity odds per card</th>
-              <td>Unchanged</td>
-              <td>Unchanged</td>
-            </tr>
-          </tbody>
-        </table>
-        <p className="yk-pro-offer-footnote">
-          Decision Packs reset together every day at 8:00 PM Paris time,
-          adjusting for daylight saving time. Both Pro packs are available at
-          once. Unused packs do not carry over. Rarity odds per card stay the
-          same for everyone.
-        </p>
       </section>
       <div className="yk-pro-personalization-examples">
         <PremiumBannerPreview />
         <PremiumCardArtworkPreview />
       </div>
       <section
-        id="pro-benefits"
-        className="yk-pro-feature-section"
-        aria-labelledby="pro-benefits-title"
+        id="plan-comparison"
+        className="yk-pro-comparison"
+        aria-labelledby="comparison-title"
       >
-        <p className="eyebrow">One membership. All your personality.</p>
-        <h2 id="pro-benefits-title">Everything in Pro.</h2>
-        <div className="yk-pro-feature-grid">
-          {features.map(feature => (
-            <article key={feature.id}>
-              {feature.id === "achievements" && <span>Coming soon</span>}
-              <h3>{feature.title}</h3>
-              <p>{feature.detail}</p>
-            </article>
-          ))}
+        <div className="yk-pro-comparison-heading">
+          <p className="eyebrow">Basic vs Pro</p>
+          <h2 id="comparison-title">Your collection, upgraded.</h2>
+          <p>More cards to discover. More ways to make them yours.</p>
         </div>
+        <div className="yk-pro-comparison-frame">
+          <table>
+            <caption className="sr-only">
+              Basic and Pro membership comparison
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">What’s included</th>
+                <th scope="col">
+                  <span className="yk-pro-plan-name">Basic</span>
+                  <span className="yk-pro-plan-description">
+                    Free to collect
+                  </span>
+                </th>
+                <th scope="col">
+                  <span className="yk-pro-plan-name">
+                    Yokkai Pro <span aria-hidden="true">✦</span>
+                  </span>
+                  <span className="yk-pro-plan-description">
+                    More cards. More you.
+                  </span>
+                </th>
+              </tr>
+            </thead>
+            <tbody aria-label="More cards">
+              <tr className="yk-pro-comparison-group">
+                <th colSpan={3} scope="rowgroup">
+                  More cards
+                </th>
+              </tr>
+              <tr>
+                <th scope="row">Regular Pack</th>
+                <td>Every {rules.basic.regularPackMinutes} min</td>
+                <td>Every {rules.pro.regularPackMinutes} min</td>
+              </tr>
+              <tr>
+                <th scope="row">Decision Pack</th>
+                <td>{rules.basic.decisionPacksPerDay} per day</td>
+                <td>{rules.pro.decisionPacksPerDay} per day</td>
+              </tr>
+              <tr>
+                <th scope="row">Rarity odds per card</th>
+                <td>Unchanged</td>
+                <td>Unchanged</td>
+              </tr>
+            </tbody>
+            <tbody aria-label="Make it yours">
+              <tr className="yk-pro-comparison-group">
+                <th colSpan={3} scope="rowgroup">
+                  Make it yours
+                </th>
+              </tr>
+              {[
+                "Custom card artwork & GIFs",
+                "Custom & animated banners",
+                "Animated profile pictures",
+                "Name colors & profile themes",
+                "Avatar frames & decorative badges",
+                "Showcase effects",
+                "Pro badge"
+              ].map(label => (
+                <tr key={label}>
+                  <th scope="row">{label}</th>
+                  <td>
+                    <PlanAvailability included={false} />
+                  </td>
+                  <td>
+                    <PlanAvailability included />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            <tbody aria-label="Collect and share">
+              <tr className="yk-pro-comparison-group">
+                <th colSpan={3} scope="rowgroup">
+                  Collect & share
+                </th>
+              </tr>
+              <tr>
+                <th scope="row">Active auctions</th>
+                <td>{rules.basic.concurrentAuctions}</td>
+                <td>{rules.pro.concurrentAuctions}</td>
+              </tr>
+              <tr>
+                <th scope="row">Showcase characters</th>
+                <td>{rules.basic.showcaseSlots}</td>
+                <td>{rules.pro.showcaseSlots}</td>
+              </tr>
+              <tr>
+                <th scope="row">Binders & trading with friends</th>
+                <td>
+                  <PlanAvailability included />
+                </td>
+                <td>
+                  <PlanAvailability included />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p className="yk-pro-offer-footnote">
+          Decision Packs reset together every day at 8:00 PM Paris time,
+          adjusting for daylight saving time. Both Pro packs are available at
+          once. Unused packs do not carry over. Rarity odds per card stay the
+          same for everyone.
+        </p>
       </section>
       <section className="yk-premium-faq">
         <h2>A few things worth knowing.</h2>
@@ -138,7 +221,7 @@ export function PremiumOffer({
         </details>
       </section>
       <div className="yk-pro-offer-bottom">
-        <p>Make your next chapter your own.</p>
+        <p>More cards to collect. A collection that feels like you.</p>
         <a href="#membership" className="yk-button yk-button-primary">
           Get Yokkai Pro ↑
         </a>
