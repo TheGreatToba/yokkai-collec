@@ -987,6 +987,148 @@
   font-size: 12px;
   line-height: 1.8;
 }
+.yk-pro-native-profile {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(240px, 0.7fr) minmax(0, 2fr);
+  gap: 24px;
+  min-width: 0;
+  align-items: start;
+}
+.yk-pro-native-identity,
+.yk-pro-native-showcase {
+  min-width: 0;
+  border: 1px solid #9abcff30;
+  border-radius: 18px;
+  background: #060913;
+}
+.yk-pro-native-identity {
+  overflow: hidden;
+}
+.yk-pro-native-banner {
+  position: relative;
+  aspect-ratio: 2.3;
+  overflow: hidden;
+}
+.yk-pro-native-banner img {
+  object-fit: contain;
+}
+.yk-pro-native-avatar {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  margin: -36px 0 0 24px;
+  border: 4px solid #060913;
+  border-radius: 50%;
+  box-shadow: 0 0 22px #ffb08d70;
+  overflow: hidden;
+}
+.yk-pro-native-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.yk-pro-native-about {
+  padding: 24px;
+}
+.yk-pro-native-about h3 {
+  margin: 16px 0;
+  font-size: clamp(22px, 2.2vw, 30px);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.yk-pro-native-about > p:not(.eyebrow),
+.yk-pro-native-caption {
+  color: #a4b1c9;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.yk-pro-native-about a {
+  display: inline-flex;
+  gap: 12px;
+  align-items: center;
+  min-height: 40px;
+  margin-top: 24px;
+  color: #c4d8ff;
+  font-size: 12px;
+}
+.yk-pro-native-showcase {
+  padding: 24px;
+}
+.yk-pro-native-showcase > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+.yk-pro-native-showcase h3 {
+  margin-top: 10px;
+  color: #efedf8;
+  font-size: 19px;
+  font-weight: 650;
+}
+.yk-pro-native-showcase button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 10px 14px;
+  border: 1px solid #9abcff70;
+  border-radius: 22px;
+  background: #0d1728;
+  color: #efedf8;
+  font-size: 11px;
+  cursor: pointer;
+}
+.yk-pro-native-showcase button:hover {
+  background: #20334d;
+}
+.yk-pro-native-showcase button:focus-visible,
+.yk-pro-native-about a:focus-visible {
+  outline: 2px solid #c4d8ff;
+  outline-offset: 4px;
+}
+.yk-pro-native-cards {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.yk-pro-native-cards > li,
+.yk-pro-native-cards .yk-card {
+  min-width: 0;
+  width: 100%;
+}
+.yk-pro-native-caption {
+  margin-top: 24px;
+}
+.yk-pro-native-profile[data-playing="false"] *,
+.yk-pro-native-profile[data-playing="false"] *::before,
+.yk-pro-native-profile[data-playing="false"] *::after {
+  animation-play-state: paused !important;
+}
+@media (max-width: 1050px) {
+  .yk-pro-native-profile {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .yk-pro-native-identity {
+    max-width: 440px;
+    width: 100%;
+  }
+}
+@media (max-width: 600px) {
+  .yk-pro-native-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 12px;
+  }
+  .yk-pro-native-showcase {
+    padding: 18px 14px;
+  }
+}
 .yk-pro-profile-photo {
   grid-column: 1 / -1;
   min-width: 0;

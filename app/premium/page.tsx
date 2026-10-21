@@ -4,7 +4,8 @@ import Image from "next/image";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getBillingSettings } from "@/lib/billing/settings";
 import { PremiumOffer } from "@/components/premium-offer";
-import { PremiumProfileMotion } from "@/components/premium-profile-motion";
+import { PremiumProfileEmbed } from "@/components/premium-profile-embed";
+import "@/styles/profile-style.css";
 import "@/styles/premium.css";
 
 export const metadata: Metadata = { title: "Yokkai Pro · Make it yours" };
@@ -34,7 +35,7 @@ export default async function PremiumPage() {
         <PremiumOffer
           signedIn={!!user}
           billing={billing}
-          profileMotion={<PremiumProfileMotion />}
+          profilePreview={<PremiumProfileEmbed />}
         />
       </main>
       <footer className="yk-premium-footer">

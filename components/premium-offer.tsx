@@ -34,11 +34,13 @@ function PlanAvailability({ included }: { included: boolean }) {
 export function PremiumOffer({
   signedIn,
   billing,
-  profileMotion
+  profileMotion,
+  profilePreview
 }: {
   signedIn: boolean;
   billing: BillingSettings | null;
   profileMotion?: ReactNode;
+  profilePreview?: ReactNode;
 }) {
   return (
     <div
@@ -175,21 +177,23 @@ export function PremiumOffer({
             </div>
           </li>
         </ul>
-        <figure className="yk-pro-profile-photo">
-          <div className="yk-pro-profile-photo-crop">
-            <Image
-              src="/assets/premium-examples/bbdou-profile.png"
-              alt="BBDOU's customized profile with an anime banner, glowing avatar, styled name, decorative badges and a ten-card showcase."
-              width={1920}
-              height={1032}
-              sizes="(max-width: 600px) 138vw, (max-width: 1340px) 128vw, 1738px"
-            />
-            {profileMotion}
-          </div>
-          <figcaption>
-            Your style, from the first impression to your favorite cards.
-          </figcaption>
-        </figure>
+        {profilePreview ?? (
+          <figure className="yk-pro-profile-photo">
+            <div className="yk-pro-profile-photo-crop">
+              <Image
+                src="/assets/premium-examples/bbdou-profile.png"
+                alt="BBDOU's customized profile with an anime banner, glowing avatar, styled name, decorative badges and a ten-card showcase."
+                width={1920}
+                height={1032}
+                sizes="(max-width: 600px) 138vw, (max-width: 1340px) 128vw, 1738px"
+              />
+              {profileMotion}
+            </div>
+            <figcaption>
+              Your style, from the first impression to your favorite cards.
+            </figcaption>
+          </figure>
+        )}
       </section>
       <section
         id="plan-comparison"
