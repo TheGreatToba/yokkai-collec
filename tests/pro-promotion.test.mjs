@@ -25,6 +25,13 @@ function load(file, mocks = {}, globals = {}) {
       require: name => {
         if (name in mocks) return mocks[name];
         if (name.endsWith(".css")) return {};
+        if (name === "@/components/ui")
+          return {
+            Button: ({ children, ...props }) =>
+              React.createElement("button", props, children),
+            Modal: ({ open, children }) =>
+              open ? React.createElement("div", null, children) : null
+          };
         if (name === "next/link")
           return {
             __esModule: true,
@@ -171,8 +178,8 @@ function harness(initialStatus) {
     }
   );
   return {
-    render: (enabled = true, dismissible = true) =>
-      ProPromotion({ enabled, dismissible }),
+    render: (enabled = true, dismissible = true, compact = false) =>
+      ProPromotion({ enabled, dismissible, compact }),
     start: () => effect(),
     flush: () => {
       const scheduled = [...timers.values()];
@@ -297,10 +304,19 @@ test("integration reuses membership request and only advertises on Home and Boos
     readFileSync("components/pro-promotion.tsx", "utf8"),
     /fetch\(|checkout|createClient/
   );
+  const boosters = readFileSync("components/boosters.tsx", "utf8");
+  assert.doesNotMatch(
+    readFileSync("components/game.tsx", "utf8"),
+    /<ProPromotion/
+  );
+  assert.match(
+    boosters.replace(/\s+/g, " "),
+    /!opening && !revealing && <ReferralReminder packChoices \/>/
+  );
   const topbar = readFileSync("components/topbar.tsx", "utf8");
   assert.match(
     topbar,
-    /<ProPromotion\s+enabled=\{secondaryReady && \(view === "home" \|\| view === "packs"\)\}\s+dismissible=\{view === "packs"\}/
+    /<ProPromotion\s+enabled=\{secondaryReady && view === "home"\}\s+dismissible=\{false\}/
   );
 });
 
@@ -408,4 +424,12 @@ test("membership status distinguishes Basic, Pro without profile style, and unav
     );
     stop();
   }
+});
+
+test("empty pack promotion is a single compact Pro link without a banner or close action", () => {
+  const s = harness(false);
+  const html = renderToStaticMarkup(s.render(true, false, true));
+  assert.match(html, /<button[^>]*>Get more packs<\/button>/);
+  assert.doesNotMatch(html, /yk-pro-promo|<aside/);
+  assert.equal(harness(true).render(true, false, true), null);
 });
