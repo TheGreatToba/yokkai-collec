@@ -17,6 +17,7 @@ import type { SocialUnreadAdapter } from "@/lib/data/social-unread";
 import { UnreadBadge } from "@/components/unread-badge";
 import { useBoostersLoadPriority } from "@/components/boosters-load-priority";
 import { useIsAdmin } from "@/hooks/use-is-admin";
+import { ProPromotion } from "@/components/pro-promotion";
 import { getProfile } from "@/lib/data/profile";
 import { subscribePlayerSnapshotInvalidation } from "@/lib/data/player-state";
 
@@ -757,6 +758,9 @@ export function Topbar({
           </div>
         </div>
       </header>
+      <ProPromotion
+        enabled={secondaryReady && view !== "admin" && view !== "settings"}
+      />
     </>
   );
 }

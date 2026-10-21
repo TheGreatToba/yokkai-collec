@@ -10,7 +10,10 @@ import {
 
 const ProAccess = createContext(false);
 const OwnStyle = createContext<ProfileStyle | null>(null);
+const ProMembership = createContext<boolean | null>(null);
 export const useProAccess = () => useContext(ProAccess);
+// Presentation-only status; null means unknown, unauthenticated, or unavailable.
+export const useProMembershipStatus = () => useContext(ProMembership);
 export const useOwnProfileStyle = () => useContext(OwnStyle);
 
 // Presentation only. Every mutation independently checks paid membership on the server.
@@ -18,6 +21,7 @@ export const useOwnProfileStyle = () => useContext(OwnStyle);
 export function ProAccessProvider({ children }: { children: React.ReactNode }) {
   const [active, setActive] = useState(false);
   const [style, setStyle] = useState<ProfileStyle | null>(null);
+  const [membership, setMembership] = useState<boolean | null>(null);
   useEffect(() => {
     let stopped = false;
     let request: AbortController | null = null;
@@ -54,11 +58,15 @@ export function ProAccessProvider({ children }: { children: React.ReactNode }) {
         ) {
           setActive(result?.active === true && ownStyle !== null);
           setStyle(ownStyle);
+          setMembership(
+            typeof result?.active === "boolean" ? result.active : null
+          );
         }
       } catch {
         if (!stopped) {
           setActive(false);
           setStyle(null);
+          setMembership(null);
         }
       } finally {
         window.clearTimeout(timeout);
@@ -88,18 +96,20 @@ export function ProAccessProvider({ children }: { children: React.ReactNode }) {
   }, []);
   return (
     <ProAccess.Provider value={active}>
-      <OwnStyle.Provider value={active ? style : null}>
-        {active && style?.backgroundUrl && (
-          <div
-            aria-hidden="true"
-            className="yk-pro-site-background"
-            style={{
-              backgroundImage: `url(${JSON.stringify(style.backgroundUrl)})`
-            }}
-          />
-        )}
-        {children}
-      </OwnStyle.Provider>
+      <ProMembership.Provider value={membership}>
+        <OwnStyle.Provider value={active ? style : null}>
+          {active && style?.backgroundUrl && (
+            <div
+              aria-hidden="true"
+              className="yk-pro-site-background"
+              style={{
+                backgroundImage: `url(${JSON.stringify(style.backgroundUrl)})`
+              }}
+            />
+          )}
+          {children}
+        </OwnStyle.Provider>
+      </ProMembership.Provider>
     </ProAccess.Provider>
   );
 }

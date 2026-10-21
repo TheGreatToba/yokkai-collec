@@ -1,0 +1,21 @@
+# Yokkai Pro promotion
+
+Dismissible inline banner below the shared navigation, styled in navy and ice blue.
+The single call to action opens `/premium`; it never starts checkout.
+
+## Visibility and preference
+
+- Shown only after the existing `/api/pro/benefits` request confirms `active: false`.
+- Hidden for Pro members, unknown status, unauthenticated requests and API failures.
+- Membership is independent of profile-style availability: missing cosmetics do not turn a paid player into a promotion target.
+- Hidden on Admin and Settings, and waits for the navigation's existing secondary-load stage.
+- Closing hides it for seven days on this browser using `yokkai:pro-promotion:v1:dismissed-at`. The preference synchronizes across tabs. No identity or analytics is stored.
+- When browser storage is blocked, closing still hides the banner for the current mount.
+
+## Preview and validation
+
+The development-only `/design-system/pro-promotion-preview` route displays the presentation independently of membership, without overriding live entitlements.
+It is covered by the existing production preview-route guard.
+
+New tests cover preference expiry, strict membership gating, unavailable profile styles, storage failure, closing, accessibility and the offer link.
+Existing tests are unchanged. No SQL migration, billing change or VPS database operation.

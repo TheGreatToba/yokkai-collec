@@ -1,0 +1,106 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useProMembershipStatus } from "@/components/pro-access";
+import {
+  PRO_PROMOTION_KEY,
+  proPromotionDismissed
+} from "@/lib/ui/pro-promotion";
+import "@/styles/pro-promotion.css";
+
+export function ProPromotionBanner({ onDismiss }: { onDismiss: () => void }) {
+  return (
+    <aside className="yk-pro-promo" aria-label="Discover Yokkai Pro">
+      <div className="yk-pro-promo-emblem" aria-hidden="true">
+        <svg viewBox="0 0 48 48" fill="none">
+          <path
+            d="M24 4 29 19 44 24 29 29 24 44 19 29 4 24 19 19Z"
+            fill="currentColor"
+          />
+          <path
+            d="m37 5 1.5 4.5L43 11l-4.5 1.5L37 17l-1.5-4.5L31 11l4.5-1.5Z"
+            fill="currentColor"
+            opacity=".55"
+          />
+        </svg>
+      </div>
+      <div className="yk-pro-promo-copy">
+        <p className="yk-pro-promo-eyebrow">
+          <span>YOKKAI PRO</span> YOUR COLLECTION, UPGRADED
+        </p>
+        <h2>
+          Make it yours. <span>Make it Pro.</span>
+        </h2>
+        <p className="yk-pro-promo-description">
+          Your images. Your GIFs. A collection with your signature.
+        </p>
+        <ul aria-label="Pro highlights">
+          <li>Custom card artwork</li>
+          <li>Faster packs</li>
+          <li>More room to collect</li>
+        </ul>
+      </div>
+      <Link href="/premium" className="yk-pro-promo-link">
+        Explore Pro <span aria-hidden="true">↗</span>
+      </Link>
+      <button
+        type="button"
+        className="yk-pro-promo-dismiss"
+        onClick={onDismiss}
+        aria-label="Hide Pro promotion for 7 days"
+        title="Hide for 7 days"
+      >
+        <svg
+          aria-hidden="true"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        >
+          <path d="m6 6 12 12M18 6 6 18" />
+        </svg>
+      </button>
+    </aside>
+  );
+}
+
+export function ProPromotion({ enabled = true }: { enabled?: boolean }) {
+  const membership = useProMembershipStatus();
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    if (!enabled || membership !== false) return;
+    const readPreference = () => {
+      try {
+        setVisible(
+          !proPromotionDismissed(localStorage.getItem(PRO_PROMOTION_KEY))
+        );
+      } catch {
+        setVisible(true);
+      }
+    };
+    const timer = window.setTimeout(readPreference, 600);
+    const syncPreference = (event: StorageEvent) => {
+      if (event.key === PRO_PROMOTION_KEY || event.key === null)
+        readPreference();
+    };
+    window.addEventListener("storage", syncPreference);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("storage", syncPreference);
+    };
+  }, [enabled, membership]);
+
+  function dismiss() {
+    setVisible(false);
+    try {
+      localStorage.setItem(PRO_PROMOTION_KEY, String(Date.now()));
+    } catch {
+      /* Closing still works when browser storage is unavailable. */
+    }
+  }
+  if (!enabled || membership !== false || !visible) return null;
+  return <ProPromotionBanner onDismiss={dismiss} />;
+}
