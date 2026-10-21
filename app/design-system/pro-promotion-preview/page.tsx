@@ -12,9 +12,16 @@ export default function ProPromotionPreview() {
       <Topbar view={view} name="Collector" karas={1240} notifications={[]} />
       {view === "home" && <ProPromotionBanner />}
       {view === "packs" && visible && (
-        <ProPromotionBanner onDismiss={() => setVisible(false)} />
+        <ProPromotionBanner page="packs" onDismiss={() => setVisible(false)} />
       )}
-      <main id="main-content" className="yk-home-main">
+      <main
+        id="main-content"
+        className={
+          view === "packs"
+            ? "yk-game-main mx-auto w-full max-w-6xl px-6 py-10"
+            : "yk-home-main"
+        }
+      >
         <div
           className="flex flex-wrap gap-3 mb-6"
           aria-label="Promotion preview pages"

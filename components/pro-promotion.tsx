@@ -9,9 +9,19 @@ import {
 } from "@/lib/ui/pro-promotion";
 import "@/styles/pro-promotion.css";
 
-export function ProPromotionBanner({ onDismiss }: { onDismiss?: () => void }) {
+export function ProPromotionBanner({
+  onDismiss,
+  page = "home"
+}: {
+  onDismiss?: () => void;
+  page?: "home" | "packs";
+}) {
   return (
-    <aside className="yk-pro-promo" aria-label="Discover Yokkai Pro">
+    <aside
+      className="yk-pro-promo"
+      data-page={page}
+      aria-label="Discover Yokkai Pro"
+    >
       <div className="yk-pro-promo-emblem" aria-hidden="true">
         <svg viewBox="0 0 48 48" fill="none">
           <path
@@ -71,10 +81,12 @@ export function ProPromotionBanner({ onDismiss }: { onDismiss?: () => void }) {
 
 export function ProPromotion({
   enabled = true,
-  dismissible = true
+  dismissible = true,
+  page = "home"
 }: {
   enabled?: boolean;
   dismissible?: boolean;
+  page?: "home" | "packs";
 }) {
   const membership = useProMembershipStatus();
   const [visible, setVisible] = useState(false);
@@ -111,5 +123,10 @@ export function ProPromotion({
   }
   if (!enabled || membership !== false || (dismissible && !visible))
     return null;
-  return <ProPromotionBanner onDismiss={dismissible ? dismiss : undefined} />;
+  return (
+    <ProPromotionBanner
+      page={page}
+      onDismiss={dismissible ? dismiss : undefined}
+    />
+  );
 }

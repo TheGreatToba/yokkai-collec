@@ -2,6 +2,7 @@
 
 Inline banner below the shared navigation on Home and Boosters only, styled in navy and ice blue.
 The single call to action opens `/premium`; it never starts checkout.
+Its edges match the page content: Home's 1248px container minus 28px gutters (16px on mobile), and Boosters' 1152px container minus 24px gutters.
 
 ## Visibility and preference
 
