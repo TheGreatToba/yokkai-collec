@@ -2,6 +2,54 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { serveWallMedia } from "../lib/server/profile-wall-media.mjs";
 const id = "75000000-0000-4000-8000-000000000001";
+test("reply media checks authenticated parent/author ACL and storage RLS without caching", async () => {
+  for (const allowed of [true, false]) {
+    const c = client();
+    c.rpc = async (name, args) => {
+      assert.equal(name, "get_wall_reply_media");
+      assert.deepEqual(args, { p_id: id });
+      c.calls.push(name);
+      return {
+        data: allowed ? `${id}/private.png` : null,
+        error: allowed ? null : { message: "WALL_POST_UNAVAILABLE" }
+      };
+    };
+    const response = await serveWallMedia(id, c, true);
+    assert.equal(response.status, allowed ? 200 : 404);
+    assert.equal(response.headers.get("cache-control"), "private, no-store");
+    assert.equal(response.headers.get("vary"), "Cookie");
+    assert.equal(
+      response.headers.get("cross-origin-resource-policy"),
+      "same-origin"
+    );
+    assert.deepEqual(
+      c.calls,
+      allowed
+        ? ["get_wall_reply_media", "profile-wall-media"]
+        : ["get_wall_reply_media"]
+    );
+  }
+  const denied = client({ download: false });
+  denied.rpc = async () => ({ data: `${id}/private.png`, error: null });
+  assert.equal(
+    (await serveWallMedia(id, denied, true)).status,
+    404,
+    "storage revocation still wins after lookup"
+  );
+  const svg = client({
+    bytes: new TextEncoder().encode("<svg onload='alert(1)'>")
+  });
+  svg.rpc = denied.rpc;
+  assert.equal((await serveWallMedia(id, svg, true)).status, 415);
+  assert.equal(
+    (await serveWallMedia(id, client({ logged: false }), true)).status,
+    401
+  );
+  assert.equal(
+    (await serveWallMedia("../private", client(), true)).status,
+    404
+  );
+});
 function client({
   logged = true,
   post = true,

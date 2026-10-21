@@ -78,6 +78,7 @@ test("a successful Home publication reloads the first page and includes the own 
     "@/components/styled-player-name": { StyledPlayerName: () => null },
     "@/components/wall-post-interactions": { WallPostInteractions: () => null },
     "@/lib/data/friend-feed": {},
+    "@/lib/data/profile-wall": { liveWall: {} },
     "@/styles/friend-feed.css": {}
   });
   const html = renderToStaticMarkup(

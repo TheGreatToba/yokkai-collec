@@ -107,6 +107,47 @@
   font-size: 15px;
   font-weight: 600;
 }
+.yk-feed-delete {
+  margin-left: auto;
+  color: #ff8297;
+  background: #391823;
+  border: 1px solid #a84a60;
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  min-height: 36px;
+}
+.yk-feed-delete:hover:not(:disabled) {
+  color: #fff;
+  background: #842d44;
+  border-color: #ff8297;
+}
+.yk-feed-delete:disabled {
+  opacity: 0.5;
+}
+.yk-feed-delete-modal {
+  width: min(460px, calc(100vw - 32px));
+  padding: 26px;
+  border: 1px solid #344964;
+  border-radius: 18px;
+  background: #080d19;
+}
+.yk-feed-delete-modal h2 {
+  font-size: 22px;
+}
+.yk-feed-delete-modal p {
+  margin-top: 14px;
+  color: #c4d9f5;
+  line-height: 1.7;
+  font-size: 14px;
+}
+.yk-feed-delete-modal > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
 .yk-feed-text {
   margin-top: 9px;
   color: #edf3fc;

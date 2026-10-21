@@ -1,9 +1,11 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- authenticated private media and animated GIFs. */
 
 import Link from "next/link";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Avatar, Button } from "@/components/ui";
 import { EmojiReactionPicker } from "@/components/emoji-reaction-picker";
+import { GifPicker } from "@/components/gif-picker";
 import { reactionEmoji } from "@/lib/ui/reaction-emojis";
 import {
   liveWallInteractions,
@@ -26,10 +28,56 @@ export function WallPostInteractions({
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
   const [retry, setRetry] = useState(0);
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState("");
+  const [gif, setGif] = useState("");
+  const [cleanup, setCleanup] = useState<string[]>([]);
+  const uploaded = useRef<{ file: File; path: string } | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
   const lock = useRef(false);
   const sequence = useRef(0);
   const replyId = useRef<string | null>(null);
   const fieldId = useId();
+  useEffect(
+    () => () => {
+      if (preview) URL.revokeObjectURL(preview);
+    },
+    [preview]
+  );
+  async function discard(path: string) {
+    try {
+      if (!adapter.discard) throw new Error("File cleanup is unavailable.");
+      await adapter.discard(path);
+      setCleanup(current => current.filter(item => item !== path));
+    } catch {
+      setCleanup(current => [...new Set([...current, path])]);
+    }
+  }
+  function changeAttachment(next: File | null, nextGif = "") {
+    if (lock.current) return;
+    if (
+      next &&
+      (!next.size ||
+        next.size > 6 * 1024 * 1024 ||
+        !["image/jpeg", "image/png", "image/webp", "image/gif"].includes(
+          next.type
+        ))
+    ) {
+      setError("JPG, PNG, WebP, or GIF, up to 6 MB.");
+      if (fileInput.current) fileInput.current.value = "";
+      return;
+    }
+    if (uploaded.current) {
+      void discard(uploaded.current.path);
+      uploaded.current = null;
+    }
+    replyId.current = null;
+    setError("");
+    setFile(next);
+    setPreview(next ? URL.createObjectURL(next) : "");
+    setGif(nextGif);
+    if (fileInput.current) fileInput.current.value = "";
+  }
   const cancel = useCallback(() => {
     sequence.current++;
   }, []);
@@ -57,7 +105,7 @@ export function WallPostInteractions({
     id?: string
   ) {
     if (lock.current || !activity) return;
-    if (kind === "reply" && !text.trim()) return;
+    if (kind === "reply" && !text.trim() && !file && !gif) return;
     lock.current = true;
     const version = ++sequence.current;
     setBusy(true);
@@ -72,7 +120,15 @@ export function WallPostInteractions({
         next = await adapter.react(postId, id!, !current?.reactedByMe);
       } else if (kind === "reply") {
         replyId.current ??= crypto.randomUUID();
-        next = await adapter.reply(postId, replyId.current, text.trim());
+        if (file && uploaded.current?.file !== file) {
+          if (!adapter.upload)
+            throw new Error("Image uploads are unavailable. Please try again.");
+          uploaded.current = { file, path: await adapter.upload(file) };
+        }
+        next = await adapter.reply(postId, replyId.current, text.trim(), {
+          mediaPath: uploaded.current?.path ?? null,
+          gifUrl: gif || null
+        });
       } else if (kind === "remove") next = await adapter.remove(postId, id!);
       else next = await adapter.read(postId, activity.next);
       if (version !== sequence.current) return;
@@ -93,10 +149,20 @@ export function WallPostInteractions({
       );
       if (kind === "reply") {
         setText("");
+        uploaded.current = null;
+        setFile(null);
+        setPreview("");
+        setGif("");
         replyId.current = null;
         setStatus("Reply published");
       }
-      if (kind === "remove") setStatus("Reply deleted");
+      if (kind === "remove") {
+        setStatus("Reply deleted");
+        const path =
+          next.deletedMediaPath ??
+          activity.items.find(item => item.id === id && item.isMe)?.mediaPath;
+        if (path) void discard(path);
+      }
     } catch (reason) {
       if (version === sequence.current) {
         setActivity(null);
@@ -221,6 +287,23 @@ export function WallPostInteractions({
           {status}
         </p>
       )}
+      {!!cleanup.length && (
+        <div className="yk-post-error" role="alert">
+          <p>
+            A removed attachment couldn&apos;t be cleaned up. Your reply is
+            safe.
+          </p>
+          <Button
+            variant="secondary"
+            disabled={busy}
+            onClick={() => {
+              for (const path of cleanup) void discard(path);
+            }}
+          >
+            Retry file cleanup
+          </Button>
+        </div>
+      )}
       {open && (
         <div id={`${fieldId}-thread`} className="yk-post-thread">
           <div className="yk-thread-heading">
@@ -249,11 +332,53 @@ export function WallPostInteractions({
                 replyId.current = null;
               }}
             />
-            <div>
+            {(preview || gif) && (
+              <figure className="yk-reply-attachment">
+                <img src={preview || gif} alt="Reply attachment preview" />
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => changeAttachment(null)}
+                >
+                  Remove attachment
+                </button>
+              </figure>
+            )}
+            <div className="yk-reply-media-actions">
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={busy}
+                onClick={() => fileInput.current?.click()}
+              >
+                Add image
+              </Button>
+              <input
+                ref={fileInput}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                aria-label="Reply image"
+                hidden
+                disabled={busy}
+                onChange={event => {
+                  const next = event.target.files?.[0];
+                  if (next) changeAttachment(next);
+                }}
+              />
+              <GifPicker
+                disabled={busy}
+                onSelect={choice => changeAttachment(null, choice.url)}
+              />
+            </div>
+            <p className="yk-post-status">
+              One image or GIF per reply · Up to 6 MB. Visibility follows the
+              post and your profile settings.
+            </p>
+            <div className="yk-reply-submit">
               <span>{text.length}/1000</span>
               <Button
                 type="submit"
-                disabled={busy || !activity || !text.trim()}
+                disabled={busy || !activity || (!text.trim() && !file && !gif)}
               >
                 {busy ? "Sending…" : "Send reply"}
               </Button>
@@ -286,7 +411,24 @@ export function WallPostInteractions({
                     })}
                   </time>
                 </header>
-                <p>{reply.text}</p>
+                {reply.text && <p>{reply.text}</p>}
+                {(reply.hasMedia || reply.gifUrl) && (
+                  <img
+                    className="yk-reply-media"
+                    loading="lazy"
+                    src={
+                      reply.hasMedia
+                        ? (reply.previewUrl ??
+                          `/api/profile-wall/reply-media/${encodeURIComponent(reply.id)}`)
+                        : reply.gifUrl!
+                    }
+                    alt={
+                      reply.hasMedia
+                        ? "Image attached to reply"
+                        : "GIF attached to reply"
+                    }
+                  />
+                )}
                 {reply.isMe && (
                   <button
                     type="button"

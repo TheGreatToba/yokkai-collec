@@ -121,12 +121,19 @@ export function HomeFriendFeedPreview() {
         state.set(post, value);
         return value;
       },
-      reply: async (post, id, text) => {
+      upload: async file => URL.createObjectURL(file),
+      discard: async path => {
+        if (path.startsWith("blob:")) URL.revokeObjectURL(path);
+      },
+      reply: async (post, id, text, attachment) => {
         const value = await read(post);
         if (!value.items.some(item => item.id === id)) {
           value.items.unshift({
             id,
             text,
+            hasMedia: !!attachment?.mediaPath,
+            previewUrl: attachment?.mediaPath ?? undefined,
+            gifUrl: attachment?.gifUrl ?? null,
             createdAt: new Date().toISOString(),
             isMe: true,
             author: posts[2].author
@@ -172,7 +179,12 @@ export function HomeFriendFeedPreview() {
         return post;
       },
       upload: async (_file, ownerId) => `${ownerId}/preview.png`,
-      remove: async () => null,
+      remove: async id => {
+        if (failPublish)
+          throw new Error("Couldn't delete this post. Please try again.");
+        ownPosts.current = ownPosts.current.filter(post => post.id !== id);
+        return null;
+      },
       discard: async () => {}
     }),
     [failPublish]
