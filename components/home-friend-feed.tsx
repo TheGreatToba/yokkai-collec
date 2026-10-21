@@ -7,7 +7,6 @@ import { Avatar, Button, Modal } from "@/components/ui";
 import { StyledPlayerName } from "@/components/styled-player-name";
 import { ProfileWall } from "@/components/profile-wall";
 import { liveWall, type WallAdapter } from "@/lib/data/profile-wall";
-import { WallPostInteractions } from "@/components/wall-post-interactions";
 import type { WallInteractions } from "@/lib/data/wall-interactions";
 import {
   appendFeedPage,
@@ -23,7 +22,6 @@ export function HomeFriendFeed({
   initialError = "",
   viewer,
   wallAdapter,
-  interactions,
   load = getFriendFeed
 }: {
   initial: FriendFeedPage;
@@ -103,10 +101,6 @@ export function HomeFriendFeed({
     const scroll = (event: WheelEvent) => {
       if (event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY))
         return;
-      const post = (event.target as Element).closest<HTMLElement>(
-        ".yk-feed-post"
-      );
-      if (post && post.scrollHeight > post.clientHeight) return;
       if (strip.scrollWidth <= strip.clientWidth || !event.deltaY) return;
       event.preventDefault();
       strip.scrollLeft +=
@@ -309,25 +303,34 @@ export function HomeFriendFeed({
                     </button>
                   )}
                 </header>
+                <Link
+                  href={wall}
+                  className="yk-feed-media-preview"
+                  aria-label={`View ${post.author.name}'s wall post`}
+                >
+                  {post.hasMedia || post.gifUrl ? (
+                    <img
+                      src={
+                        post.hasMedia
+                          ? `/api/profile-wall/media/${post.id}`
+                          : post.gifUrl!
+                      }
+                      alt={
+                        post.gifUrl
+                          ? "GIF shared on a wall"
+                          : "Image shared on a wall"
+                      }
+                      loading="lazy"
+                      decoding="async"
+                      className="yk-feed-media"
+                    />
+                  ) : (
+                    <span className="yk-feed-no-media" aria-hidden="true">
+                      ✦
+                    </span>
+                  )}
+                </Link>
                 {post.text && <p className="yk-feed-text">{post.text}</p>}
-                {(post.hasMedia || post.gifUrl) && (
-                  <img
-                    src={
-                      post.hasMedia
-                        ? `/api/profile-wall/media/${post.id}`
-                        : post.gifUrl!
-                    }
-                    alt={
-                      post.gifUrl
-                        ? "GIF shared on a wall"
-                        : "Image shared on a wall"
-                    }
-                    loading="lazy"
-                    decoding="async"
-                    className="yk-feed-media"
-                  />
-                )}
-                <WallPostInteractions postId={post.id} adapter={interactions} />
                 <Link href={wall} className="yk-feed-wall-link">
                   View wall <span aria-hidden="true">↗</span>
                 </Link>

@@ -14,7 +14,7 @@ import type {
 const posts: FriendFeedPost[] = [
   {
     id: "sample-1",
-    text: "Finally completed my Jujutsu Kaisen binder! That last card was worth the wait. ✨",
+    text: "Finally completed my Jujutsu Kaisen binder! That last card was worth the wait. ✨ Thanks to everyone who helped with trades along the way. I still have a few duplicates to share, and I am already planning my next binder. Visit my wall to see the full update and tell me what you are collecting next.",
     hasMedia: false,
     gifUrl: null,
     createdAt: "2026-10-20T18:45:00Z",

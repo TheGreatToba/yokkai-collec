@@ -184,3 +184,21 @@ test("home composer is behind a closed native Add post disclosure", () => {
     /<details[^>]*>[\s\S]*data-wall-composer="true"[\s\S]*<\/details>/
   );
 });
+
+test("wall previews put media before the excerpt and omit full interaction controls", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(HomeFriendFeed, {
+      initial: { items: [post], next: null }
+    })
+  );
+  assert.ok(
+    html.indexOf("yk-feed-media-preview") < html.indexOf("yk-feed-text")
+  );
+  assert.doesNotMatch(html, /data-post-activity=/);
+  assert.match(html, /yk-feed-wall-link/);
+  const css = readFileSync("styles/friend-feed.css", "utf8");
+  const text = css.match(/\.yk-feed-text\s*\{([^}]+)\}/)[1];
+  assert.match(text, /-webkit-line-clamp:\s*3/);
+  assert.match(text, /overflow:\s*hidden/);
+  assert.match(text, /text-overflow:\s*ellipsis/);
+});
