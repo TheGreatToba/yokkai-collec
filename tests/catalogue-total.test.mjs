@@ -104,4 +104,8 @@ test("desktop catalogue aligns its results with the filter panel, below the coun
     css,
     /\.yk-catalogue-title ~ \.yk-collection-main \.yk-catalogue-heading\s*\{[^}]*bottom:\s*calc\(100% \+ var\(--layout-gutter\)\)/
   );
+  assert.match(
+    css,
+    /\.yk-catalogue-title ~ \.yk-collection-main > \.yk-empty-state\s*\{[^}]*margin-top:\s*0/
+  );
 });
