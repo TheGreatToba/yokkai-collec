@@ -1200,14 +1200,27 @@
   top: var(--layout-gutter-compact);
   left: var(--layout-gutter-compact);
 }
-.yk-pack-info {
+.yk-pack-info-trigger {
   position: absolute;
-  z-index: 3;
+  z-index: 5;
   top: var(--layout-gutter-compact);
   right: var(--layout-gutter-compact);
+}
+.yk-pack-info-popover {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: min(300px, calc(100vw - 80px));
+  padding: var(--layout-gutter-compact);
+  border: 1px solid var(--color-veil-strong);
+  border-radius: var(--radius-panel);
+  background: var(--color-night);
+  box-shadow: var(--shadow-card);
+}
+.yk-pack-info {
   display: grid;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   place-items: center;
   border: 1px solid var(--color-veil-strong);
   border-radius: 50%;

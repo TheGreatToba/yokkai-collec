@@ -551,7 +551,7 @@ export function BoosterReveal({
             >
               {i < revealed ? (
                 <>
-                  <button
+              <button
                     type="button"
                     disabled={
                       confirming ||
@@ -1170,6 +1170,37 @@ export function Boosters({
       openingStage.current?.focus({ preventScroll: true });
   }, [openingPhase]);
   const shownRates = ratesKind === "decision" ? decisionDropRates : dropRates;
+  const rateDetails = <>
+        <p className="text-sm leading-6 text-ink-2">
+          {ratesKind === "decision"
+            ? "Reveal 5 cards and choose one to keep — with boosted drop rates."
+            : "Open a Regular Pack and add all 5 cards to your collection."}
+        </p>
+        <p className="mt-4 text-sm text-ink-2">
+          Chance for each card revealed.
+        </p>
+        <dl className="yk-drop-rates">
+          {shownRates.map(rate => (
+            <div key={rate.rarity}>
+              <dt>{rate.rarity}</dt>
+              <dd>
+                {rate.percent.toLocaleString("en-US", {
+                  maximumFractionDigits: 2
+                })}
+                %
+              </dd>
+            </div>
+          ))}
+        </dl>
+        <p className="yk-drop-shiny">
+          An LR card then has a{" "}
+          <strong>
+            {shinyRate.toLocaleString("en-US", { maximumFractionDigits: 2 })}%
+          </strong>{"  "}
+          chance of being Shiny.
+        </p>
+
+  </>;
   return (
     <>
       {opening ? (
@@ -1307,17 +1338,23 @@ export function Boosters({
             <div className="yk-pack-art-stage">
               <span className="yk-pack-aura" aria-hidden="true" />
               <span className="yk-pack-floor" aria-hidden="true" />
-              <button
+              <div className="yk-pack-info-trigger" onMouseEnter={() => setRatesKind("regular")} onMouseLeave={() => setRatesKind(null)} onKeyDown={event => { if(event.key === "Escape") { event.stopPropagation(); setRatesKind(null); } }}>
+<button
                 type="button"
                 className="yk-pack-info"
                 aria-label="View Regular Pack drop rates"
                 onClick={() => setRatesKind("regular")}
+                onFocus={() => setRatesKind("regular")}
+                onBlur={() => setRatesKind(null)}
+                aria-describedby={ratesKind === "regular" ? "regular-drop-rates" : undefined}
               >
                 <svg aria-hidden="true" viewBox="0 0 24 24">
                   <circle cx="12" cy="12" r="9" />
                   <path d="M12 11v6M12 7h.01" />
                 </svg>
               </button>
+{ratesKind === "regular" && <div id="regular-drop-rates" role="tooltip" className="yk-pack-info-popover">{rateDetails}</div>}
+</div>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/assets/chrome-regular-booster-v1.png" alt="Yokkai Collec’ Regular Pack"
@@ -1398,17 +1435,23 @@ export function Boosters({
             <div className="yk-pack-art-stage">
               <span className="yk-pack-aura" aria-hidden="true" />
               <span className="yk-pack-floor" aria-hidden="true" />
-              <button
+              <div className="yk-pack-info-trigger" onMouseEnter={() => setRatesKind("decision")} onMouseLeave={() => setRatesKind(null)} onKeyDown={event => { if(event.key === "Escape") { event.stopPropagation(); setRatesKind(null); } }}>
+<button
                 type="button"
                 className="yk-pack-info"
                 aria-label="View Decision Pack drop rates"
                 onClick={() => setRatesKind("decision")}
+                onFocus={() => setRatesKind("decision")}
+                onBlur={() => setRatesKind(null)}
+                aria-describedby={ratesKind === "decision" ? "decision-drop-rates" : undefined}
               >
                 <svg aria-hidden="true" viewBox="0 0 24 24">
                   <circle cx="12" cy="12" r="9" />
                   <path d="M12 11v6M12 7h.01" />
                 </svg>
               </button>
+{ratesKind === "decision" && <div id="decision-drop-rates" role="tooltip" className="yk-pack-info-popover">{rateDetails}</div>}
+</div>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/assets/chrome-decision-booster-v1.png" alt="Decision Pack"
@@ -1478,40 +1521,7 @@ export function Boosters({
         </div>
       )}
       {!opening && !revealing && <ReferralReminder packChoices />}
-      <Modal
-        open={ratesKind !== null}
-        onClose={() => setRatesKind(null)}
-        title={`${ratesKind === "decision" ? "Decision Pack" : "Regular Pack"} drop rates`}
-      >
-        <p className="text-sm leading-6 text-ink-2">
-          {ratesKind === "decision"
-            ? "Reveal 5 cards and choose one to keep — with boosted drop rates."
-            : "Open a Regular Pack and add all 5 cards to your collection."}
-        </p>
-        <p className="mt-4 text-sm text-ink-2">
-          Chance for each card revealed.
-        </p>
-        <dl className="yk-drop-rates">
-          {shownRates.map(rate => (
-            <div key={rate.rarity}>
-              <dt>{rate.rarity}</dt>
-              <dd>
-                {rate.percent.toLocaleString("en-US", {
-                  maximumFractionDigits: 2
-                })}
-                %
-              </dd>
-            </div>
-          ))}
-        </dl>
-        <p className="yk-drop-shiny">
-          An LR card then has a{" "}
-          <strong>
-            {shinyRate.toLocaleString("en-US", { maximumFractionDigits: 2 })}%
-          </strong>{"  "}
-          chance of being Shiny.
-        </p>
-      </Modal>
+
     </>
   );
 }
