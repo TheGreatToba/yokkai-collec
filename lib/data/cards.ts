@@ -7,6 +7,11 @@ export type Rarity = "C" | "R" | "SR" | "SSR" | "LR";
 export type Category = string;
 export type Card = { id: string; name: string; category: Category; anime?: string; liveFranchise?: boolean; rarity: Rarity; image: string; wishlisted?: boolean };
 export type CataloguePage = { cards: Card[]; total: number };
+export type CatalogueFilterCounts = {
+  total: number;
+  rarities: Partial<Record<Rarity, number>>;
+  categories: Record<string, number>;
+};
 type CatalogueSearchPage = { items: Card[]; total: number };
 export type LicenseCatalogueTotal = { license: string; total: number };
 export type PaniniAlbumProgress = LicenseCatalogueTotal & {
@@ -315,6 +320,15 @@ export async function getCataloguePage({ query = "", category = "", rarity = "",
   });
   rows??=((await readPage()).data??[]) as CardRow[];
   return {cards:rows.map(cardFromRow),total};
+}
+
+export async function getCatalogueFilterCounts(): Promise<CatalogueFilterCounts> {
+  return cache.memo<CatalogueFilterCounts>("catalogue:filter-counts", 30_000, async () => {
+    const { data, error } = await db().rpc("get_catalogue_filter_counts");
+    if (error) throw failure(error);
+    if (!data) throw failure({ message: "CATALOGUE_INCOMPLETE" });
+    return data as CatalogueFilterCounts;
+  });
 }
 
 export async function getGameInfo(): Promise<GameInfo> {

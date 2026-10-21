@@ -363,6 +363,26 @@
 .yk-catalogue-heading .yk-mobile-filter-trigger {
   margin: 0;
 }
+.yk-catalogue-total {
+  padding-block: 8px;
+  color: var(--color-ink);
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.yk-catalogue-filter-count {
+  grid-column: -2;
+  justify-self: end;
+  font-variant-numeric: tabular-nums;
+}
+.yk-catalogue-counts-error {
+  padding: 12px;
+  color: var(--color-ink-2);
+  font-size: 12px;
+}
+.yk-catalogue-counts-error button {
+  text-decoration: underline;
+}
 .yk-catalogue-card {
   display: block;
   width: 100%;

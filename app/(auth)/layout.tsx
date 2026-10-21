@@ -22,10 +22,10 @@ export default async function AuthLayout({
         >
           <Image
             className="yk-auth-brand-image"
-            src="/assets/brand-logo-chrome.png"
+            src="/assets/brand-logo-blue.png"
             alt=""
-            width={1672}
-            height={941}
+            width={1448}
+            height={1086}
             priority
           />
         </Link>
