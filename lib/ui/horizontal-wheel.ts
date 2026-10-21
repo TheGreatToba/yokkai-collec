@@ -67,28 +67,91 @@ export function enableHorizontalWheel(element: HTMLElement) {
   };
 }
 
-// Use the same scroll position for automatic movement and manual navigation.
+// Native transform animation stays smooth between display frames, like the hero.
 export function enableAutomaticScroll(element: HTMLElement) {
+  const track = element.firstElementChild as HTMLElement | null;
+  if (!track) return () => {};
   const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let animation: Animation | null = null;
+  let duration = 0;
+  let distance = 0;
   let resumeAt = 0;
-  const pause = () => {
-    resumeAt = Date.now() + 6000;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const stop = () => {
+    if (!animation) return;
+    const offset =
+      ((Number(animation.currentTime ?? 0) % duration) / duration) * distance;
+    animation.cancel();
+    animation = null;
+    scrollStripBy(element, offset);
   };
-  element.addEventListener("wheel", pause, { passive: true });
-  element.addEventListener("pointerdown", pause);
-  const timer = window.setInterval(() => {
+  const start = () => {
     if (
+      animation ||
       motion.matches ||
       document.hidden ||
-      Date.now() < resumeAt ||
       element.matches(":hover, :focus-within")
     )
       return;
-    scrollStripBy(element, 2);
-  }, 50);
+    const wait = resumeAt - Date.now();
+    if (wait > 0) {
+      clearTimeout(timer);
+      timer = setTimeout(start, wait);
+      return;
+    }
+    distance = periodWidth(element);
+    if (!distance) return;
+    duration = (distance / 40) * 1000;
+    const offset =
+      (((element.scrollLeft - distance) % distance) + distance) % distance;
+    element.scrollLeft = distance;
+    animation = track.animate(
+      [
+        { transform: "translateX(0px)" },
+        { transform: "translateX(-" + distance + "px)" }
+      ],
+      { duration, iterations: Infinity, easing: "linear" }
+    );
+    animation.currentTime = (offset / distance) * duration;
+  };
+  const pause = () => {
+    resumeAt = Date.now() + 6000;
+    stop();
+    clearTimeout(timer);
+    timer = setTimeout(start, 6000);
+  };
+  const update = () => {
+    stop();
+    start();
+  };
+  const leave = () => {
+    clearTimeout(timer);
+    timer = setTimeout(start, 0);
+  };
+  const observer = new ResizeObserver(update);
+  observer.observe(element);
+  const period = element.querySelector("[data-scroll-period]");
+  if (period) observer.observe(period);
+  element.addEventListener("mouseenter", stop);
+  element.addEventListener("mouseleave", leave);
+  element.addEventListener("focusin", stop);
+  element.addEventListener("focusout", leave);
+  element.addEventListener("wheel", pause, { passive: true });
+  element.addEventListener("pointerdown", pause);
+  document.addEventListener("visibilitychange", update);
+  motion.addEventListener("change", update);
+  start();
   return () => {
-    window.clearInterval(timer);
+    stop();
+    clearTimeout(timer);
+    observer.disconnect();
+    element.removeEventListener("mouseenter", stop);
+    element.removeEventListener("mouseleave", leave);
+    element.removeEventListener("focusin", stop);
+    element.removeEventListener("focusout", leave);
     element.removeEventListener("wheel", pause);
     element.removeEventListener("pointerdown", pause);
+    document.removeEventListener("visibilitychange", update);
+    motion.removeEventListener("change", update);
   };
 }
