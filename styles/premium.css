@@ -8,6 +8,30 @@
   color: #efedf8;
   font-family: var(--font-sans);
 }
+/* A soft bloom on display type only: body copy and controls stay crisp. */
+.yk-premium-page
+  :is(
+    .yk-premium-copy h1,
+    .yk-pro-showcase-heading h2,
+    .yk-pro-banner-copy h2,
+    .yk-pro-profile-heading h2,
+    .yk-pro-comparison h2,
+    .yk-premium-faq h2
+  ) {
+  text-shadow: 0 0 24px #efedf81f;
+}
+.yk-premium-page
+  :is(.yk-premium-copy h1, .yk-pro-banner-copy h2, .yk-pro-profile-heading h2)
+  em {
+  text-shadow:
+    0 0 18px color-mix(in srgb, currentColor 30%, transparent),
+    0 0 44px color-mix(in srgb, currentColor 14%, transparent);
+}
+@media (prefers-contrast: more), (forced-colors: active) {
+  .yk-premium-page :is(h1, h2, h1 em, h2 em) {
+    text-shadow: none !important;
+  }
+}
 .yk-premium-nav {
   max-width: 1440px;
   margin: auto;
