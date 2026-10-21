@@ -57,36 +57,16 @@ export function PremiumOffer({
             own.
           </p>
           <div className="yk-premium-hero-actions">
-            <a href="#membership" className="yk-button yk-button-primary">
-              Get Yokkai Pro <span aria-hidden="true">↗</span>
-            </a>
+            <PremiumCheckout signedIn={signedIn} billing={billing} />
             <a href="#plan-comparison" className="yk-pro-compare-button">
               Compare Basic and Pro <span aria-hidden="true">↓</span>
             </a>
-          </div>
-          <p className="yk-pro-hero-price">
-            €4.99 / month · Cancel from your account settings.
-          </p>
-          <div className="yk-pro-hero-reassurance">
-            <span>
-              <span aria-hidden="true">✦</span> Custom artwork & GIFs
-            </span>
-            <span>Same rarity odds for everyone</span>
           </div>
         </div>
         <div
           className="yk-pro-hero-showcase"
           aria-label="Preview of Pro pack benefits"
         >
-          <div className="yk-pro-showcase-chrome">
-            <span className="yk-pro-window-dots" aria-hidden="true">
-              <i />
-              <i />
-              <i />
-            </span>
-            <span>YOUR COLLECTION, UPGRADED</span>
-            <span className="yk-pro-window-badge">PRO</span>
-          </div>
           <div className="yk-pro-showcase-heading">
             <p className="eyebrow">More chances. More favorites.</p>
             <h2>Your next great pull.</h2>
@@ -96,9 +76,9 @@ export function PremiumOffer({
               <Image
                 src="/assets/chrome-regular-booster-v1.png"
                 alt="Regular Pack"
-                width={108}
-                height={192}
-                sizes="(max-width: 600px) 80px, 108px"
+                width={160}
+                height={284}
+                sizes="(max-width: 600px) 96px, 160px"
                 className="yk-pro-pack-image"
               />
               <div className="yk-pro-pack-copy">
@@ -120,9 +100,9 @@ export function PremiumOffer({
               <Image
                 src="/assets/chrome-decision-booster-v1.png"
                 alt="Decision Pack"
-                width={108}
-                height={192}
-                sizes="(max-width: 600px) 80px, 108px"
+                width={160}
+                height={284}
+                sizes="(max-width: 600px) 96px, 160px"
                 className="yk-pro-pack-image"
               />
               <div className="yk-pro-pack-copy">
@@ -260,20 +240,6 @@ export function PremiumOffer({
           once. Unused packs do not carry over. Rarity odds per card stay the
           same for everyone.
         </p>
-      </section>
-      <section
-        className="yk-pro-membership-section"
-        aria-labelledby="membership-section-title"
-      >
-        <div>
-          <p className="eyebrow">Make it Pro</p>
-          <h2 id="membership-section-title">Your next chapter starts here.</h2>
-          <p>
-            More packs to open. More cards to make your own. One membership,
-            with your subscription managed from your account settings.
-          </p>
-        </div>
-        <PremiumCheckout signedIn={signedIn} billing={billing} />
       </section>
       <section className="yk-premium-faq">
         <h2>A few things worth knowing.</h2>

@@ -88,8 +88,15 @@
   letter-spacing: -0.055em;
 }
 .yk-pro-offer-hero .yk-premium-hero-actions {
+  align-items: flex-start;
+  flex-direction: column;
   gap: 12px;
   margin-top: 28px;
+}
+.yk-pro-offer-hero .yk-premium-hero-actions > .yk-premium-price-card {
+  width: 100%;
+  max-width: 500px;
+  scroll-margin-top: 30px;
 }
 .yk-pro-offer-hero .yk-premium-hero-actions > a {
   display: inline-flex;
@@ -115,60 +122,12 @@
   outline: 2px solid var(--plus-accent);
   outline-offset: 4px;
 }
-.yk-pro-hero-price {
-  margin-top: 12px;
-  color: #a4abba;
-  font-size: 11px;
-  line-height: 1.7;
-}
-.yk-pro-hero-reassurance {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px 18px;
-  margin-top: 24px;
-  color: #a4b1c9;
-  font-size: 11px;
-  line-height: 1.7;
-}
-.yk-pro-hero-reassurance > span > span {
-  margin-right: 5px;
-  color: #c4d8ff;
-}
 .yk-pro-hero-showcase {
   min-width: 0;
-  overflow: hidden;
-  border: 1px solid #a8c7f530;
-  border-radius: 18px;
-  background: #060913;
-  box-shadow: 0 24px 70px #00000030;
-}
-.yk-pro-showcase-chrome {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px 20px;
-  border-bottom: 1px solid #a8c7f514;
-  color: #a4b1c9;
-  font-size: 8px;
-  letter-spacing: 0.14em;
-}
-.yk-pro-window-dots {
-  display: flex;
-  flex-shrink: 0;
-  gap: 5px;
-}
-.yk-pro-window-dots i {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #a8c7f530;
-}
-.yk-pro-window-badge {
-  padding: 4px 7px;
-  border: 1px solid #a8c7f52b;
-  border-radius: 5px;
-  color: #c4d8ff;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 .yk-pro-showcase-heading {
   padding: 28px 24px 0;
@@ -186,30 +145,6 @@
   font-size: 10px;
   line-height: 1.7;
   text-align: center;
-}
-.yk-pro-membership-section {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  align-items: center;
-  gap: 70px;
-  padding: 64px 0;
-  border-top: 1px solid #ffffff10;
-}
-.yk-pro-membership-section h2 {
-  margin: 16px 0;
-  font-size: clamp(28px, 3vw, 42px);
-  font-weight: 650;
-  letter-spacing: -0.035em;
-  line-height: 1.15;
-}
-.yk-pro-membership-section > div > p:last-child {
-  max-width: 390px;
-  color: #a4abba;
-  font-size: 14px;
-  line-height: 1.8;
-}
-.yk-pro-membership-section #membership {
-  scroll-margin-top: 30px;
 }
 .yk-premium-copy h1 {
   font-family: var(--font-display);
@@ -251,14 +186,15 @@
   align-items: center;
   gap: 14px;
   padding: 18px 14px;
-  border: 1px solid #a8c7f52b;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #a8c7f50d, #060913);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   text-align: center;
 }
 .yk-pro-card-gains .yk-pro-pack-image {
-  width: 108px;
-  height: 192px;
+  width: 160px;
+  max-width: 100%;
+  height: 284px;
   margin-inline: auto;
   object-fit: contain;
   filter: drop-shadow(0 5px 14px #8dadff28);
@@ -310,9 +246,6 @@
     max-width: 640px;
     justify-self: center;
   }
-  .yk-pro-membership-section {
-    gap: 30px;
-  }
 }
 @media (max-width: 600px) {
   .yk-pro-card-gains {
@@ -323,14 +256,8 @@
     padding: 16px 10px;
   }
   .yk-pro-card-gains .yk-pro-pack-image {
-    width: 80px;
-    height: 142px;
-  }
-  .yk-pro-showcase-chrome {
-    padding: 12px 14px;
-    gap: 8px;
-    font-size: 7px;
-    letter-spacing: 0.06em;
+    width: 96px;
+    height: 171px;
   }
   .yk-pro-showcase-heading {
     padding: 22px 18px 0;
@@ -343,10 +270,6 @@
   }
   .yk-pro-offer-hero .yk-premium-hero-actions > a {
     padding: 12px 17px;
-  }
-  .yk-pro-membership-section {
-    grid-template-columns: minmax(0, 1fr);
-    padding: 44px 0;
   }
 }
 .yk-premium-tags {
