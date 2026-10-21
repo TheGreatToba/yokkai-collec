@@ -32,6 +32,11 @@ const CollectionView = dynamic(
   { loading: () => <p role="status">Loading collection…</p> }
 );
 
+const LocalLrCinematic = dynamic(
+  () => import("@/components/local-lr-cinematic").then(module => module.LocalLrCinematic),
+  { loading: () => <p role="status">Loading cinematic…</p> }
+);
+
 export type RevealCard = Card & {
   instanceId: string;
   shiny?: boolean;
@@ -226,6 +231,11 @@ export function BoosterReveal({
     const isLR = current.rarity === "LR";
     const isSSR = current.rarity === "SSR";
     const shiny = current.shiny && (isSSR || isLR);
+    if (process.env.NODE_ENV === "development" && isLR) {
+      setSpot(current);
+      onSound?.(shiny ? "shiny" : "lr");
+      return;
+    }
     const revealDuration = isLR
       ? 4400
       : isSSR
@@ -755,6 +765,12 @@ export function BoosterReveal({
             <Button variant="secondary" onClick={onReturn}>
               Back to packs
             </Button>
+            {process.env.NODE_ENV === "development" &&
+              cards.filter(card => card.rarity === "LR").map(card => (
+                <Button key={card.instanceId} variant="secondary" onClick={() => setSpot(card)}>
+                  Replay cinematic: {card.name}
+                </Button>
+              ))}
           </div>
         </div>
       )}
@@ -762,9 +778,11 @@ export function BoosterReveal({
         open={!!spot}
         onClose={() => setSpot(null)}
         title={spot?.shiny ? "✦ Shiny Summon ✦" : "Legendary summon"}
-        className={`yk-invocation ${spot?.shiny ? "yk-invocation-shiny" : ""}`}
+        className={`yk-invocation ${spot?.shiny ? "yk-invocation-shiny" : ""} ${process.env.NODE_ENV === "development" && spot?.rarity === "LR" ? "yk-lr-file-modal" : ""}`}
       >
-        {spot && (
+        {spot && process.env.NODE_ENV === "development" && spot.rarity === "LR" ? (
+          <LocalLrCinematic card={spot} onContinue={() => setSpot(null)} />
+        ) : spot && (
           <div className="relative z-10 flex flex-col items-center gap-6">
             <div className="yk-invoked-card">
               <YokaiCard {...spot} />

@@ -1,0 +1,96 @@
+.yk-lr-preview {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 320px;
+  overflow: hidden;
+  isolation: isolate;
+  background: #080705;
+}
+
+.yk-lr-preview iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.yk-lr-preview-controls {
+  position: absolute;
+  z-index: 2;
+  right: 12px;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  left: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.yk-lr-preview-controls .yk-button {
+  background: #0b1424;
+  box-shadow: 0 4px 24px #0009;
+}
+
+.yk-lr-preview-status {
+  position: absolute;
+  inset: 35% 16px auto;
+  text-align: center;
+}
+
+.yk-invocation.yk-lr-file-modal {
+  background: #080705;
+}
+
+.yk-invocation.yk-lr-file-modal::before {
+  display: none;
+}
+
+.yk-invocation.yk-lr-file-modal > .yk-lr-preview {
+  position: absolute;
+  inset: 0;
+  max-height: none;
+  overflow: hidden;
+}
+
+.yk-invocation.yk-lr-file-modal > div:first-child {
+  z-index: 3;
+}
+
+.yk-lr-demo {
+  width: 100%;
+  padding: 16px;
+}
+
+.yk-lr-demo > header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.yk-lr-demo h1 {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.yk-lr-demo p {
+  color: var(--ink-2, #bbc6dc);
+  font-size: 14px;
+}
+
+.yk-lr-demo > .yk-lr-preview {
+  height: max(540px, calc(100dvh - 140px));
+  border: 1px solid #34445f;
+  border-radius: 16px;
+}
+
+@media (max-height: 540px) {
+  .yk-lr-preview-controls .yk-button {
+    min-height: 32px;
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
