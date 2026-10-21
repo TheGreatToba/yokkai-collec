@@ -4,9 +4,12 @@ import { createHash } from "node:crypto";
 
 // Each approved asset retains its exact dimensions; unknown logos are rejected.
 export function assertBrandLogo(source) {
-  const blue = source.includes('src="/assets/brand-logo-blue.png"');
-  const name = blue ? "blue" : "chrome";
-  const [width, height] = blue ? [1448, 1086] : [1672, 941];
+  const match = source.match(
+    /src="\/assets\/brand-logo-(chrome|blue|ice-retro)\.png"/
+  );
+  assert.ok(match, "An approved brand asset must be rendered");
+  const name = match[1];
+  const [width, height] = name === "blue" ? [1448, 1086] : [1672, 941];
   const png = readFileSync(`public/assets/brand-logo-${name}.png`);
   assert.deepEqual(
     png.subarray(0, 8),
@@ -14,11 +17,13 @@ export function assertBrandLogo(source) {
   );
   assert.equal(png.readUInt32BE(16), width);
   assert.equal(png.readUInt32BE(20), height);
-  if (blue)
-    assert.equal(
-      createHash("sha256").update(png).digest("hex"),
-      "f3db5d151dd146ef34bcb4a31fef32280998f7175a3018c9e4b1bcd044478bce"
-    );
+  const hashes = {
+    blue: "f3db5d151dd146ef34bcb4a31fef32280998f7175a3018c9e4b1bcd044478bce",
+    "ice-retro":
+      "35d3805bb96fa6c4a039f51cefdcfa9b1a15e5115322f4fca8c37cc596e560d2"
+  };
+  if (hashes[name])
+    assert.equal(createHash("sha256").update(png).digest("hex"), hashes[name]);
   assert.match(
     source,
     new RegExp(
