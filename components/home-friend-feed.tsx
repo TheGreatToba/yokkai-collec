@@ -97,6 +97,30 @@ export function HomeFriendFeed({
     };
   }, [reload]);
 
+  useEffect(() => {
+    const strip = timeline.current;
+    if (!strip) return;
+    const scroll = (event: WheelEvent) => {
+      if (event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY))
+        return;
+      const post = (event.target as Element).closest<HTMLElement>(
+        ".yk-feed-post"
+      );
+      if (post && post.scrollHeight > post.clientHeight) return;
+      if (strip.scrollWidth <= strip.clientWidth || !event.deltaY) return;
+      event.preventDefault();
+      strip.scrollLeft +=
+        event.deltaY *
+        (event.deltaMode === 1
+          ? 16
+          : event.deltaMode === 2
+            ? strip.clientWidth
+            : 1);
+    };
+    strip.addEventListener("wheel", scroll, { passive: false });
+    return () => strip.removeEventListener("wheel", scroll);
+  }, []);
+
   async function more() {
     if (pending.current || !page.next) return;
     pending.current = true;
@@ -187,7 +211,7 @@ export function HomeFriendFeed({
             composerOnly
             adapter={wallAdapter}
             onPublished={() => {
-              timeline.current?.scrollTo({ top: 0 });
+              timeline.current?.scrollTo({ left: 0, top: 0 });
               void reload();
             }}
           />

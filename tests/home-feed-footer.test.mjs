@@ -72,3 +72,15 @@ test("the bounded timeline scrolls independently and the footer has its own non-
   assert.match(footerRule, /background:\s*linear-gradient\(/);
   assert.doesNotMatch(footerRule, /position:\s*(?:absolute|fixed|sticky)/);
 });
+
+test("posts form one horizontal row with bounded individually readable cards", () => {
+  const css = readFileSync("styles/friend-feed.css", "utf8");
+  const strip = css.match(/\.yk-feed-timeline\s*\{([^}]+)\}/)[1];
+  const post = css.match(/\.yk-feed-post\s*\{([^}]+)\}/)[1];
+  assert.match(strip, /display:\s*flex/);
+  assert.match(strip, /overflow-x:\s*auto/);
+  assert.match(post, /flex:\s*0 0 min\(380px, 90%\)/);
+  assert.match(post, /max-height:\s*420px/);
+  assert.match(post, /overflow-y:\s*auto/);
+  assert.match(post, /overscroll-behavior-y:\s*contain/);
+});
