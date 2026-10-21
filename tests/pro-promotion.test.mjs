@@ -25,6 +25,13 @@ function load(file, mocks = {}, globals = {}) {
       require: name => {
         if (name in mocks) return mocks[name];
         if (name.endsWith(".css")) return {};
+        if (name === "@/components/ui")
+          return {
+            Button: ({ children, ...props }) =>
+              React.createElement("button", props, children),
+            Modal: ({ open, children }) =>
+              open ? React.createElement("div", null, children) : null
+          };
         if (name === "next/link")
           return {
             __esModule: true,
@@ -297,13 +304,14 @@ test("integration reuses membership request and only advertises on Home and Boos
     readFileSync("components/pro-promotion.tsx", "utf8"),
     /fetch\(|checkout|createClient/
   );
-  const game = readFileSync("components/game.tsx", "utf8");
-  assert.match(
-    game.replace(/\s+/g, " "),
-    /view === "packs" && status\?\.available === 0 && decisionStatus && !decisionStatus\.available && decisionStatus\.pending\.length === 0 && \( <ProPromotion page="packs" dismissible=\{false\} compact \/> \)/
+  const boosters = readFileSync("components/boosters.tsx", "utf8");
+  assert.doesNotMatch(
+    readFileSync("components/game.tsx", "utf8"),
+    /<ProPromotion/
   );
-  assert.ok(
-    game.indexOf('<ProPromotion page="packs"') > game.indexOf("<Boosters")
+  assert.match(
+    boosters.replace(/\s+/g, " "),
+    /!opening && !revealing && status\?\.available === 0/
   );
   const topbar = readFileSync("components/topbar.tsx", "utf8");
   assert.match(
@@ -421,8 +429,7 @@ test("membership status distinguishes Basic, Pro without profile style, and unav
 test("empty pack promotion is a single compact Pro link without a banner or close action", () => {
   const s = harness(false);
   const html = renderToStaticMarkup(s.render(true, false, true));
-  assert.equal((html.match(/href="\/premium"/g) || []).length, 1);
-  assert.match(html, /More boosters/);
-  assert.doesNotMatch(html, /yk-pro-promo|<aside|<button/);
+  assert.match(html, /<button[^>]*>Get more packs<\/button>/);
+  assert.doesNotMatch(html, /yk-pro-promo|<aside/);
   assert.equal(harness(true).render(true, false, true), null);
 });

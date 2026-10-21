@@ -1,4 +1,5 @@
 "use client";
+import { ProPromotion } from "@/components/pro-promotion";
 import { packCopySnapshot, packCopyLabels } from "@/lib/ui/pack-opening";
 
 import Link from "next/link";
@@ -1476,6 +1477,7 @@ export function Boosters({
           </article>
         </div>
       )}
+      <ProPromotion page="packs" dismissible={false} compact enabled={!opening && !revealing && status?.available === 0 && !!decisionStatus && !decisionStatus.available && decisionStatus.pending.length === 0} />
       <Modal
         open={ratesKind !== null}
         onClose={() => setRatesKind(null)}

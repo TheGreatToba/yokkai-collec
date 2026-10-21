@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Button, Modal } from "@/components/ui";
 import { useEffect, useState } from "react";
 import { useProMembershipStatus } from "@/components/pro-access";
 import {
@@ -92,6 +93,7 @@ export function ProPromotion({
   page?: "home" | "packs";
 }) {
   const membership = useProMembershipStatus();
+  const [choicesOpen, setChoicesOpen] = useState(false);
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     if (!enabled || !dismissible || membership !== false) return;
@@ -142,11 +144,40 @@ export function ProPromotion({
     return null;
   if (compact)
     return (
-      <div className="mt-6 flex justify-center">
-        <Link href="/premium" className="yk-button yk-button-secondary">
-          More boosters
-        </Link>
-      </div>
+      <>
+        <div className="mt-6 flex justify-center">
+          <Button onClick={() => setChoicesOpen(true)}>Get more packs</Button>
+        </div>
+        <Modal
+          open={choicesOpen}
+          onClose={() => setChoicesOpen(false)}
+          title="Get more packs"
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <section className="rounded-panel border border-veil p-5">
+              <h3 className="font-display text-xl">Invite friends</h3>
+              <p className="my-4 text-sm text-ink-2">
+                Earn 5 bonus packs when your friend verifies their email.
+              </p>
+              <Link
+                href="/settings#referrals"
+                className="yk-button yk-button-secondary"
+              >
+                Get invite link
+              </Link>
+            </section>
+            <section className="rounded-panel border border-veil p-5">
+              <h3 className="font-display text-xl">Get Pro</h3>
+              <p className="my-4 text-sm text-ink-2">
+                Refill your packs faster with Yokkai Pro.
+              </p>
+              <Link href="/premium" className="yk-button yk-button-primary">
+                Explore Pro
+              </Link>
+            </section>
+          </div>
+        </Modal>
+      </>
     );
   return (
     <ProPromotionBanner
