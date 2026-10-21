@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { homePresentation } from "./helpers/home-presentation.mjs";
+import { assertBrandLogo } from "./helpers/brand-logo.mjs";
 
 test("chrome logo preserves the supplied PNG dimensions", () => {
   const png = readFileSync("public/assets/brand-logo-chrome.png");
@@ -24,9 +25,18 @@ for (const file of [
       file === "app/page.tsx"
         ? homePresentation().header
         : readFileSync(file, "utf8");
-    assert.match(
-      source,
-      /src="\/assets\/brand-logo-chrome\.png"\s+alt=""\s+width=\{1672\}\s+height=\{941\}/
+    assertBrandLogo(source);
+  });
+}
+
+for (const file of [
+  "components/public-info-page.tsx",
+  "app/premium/page.tsx"
+]) {
+  test(`${file} uses the same approved logo as the navigation`, () => {
+    assert.equal(
+      assertBrandLogo(readFileSync(file, "utf8")),
+      assertBrandLogo(readFileSync("components/topbar.tsx", "utf8"))
     );
   });
 }
