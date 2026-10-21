@@ -22,8 +22,27 @@ const initial = {
   items: [own, { ...own, id: "other", isMe: false, text: "Great card!" }],
   next: null
 };
-function render({ activity = initial, error = "", draft = "" } = {}) {
-  const states = [activity, true, draft, false, error, "", 0];
+function render({
+  activity = initial,
+  error = "",
+  draft = "",
+  file = null,
+  preview = "",
+  gif = ""
+} = {}) {
+  const states = [
+    activity,
+    true,
+    draft,
+    false,
+    error,
+    "",
+    0,
+    file,
+    preview,
+    gif,
+    []
+  ];
   let stateIndex = 0;
   const testModule = { exports: {} };
   const mocks = {
@@ -46,6 +65,9 @@ function render({ activity = initial, error = "", draft = "" } = {}) {
     },
     "@/lib/data/wall-interactions": { liveWallInteractions: {} },
     "@/components/emoji-reaction-picker": { EmojiReactionPicker: () => null },
+    "@/components/gif-picker": {
+      GifPicker: () => React.createElement("button", { type: "button" }, "GIF")
+    },
     "@/lib/ui/reaction-emojis": {
       reactionEmoji: id => ({ label: id, emoji: "🔥" })
     },
@@ -112,4 +134,38 @@ test("emoji reaction chips expose counts and whether the current player has reac
   assert.match(html, /aria-label="fire: 3 reactions" aria-pressed="true"/);
   assert.match(html, /aria-label="heart: 1 reaction" aria-pressed="false"/);
   assert.match(html, /Remove fire reaction/);
+});
+
+test("reply composer supports one image/GIF, removable previews and media-only replies", () => {
+  const html = render({
+    draft: "",
+    gif: "https://media.giphy.com/media/demo/giphy.gif"
+  });
+  assert.match(html, /Add image/);
+  assert.match(html, />GIF</);
+  assert.match(html, /aria-label="Reply image"/);
+  assert.match(html, /accept="image\/jpeg,image\/png,image\/webp,image\/gif"/);
+  assert.match(html, /Reply attachment preview/);
+  assert.match(html, /Remove attachment/);
+  assert.match(html, /Up to 6 MB/);
+  assert.doesNotMatch(html, /type="submit" disabled/);
+  assert.match(render(), /type="submit" disabled/);
+  const replies = render({
+    activity: {
+      ...initial,
+      items: [
+        { ...own, hasMedia: true, mediaPath: "not-exposed" },
+        {
+          ...own,
+          id: "gif-reply",
+          text: "",
+          gifUrl: "https://media.giphy.com/media/demo/giphy.gif"
+        }
+      ]
+    }
+  });
+  assert.match(replies, /src="\/api\/profile-wall\/reply-media\/own"/);
+  assert.match(replies, /GIF attached to reply/);
+  assert.match(replies, /loading="lazy"/);
+  assert.doesNotMatch(replies, /not-exposed/);
 });

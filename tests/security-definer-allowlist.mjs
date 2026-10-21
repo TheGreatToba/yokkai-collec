@@ -1,5 +1,7 @@
 // Exact overloads and roles only. Every addition requires an access justification.
 export const ownerOnly = [
+  "public.guard_wall_media_binding()",
+  "public.build_data_export_without_reply_media(uuid, uuid)",
   "public.notify_wall_post_reply()",
   "public.cleanup_wall_reply_notifications()",
   "public.prepare_account_deletion_without_billing(uuid)",
@@ -13,6 +15,11 @@ export const ownerOnly = [
 ]; // Internal helpers: owning SECURITY DEFINER wrappers/triggers only, never service_role or players.
 
 const allowlist = {
+  "public.publish_wall_post_reply_media(uuid, uuid, text, text, text)": [
+    "authenticated"
+  ], // Same friend/self wall ACL, bounded own reply and rate limits; one validated own private upload or allowlisted GIF. Walid review required.
+  "public.get_wall_reply_media(uuid)": ["authenticated"], // Narrow attachment path only after parent post and reply author live ACL; no table SELECT or service bypass.
+  "public.wall_reply_media_access(text, boolean)": ["authenticated"], // Storage policy predicate: same parent/author ACL for reads, only caller-owned unreferenced reply uploads for deletion.
   "public.get_home_wall_feed(timestamp with time zone, uuid, integer)": [
     "authenticated"
   ], // Home timeline: auth.uid()'s own wall plus accepted friends, same live wall ACL, bans/deletion fences and bounded cursor. Walid review required.

@@ -57,6 +57,7 @@ const { HomeFriendFeed } = load("components/home-friend-feed.tsx", {
       React.createElement("div", { "data-post-activity": postId })
   },
   "@/lib/data/friend-feed": data,
+  "@/lib/data/profile-wall": { liveWall: {} },
   "@/styles/friend-feed.css": {}
 });
 const post = {
@@ -85,6 +86,34 @@ test("feed renders existing posts safely and links directly to the author's Wall
   assert.doesNotMatch(html, /Load older posts/);
   const profile = readFileSync("components/profile.tsx", "utf8");
   assert.match(profile, /searchParams.get\("tab"\) === "wall"/);
+});
+
+test("Home offers a red delete control only on the signed-in player's posts", () => {
+  const own = renderToStaticMarkup(
+    React.createElement(HomeFriendFeed, {
+      initial: { items: [post], next: null },
+      viewer: post.author
+    })
+  );
+  assert.match(own, /class="yk-feed-delete"/);
+  assert.equal((own.match(/Delete post/g) ?? []).length, 1);
+  const other = renderToStaticMarkup(
+    React.createElement(HomeFriendFeed, {
+      initial: { items: [post], next: null },
+      viewer: { ...post.author, id: "someone-else" }
+    })
+  );
+  assert.doesNotMatch(other, /Delete post/);
+  assert.doesNotMatch(
+    renderToStaticMarkup(
+      React.createElement(HomeFriendFeed, {
+        initial: { items: [post], next: null }
+      })
+    ),
+    /Delete post/
+  );
+  const css = readFileSync("styles/friend-feed.css", "utf8");
+  assert.match(css, /\.yk-feed-delete\s*\{[^}]*color:\s*#ff8297/s);
 });
 
 test("empty feed has a useful friend link; bounded pagination is explicit", () => {
