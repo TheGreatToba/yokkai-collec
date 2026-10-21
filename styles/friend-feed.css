@@ -311,7 +311,13 @@
   grid-row: 3;
 }
 
-.yk-home-main .yk-button.yk-feed-refresh {
+.yk-home-main .yk-button.yk-home-panel-action.yk-feed-refresh {
   width: 44px;
   padding: 0;
+}
+
+.yk-feed-refresh > svg {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
 }
