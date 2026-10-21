@@ -1,6 +1,8 @@
 .yk-premium-page {
   --font-heading: var(--font-display);
   min-height: 100dvh;
+  /* Decorative artwork must not enlarge the mobile viewport. */
+  overflow-x: clip;
   background:
     radial-gradient(ellipse at 73% 19%, #20283950, transparent 42%), #080b10;
   color: #efedf8;
