@@ -56,11 +56,18 @@ test("the server starts paused and the client honors reduced motion with a manua
   assert.doesNotMatch(source, /fetch\(|supabase|https:\/\//);
 });
 
-test("Premium keeps the original screenshot as fallback and isolates overlays from its crop", () => {
+test("Premium embeds the native profile and retains the isolated legacy fallback", () => {
   const page = readFileSync("app/premium/page.tsx", "utf8");
   const offer = readFileSync("components/premium-offer.tsx", "utf8");
   const css = readFileSync("styles/premium.css", "utf8");
-  assert.match(page, /profileMotion=\{<PremiumProfileMotion \/>\}/);
+  assert.match(page, /profilePreview=\{<PremiumProfileEmbed \/>\}/);
+  assert.doesNotMatch(page, /profileMotion=|bbdou-profile\.png/);
+  assert.match(offer, /profilePreview \?\? \(/);
+  const native = readFileSync("components/premium-profile-embed.tsx", "utf8");
+  assert.match(native, /<YokaiCard/);
+  assert.match(native, /aria-pressed=\{playing\}/);
+  assert.match(native, /prefers-reduced-motion: reduce/);
+  assert.match(native, /fallbackImage=\{card.still\}/);
   assert.match(offer, /bbdou-profile\.png/);
   assert.match(offer, /\{profileMotion\}/);
   assert.match(css, /\.yk-pro-profile-photo-crop > img\s*\{/);

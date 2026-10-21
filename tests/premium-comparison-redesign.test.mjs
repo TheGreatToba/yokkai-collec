@@ -146,23 +146,34 @@ test("comparison keeps responsive plan columns and uses more than color to conve
   assert.match(html, /<span class="sr-only">Not included<\/span>/);
 });
 
-test("landing hero separates the headline and booster visual from the subscription card", () => {
+test("landing hero keeps a single subscription card in the left column and frameless packs on the right", () => {
   const html = renderOffer();
   const hero = html.match(
     /<section class="yk-premium-hero yk-pro-offer-hero">([\s\S]*?)<\/section>/
   )?.[1];
   assert.ok(hero);
   assert.match(hero, /class="yk-premium-hero-actions"/);
-  assert.match(hero, /href="#membership"/);
+  assert.match(hero, /Existing membership checkout/);
   assert.match(hero, /href="#plan-comparison"/);
   assert.match(hero, /aria-label="Preview of Pro pack benefits"/);
   assert.match(hero, /data-pack-kind="regular"/);
   assert.match(hero, /data-pack-kind="decision"/);
-  assert.doesNotMatch(hero, /Existing membership checkout/);
+  assert.equal((html.match(/Existing membership checkout/g) || []).length, 1);
   assert.ok(
-    html.indexOf("Existing membership checkout") > html.indexOf("</table>")
+    hero.indexOf("Existing membership checkout") <
+      hero.indexOf('class="yk-pro-hero-showcase"')
   );
+  assert.doesNotMatch(html, /yk-pro-showcase-chrome|yk-pro-membership-section/);
   const css = readFileSync(resolve(root, "styles/premium.css"), "utf8");
+  for (const selector of [
+    /\.yk-pro-hero-showcase\s*\{([^}]+)\}/,
+    /\.yk-pro-card-gains > div\s*\{([^}]+)\}/
+  ]) {
+    const frame = css.match(selector)?.[1];
+    assert.ok(frame);
+    assert.match(frame, /border:\s*0;/);
+    assert.match(frame, /background:\s*transparent;/);
+  }
   const page = css.match(/\.yk-premium-page\s*\{([^}]+)\}/)?.[1];
   assert.ok(page);
   assert.match(
