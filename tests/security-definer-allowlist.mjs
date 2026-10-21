@@ -1,9 +1,31 @@
 // Exact overloads and roles only. Every addition requires an access justification.
 export const ownerOnly = [
-  "public.prepare_account_deletion_without_billing(uuid)"
-]; // Only the owning SECURITY DEFINER wrapper may bypass billing preparation; never service_role.
+  "public.notify_wall_post_reply()",
+  "public.cleanup_wall_reply_notifications()",
+  "public.prepare_account_deletion_without_billing(uuid)",
+  "public.build_data_export_without_wall_interactions(uuid, uuid)",
+  "public.wall_actor_visible(uuid)",
+  "public.wall_interaction_owner(uuid)",
+  "public.cleanup_wall_interactions()",
+  "public.get_wall_post_activity_without_reactions(uuid, timestamp with time zone, uuid)",
+  "public.build_data_export_without_reactions(uuid, uuid)",
+  "public.cleanup_wall_reactions()"
+]; // Internal helpers: owning SECURITY DEFINER wrappers/triggers only, never service_role or players.
 
 const allowlist = {
+  "public.get_home_wall_feed(timestamp with time zone, uuid, integer)": [
+    "authenticated"
+  ], // Home timeline: auth.uid()'s own wall plus accepted friends, same live wall ACL, bans/deletion fences and bounded cursor. Walid review required.
+  "public.set_wall_post_reaction(uuid, text, boolean)": ["authenticated"], // Allowed emoji only, own desired state, live friend/self post ACL, serialized maximum 8 reactions per post. Walid review required.
+  "public.get_wall_post_activity(uuid, timestamp with time zone, uuid)": [
+    "authenticated"
+  ], // Accepted friend/self post; live wall ACL and filtered reply authors, bounded page. Walid review required.
+  "public.set_wall_post_like(uuid, boolean)": ["authenticated"], // Idempotent desired state for auth.uid() only; same post ACL.
+  "public.publish_wall_post_reply(uuid, uuid, text)": ["authenticated"], // Own bounded text reply, idempotent UUID, serialized rate limit, same post ACL.
+  "public.delete_wall_post_reply(uuid, uuid)": ["authenticated"], // Only auth.uid()'s own reply on an accessible post.
+  "public.get_friend_wall_feed(timestamp with time zone, uuid, integer)": [
+    "authenticated"
+  ], // Bounded accepted-friend wall feed for auth.uid(); existing wall ACL, bilateral blocks, bans and deletion fences. Requires Walid ACL review before production.
   "public.get_recent_big_pulls(integer)": ["authenticated"], // Bounded public pulls; private identity/appearance are null, blocked/banned/deleted players excluded.
   "public.browse_auctions_page(integer, text, text, text, text, text)": [
     "authenticated"

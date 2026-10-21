@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Topbar } from "@/components/topbar";
 import { SiteFooter } from "@/components/site-footer";
 import { HomePanel } from "@/components/home-dashboard";
+import { HomeFriendFeedPreview } from "@/components/home-friend-feed-preview";
 import { HomeHero, HomeLinks, HomePacks } from "@/components/home-content";
 import {
   HomePackTimer,
@@ -49,7 +50,22 @@ export default function HomePreview() {
   }));
   return (
     <div className="flex min-h-dvh w-full flex-col">
-      <Topbar view="home" name="Kitsune" karas={4920} notifications={[]} />
+      <Topbar
+        view="home"
+        name="Kitsune"
+        karas={4920}
+        notifications={[
+          {
+            id: "79020000-0000-4000-9000-000000000001",
+            title: "New reply to your post",
+            text: "Moonflower replied to your post.",
+            time: new Date(now).toLocaleString("en-US"),
+            read: false,
+            href: "/profile?tab=wall",
+            kind: "reply"
+          }
+        ]}
+      />
       <main id="main-content" className="yk-home-main">
         <HomeHero />
         <HomePacks>
@@ -85,6 +101,7 @@ export default function HomePreview() {
         <HomePanel id="home-big" title="Big pulls">
           <BigPulls pulls={pulls} />
         </HomePanel>
+        <HomeFriendFeedPreview />
         <HomePanel
           id="home-market"
           title="The market"

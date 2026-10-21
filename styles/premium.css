@@ -1,10 +1,10 @@
 .yk-premium-page {
-  --font-heading: var(--font-sora);
+  --font-heading: var(--font-display);
   min-height: 100dvh;
   background:
     radial-gradient(ellipse at 73% 19%, #20283950, transparent 42%), #080b10;
   color: #efedf8;
-  font-family: var(--font-sora), sans-serif;
+  font-family: var(--font-sans);
 }
 .yk-premium-nav {
   max-width: 1440px;
@@ -71,7 +71,7 @@
   padding: 92px 0 65px;
 }
 .yk-premium-copy h1 {
-  font-family: var(--font-sora), sans-serif;
+  font-family: var(--font-display);
   font-size: clamp(38px, 4.5vw, 65px);
   line-height: 1.13;
   letter-spacing: -0.04em;
@@ -213,7 +213,7 @@
   border: 4px solid #11151e;
   border-radius: 50%;
   font:
-    600 27px var(--font-sora),
+    600 27px var(--font-display),
     sans-serif;
   color: var(--plus-accent);
   box-shadow: 0 0 0 1px var(--plus-accent);
@@ -239,7 +239,7 @@
 }
 .yk-premium-identity h2 {
   font-size: 22px;
-  font-family: var(--font-sora), sans-serif;
+  font-family: var(--font-display);
   overflow: hidden;
   text-overflow: ellipsis;
   color: var(--plus-accent);
@@ -333,7 +333,7 @@
 }
 .yk-premium-studio h2 {
   font:
-    600 25px var(--font-sora),
+    600 25px var(--font-display),
     sans-serif;
   margin: 12px 0;
 }
@@ -390,7 +390,7 @@
 }
 .yk-premium-membership h2 {
   font:
-    600 30px/1.4 var(--font-sora),
+    600 30px/1.4 var(--font-display),
     sans-serif;
   margin: 15px 0 20px;
 }
@@ -422,7 +422,7 @@
 }
 .yk-premium-plan-heading h3 {
   font:
-    600 23px var(--font-sora),
+    600 23px var(--font-display),
     sans-serif;
 }
 .yk-premium-plan-heading em {
@@ -436,7 +436,7 @@
 }
 .yk-premium-price-card .yk-premium-price {
   font:
-    45px var(--font-sora),
+    45px var(--font-display),
     sans-serif;
   color: #f3edf9;
   margin: 24px 0 10px;
@@ -444,7 +444,7 @@
 }
 .yk-premium-price > span {
   font:
-    11px var(--font-sora),
+    11px var(--font-sans),
     sans-serif;
   color: #909aaf;
   letter-spacing: 0;
@@ -495,7 +495,7 @@
 }
 .yk-premium-faq h2 {
   font:
-    600 25px var(--font-sora),
+    600 25px var(--font-display),
     sans-serif;
   margin-bottom: 25px;
 }
@@ -613,7 +613,7 @@
 .yk-pro-banner-copy h2 {
   margin: 18px 0;
   font:
-    600 clamp(26px, 3vw, 39px)/1.3 var(--font-sora),
+    600 clamp(26px, 3vw, 39px)/1.3 var(--font-display),
     sans-serif;
   letter-spacing: -0.025em;
 }
@@ -719,7 +719,7 @@
 }
 .yk-pro-banner-name h3 {
   font:
-    600 25px var(--font-sora),
+    600 25px var(--font-display),
     sans-serif;
 }
 .yk-pro-banner-name > span {
@@ -911,7 +911,7 @@
 .yk-pro-feature-section h2 {
   margin: 14px 0;
   font:
-    600 clamp(22px, 3vw, 31px)/1.3 var(--font-sora),
+    600 clamp(22px, 3vw, 31px)/1.3 var(--font-display),
     sans-serif;
   letter-spacing: -0.025em;
 }

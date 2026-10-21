@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Avatar, Button, Modal, Toast } from "@/components/ui";
 import { GifPicker } from "@/components/gif-picker";
+import { WallPostInteractions } from "@/components/wall-post-interactions";
 import {
   liveWall,
   type WallAdapter,
@@ -18,6 +19,9 @@ export function ProfileWall({
   isPublic,
   canRead,
   active,
+  composerOnly = false,
+  canInteract = isMe,
+  onPublished,
   adapter = liveWall
 }: {
   ownerId: string;
@@ -27,6 +31,9 @@ export function ProfileWall({
   isPublic: boolean;
   canRead: boolean;
   active: boolean;
+  composerOnly?: boolean;
+  canInteract?: boolean;
+  onPublished?: () => void;
   adapter?: WallAdapter;
 }) {
   const [posts, setPosts] = useState<WallPost[]>([]);
@@ -54,7 +61,7 @@ export function ProfileWall({
     [preview]
   );
   useEffect(() => {
-    if (!active || !canRead) return;
+    if (!active || !canRead || composerOnly) return;
     let current = true;
     void Promise.resolve()
       .then(() => {
@@ -84,7 +91,7 @@ export function ProfileWall({
     return () => {
       current = false;
     };
-  }, [active, canRead, ownerId, adapter, retry]);
+  }, [active, canRead, composerOnly, ownerId, adapter, retry]);
   async function discard(path: string) {
     try {
       await adapter.discard(path);
@@ -149,6 +156,7 @@ export function ProfileWall({
       setPreview("");
       setGif("");
       setToast("Post added to your wall");
+      onPublished?.();
     } catch (reason) {
       setError(
         reason instanceof Error
@@ -211,15 +219,19 @@ export function ProfileWall({
     );
   return (
     <section className="yk-profile-wall">
-      <div className="yk-profile-section-heading">
-        <div>
-          <p className="eyebrow">Their posts</p>
-          <h2>Wall of {pseudo}</h2>
+      {!composerOnly && (
+        <div className="yk-profile-section-heading">
+          <div>
+            <p className="eyebrow">Their posts</p>
+            <h2>Wall of {pseudo}</h2>
+          </div>
+          <span className="yk-wall-audience">
+            {isPublic
+              ? "Public · All players"
+              : "Private · You and your friends"}
+          </span>
         </div>
-        <span className="yk-wall-audience">
-          {isPublic ? "Public · All players" : "Private · You and your friends"}
-        </span>
-      </div>
+      )}
       {isMe && (
         <form
           className="yk-profile-surface yk-wall-composer"
@@ -301,13 +313,15 @@ export function ProfileWall({
       {error && (
         <div role="alert" className="yk-profile-notice">
           <p>{error}</p>
-          <Button
-            variant="secondary"
-            disabled={loading}
-            onClick={() => setRetry(current => current + 1)}
-          >
-            Reload wall
-          </Button>
+          {!composerOnly && (
+            <Button
+              variant="secondary"
+              disabled={loading}
+              onClick={() => setRetry(current => current + 1)}
+            >
+              Reload wall
+            </Button>
+          )}
         </div>
       )}
       {cleanup.length > 0 && (
@@ -330,7 +344,7 @@ export function ProfileWall({
           Loading wall…
         </p>
       )}
-      {!loading && !error && !posts.length && (
+      {!composerOnly && !loading && !error && !posts.length && (
         <div className="yk-profile-surface yk-wall-empty">
           <h3>Your wall is waiting for its first story</h3>
           <p>
@@ -338,68 +352,73 @@ export function ProfileWall({
           </p>
         </div>
       )}
-      <div className="yk-wall-posts">
-        {posts.map(post => (
-          <article
-            className="yk-profile-surface yk-wall-post"
-            key={post.id}
-            data-wall-post={post.id}
-          >
-            <header>
-              <div className="yk-wall-author">
-                <Avatar
-                  name={pseudo}
-                  image={avatarUrl ?? undefined}
-                  size={38}
-                />
-                <div>
-                  <strong>
-                    <StyledPlayerName
-                      name={pseudo}
-                      cosmetics={post.profileStyle}
-                    />
-                  </strong>
-                  <time dateTime={post.createdAt}>
-                    {new Date(post.createdAt).toLocaleString("en-US", {
-                      dateStyle: "medium",
-                      timeStyle: "short"
-                    })}
-                  </time>
+      {!composerOnly && (
+        <div className="yk-wall-posts">
+          {posts.map(post => (
+            <article
+              className="yk-profile-surface yk-wall-post"
+              key={post.id}
+              data-wall-post={post.id}
+            >
+              <header>
+                <div className="yk-wall-author">
+                  <Avatar
+                    name={pseudo}
+                    image={avatarUrl ?? undefined}
+                    size={38}
+                  />
+                  <div>
+                    <strong>
+                      <StyledPlayerName
+                        name={pseudo}
+                        cosmetics={post.profileStyle}
+                      />
+                    </strong>
+                    <time dateTime={post.createdAt}>
+                      {new Date(post.createdAt).toLocaleString("en-US", {
+                        dateStyle: "medium",
+                        timeStyle: "short"
+                      })}
+                    </time>
+                  </div>
                 </div>
-              </div>
-              {isMe && (
-                <Button
-                  variant="secondary"
-                  aria-label="Delete this post"
-                  disabled={busy}
-                  onClick={() => setRemoving(post)}
-                >
-                  Remove
-                </Button>
+                {isMe && (
+                  <Button
+                    variant="secondary"
+                    aria-label="Delete this post"
+                    disabled={busy}
+                    onClick={() => setRemoving(post)}
+                  >
+                    Remove
+                  </Button>
+                )}
+              </header>
+              {post.text && <p className="yk-wall-text">{post.text}</p>}
+              {(post.mediaPath || post.gifUrl) && (
+                <img
+                  className="yk-wall-media"
+                  src={
+                    post.previewUrl ??
+                    post.gifUrl ??
+                    `/api/profile-wall/media/${post.id}`
+                  }
+                  alt={
+                    post.gifUrl
+                      ? "GIF posted on the wall"
+                      : "Image posted on the wall"
+                  }
+                  loading="lazy"
+                  decoding="async"
+                />
               )}
-            </header>
-            {post.text && <p className="yk-wall-text">{post.text}</p>}
-            {(post.mediaPath || post.gifUrl) && (
-              <img
-                className="yk-wall-media"
-                src={
-                  post.previewUrl ??
-                  post.gifUrl ??
-                  `/api/profile-wall/media/${post.id}`
-                }
-                alt={
-                  post.gifUrl
-                    ? "GIF posted on the wall"
-                    : "Image posted on the wall"
-                }
-                loading="lazy"
-                decoding="async"
-              />
-            )}
-          </article>
-        ))}
-      </div>
-      {cursor && (
+              {canInteract && adapter === liveWall && (
+                <WallPostInteractions postId={post.id} />
+              )}
+            </article>
+          ))}
+        </div>
+      )}
+      {!composerOnly && cursor && (
         <Button
           variant="secondary"
           disabled={loading}
