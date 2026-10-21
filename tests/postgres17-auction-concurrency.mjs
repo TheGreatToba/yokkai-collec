@@ -538,7 +538,35 @@ assert.match(String((await concurrentResult)[0].reason), /EXPORT_IN_PROGRESS/);
 const exportDefinition = await query(
   "select pg_get_functiondef('public.build_data_export(uuid,uuid)'::regprocedure);"
 );
-assert.ok(exportDefinition.includes("'bio',t.bio"));
+// Wall exports delegate to owner-only STABLE builders. Instrument the actual
+// profile projection, but exercise and mutate the public entry point below.
+const exportDefinitions = [exportDefinition];
+let projectionDefinition = exportDefinition;
+const visitedBuilders = new Set(["build_data_export"]);
+while (!projectionDefinition.includes("'bio',t.bio")) {
+  const delegate = projectionDefinition.match(
+    /public\.(build_data_export_without_[a-z_]+)\(\s*p_user_id\s*,\s*p_request_id\s*\)/i
+  )?.[1];
+  assert.ok(delegate, "Export must retain the original profile projection");
+  assert.ok(
+    !visitedBuilders.has(delegate) && visitedBuilders.size < 8,
+    "Export delegation must be acyclic and bounded"
+  );
+  visitedBuilders.add(delegate);
+  assert.equal(
+    await query(`select not has_function_privilege('anon','public.${delegate}(uuid,uuid)','EXECUTE')
+    and not has_function_privilege('authenticated','public.${delegate}(uuid,uuid)','EXECUTE')
+    and not has_function_privilege('service_role','public.${delegate}(uuid,uuid)','EXECUTE');`),
+    "t"
+  );
+  projectionDefinition = await query(
+    `select pg_get_functiondef('public.${delegate}(uuid,uuid)'::regprocedure);`
+  );
+  exportDefinitions.push(projectionDefinition);
+}
+assert.ok(projectionDefinition.includes("'bio',t.bio"));
+for (const definition of exportDefinitions)
+  assert.match(definition, /\bSTABLE\b/i);
 await query(
   `create function public.export_test_pause() returns text language plpgsql volatile as $$begin perform pg_sleep(2); return ''; end;$$;`
 );
@@ -546,8 +574,19 @@ async function snapshotOverlap(definition) {
   await query(`update public.user_profiles set bio='snapshot-before' where user_id='${seller}';
     update public.folders set nom='snapshot-before' where user_id='${seller}';`);
   await query(
-    definition.replace("'bio',t.bio", "'bio',t.bio||public.export_test_pause()")
+    projectionDefinition.replace(
+      "'bio',t.bio",
+      "'bio',t.bio||public.export_test_pause()"
+    )
   );
+  if (exportDefinitions.length > 1) await query(definition);
+  else
+    await query(
+      definition.replace(
+        "'bio',t.bio",
+        "'bio',t.bio||public.export_test_pause()"
+      )
+    );
   const reader =
     session(`set application_name='ci-export-snapshot-reader'; set role service_role;
     select public.build_data_export('${seller}','${exportRequest}');`);
@@ -587,7 +626,7 @@ try {
     folder: "snapshot-after"
   });
 } finally {
-  await query(exportDefinition);
+  for (const definition of exportDefinitions) await query(definition);
   await query(
     `select public.finish_data_export('${seller}','${exportRequest}',false); drop function public.export_test_pause();`
   );
