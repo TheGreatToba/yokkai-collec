@@ -11,7 +11,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 const require = createRequire(import.meta.url);
 const root = resolve(import.meta.dirname, "..");
 function renderOffer() {
-  const module = { exports: {} };
+  const loaded = { exports: {} };
   const rulesModule = { exports: {} };
   const compile = file =>
     ts.transpileModule(readFileSync(resolve(root, file), "utf8"), {
@@ -27,10 +27,13 @@ function renderOffer() {
     exports: rulesModule.exports,
     require
   });
-  const marker = text => () => React.createElement("div", null, text);
+  const marker = text =>
+    function PreviewMarker() {
+      return React.createElement("div", null, text);
+    };
   vm.runInNewContext(compile("components/premium-offer.tsx"), {
-    module,
-    exports: module.exports,
+    module: loaded,
+    exports: loaded.exports,
     require: id => {
       if (id === "@/lib/premium/offer") return rulesModule.exports;
       if (id === "@/components/premium-banner-preview")
@@ -45,7 +48,7 @@ function renderOffer() {
     }
   });
   return renderToStaticMarkup(
-    React.createElement(module.exports.PremiumOffer, {
+    React.createElement(loaded.exports.PremiumOffer, {
       signedIn: false,
       billing: null
     })
