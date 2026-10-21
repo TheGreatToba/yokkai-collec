@@ -260,6 +260,7 @@ export function HomeFriendFeed({
               className="yk-feed-post"
               key={post.id}
               data-feed-post={post.id}
+              data-has-media={Boolean(post.hasMedia || post.gifUrl)}
             >
               <Link
                 href={wall}
@@ -303,12 +304,12 @@ export function HomeFriendFeed({
                     </button>
                   )}
                 </header>
-                <Link
-                  href={wall}
-                  className="yk-feed-media-preview"
-                  aria-label={`View ${post.author.name}'s wall post`}
-                >
-                  {post.hasMedia || post.gifUrl ? (
+                {(post.hasMedia || post.gifUrl) && (
+                  <Link
+                    href={wall}
+                    className="yk-feed-media-preview"
+                    aria-label={`View ${post.author.name}'s wall post`}
+                  >
                     <img
                       src={
                         post.hasMedia
@@ -324,12 +325,8 @@ export function HomeFriendFeed({
                       decoding="async"
                       className="yk-feed-media"
                     />
-                  ) : (
-                    <span className="yk-feed-no-media" aria-hidden="true">
-                      ✦
-                    </span>
-                  )}
-                </Link>
+                  </Link>
+                )}
                 {post.text && <p className="yk-feed-text">{post.text}</p>}
                 <Link href={wall} className="yk-feed-wall-link">
                   View wall <span aria-hidden="true">↗</span>

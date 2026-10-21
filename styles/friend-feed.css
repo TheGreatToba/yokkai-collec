@@ -239,10 +239,6 @@
   border-radius: 12px;
   background: linear-gradient(135deg, #152a45, #080e1b);
 }
-.yk-feed-no-media {
-  font-size: 48px;
-  color: #8faed5;
-}
 .yk-feed-media {
   width: 100%;
   height: 100%;
@@ -330,4 +326,20 @@
   .yk-feed-text {
     font-size: 15px;
   }
+}
+
+.yk-feed-post[data-has-media="false"] {
+  grid-template-rows: 42px minmax(0, 1fr) 20px;
+}
+.yk-feed-post[data-has-media="false"] .yk-feed-text {
+  grid-row: 2;
+  align-self: center;
+  margin-top: 0;
+  font-size: 20px;
+  line-height: 1.5;
+  -webkit-line-clamp: 7;
+  max-height: 210px;
+}
+.yk-feed-post[data-has-media="false"] .yk-feed-wall-link {
+  grid-row: 3;
 }

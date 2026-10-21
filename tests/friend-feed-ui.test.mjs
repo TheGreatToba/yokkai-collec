@@ -202,3 +202,17 @@ test("wall previews put media before the excerpt and omit full interaction contr
   assert.match(text, /overflow:\s*hidden/);
   assert.match(text, /text-overflow:\s*ellipsis/);
 });
+
+test("text-only wall previews never reserve a media placeholder", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(HomeFriendFeed, {
+      initial: {
+        items: [{ ...post, hasMedia: false, gifUrl: null }],
+        next: null
+      }
+    })
+  );
+  assert.match(html, /data-has-media="false"/);
+  assert.doesNotMatch(html, /yk-feed-media-preview|yk-feed-no-media/);
+  assert.match(html, /yk-feed-text/);
+});
