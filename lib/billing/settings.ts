@@ -1,6 +1,7 @@
 import "server-only";
 import { billingConfig, BillingError } from "./config";
 import { configuredBillingService } from "./server";
+import { consumeBillingRequest } from "./rate-limit";
 import type { SubscriptionState } from "./subscription";
 
 export type BillingStatus = SubscriptionState & { hasCustomer: boolean };
@@ -28,6 +29,8 @@ export async function getBillingSettings(
     result.enabled = true;
     result.checkoutEnabled = config.checkoutEnabled;
     result.sandbox = !config.live;
+    // SSR reads share the durable API quota; reject before constructing the provider.
+    await consumeBillingRequest(userId, "status");
     result.status = await configuredBillingService().status(userId);
   } catch (error) {
     result.unavailable = !(
