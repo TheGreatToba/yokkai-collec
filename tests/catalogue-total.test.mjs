@@ -93,3 +93,15 @@ test("catalogue result count is visible, live, and follows the query and both fi
   assert.match(source, /total\.toLocaleString\("en-US"\)/);
   assert.match(source, /Card count unavailable/);
 });
+
+test("desktop catalogue aligns its results with the filter panel, below the count", () => {
+  const css = readFileSync("styles/community.css", "utf8");
+  assert.match(
+    css,
+    /\.yk-catalogue-title ~ \.yk-collection-main\s*\{[^}]*grid-row:\s*2;/
+  );
+  assert.match(
+    css,
+    /\.yk-catalogue-title ~ \.yk-collection-main \.yk-catalogue-heading\s*\{[^}]*bottom:\s*calc\(100% \+ var\(--layout-gutter\)\)/
+  );
+});
