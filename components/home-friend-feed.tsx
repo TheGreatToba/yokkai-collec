@@ -38,6 +38,7 @@ export function HomeFriendFeed({
   const [error, setError] = useState(initialError);
   const pending = useRef(false);
   const request = useRef(0);
+  const timeline = useRef<HTMLDivElement>(null);
   const cancel = useCallback(() => {
     request.current++;
     pending.current = false;
@@ -124,7 +125,7 @@ export function HomeFriendFeed({
         <div>
           <p className="eyebrow">Between friends</p>
           <h2 id="home-friend-feed">Friend feed</h2>
-          <p>Fresh from your friends&apos; walls. Newest first.</p>
+          <p>Your posts and your friends&apos; walls. Newest first.</p>
         </div>
         <Link href="/profile?tab=wall" className="yk-button yk-button-primary">
           View my wall <span aria-hidden="true">↗</span>
@@ -142,16 +143,20 @@ export function HomeFriendFeed({
             active
             composerOnly
             adapter={wallAdapter}
+            onPublished={() => {
+              timeline.current?.scrollTo({ top: 0 });
+              void reload();
+            }}
           />
           <p className="yk-feed-publish-note">
-            Posts appear on your wall and in your friends&apos; feeds. Your
-            profile visibility still applies.
+            Posts appear here, on your wall and in your friends&apos; feeds.
+            Your profile visibility still applies.
           </p>
         </div>
       )}
       <div className="yk-feed-toolbar">
         <span className="yk-feed-following">
-          Friends only <span aria-hidden="true">✦</span>
+          You &amp; friends <span aria-hidden="true">✦</span>
         </span>
         <Button
           variant="secondary"
@@ -163,6 +168,7 @@ export function HomeFriendFeed({
       </div>
       <div
         className="yk-feed-timeline"
+        ref={timeline}
         tabIndex={0}
         aria-label="Friends' wall posts"
         aria-busy={busy}
@@ -174,13 +180,13 @@ export function HomeFriendFeed({
         )}
         {busy && !page.items.length && (
           <p role="status" className="yk-feed-empty">
-            Loading your friends&apos; posts…
+            Loading your timeline…
           </p>
         )}
         {!busy && !error && !page.items.length && (
           <div className="yk-feed-empty">
             <h3>Your timeline starts with your friends</h3>
-            <p>Posts shared on their walls will appear here.</p>
+            <p>Share a post above or add friends to start your timeline.</p>
             <Link href="/friends">
               Find friends <span aria-hidden="true">↗</span>
             </Link>
@@ -233,8 +239,8 @@ export function HomeFriendFeed({
                     }
                     alt={
                       post.gifUrl
-                        ? "GIF shared on a friend's wall"
-                        : "Image shared on a friend's wall"
+                        ? "GIF shared on a wall"
+                        : "Image shared on a wall"
                     }
                     loading="lazy"
                     decoding="async"

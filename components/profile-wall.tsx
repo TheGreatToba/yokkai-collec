@@ -21,6 +21,7 @@ export function ProfileWall({
   active,
   composerOnly = false,
   canInteract = isMe,
+  onPublished,
   adapter = liveWall
 }: {
   ownerId: string;
@@ -32,6 +33,7 @@ export function ProfileWall({
   active: boolean;
   composerOnly?: boolean;
   canInteract?: boolean;
+  onPublished?: () => void;
   adapter?: WallAdapter;
 }) {
   const [posts, setPosts] = useState<WallPost[]>([]);
@@ -154,6 +156,7 @@ export function ProfileWall({
       setPreview("");
       setGif("");
       setToast("Post added to your wall");
+      onPublished?.();
     } catch (reason) {
       setError(
         reason instanceof Error

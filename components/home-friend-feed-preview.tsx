@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { HomeFriendFeed } from "@/components/home-friend-feed";
 import { Button } from "@/components/ui";
 import type { FriendFeedLoader, FriendFeedPost } from "@/lib/data/friend-feed";
@@ -65,6 +65,7 @@ export function HomeFriendFeedPreview() {
   const [failPublish, setFailPublish] = useState(false);
   const [published, setPublished] = useState("");
   const [publishCount, setPublishCount] = useState(0);
+  const ownPosts = useRef<FriendFeedPost[]>([]);
   const [failInteractions, setFailInteractions] = useState(false);
   const interactions = useMemo<WallInteractions>(() => {
     const state = new Map<string, WallActivity>();
@@ -155,9 +156,20 @@ export function HomeFriendFeedPreview() {
           throw new Error(
             "Couldn't publish your post. Your draft has been kept."
           );
-        setPublished(input.text || "Media post");
-        setPublishCount(count => count + 1);
-        return { ...input, createdAt: new Date().toISOString() };
+        const post = { ...input, createdAt: new Date().toISOString() };
+        if (!ownPosts.current.some(item => item.id === post.id)) {
+          ownPosts.current.unshift({
+            id: post.id,
+            text: post.text,
+            hasMedia: false,
+            gifUrl: post.gifUrl,
+            createdAt: post.createdAt,
+            author: posts[2].author
+          });
+          setPublished(input.text || "Media post");
+          setPublishCount(count => count + 1);
+        }
+        return post;
       },
       upload: async (_file, ownerId) => `${ownerId}/preview.png`,
       remove: async () => null,
@@ -177,7 +189,11 @@ export function HomeFriendFeedPreview() {
       await new Promise(resolve => setTimeout(resolve, 200));
       if (fail) throw new Error("Preview failure");
       return {
-        items: empty ? [] : cursor ? posts.slice(2) : posts.slice(0, 3),
+        items: empty
+          ? []
+          : cursor
+            ? posts.slice(2)
+            : [...ownPosts.current, ...posts.slice(0, 3)],
         next: !empty && !cursor ? initial.next : null
       };
     },

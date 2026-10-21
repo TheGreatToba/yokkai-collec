@@ -24,13 +24,13 @@ export type FriendFeedLoader = (cursor?: FriendFeedCursor | null) => Promise<Fri
 
 export const getFriendFeed: FriendFeedLoader = async cursor => {
   const { data, error } = await readRequest(signal =>
-    createClient().rpc("get_friend_wall_feed", {
+    createClient().rpc("get_home_wall_feed", {
       p_before: cursor?.at ?? null,
       p_before_id: cursor?.id ?? null,
       p_limit: 10
     }).abortSignal(signal)
   );
-  if (error) throw new Error("Couldn't load your friends' posts. Please try again.");
+  if (error) throw new Error("Couldn't load your timeline. Please try again.");
   return data as FriendFeedPage;
 };
 

@@ -11,6 +11,9 @@ export const ownerOnly = [
 ]; // Internal helpers: owning SECURITY DEFINER wrappers/triggers only, never service_role or players.
 
 const allowlist = {
+  "public.get_home_wall_feed(timestamp with time zone, uuid, integer)": [
+    "authenticated"
+  ], // Home timeline: auth.uid()'s own wall plus accepted friends, same live wall ACL, bans/deletion fences and bounded cursor. Walid review required.
   "public.set_wall_post_reaction(uuid, text, boolean)": ["authenticated"], // Allowed emoji only, own desired state, live friend/self post ACL, serialized maximum 8 reactions per post. Walid review required.
   "public.get_wall_post_activity(uuid, timestamp with time zone, uuid)": [
     "authenticated"

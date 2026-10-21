@@ -176,7 +176,7 @@ async function friendFeed(userId: string) {
       : undefined;
   try {
     const { data, error } = await client
-      .rpc("get_friend_wall_feed", { p_limit: 10 })
+      .rpc("get_home_wall_feed", { p_limit: 10 })
       .abortSignal(AbortSignal.timeout(12000));
     if (error) throw error;
     return <HomeFriendFeed initial={data as FriendFeedPage} viewer={viewer} />;

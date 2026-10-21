@@ -7,6 +7,7 @@ export const REACTION_EMOJIS = [
   { id: "sparkles", emoji: "✨", label: "Sparkles", group: "Popular" },
   { id: "hundred", emoji: "💯", label: "One hundred", group: "Popular" },
   { id: "party", emoji: "🎉", label: "Party", group: "Popular" },
+  { id: "eggplant", emoji: "🍆", label: "Eggplant", group: "Popular" },
   { id: "smile", emoji: "😁", label: "Grinning", group: "Faces" },
   { id: "heart-eyes", emoji: "😍", label: "Heart eyes", group: "Faces" },
   { id: "wow", emoji: "😮", label: "Surprised", group: "Faces" },
