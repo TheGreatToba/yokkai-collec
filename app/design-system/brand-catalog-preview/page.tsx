@@ -29,11 +29,6 @@ const loadPage: typeof getCataloguePage = async ({
     total: matching.length
   };
 };
-const loadCounts = async () => ({
-  total: 26,
-  rarities: { LR: 6, SSR: 5, SR: 5, R: 5, C: 5 },
-  categories: { "ANIME/MANGA": 13, FILM: 13 }
-});
 
 export default function BrandCatalogPreview() {
   return (
@@ -42,7 +37,6 @@ export default function BrandCatalogPreview() {
       <main className="mx-auto w-full max-w-[var(--layout-collection-max)] px-6 py-10">
         <SearchView
           loadPage={loadPage}
-          loadCounts={loadCounts}
           previewCategories={categories}
           pageHeading={
             <>

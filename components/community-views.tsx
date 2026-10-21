@@ -12,12 +12,10 @@ import {
 import { animation } from "@/lib/ui/animations";
 import {
   getCataloguePage,
-  getCatalogueFilterCounts,
   getGameInfo,
   getUserCollection,
   invalidatePlayerSnapshots,
   type Card,
-  type CatalogueFilterCounts,
   type CollectedCard,
   type Rarity
 } from "@/lib/data/cards";
@@ -1837,14 +1835,10 @@ export function ProfileView({
 
 export function SearchView({
   loadPage = getCataloguePage,
-  loadCounts = loadPage === getCataloguePage
-    ? getCatalogueFilterCounts
-    : undefined,
   previewCategories,
   pageHeading
 }: {
   loadPage?: typeof getCataloguePage;
-  loadCounts?: typeof getCatalogueFilterCounts;
   previewCategories?: string[];
   pageHeading?: ReactNode;
 } = {}) {
@@ -1862,32 +1856,6 @@ export function SearchView({
   const [searching, setSearching] = useState(true);
   const [searchError, setSearchError] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [counts, setCounts] = useState<CatalogueFilterCounts | null>(null);
-  const [countsError, setCountsError] = useState(false);
-  const [countsRetry, setCountsRetry] = useState(0);
-  useEffect(() => {
-    let active = true;
-    if (loadCounts)
-      void loadCounts().then(
-        value => {
-          if (active) {
-            setCounts(value);
-            setCountsError(false);
-          }
-        },
-        () => {
-          if (active) setCountsError(true);
-        }
-      );
-    return () => {
-      active = false;
-    };
-  }, [loadCounts, countsRetry]);
-  const filterCount = (amount: number | undefined) => (
-    <strong className="yk-catalogue-filter-count">
-      {amount === undefined ? "—" : amount.toLocaleString("en-US")}
-    </strong>
-  );
   useEffect(() => {
     if (previewCategories) return;
     let active = true;
@@ -1981,7 +1949,6 @@ export function SearchView({
         >
           <span className="yk-filter-check" />
           <span>All</span>
-          {filterCount(counts?.total)}
         </button>
         {catalogueRarities.map(item => (
           <button
@@ -1997,7 +1964,6 @@ export function SearchView({
             <span className="yk-filter-check" />
             <CatalogueFilterIcon rarity={item} />
             <span className={catalogueRarityText[item]}>{item}</span>
-            {filterCount(counts ? (counts.rarities[item] ?? 0) : undefined)}
           </button>
         ))}
       </CatalogueFilterSection>
@@ -2013,7 +1979,6 @@ export function SearchView({
         >
           <span className="yk-filter-check" />
           <span>All categories</span>
-          {filterCount(counts?.total)}
         </button>
         {categories.map(item => (
           <button
@@ -2028,24 +1993,9 @@ export function SearchView({
           >
             <span className="yk-filter-check" />
             <span>{item}</span>
-            {filterCount(counts ? (counts.categories[item] ?? 0) : undefined)}
           </button>
         ))}
       </CatalogueFilterSection>
-      {countsError && (
-        <p className="yk-catalogue-counts-error" role="status">
-          Filter counts unavailable.{" "}
-          <button
-            type="button"
-            onClick={() => {
-              setCountsError(false);
-              setCountsRetry(value => value + 1);
-            }}
-          >
-            Retry
-          </button>
-        </p>
-      )}
       <button
         type="button"
         className="yk-filter-reset"
