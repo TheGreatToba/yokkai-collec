@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import Image from "next/image";
 import type { BillingSettings } from "@/lib/billing/settings";
 import { PremiumBannerPreview } from "@/components/premium-banner-preview";
@@ -33,10 +33,12 @@ function PlanAvailability({ included }: { included: boolean }) {
 
 export function PremiumOffer({
   signedIn,
-  billing
+  billing,
+  profileMotion
 }: {
   signedIn: boolean;
   billing: BillingSettings | null;
+  profileMotion?: ReactNode;
 }) {
   return (
     <div
@@ -182,6 +184,7 @@ export function PremiumOffer({
               height={1032}
               sizes="(max-width: 600px) 138vw, (max-width: 1340px) 128vw, 1738px"
             />
+            {profileMotion}
           </div>
           <figcaption>
             Your style, from the first impression to your favorite cards.
