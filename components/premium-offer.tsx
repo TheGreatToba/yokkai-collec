@@ -77,14 +77,25 @@ export function PremiumOffer({
           </div>
           <div className="yk-pro-card-gains" aria-label="More packs with Pro">
             <div data-pack-kind="regular">
-              <Image
-                src="/assets/chrome-regular-booster-v1.png"
-                alt="Regular Pack"
-                width={160}
-                height={284}
-                sizes="(max-width: 600px) 96px, 160px"
-                className="yk-pro-pack-image"
-              />
+              <div className="yk-pro-pack-stack">
+                <Image
+                  src="/assets/chrome-regular-booster-v1.png"
+                  alt=""
+                  aria-hidden="true"
+                  width={160}
+                  height={284}
+                  sizes="(max-width: 600px) 96px, 160px"
+                  className="yk-pro-pack-image yk-pro-pack-back"
+                />
+                <Image
+                  src="/assets/chrome-regular-booster-v1.png"
+                  alt="Regular Pack"
+                  width={160}
+                  height={284}
+                  sizes="(max-width: 600px) 96px, 160px"
+                  className="yk-pro-pack-image"
+                />
+              </div>
               <div className="yk-pro-pack-copy">
                 <strong>
                   {rules.basic.regularPackMinutes /
@@ -101,14 +112,25 @@ export function PremiumOffer({
               </div>
             </div>
             <div data-pack-kind="decision">
-              <Image
-                src="/assets/chrome-decision-booster-v1.png"
-                alt="Decision Pack"
-                width={160}
-                height={284}
-                sizes="(max-width: 600px) 96px, 160px"
-                className="yk-pro-pack-image"
-              />
+              <div className="yk-pro-pack-stack">
+                <Image
+                  src="/assets/chrome-decision-booster-v1.png"
+                  alt=""
+                  aria-hidden="true"
+                  width={160}
+                  height={284}
+                  sizes="(max-width: 600px) 96px, 160px"
+                  className="yk-pro-pack-image yk-pro-pack-back"
+                />
+                <Image
+                  src="/assets/chrome-decision-booster-v1.png"
+                  alt="Decision Pack"
+                  width={160}
+                  height={284}
+                  sizes="(max-width: 600px) 96px, 160px"
+                  className="yk-pro-pack-image"
+                />
+              </div>
               <div className="yk-pro-pack-copy">
                 <strong>{rules.pro.decisionPacksPerDay}</strong>
                 <span>every day</span>

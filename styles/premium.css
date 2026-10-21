@@ -8,6 +8,30 @@
   color: #efedf8;
   font-family: var(--font-sans);
 }
+/* A soft bloom on display type only: body copy and controls stay crisp. */
+.yk-premium-page
+  :is(
+    .yk-premium-copy h1,
+    .yk-pro-showcase-heading h2,
+    .yk-pro-banner-copy h2,
+    .yk-pro-profile-heading h2,
+    .yk-pro-comparison h2,
+    .yk-premium-faq h2
+  ) {
+  text-shadow: 0 0 24px #efedf81f;
+}
+.yk-premium-page
+  :is(.yk-premium-copy h1, .yk-pro-banner-copy h2, .yk-pro-profile-heading h2)
+  em {
+  text-shadow:
+    0 0 18px color-mix(in srgb, currentColor 30%, transparent),
+    0 0 44px color-mix(in srgb, currentColor 14%, transparent);
+}
+@media (prefers-contrast: more), (forced-colors: active) {
+  .yk-premium-page :is(h1, h2, h1 em, h2 em) {
+    text-shadow: none !important;
+  }
+}
 .yk-premium-nav {
   max-width: 1440px;
   margin: auto;
@@ -201,6 +225,40 @@
 }
 .yk-pro-pack-copy {
   min-width: 0;
+}
+.yk-pro-pack-stack {
+  position: relative;
+  isolation: isolate;
+  width: min(100%, 240px);
+  height: 324px;
+  margin-inline: auto;
+}
+.yk-pro-pack-stack .yk-pro-pack-image {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  margin: 0;
+  transform: translateX(-32%) rotate(9deg);
+  transform-origin: 50% 85%;
+  z-index: 1;
+}
+.yk-pro-pack-stack .yk-pro-pack-back {
+  top: 13px;
+  transform: translateX(-75%) rotate(-12deg);
+  filter: brightness(0.86) drop-shadow(0 5px 14px #8dadff28);
+  z-index: 0;
+}
+@media (max-width: 600px) {
+  .yk-pro-pack-stack {
+    width: min(100%, 144px);
+    height: 205px;
+  }
+  .yk-pro-pack-stack .yk-pro-pack-image {
+    top: 16px;
+  }
+  .yk-pro-pack-stack .yk-pro-pack-back {
+    top: 10px;
+  }
 }
 .yk-pro-card-gains [data-pack-kind="decision"] strong::after {
   content: "×";
@@ -993,7 +1051,7 @@
   grid-template-columns: minmax(240px, 0.7fr) minmax(0, 2fr);
   gap: 24px;
   min-width: 0;
-  align-items: start;
+  align-items: stretch;
 }
 .yk-pro-native-identity,
 .yk-pro-native-showcase {
@@ -1003,10 +1061,13 @@
   background: #060913;
 }
 .yk-pro-native-identity {
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 .yk-pro-native-banner {
   position: relative;
+  flex-shrink: 0;
   aspect-ratio: 2.3;
   overflow: hidden;
 }
@@ -1015,6 +1076,7 @@
 }
 .yk-pro-native-avatar {
   position: relative;
+  flex-shrink: 0;
   width: 88px;
   height: 88px;
   margin: -36px 0 0 24px;
@@ -1051,6 +1113,58 @@
   margin-top: 24px;
   color: #c4d8ff;
   font-size: 12px;
+}
+.yk-pro-native-signature {
+  margin: auto 24px 0;
+  padding: 24px 0;
+  border-top: 1px solid #9abcff26;
+}
+.yk-pro-native-signature ul {
+  display: grid;
+  gap: 22px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.yk-pro-native-signature li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.yk-pro-native-signature strong {
+  color: #e7eaf4;
+  font-size: 12px;
+  font-weight: 600;
+}
+.yk-pro-native-signature li p {
+  margin-top: 5px;
+  color: #a4b1c9;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.yk-pro-native-colors,
+.yk-pro-native-detail-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #9abcff26;
+  border-radius: 10px;
+  background: #0d1728;
+  color: #c4d8ff;
+  font-size: 15px;
+  font-weight: 650;
+}
+.yk-pro-native-colors i {
+  width: 11px;
+  height: 11px;
+  border: 1px solid #060913;
+  border-radius: 50%;
+}
+.yk-pro-native-colors i + i {
+  margin-left: -4px;
 }
 .yk-pro-native-showcase {
   padding: 24px;
