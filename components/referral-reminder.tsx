@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui";
 import { createClient } from "@/utils/supabase/client";
+import { trackReferralFooter } from "@/lib/ui/referral-footer";
+import "@/styles/referral-reminder.css";
 
 type CopyState = "idle" | "copied" | "error";
 
@@ -26,6 +28,8 @@ function fallbackCopy(value: string) {
 export function ReferralReminder() {
   const pathname = usePathname();
   const isHome = pathname === "/" || pathname === "/design-system/home-preview";
+  const isBoosters = pathname === "/boosters";
+  const reminder = useRef<HTMLElement>(null);
   const [visible, setVisible] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [code, setCode] = useState<string | null>(null);
@@ -41,7 +45,10 @@ export function ReferralReminder() {
         data: { user }
       } = await supabase.auth.getUser();
       if (!active || !user) return;
-      if (localStorage.getItem(dismissalKey(user.id)) === "1") return;
+      if (!isBoosters && localStorage.getItem(dismissalKey(user.id)) === "1") {
+        setVisible(false);
+        return;
+      }
 
       setUserId(user.id);
       setVisible(true);
@@ -68,7 +75,12 @@ export function ReferralReminder() {
     return () => {
       active = false;
     };
-  }, [isHome]);
+  }, [isHome, isBoosters]);
+
+  useEffect(() => {
+    if (!isBoosters || !visible || !reminder.current) return;
+    return trackReferralFooter(reminder.current);
+  }, [isBoosters, visible]);
 
   function dismiss() {
     if (userId) localStorage.setItem(dismissalKey(userId), "1");
@@ -99,39 +111,50 @@ export function ReferralReminder() {
 
   return (
     <aside
+      ref={reminder}
       aria-label="Referral reward"
-      className={[
-        "fixed bottom-4 left-16 z-[70] grid w-[min(calc(100vw-5rem),32rem)]",
-        "grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 rounded-[18px]",
-        "border border-veil-strong bg-surface/95 px-4 py-2.5 backdrop-blur-md",
-        "shadow-[0_14px_45px_rgba(0,0,0,0.55),0_0_24px_rgba(141,173,255,0.08)]",
-        "max-sm:left-3 max-sm:w-[calc(100vw-1.5rem)]"
-      ].join(" ")}
+      className={
+        isBoosters
+          ? "yk-referral-reminder--boosters"
+          : [
+              "fixed bottom-4 left-16 z-[70] grid w-[min(calc(100vw-5rem),32rem)]",
+              "grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 rounded-[18px]",
+              "border border-veil-strong bg-surface/95 px-4 py-2.5 backdrop-blur-md",
+              "shadow-[0_14px_45px_rgba(0,0,0,0.55),0_0_24px_rgba(141,173,255,0.08)]",
+              "max-sm:left-3 max-sm:w-[calc(100vw-1.5rem)]"
+            ].join(" ")
+      }
     >
       <div className="min-w-0">
-        <p className="truncate font-display text-sm font-bold tracking-wide text-ink">
-          Invite friends · Earn 5 bonus packs
+        <p className="yk-referral-reminder-title truncate font-display text-sm font-bold tracking-wide text-ink">
+          {isBoosters
+            ? "Invite friends · +5 bonus packs"
+            : "Invite friends · Earn 5 bonus packs"}
         </p>
-        <p className="mt-0.5 truncate text-[11px] text-ink-3">
-          Rewarded after their email is verified.
+        <p className="yk-referral-reminder-note mt-0.5 truncate text-[11px] text-ink-3">
+          {isBoosters
+            ? "After their email is verified."
+            : "Rewarded after their email is verified."}
         </p>
       </div>
       <Button
         type="button"
         disabled={!code}
         onClick={() => void copyLink()}
-        className="min-h-9 whitespace-nowrap !rounded-full px-5 py-2 text-xs"
+        className="yk-referral-reminder-copy min-h-9 whitespace-nowrap !rounded-full px-5 py-2 text-xs"
       >
         {!code ? "Preparing…" : copyState === "copied" ? "Copied" : "Copy link"}
       </Button>
-      <button
-        type="button"
-        aria-label="Dismiss referral reminder"
-        onClick={dismiss}
-        className="grid h-7 w-7 place-items-center rounded-full border border-veil text-base leading-none text-ink-3 transition hover:border-focus hover:bg-veil hover:text-ink"
-      >
-        ×
-      </button>
+      {!isBoosters && (
+        <button
+          type="button"
+          aria-label="Dismiss referral reminder"
+          onClick={dismiss}
+          className="grid h-7 w-7 place-items-center rounded-full border border-veil text-base leading-none text-ink-3 transition hover:border-focus hover:bg-veil hover:text-ink"
+        >
+          ×
+        </button>
+      )}
       {copyState === "error" && (
         <p role="alert" className="col-span-3 text-[11px] text-danger">
           Couldn&apos;t copy the link. Try again from Settings.
