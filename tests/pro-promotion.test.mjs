@@ -297,10 +297,18 @@ test("integration reuses membership request and only advertises on Home and Boos
     readFileSync("components/pro-promotion.tsx", "utf8"),
     /fetch\(|checkout|createClient/
   );
+  const game = readFileSync("components/game.tsx", "utf8");
+  assert.match(
+    game,
+    /view === "packs" && <ProPromotion page="packs" dismissible=\{false\} \/>/
+  );
+  assert.ok(
+    game.indexOf('<ProPromotion page="packs"') > game.indexOf("<Boosters")
+  );
   const topbar = readFileSync("components/topbar.tsx", "utf8");
   assert.match(
     topbar,
-    /<ProPromotion\s+enabled=\{secondaryReady && \(view === "home" \|\| view === "packs"\)\}\s+dismissible=\{view === "packs"\}/
+    /<ProPromotion\s+enabled=\{secondaryReady && view === "home"\}\s+dismissible=\{false\}/
   );
 });
 

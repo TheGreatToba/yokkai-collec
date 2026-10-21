@@ -759,9 +759,9 @@ export function Topbar({
         </div>
       </header>
       <ProPromotion
-        enabled={secondaryReady && (view === "home" || view === "packs")}
-        dismissible={view === "packs"}
-        page={view === "packs" ? "packs" : "home"}
+        enabled={secondaryReady && view === "home"}
+        dismissible={false}
+        page="home"
       />
     </>
   );

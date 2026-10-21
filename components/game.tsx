@@ -2,6 +2,7 @@
 import { packCountdown } from "@/lib/ui/pack-countdown";
 import dynamic from "next/dynamic";
 import { Topbar } from "@/components/topbar";
+import { ProPromotion } from "@/components/pro-promotion";
 import {
   useCallback,
   useEffect,
@@ -529,6 +530,7 @@ export function Game({
             onSound={sound.play}
           />
         )}
+        {view === "packs" && <ProPromotion page="packs" dismissible={false} />}
 
         {view === "collection" && status && (
           <CollectionView
