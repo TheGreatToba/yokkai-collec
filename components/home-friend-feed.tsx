@@ -174,7 +174,8 @@ export function HomeFriendFeed({
         </Link>
       </header>
       {viewer && (
-        <div className="yk-feed-composer">
+        <details className="yk-feed-composer">
+          <summary className="yk-button yk-button-secondary">Add post</summary>
           <ProfileWall
             ownerId={viewer.id}
             pseudo={viewer.name}
@@ -194,7 +195,7 @@ export function HomeFriendFeed({
             Posts appear here, on your wall and in your friends&apos; feeds.
             Your profile visibility still applies.
           </p>
-        </div>
+        </details>
       )}
       <div className="yk-feed-toolbar">
         <span className="yk-feed-following">

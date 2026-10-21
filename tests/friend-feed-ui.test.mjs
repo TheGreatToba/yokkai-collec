@@ -166,3 +166,21 @@ test("Home embeds the existing own-wall composer even if the friend feed fails",
   assert.match(html, /Your profile visibility still applies/);
   assert.match(html, /role="alert"/);
 });
+
+test("home composer is behind a closed native Add post disclosure", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(HomeFriendFeed, {
+      initial: { items: [], next: null },
+      viewer: post.author
+    })
+  );
+  assert.match(
+    html,
+    /<details class="yk-feed-composer"><summary class="yk-button yk-button-secondary">Add post<\/summary>/
+  );
+  assert.doesNotMatch(html, /<details[^>]*\bopen(?:=|\s|>)/);
+  assert.match(
+    html,
+    /<details[^>]*>[\s\S]*data-wall-composer="true"[\s\S]*<\/details>/
+  );
+});
