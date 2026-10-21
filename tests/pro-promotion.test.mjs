@@ -311,7 +311,7 @@ test("integration reuses membership request and only advertises on Home and Boos
   );
   assert.match(
     boosters.replace(/\s+/g, " "),
-    /!opening && !revealing && status\?\.available === 0/
+    /!opening && !revealing && <ReferralReminder packChoices \/>/
   );
   const topbar = readFileSync("components/topbar.tsx", "utf8");
   assert.match(

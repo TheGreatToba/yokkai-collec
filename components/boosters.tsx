@@ -1477,7 +1477,7 @@ export function Boosters({
           </article>
         </div>
       )}
-      {!opening && !revealing && status?.available === 0 && !!decisionStatus && !decisionStatus.available && decisionStatus.pending.length === 0 && <ReferralReminder packChoices />}
+      {!opening && !revealing && <ReferralReminder packChoices />}
       <Modal
         open={ratesKind !== null}
         onClose={() => setRatesKind(null)}
