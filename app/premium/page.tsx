@@ -17,10 +17,10 @@ export default async function PremiumPage() {
       <header className="yk-premium-nav">
         <Link href="/boosters" aria-label="Yokkai Collec’, home">
           <Image
-            src="/assets/brand-logo-chrome.png"
+            src="/assets/brand-logo-blue.png"
             alt=""
-            width={1672}
-            height={941}
+            width={1448}
+            height={1086}
             className="yk-premium-logo"
           />
         </Link>

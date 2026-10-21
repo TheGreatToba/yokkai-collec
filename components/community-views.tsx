@@ -2051,10 +2051,12 @@ export function SearchView({
         </aside>
         <div className="yk-collection-main">
           <div className="yk-catalogue-heading">
-            <p role="status" className="sr-only">
+            <p role="status" className="yk-catalogue-total">
               {searching
                 ? "Loading catalog…"
-                : `${total.toLocaleString("en-US")} ${total === 1 ? "card" : "cards"}`}
+                : searchError
+                  ? "Card count unavailable"
+                  : `${total.toLocaleString("en-US")} ${total === 1 ? "card" : "cards"}`}
             </p>
             <button
               type="button"
