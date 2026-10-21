@@ -9,10 +9,10 @@
   --ease-yokkai: var(--ease-standard);
 }
 /* Frame the supplied PNG's transparent margins without altering the artwork. */
-img[src*="brand-logo-blue.png"] {
-  aspect-ratio: 1420 / 690;
+img[src*="brand-logo-ice-retro.png"] {
+  aspect-ratio: 1612 / 805;
   object-fit: cover;
-  object-position: 50% 43%;
+  object-position: 50% 44%;
 }
 body {
   background-color: #05060a;
