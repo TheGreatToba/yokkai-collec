@@ -238,9 +238,9 @@
     box-shadow: none;
     border: 0;
   }
-  .yk-pack-panel .yk-pack-body > .yk-button:not(:disabled):hover {
-    box-shadow: 0 0 24px
-      color-mix(in srgb, var(--color-pack-accent) 25%, transparent);
+  .yk-pack-grid .yk-pack-panel .yk-pack-body > .yk-button:not(:disabled):hover {
+    background: var(--color-veil-strong);
+    box-shadow: var(--shadow-interactive);
   }
 }
 @media (min-width: 701px) and (max-height: 1200px) {
