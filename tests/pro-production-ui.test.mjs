@@ -79,6 +79,7 @@ test("Basic players can preview profile styles while the controls stay usable", 
     const load = loader({
       "@/components/pro-access": {
         useProAccess: () => pro,
+        useProMembershipStatus: () => pro,
         ProFeatureNotice: () =>
           React.createElement("p", null, "Pro members only")
       }

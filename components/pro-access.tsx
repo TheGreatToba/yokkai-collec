@@ -11,6 +11,7 @@ import {
 const ProAccess = createContext(false);
 const OwnStyle = createContext<ProfileStyle | null>(null);
 const ProMembership = createContext<boolean | null>(null);
+// Cosmetic availability only; plan labels must use useProMembershipStatus.
 export const useProAccess = () => useContext(ProAccess);
 // Presentation-only status; null means unknown, unauthenticated, or unavailable.
 export const useProMembershipStatus = () => useContext(ProMembership);
@@ -36,31 +37,41 @@ export function ProAccessProvider({ children }: { children: React.ReactNode }) {
           signal: controller.signal
         });
         const result = response.ok ? await response.json() : null;
-        let ownStyle = null;
-        if (result?.active === true) {
-          const styleResponse = await fetch("/api/pro/profile-style", {
-            cache: "no-store",
-            signal: controller.signal
-          });
-          const projection = styleResponse.ok
-            ? await styleResponse.json()
-            : null;
-          if (projection?.active === true)
-            ownStyle = normalizeProfileStyle({
-              ...DEFAULT_PROFILE_STYLE,
-              ...projection.style
-            });
-        }
         if (
-          !stopped &&
-          !controller.signal.aborted &&
-          document.visibilityState === "visible"
-        ) {
+          stopped ||
+          controller.signal.aborted ||
+          document.visibilityState !== "visible"
+        )
+          return;
+        // Membership comes only from benefits, never from cosmetic availability.
+        // Publish it before the optional style request, which may fail or time out.
+        setMembership(
+          typeof result?.active === "boolean" ? result.active : null
+        );
+        let ownStyle: ProfileStyle | null = null;
+        if (result?.active === true) {
+          try {
+            const styleResponse = await fetch("/api/pro/profile-style", {
+              cache: "no-store",
+              signal: controller.signal
+            });
+            const projection = styleResponse.ok
+              ? await styleResponse.json()
+              : null;
+            if (projection?.active === true)
+              ownStyle = normalizeProfileStyle({
+                ...DEFAULT_PROFILE_STYLE,
+                ...projection.style
+              });
+          } catch {
+            // A cosmetic outage cannot change the confirmed membership status.
+            ownStyle = null;
+          }
+        }
+        if (controller.signal.aborted) ownStyle = null;
+        if (!stopped && document.visibilityState === "visible") {
           setActive(result?.active === true && ownStyle !== null);
           setStyle(ownStyle);
-          setMembership(
-            typeof result?.active === "boolean" ? result.active : null
-          );
         }
       } catch {
         if (!stopped) {
@@ -115,6 +126,16 @@ export function ProAccessProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function ProFeatureNotice({ feature }: { feature: string }) {
+  const membership = useProMembershipStatus();
+  if (membership !== false) {
+    return (
+      <p className="mt-2 text-xs text-ink-2" role="status">
+        {membership === true
+          ? `${feature} is temporarily unavailable. Your Yokkai Pro membership is active.`
+          : `${feature} — membership status unavailable. Please try again shortly.`}
+      </p>
+    );
+  }
   return (
     <p className="mt-2 text-xs text-ink-2">
       {feature} — available to Pro members only.{" "}
