@@ -1665,14 +1665,39 @@ test("l’avatar ouvre un menu profil compact avec résumé et actions", () => {
     normalizeWhitespace(css),
     normalizeWhitespace(/width: min\(280px/)
   );
-  assert.match(
-    normalizeWhitespace(css),
-    normalizeWhitespace(/background: #0f0c1d/)
-  );
-  assert.match(
-    normalizeWhitespace(css),
-    normalizeWhitespace(/box-shadow: 0 12px 32px -4px rgba\(4,0,11,0?\.95\)/)
-  );
+  // Tests-only transition before the separately reviewed midnight menu ships.
+  // Presence of its dedicated contract selects the exact new palette; neither
+  // palette is accepted interchangeably once that feature is installed.
+  if (existsSync(path.join(root, "tests/account-menu-navy.test.mjs"))) {
+    const menuSurface = css.match(/\.yk-account-panel\s*\{([^}]+)\}/)?.[1];
+    assert.ok(menuSurface, "The account menu surface must be defined");
+    assert.match(
+      normalizeWhitespace(menuSurface),
+      normalizeWhitespace(/background: var\(--color-night\)/)
+    );
+    assert.match(
+      normalizeWhitespace(menuSurface),
+      normalizeWhitespace(/border: 1px solid #344964/)
+    );
+    assert.match(
+      normalizeWhitespace(menuSurface),
+      normalizeWhitespace(/box-shadow: 0 12px 32px -4px rgba\(6,9,19,0?\.95\)/)
+    );
+    assert.match(
+      readFileSync(path.join(root, "tailwind.config.ts"), "utf8"),
+      /night: "#060913"/
+    );
+    assert.doesNotMatch(menuSurface, /#0f0c1d|#1d1844|82,\s*68,\s*181/);
+  } else {
+    assert.match(
+      normalizeWhitespace(css),
+      normalizeWhitespace(/background: #0f0c1d/)
+    );
+    assert.match(
+      normalizeWhitespace(css),
+      normalizeWhitespace(/box-shadow: 0 12px 32px -4px rgba\(4,0,11,0?\.95\)/)
+    );
+  }
   assert.match(
     normalizeWhitespace(css),
     normalizeWhitespace(/\.yk-account-karas \{ display: none; \}/)
