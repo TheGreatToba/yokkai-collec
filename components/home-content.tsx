@@ -48,30 +48,23 @@ export function HomeLinks({ discordEnabled }: { discordEnabled: boolean }) {
         {discordEnabled && (
           <section aria-labelledby="home-discord" className="yk-home-discord">
             <div>
-              <p className="eyebrow">Better together</p>
               <h2 id="home-discord">Join the Yokkai community</h2>
-              <p>
-                Share your pulls, find trading partners, and meet fellow
-                collectors.
-              </p>
             </div>
-            <Link href="/discord" className="yk-button yk-button-secondary">
+            <Link
+              href="/discord"
+              className="yk-button yk-button-primary yk-home-panel-action"
+            >
               Join Discord ↗
             </Link>
           </section>
         )}
         <section aria-labelledby="home-referral" className="yk-home-referral">
           <div>
-            <p className="eyebrow">Better with friends</p>
             <h2 id="home-referral">Invite friends. Earn packs.</h2>
-            <p>
-              Share your referral link and earn 5 bonus Regular Packs when a
-              friend signs up and verifies their email.
-            </p>
           </div>
           <Link
             href="/settings#referrals"
-            className="yk-button yk-button-primary"
+            className="yk-button yk-button-primary yk-home-panel-action"
           >
             Get your referral link <span aria-hidden="true">↗</span>
           </Link>
@@ -122,7 +115,10 @@ export function HomePacks({ children }: { children: ReactNode }) {
     <section className="yk-home-panel" aria-labelledby="home-packs">
       <header className="yk-home-panel-heading">
         <h2 id="home-packs">Your packs</h2>
-        <Link href="/boosters" className="yk-button yk-button-primary">
+        <Link
+          href="/boosters"
+          className="yk-button yk-button-primary yk-home-panel-action"
+        >
           Open a booster <span aria-hidden="true">↗</span>
         </Link>
       </header>

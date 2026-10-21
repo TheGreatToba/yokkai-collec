@@ -7,7 +7,6 @@ import { Avatar, Button, Modal } from "@/components/ui";
 import { StyledPlayerName } from "@/components/styled-player-name";
 import { ProfileWall } from "@/components/profile-wall";
 import { liveWall, type WallAdapter } from "@/lib/data/profile-wall";
-import { WallPostInteractions } from "@/components/wall-post-interactions";
 import type { WallInteractions } from "@/lib/data/wall-interactions";
 import {
   appendFeedPage,
@@ -23,7 +22,6 @@ export function HomeFriendFeed({
   initialError = "",
   viewer,
   wallAdapter,
-  interactions,
   load = getFriendFeed
 }: {
   initial: FriendFeedPage;
@@ -97,6 +95,26 @@ export function HomeFriendFeed({
     };
   }, [reload]);
 
+  useEffect(() => {
+    const strip = timeline.current;
+    if (!strip) return;
+    const scroll = (event: WheelEvent) => {
+      if (event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY))
+        return;
+      if (strip.scrollWidth <= strip.clientWidth || !event.deltaY) return;
+      event.preventDefault();
+      strip.scrollLeft +=
+        event.deltaY *
+        (event.deltaMode === 1
+          ? 16
+          : event.deltaMode === 2
+            ? strip.clientWidth
+            : 1);
+    };
+    strip.addEventListener("wheel", scroll, { passive: false });
+    return () => strip.removeEventListener("wheel", scroll);
+  }, []);
+
   async function more() {
     if (pending.current || !page.next) return;
     pending.current = true;
@@ -165,16 +183,20 @@ export function HomeFriendFeed({
     <section className="yk-friend-feed" aria-labelledby="home-friend-feed">
       <header className="yk-feed-heading">
         <div>
-          <p className="eyebrow">Between friends</p>
           <h2 id="home-friend-feed">Friend feed</h2>
-          <p>Your posts and your friends&apos; walls. Newest first.</p>
         </div>
-        <Link href="/profile?tab=wall" className="yk-button yk-button-primary">
+        <Link
+          href="/profile?tab=wall"
+          className="yk-button yk-button-primary yk-home-panel-action"
+        >
           View my wall <span aria-hidden="true">↗</span>
         </Link>
       </header>
       {viewer && (
-        <div className="yk-feed-composer">
+        <details className="yk-feed-composer">
+          <summary className="yk-button yk-button-primary yk-home-panel-action">
+            Add post
+          </summary>
           <ProfileWall
             ownerId={viewer.id}
             pseudo={viewer.name}
@@ -186,7 +208,7 @@ export function HomeFriendFeed({
             composerOnly
             adapter={wallAdapter}
             onPublished={() => {
-              timeline.current?.scrollTo({ top: 0 });
+              timeline.current?.scrollTo({ left: 0, top: 0 });
               void reload();
             }}
           />
@@ -194,7 +216,7 @@ export function HomeFriendFeed({
             Posts appear here, on your wall and in your friends&apos; feeds.
             Your profile visibility still applies.
           </p>
-        </div>
+        </details>
       )}
       <div className="yk-feed-toolbar">
         <span className="yk-feed-following">
@@ -202,10 +224,29 @@ export function HomeFriendFeed({
         </span>
         <Button
           variant="secondary"
+          className="yk-home-panel-action yk-feed-refresh"
+          aria-label={busy ? "Refreshing feed" : "Refresh feed"}
+          title="Refresh feed"
           disabled={busy}
           onClick={() => void reload()}
         >
-          {busy ? "Loading…" : "Refresh"}
+          <svg
+            aria-hidden="true"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={
+              busy ? "animate-spin motion-reduce:animate-none" : undefined
+            }
+          >
+            <path d="M21 3v5h-5" />
+            <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+          </svg>
         </Button>
       </div>
       <div
@@ -241,6 +282,7 @@ export function HomeFriendFeed({
               className="yk-feed-post"
               key={post.id}
               data-feed-post={post.id}
+              data-has-media={Boolean(post.hasMedia || post.gifUrl)}
             >
               <Link
                 href={wall}
@@ -284,25 +326,30 @@ export function HomeFriendFeed({
                     </button>
                   )}
                 </header>
-                {post.text && <p className="yk-feed-text">{post.text}</p>}
                 {(post.hasMedia || post.gifUrl) && (
-                  <img
-                    src={
-                      post.hasMedia
-                        ? `/api/profile-wall/media/${post.id}`
-                        : post.gifUrl!
-                    }
-                    alt={
-                      post.gifUrl
-                        ? "GIF shared on a wall"
-                        : "Image shared on a wall"
-                    }
-                    loading="lazy"
-                    decoding="async"
-                    className="yk-feed-media"
-                  />
+                  <Link
+                    href={wall}
+                    className="yk-feed-media-preview"
+                    aria-label={`View ${post.author.name}'s wall post`}
+                  >
+                    <img
+                      src={
+                        post.hasMedia
+                          ? `/api/profile-wall/media/${post.id}`
+                          : post.gifUrl!
+                      }
+                      alt={
+                        post.gifUrl
+                          ? "GIF shared on a wall"
+                          : "Image shared on a wall"
+                      }
+                      loading="lazy"
+                      decoding="async"
+                      className="yk-feed-media"
+                    />
+                  </Link>
                 )}
-                <WallPostInteractions postId={post.id} adapter={interactions} />
+                {post.text && <p className="yk-feed-text">{post.text}</p>}
                 <Link href={wall} className="yk-feed-wall-link">
                   View wall <span aria-hidden="true">↗</span>
                 </Link>
@@ -325,27 +372,6 @@ export function HomeFriendFeed({
           <p className="yk-feed-end">You&apos;re all caught up.</p>
         )}
       </div>
-      <footer className="yk-feed-footer">
-        <span className="yk-feed-footer-signature">
-          <svg
-            aria-hidden="true"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M22 21v-2a4 4 0 0 0-3-3.87" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-          </svg>
-          Your circle. Your stories.
-        </span>
-        <span className="yk-feed-footer-note">Share. React. Connect.</span>
-      </footer>
       {!!cleanup.length && (
         <div className="yk-feed-empty" role="alert">
           <p>
