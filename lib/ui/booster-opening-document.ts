@@ -101,6 +101,7 @@ export function boosterOpeningDocument(
     .replace(
       "</head>",
       `<style>
+      body{background:#070b13 url(${json(new URL(`/assets/${kind}-opening-nebula.webp`, origin).href)}) center / cover no-repeat}
       .replay{display:none!important}
       .yokkai-wait-booster .scene{visibility:hidden}
       .yokkai-wait-booster *, .yokkai-wait-booster *::before, .yokkai-wait-booster *::after{animation-play-state:paused!important}

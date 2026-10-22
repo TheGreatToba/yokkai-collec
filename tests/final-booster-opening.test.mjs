@@ -630,3 +630,13 @@ test("production proxy origins use configured public site, not localhost or atta
     assert.doesNotMatch(html, /evil\.example/);
   }
 });
+
+test("opening keeps the matching nebula behind both pack animations", () => {
+  for (const kind of ["regular", "decision"]) {
+    assert.ok(
+      documentFor(kind).includes(
+        `body{background:#070b13 url("https://yokkai-collec.com/assets/${kind}-opening-nebula.webp") center / cover no-repeat}`
+      )
+    );
+  }
+});
