@@ -1987,6 +1987,7 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
   });
   assert.equal((regular.match(/>Discard</g) || []).length, 0);
   assert.match(regular, /data-reveal-state="revealing"/);
+  assert.match(regular, /<h2 class="sr-only">Reveal your cards<\/h2>/);
   assert.match(regular, /data-pack-kind="regular"/);
   assert.doesNotMatch(
     normalizeWhitespace(regular),

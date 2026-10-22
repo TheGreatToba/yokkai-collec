@@ -2678,3 +2678,68 @@
     background-attachment: scroll;
   }
 }
+
+/* Keep the individual reveal framed like the fullscreen pack opening. */
+body:has(.yk-reveal-screen[data-reveal-state="revealing"]) {
+  overflow: hidden;
+}
+.yk-reveal-screen[data-reveal-state="revealing"] {
+  position: fixed;
+  z-index: 50;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 16px;
+  padding: max(16px, env(safe-area-inset-top))
+    max(24px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom))
+    max(24px, env(safe-area-inset-left));
+  background: var(--color-night);
+}
+.yk-reveal-screen[data-reveal-state="revealing"] .yk-reveal-header {
+  width: min(100%, var(--booster-reveal-max));
+  margin-inline: auto;
+  align-items: center;
+}
+.yk-reveal-screen[data-reveal-state="revealing"] .yk-reveal-copy {
+  grid-column: 1;
+  grid-row: 1;
+}
+.yk-reveal-screen[data-reveal-state="revealing"]
+  .yk-reveal-copy
+  > [role="status"] {
+  margin-top: 0;
+}
+.yk-reveal-screen[data-reveal-state="revealing"] .yk-reveal-progress {
+  grid-column: 2;
+  grid-row: 1;
+}
+.yk-reveal-screen[data-reveal-state="revealing"] .yk-reveal-stage {
+  justify-content: center;
+  padding: 0;
+  min-height: 0;
+}
+.yk-reveal-screen[data-reveal-state="revealing"] .yk-deck {
+  width: min(190px, 26dvh);
+}
+.yk-reveal-screen[data-reveal-state="revealing"] .yk-reveal-grid {
+  width: min(100%, var(--booster-reveal-max), 110dvh);
+  margin: 0 auto;
+}
+@media (max-width: 639px) {
+  .yk-reveal-screen[data-reveal-state="revealing"] {
+    gap: 12px;
+  }
+  .yk-reveal-screen[data-reveal-state="revealing"] .yk-reveal-header {
+    grid-template-columns: 1fr;
+  }
+  .yk-reveal-screen[data-reveal-state="revealing"] .yk-reveal-progress {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .yk-reveal-screen[data-reveal-state="revealing"] .yk-reveal-grid {
+    width: min(100%, 55dvh);
+  }
+  .yk-reveal-screen[data-reveal-state="revealing"] .yk-deck {
+    width: min(150px, 23dvh);
+  }
+}

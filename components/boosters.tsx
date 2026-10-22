@@ -381,10 +381,10 @@ export function BoosterReveal({
     >
       <header className="yk-reveal-header">
         <div className="yk-reveal-copy">
-          <p className="eyebrow">
+          <p className={`eyebrow ${!done ? "sr-only" : ""}`}>
             {decision ? "Decision Pack" : "Regular Pack"}
           </p>
-          <h2 className="mt-2 font-display text-2xl">
+          <h2 className={done ? "mt-2 font-display text-2xl" : "sr-only"}>
             {decision
               ? choosing
                 ? "Make your choice"
