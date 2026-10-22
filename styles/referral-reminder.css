@@ -198,17 +198,21 @@ ul.yk-referral-option-detail {
 }
 
 /* Below desktop the reminder is sticky: keep it off the footer links and off
-   the first pack's Open button on short phones (the art scales with its stage). */
+   the first pack's Open button (the art scales with its stage). */
 @media (max-width: 1023px) {
   body:has(.yk-referral-reminder--boosters) .yk-boosters-page .yk-site-footer {
     padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
   }
 }
-@media (max-width: 700px) {
+/* Measured: Open clears the reminder when the stage is at most 100svh - 520px
+   at 320px wide (12px margin kept). Under 690px tall the 340px stage already
+   puts Open fully below the fold, so shrinking would only park it under the
+   reminder: leave it alone there. */
+@media (max-width: 700px) and (min-height: 690px) {
   body:has(.yk-referral-reminder--boosters)
     .yk-pack-grid
     .yk-pack-panel
     .yk-pack-art-stage {
-    height: clamp(240px, calc(100svh - 520px), 340px);
+    height: clamp(150px, calc(100svh - 532px), 340px);
   }
 }
