@@ -410,12 +410,14 @@
 .yk-auction-offer-row > .yk-button:not(:disabled):focus-visible {
   background: var(--color-veil-strong);
   box-shadow: var(--shadow-interactive);
+  border-color: var(--color-pack-accent);
 }
 @media (hover: hover) and (pointer: fine) {
-  .yk-bid-quick:not(:disabled):hover,
-  .yk-auction-offer-row > .yk-button:not(:disabled):hover {
+  .yk-auction-offer-row > .yk-button:not(:disabled):hover,
+  .yk-bid-quick:hover:not(:disabled) {
     background: var(--color-veil-strong);
     box-shadow: var(--shadow-interactive);
+    border-color: var(--color-pack-accent);
   }
 }
 .yk-auction-offer-row {
