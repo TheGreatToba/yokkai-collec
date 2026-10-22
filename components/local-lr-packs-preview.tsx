@@ -71,8 +71,8 @@ export function LocalLrPacksPreview() {
       <Boosters
         previewOnly
         releasedOpening
-        simulateActions
         clickToOpen
+        simulateActions
         onOpenMany={async count => {
           const cards = remember(
             Array.from({ length: count }, (_, index) =>
