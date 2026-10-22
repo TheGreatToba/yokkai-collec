@@ -7,6 +7,103 @@
   gap: var(--layout-gutter);
   margin-top: var(--layout-gutter);
 }
+.yk-pack-batch-picker {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  margin: 8px 0;
+}
+.yk-pack-quantity {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid #304361;
+  border-radius: 999px;
+  background: #080e1b;
+}
+.yk-pack-quantity button {
+  min-width: 52px;
+  min-height: 36px;
+  border-radius: 999px;
+  color: #b6c9e6;
+  font-size: 13px;
+  font-weight: 700;
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+.yk-pack-quantity button[aria-pressed="true"] {
+  background: #b8d2fa;
+  color: #08101e;
+  box-shadow: 0 0 16px #8fbaff30;
+}
+.yk-pack-quantity button:not(:disabled):hover {
+  background: #29425f;
+  color: #f0f6ff;
+}
+.yk-pack-quantity button[aria-pressed="true"]:hover {
+  background: #d0e2ff;
+  color: #08101e;
+}
+.yk-pack-quantity button:focus-visible {
+  outline: 2px solid #b8d2fa;
+  outline-offset: 3px;
+}
+.yk-pack-quantity button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.yk-pack-batch-details {
+  color: #aebfd7;
+  font-size: 11px;
+}
+.yk-opening-batch-count {
+  position: absolute;
+  top: max(28px, env(safe-area-inset-top));
+  z-index: 2;
+  color: #d7e6ff;
+  font-weight: 600;
+  pointer-events: none;
+}
+.yk-reveal-progress.yk-reveal-progress-batch {
+  width: min(100%, 360px);
+  max-width: 100%;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px;
+}
+.yk-reveal-progress-batch li {
+  flex: 0 0 12px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .yk-pack-quantity button {
+    transition: none;
+  }
+}
+@media (min-width: 701px) {
+  .yk-pack-grid:has(.yk-pack-batch-picker) .yk-pack-panel .yk-pack-body {
+    flex: 1;
+  }
+  .yk-pack-grid:has(.yk-pack-batch-picker)
+    .yk-pack-panel
+    .yk-pack-body
+    > .yk-button {
+    margin-top: auto;
+  }
+}
+@media (min-width: 1024px) and (max-height: 1200px) {
+  .yk-boosters-page
+    .yk-pack-grid:has(.yk-pack-batch-picker)
+    .yk-pack-panel
+    .yk-pack-art-stage {
+    height: clamp(
+      100px,
+      calc(100svh - var(--pack-viewport-chrome) - 74px),
+      620px
+    );
+  }
+}
 .yk-pack-panel {
   position: relative;
   overflow: hidden;
@@ -987,6 +1084,235 @@
   }
 }
 
+/* Batch reveals are a compact stage + a five-card window, never a 50-card fan. */
+.yk-game-main:has(.yk-reveal-batch) {
+  max-width: 1440px;
+}
+.yk-reveal-screen.yk-reveal-batch {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1.3fr);
+  gap: 18px 36px;
+  align-items: center;
+}
+.yk-reveal-batch > .yk-reveal-header {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+.yk-batch-progress {
+  grid-column: 2;
+  grid-row: 2;
+  width: 190px;
+  display: grid;
+  gap: 10px;
+  text-align: right;
+  color: #aebfd7;
+  font-size: 12px;
+}
+.yk-batch-progress strong {
+  color: #e9f1ff;
+  font-size: 18px;
+}
+.yk-batch-progress p > span {
+  margin-left: 6px;
+}
+.yk-batch-meter {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #17263d;
+}
+.yk-batch-meter > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #709cd6, #bfd9ff);
+}
+.yk-reveal-batch > .yk-reveal-stage {
+  grid-column: 1;
+  grid-row: 2 / span 2;
+}
+.yk-reveal-batch > .yk-reveal-stage:not(.yk-reveal-ssr):not(.yk-reveal-lr) {
+  min-height: 310px;
+  padding: 36px 12px 24px;
+  justify-content: center;
+}
+.yk-reveal-batch
+  > .yk-reveal-stage:not(.yk-reveal-ssr):not(.yk-reveal-lr)
+  .yk-deck {
+  width: clamp(150px, 22svh, 220px);
+}
+.yk-reveal-batch .yk-stacked-back {
+  display: none;
+}
+.yk-reveal-batch .yk-stacked-back:nth-child(-n + 3) {
+  display: block;
+  transform: translate(6px, -6px) rotate(1deg) !important;
+  filter: brightness(0.9) !important;
+}
+.yk-reveal-batch .yk-stacked-back:first-child {
+  transform: translate(18px, -18px) rotate(3deg) !important;
+  filter: brightness(0.72) !important;
+}
+.yk-reveal-batch .yk-stacked-back:nth-child(2) {
+  transform: translate(12px, -12px) rotate(2deg) !important;
+  filter: brightness(0.82) !important;
+}
+.yk-reveal-batch > .yk-reveal-grid {
+  grid-column: 2;
+  grid-row: 2;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 14px 12px;
+  width: 100%;
+  max-width: min(100%, 62svh);
+  margin: 0 auto;
+  padding: 16px;
+  border: 1px solid #22324b;
+  border-radius: 18px;
+  background: #080e1aa6;
+}
+.yk-reveal-batch > .yk-reveal-grid > li {
+  grid-column: span 2;
+}
+.yk-reveal-batch > .yk-reveal-grid > li:nth-child(4) {
+  grid-column: 2 / span 2;
+}
+.yk-reveal-batch > .yk-reveal-grid > li:nth-child(5) {
+  grid-column: 4 / span 2;
+}
+.yk-batch-pagination {
+  grid-column: 2;
+  grid-row: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  max-width: min(100%, 62svh);
+  margin-inline: auto;
+}
+.yk-batch-pagination > div {
+  display: grid;
+  gap: 3px;
+  text-align: center;
+  font-size: 13px;
+}
+.yk-batch-pagination > div > span {
+  color: #91a4c2;
+  font-size: 11px;
+}
+.yk-batch-pagination button {
+  min-height: 44px;
+  padding: 6px 12px;
+  border: 1px solid #304564;
+  border-radius: 999px;
+  background: #101c2e;
+  color: #d5e6ff;
+  font-size: 12px;
+}
+.yk-batch-pagination button:hover:not(:disabled) {
+  background: #253b59;
+}
+.yk-batch-pagination button:focus-visible {
+  outline: 2px solid #b8d2fa;
+  outline-offset: 3px;
+}
+.yk-batch-pagination button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.yk-batch-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #aebfd7;
+}
+.yk-reveal-batch > .yk-reveal-summary {
+  grid-column: 1 / -1;
+  margin-top: 12px;
+}
+.yk-reveal-batch.yk-reveal-complete {
+  grid-template-columns: minmax(0, 1fr);
+}
+.yk-reveal-batch.yk-reveal-complete
+  > :is(.yk-reveal-grid, .yk-batch-pagination) {
+  grid-column: 1;
+  max-width: 1000px;
+}
+.yk-reveal-batch.yk-reveal-complete > .yk-reveal-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.yk-reveal-batch.yk-reveal-complete > .yk-reveal-grid > li {
+  grid-column: auto;
+}
+@media (max-width: 900px) {
+  .yk-reveal-screen.yk-reveal-batch {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .yk-reveal-batch > .yk-reveal-stage {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .yk-reveal-batch > .yk-reveal-stage:not(.yk-reveal-ssr):not(.yk-reveal-lr) {
+    min-height: 240px;
+    padding-block: 24px 12px;
+  }
+  .yk-reveal-batch
+    > .yk-reveal-stage:not(.yk-reveal-ssr):not(.yk-reveal-lr)
+    .yk-deck {
+    width: clamp(135px, 20svh, 175px);
+  }
+  .yk-reveal-batch > .yk-batch-pagination {
+    grid-column: 1;
+    grid-row: 4;
+    max-width: 100%;
+  }
+  .yk-reveal-batch > .yk-reveal-grid {
+    grid-column: 1;
+    grid-row: 3;
+    max-width: 100%;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding: 12px;
+    gap: 10px;
+  }
+  .yk-reveal-batch > .yk-reveal-grid > li {
+    grid-column: auto !important;
+  }
+  .yk-reveal-batch.yk-reveal-complete > .yk-batch-pagination {
+    grid-row: 3;
+  }
+  .yk-reveal-batch.yk-reveal-complete > .yk-reveal-grid {
+    grid-row: 2;
+  }
+}
+@media (max-width: 600px) {
+  .yk-reveal-batch > .yk-reveal-header {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+  .yk-reveal-batch .yk-reveal-copy {
+    grid-row: auto;
+  }
+  .yk-batch-progress {
+    grid-column: 1;
+    grid-row: auto;
+    width: 100%;
+    text-align: left;
+  }
+  .yk-batch-progress p {
+    display: inline;
+  }
+  .yk-reveal-batch > .yk-reveal-grid,
+  .yk-reveal-batch.yk-reveal-complete > .yk-reveal-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .yk-batch-pagination {
+    gap: 6px;
+  }
+  .yk-batch-pagination button {
+    padding-inline: 9px;
+  }
+}
+
 /* Keep the individual reveal framed like the fullscreen pack opening. */
 body:has(.yk-reveal-screen[data-reveal-state="revealing"]) {
   overflow: hidden;
@@ -1049,5 +1375,351 @@ body:has(.yk-reveal-screen[data-reveal-state="revealing"]) {
   }
   .yk-reveal-screen[data-reveal-state="revealing"] .yk-deck {
     width: min(150px, 23dvh);
+  }
+}
+
+/* Keep the batch window within the fullscreen reveal without clipping controls. */
+.yk-reveal-screen.yk-reveal-batch[data-reveal-state="revealing"] {
+  overflow-y: auto;
+  padding-inline: max(
+    24px,
+    env(safe-area-inset-left),
+    calc((100vw - 1440px) / 2)
+  );
+}
+.yk-reveal-screen.yk-reveal-batch[data-reveal-state="revealing"]
+  > .yk-reveal-header {
+  width: 100%;
+  max-width: none;
+}
+.yk-reveal-screen.yk-reveal-batch[data-reveal-state="revealing"]
+  > .yk-reveal-grid {
+  width: 100%;
+}
+@media (max-width: 900px) {
+  .yk-reveal-screen.yk-reveal-batch[data-reveal-state="revealing"] {
+    grid-template-rows: auto auto auto auto;
+    align-content: start;
+    padding-inline: max(
+      16px,
+      env(safe-area-inset-left),
+      env(safe-area-inset-right)
+    );
+  }
+}
+
+/* Batch shortcut below the deck; instant results stay static and fully visible. */
+.yk-reveal-batch:has(> .yk-reveal-all) > .yk-reveal-stage {
+  grid-row: 2;
+}
+.yk-reveal-batch > .yk-reveal-all {
+  grid-column: 1;
+  grid-row: 3;
+  justify-self: center;
+  width: min(100%, 240px);
+  min-height: 44px;
+}
+.yk-batch-highlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  grid-column: 1 / -1;
+  font-size: 12px;
+  color: #b4c6e2;
+}
+.yk-batch-lr-count {
+  color: #ffe08a;
+}
+.yk-batch-ssr-count {
+  color: #ff9ccc;
+}
+.yk-reveal-screen.yk-reveal-batch.yk-reveal-instant > .yk-reveal-grid {
+  grid-column: 1;
+  grid-row: auto;
+  width: 100%;
+  max-width: none;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 12px;
+  padding: 12px;
+  background: #070e1acc;
+}
+.yk-reveal-instant > .yk-reveal-grid > li {
+  grid-column: auto !important;
+  padding: 6px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+}
+.yk-reveal-instant *,
+.yk-reveal-instant *::before,
+.yk-reveal-instant *::after {
+  animation: none !important;
+  transition: none !important;
+}
+.yk-reveal-instant [data-batch-rarity="LR"] {
+  border-color: #f4ce72;
+  background: linear-gradient(150deg, #70502244, #0e1423 70%);
+  box-shadow:
+    0 0 22px #eabb3938,
+    inset 0 0 16px #f7d17418;
+}
+.yk-reveal-instant [data-batch-rarity="SSR"] {
+  border-color: #fb74b9;
+  background: linear-gradient(150deg, #842d6644, #0e1423 70%);
+  box-shadow:
+    0 0 20px #ec489936,
+    inset 0 0 16px #ff7fbe18;
+}
+.yk-batch-rarity-label {
+  display: block;
+  margin-top: 10px;
+  color: #ffafd5;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+[data-batch-rarity="LR"] > .yk-batch-rarity-label {
+  color: #ffe08a;
+}
+@media (min-width: 640px) {
+  .yk-reveal-screen.yk-reveal-batch.yk-reveal-instant > .yk-reveal-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1024px) {
+  .yk-reveal-screen.yk-reveal-batch.yk-reveal-instant > .yk-reveal-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1280px) {
+  .yk-reveal-screen.yk-reveal-batch.yk-reveal-instant > .yk-reveal-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+@media (max-width: 900px) {
+  /* The deck and its hint must size their own row instead of overflowing onto
+     the shortcut when the five-card grid is taller than the viewport. */
+  .yk-reveal-screen.yk-reveal-batch[data-reveal-state="revealing"]:has(
+      > .yk-reveal-all
+    ) {
+    grid-template-rows: max-content max-content max-content max-content max-content;
+  }
+  .yk-reveal-batch:has(> .yk-reveal-all) > .yk-reveal-grid {
+    grid-row: 4;
+  }
+  .yk-reveal-batch:has(> .yk-reveal-all) > .yk-batch-pagination {
+    grid-row: 5;
+  }
+}
+
+/* Fit the complete batch into the available viewport, not five oversized cards. */
+.yk-reveal-screen.yk-reveal-batch.yk-reveal-instant {
+  --overview-columns: 5;
+  --overview-rows: var(--overview-rows-small);
+  --overview-gap: 6px;
+  --overview-gutter: 12px;
+  --overview-chrome: 228px;
+  --overview-card-width: max(
+    44px,
+    min(
+      150px,
+      calc(
+        (
+            100dvw - var(--overview-gutter) * 2 - 40px -
+              (var(--overview-columns) - 1) * var(--overview-gap)
+          ) /
+          var(--overview-columns)
+      ),
+      calc(
+        (
+            (
+                100dvh - var(--overview-chrome) - (var(--overview-rows) - 1) *
+                  var(--overview-gap)
+              ) /
+              var(--overview-rows) - 28px
+          ) *
+          5 / 7
+      )
+    )
+  );
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: max(12px, env(safe-area-inset-top)) var(--overview-gutter)
+    max(12px, env(safe-area-inset-bottom));
+  overflow-y: auto;
+  background: var(--color-night);
+}
+.yk-reveal-instant > .yk-reveal-header {
+  width: 100%;
+  padding-bottom: 8px;
+  gap: 4px 12px;
+}
+.yk-reveal-instant .yk-reveal-copy .eyebrow {
+  font-size: 10px;
+}
+.yk-reveal-instant .yk-reveal-copy h2 {
+  margin-top: 2px;
+  font-size: 20px;
+}
+.yk-reveal-instant .yk-reveal-copy [role="status"] {
+  margin-top: 2px;
+  font-size: 12px;
+}
+.yk-reveal-instant .yk-batch-progress {
+  grid-row: 1;
+  font-size: 11px;
+  gap: 5px;
+}
+.yk-reveal-instant .yk-batch-highlights {
+  gap: 4px 12px;
+  font-size: 11px;
+}
+.yk-reveal-screen.yk-reveal-batch.yk-reveal-instant > .yk-reveal-grid {
+  grid-row: 2;
+  height: 100%;
+  min-height: 0;
+  grid-template-columns: repeat(
+    var(--overview-columns),
+    var(--overview-card-width)
+  );
+  align-content: safe center;
+  justify-content: center;
+  gap: var(--overview-gap);
+  padding: 16px;
+  overflow: auto;
+}
+.yk-reveal-instant > .yk-reveal-grid > li {
+  padding: 3px;
+  border-radius: 9px;
+  align-self: start;
+}
+.yk-reveal-instant > .yk-reveal-grid > li:focus-within {
+  z-index: 4;
+}
+.yk-reveal-instant .yk-reveal-card:focus-visible {
+  outline: 2px solid #c8ddff;
+  outline-offset: 3px;
+  transform: translateY(-3px) scale(1.12);
+}
+@media (hover: hover) and (pointer: fine) {
+  .yk-reveal-instant > .yk-reveal-grid > li:hover {
+    z-index: 4;
+  }
+  .yk-reveal-instant .yk-reveal-card:hover {
+    transform: translateY(-3px) scale(1.12);
+    filter: brightness(1.15) drop-shadow(0 6px 12px #02040bbb);
+  }
+}
+.yk-reveal-instant .yk-batch-rarity-label {
+  display: inline;
+  margin-top: 2px;
+  font-size: 9px;
+  line-height: 12px;
+}
+.yk-batch-copy-label {
+  display: block;
+  min-height: 12px;
+  color: #c4d0e5;
+  font-size: 9px;
+  line-height: 12px;
+  text-align: center;
+}
+.yk-reveal-instant > .yk-reveal-summary {
+  grid-row: 3;
+  width: 100%;
+  max-width: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin: 0;
+  padding: 8px 0 0;
+}
+.yk-reveal-instant > .yk-reveal-summary h2,
+.yk-reveal-instant > .yk-reveal-summary p {
+  margin: 0;
+  font-size: 12px;
+}
+.yk-reveal-instant .yk-reveal-navigation {
+  gap: 6px;
+}
+.yk-reveal-instant .yk-reveal-navigation .yk-button {
+  min-height: 44px;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+.yk-batch-card-preview {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  text-align: center;
+}
+.yk-batch-card-preview > .yk-card {
+  width: min(260px, 54dvh, 100%);
+}
+.yk-reveal-instant > .yk-reveal-header:has(.yk-reveal-selection-mode) {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.yk-reveal-instant .yk-reveal-selection-mode {
+  grid-column: 2;
+  grid-row: 1;
+  min-height: 44px;
+}
+.yk-reveal-instant:has(.yk-reveal-selection-mode) .yk-batch-progress {
+  grid-row: 2;
+}
+.yk-reveal-instant > .yk-selection-bar {
+  position: static;
+  grid-column: 1 / -1;
+  grid-row: 3;
+  margin: 0;
+  padding: 8px 12px;
+  gap: 8px 12px;
+  border-radius: 12px;
+}
+.yk-reveal-instant > .yk-selection-bar button {
+  min-height: 44px;
+  min-width: 44px;
+}
+.yk-reveal-instant .yk-reveal-card:disabled {
+  opacity: 0.55;
+}
+.yk-reveal-instant .yk-selected-card {
+  outline: 2px solid var(--color-accent-neon);
+  outline-offset: 2px;
+}
+@media (min-width: 700px) {
+  .yk-reveal-screen.yk-reveal-batch.yk-reveal-instant {
+    --overview-columns: var(--overview-columns-medium);
+    --overview-rows: var(--overview-rows-medium);
+    --overview-gap: 8px;
+    --overview-gutter: 20px;
+    --overview-chrome: 200px;
+  }
+}
+@media (min-width: 1024px) {
+  .yk-reveal-screen.yk-reveal-batch.yk-reveal-instant {
+    --overview-columns: var(--overview-columns-wide);
+    --overview-rows: var(--overview-rows-wide);
+  }
+}
+@media (max-width: 699px) {
+  .yk-reveal-instant .yk-batch-progress {
+    grid-column: 1;
+    grid-row: 2;
+    width: 100%;
+    text-align: left;
+  }
+  .yk-reveal-instant .yk-batch-highlights {
+    grid-row: 3;
+  }
+  .yk-reveal-instant > .yk-reveal-summary .yk-reveal-navigation {
+    width: 100%;
+    justify-content: center;
   }
 }

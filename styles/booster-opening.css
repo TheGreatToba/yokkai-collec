@@ -34,3 +34,22 @@
   font-size: 14px;
   color: #bbc6dc;
 }
+.yk-booster-opening-prompt {
+  position: absolute;
+  right: 16px;
+  bottom: max(32px, env(safe-area-inset-bottom));
+  left: 16px;
+  margin: 0;
+  text-align: center;
+  font-size: 14px;
+  color: #d6e6ff;
+}
+.yk-booster-opening-fallback {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(268px, 57vw);
+  height: min(70svh, 476px);
+  object-fit: contain;
+  transform: translate(-50%, -50%);
+}

@@ -55,6 +55,8 @@ function failure(error: { message?: string; code?: string }) {
     AUTH_REQUIRED: "Sign in to view your collection and packs.",
     PROFILE_MISSING: "Your profile couldn't be found. The game couldn't be loaded.",
     PACK_NOT_READY: "No packs available right now.",
+    INVALID_PACK_COUNT: "Choose 1, 5, or 10 Regular Packs.",
+    INSUFFICIENT_PACKS: "You don't have enough packs for this batch. Choose a smaller quantity.",
     CATALOGUE_INCOMPLETE: "The catalog isn't ready yet. Please try again later.",
     SSR_CARD_NOT_OWNED: "This SSR copy is no longer in your collection.",
     NOT_ENOUGH_SSR_COPIES: "You need three identical SSR copies for this evolution.",
@@ -405,6 +407,24 @@ export async function openBooster(): Promise<CollectedCard[]> {
     return valued.map((card, index) => ({ ...card, anime: franchised[index].anime })).sort((a, b) => rank[a.rarity] - rank[b.rarity]);
   } finally {
     // The server may have committed even if the response was lost.
+    invalidatePlayerSnapshots(["collection"]);
+  }
+}
+
+export async function openBoosters(count: 1 | 5 | 10): Promise<CollectedCard[]> {
+  if (![1, 5, 10].includes(count)) throw failure({ message: "INVALID_PACK_COUNT" });
+  if (count === 1) return openBooster();
+  const id = await playerId();
+  try {
+    // One bounded transaction, not a client loop; never retry a reward mutation.
+    const { data, error } = await db().rpc("open_regular_packs", { p_count: count });
+    if (error) throw failure(error);
+    await assertPlayer(id);
+    const cards = data as CollectedCard[];
+    const [franchised, valued] = await Promise.all([withLiveCardFranchises(cards), withPackDestructionValues(cards)]);
+    return valued.map((card, index) => ({ ...card, anime: franchised[index].anime })).sort((a, b) => rank[a.rarity] - rank[b.rarity]);
+  } finally {
+    // The whole batch may have committed even when its response was lost.
     invalidatePlayerSnapshots(["collection"]);
   }
 }

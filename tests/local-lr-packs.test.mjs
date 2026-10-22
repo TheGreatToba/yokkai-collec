@@ -313,3 +313,65 @@ test("the packs page and its client playground are development-only", () => {
     /href="\/design-system\/lr-packs"/
   );
 });
+
+test("local pack management simulates normal actions without APIs and respects locks and listings", async () => {
+  const hooks = stateHooks();
+  const { LocalLrPacksPreview } = load(
+    "components/local-lr-packs-preview.tsx",
+    {
+      react: hooks.react,
+      "@/components/boosters": { Boosters: "Boosters" },
+      "@/lib/ui/local-lr-packs": { createLocalLrPack },
+      "@/hooks/use-sfx": {
+        useSfx: () => ({ enabled: false, play() {}, toggle() {} })
+      }
+    },
+    {
+      process: { env: { NODE_ENV: "development" } },
+      fetch: () => assert.fail("demo actions must never use an API")
+    }
+  );
+  const render = () => {
+    hooks.reset();
+    return descendants(LocalLrPacksPreview()).find(
+      node => node.type === "Boosters"
+    ).props;
+  };
+  const cards = await render().onOpenMany(5);
+  assert.equal(render().simulateActions, true);
+  assert.equal(render().collection.length, 25);
+  assert.ok(
+    cards.every(
+      card =>
+        card.obtainedAt && card.catalogueImage && card.destructionValue > 0
+    )
+  );
+  const id = cards[0].instanceId;
+  await render().onSetLocked(id, true);
+  assert.equal(render().draw[0].locked, true);
+  await assert.rejects(render().onDiscard(id));
+  await render().onSetLocked(id, false);
+  await render().onMoveCard(id, "demo-favorites");
+  assert.equal(
+    render().collection.find(card => card.instanceId === id).folderId,
+    "demo-favorites"
+  );
+  await render().onSetCustomImage(id, cards[1].image);
+  assert.equal(render().draw[0].image, cards[1].image);
+  await render().onDiscard(id);
+  assert.equal(render().collection.length, 24);
+  assert.equal(render().draw[0].discarded, true);
+  await assert.rejects(render().onDiscard(id));
+  const listedId = cards[1].instanceId;
+  await render().onAuction(listedId, 10, 60);
+  await assert.rejects(render().onDiscard(listedId));
+  await assert.rejects(render().onSetLocked(listedId, true));
+  const copies = render().collection.filter(card => card.rarity === "SSR");
+  const evolved = await render().onEvolve(copies.map(card => card.instanceId));
+  assert.equal(evolved.shiny, true);
+  assert.equal(evolved.isEvolved, true);
+  assert.equal(
+    render().collection.filter(card => card.rarity === "SSR").length,
+    1
+  );
+});

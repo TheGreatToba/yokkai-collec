@@ -33,7 +33,12 @@ export async function GET(request: Request) {
       throw error;
     });
     return new Response(
-      boosterOpeningDocument(await asset, parentOrigin, kind),
+      boosterOpeningDocument(
+        await asset,
+        parentOrigin,
+        kind,
+        url.searchParams.get("gesture") === "click"
+      ),
       {
         headers
       }
