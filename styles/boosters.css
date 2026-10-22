@@ -3190,6 +3190,13 @@ body:has(.yk-reveal-screen[data-reveal-state="revealing"]) {
   }
 }
 @media (max-width: 900px) {
+  /* The deck and its hint must size their own row instead of overflowing onto
+     the shortcut when the five-card grid is taller than the viewport. */
+  .yk-reveal-screen.yk-reveal-batch[data-reveal-state="revealing"]:has(
+      > .yk-reveal-all
+    ) {
+    grid-template-rows: max-content max-content max-content max-content max-content;
+  }
   .yk-reveal-batch:has(> .yk-reveal-all) > .yk-reveal-grid {
     grid-row: 4;
   }

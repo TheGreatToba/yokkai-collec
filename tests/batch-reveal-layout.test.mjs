@@ -492,6 +492,19 @@ test("Reveal all stays under the stack and the static full grid adapts from two 
     );
 });
 
+test("mobile Reveal all reserves intrinsic rows so the deck hint cannot cover its touch target", () => {
+  const css = read("styles/boosters.css").replace(/\s+/g, " ");
+  assert.match(
+    css,
+    /@media \(max-width: 900px\) \{ \/\*[^*]*\*\/ \.yk-reveal-screen\.yk-reveal-batch\[data-reveal-state="revealing"\]:has\( > \.yk-reveal-all \) \{ grid-template-rows: max-content max-content max-content max-content max-content;/
+  );
+  const { render } = revealHarness(10);
+  const button = render().find(node => node.props?.children === "Reveal all");
+  assert.equal(button.type, "button");
+  assert.equal(button.props.disabled, undefined);
+  assert.equal(typeof button.props.onClick, "function");
+});
+
 test("complete batch results expose viewport sizing and allow mouse, keyboard and touch inspection without cinematics", () => {
   for (const count of [5, 10]) {
     const { props, render } = revealHarness(count);
