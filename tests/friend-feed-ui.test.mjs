@@ -88,15 +88,15 @@ test("feed renders existing posts safely and links directly to the author's Wall
   assert.match(profile, /searchParams.get\("tab"\) === "wall"/);
 });
 
-test("Home offers a red delete control only on the signed-in player's posts", () => {
+test("Home previews never expose deletion, including the signed-in player's posts", () => {
   const own = renderToStaticMarkup(
     React.createElement(HomeFriendFeed, {
       initial: { items: [post], next: null },
       viewer: post.author
     })
   );
-  assert.match(own, /class="yk-feed-delete"/);
-  assert.equal((own.match(/Delete post/g) ?? []).length, 1);
+  assert.doesNotMatch(own, /class="yk-feed-delete"/);
+  assert.doesNotMatch(own, /Delete post/);
   const other = renderToStaticMarkup(
     React.createElement(HomeFriendFeed, {
       initial: { items: [post], next: null },
@@ -112,8 +112,6 @@ test("Home offers a red delete control only on the signed-in player's posts", ()
     ),
     /Delete post/
   );
-  const css = readFileSync("styles/friend-feed.css", "utf8");
-  assert.match(css, /\.yk-feed-delete\s*\{[^}]*color:\s*#ff8297/s);
 });
 
 test("empty feed has a useful friend link; bounded pagination is explicit", () => {

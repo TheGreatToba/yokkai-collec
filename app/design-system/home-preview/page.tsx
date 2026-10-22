@@ -101,7 +101,6 @@ export default function HomePreview() {
         <HomePanel id="home-big" title="Big pulls">
           <BigPulls pulls={pulls} />
         </HomePanel>
-        <HomeFriendFeedPreview />
         <HomePanel
           id="home-market"
           title="The market"
@@ -110,6 +109,7 @@ export default function HomePreview() {
         >
           <HomeMarket initial={auctions} preview />
         </HomePanel>
+        <HomeFriendFeedPreview />
         <HomeLinks discordEnabled />
       </main>
       <SiteFooter discordEnabled />

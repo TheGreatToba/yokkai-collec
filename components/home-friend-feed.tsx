@@ -3,10 +3,10 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Avatar, Button, Modal } from "@/components/ui";
+import { Avatar, Button } from "@/components/ui";
 import { StyledPlayerName } from "@/components/styled-player-name";
 import { ProfileWall } from "@/components/profile-wall";
-import { liveWall, type WallAdapter } from "@/lib/data/profile-wall";
+import { type WallAdapter } from "@/lib/data/profile-wall";
 import type { WallInteractions } from "@/lib/data/wall-interactions";
 import {
   appendFeedPage,
@@ -34,13 +34,7 @@ export function HomeFriendFeed({
   const [page, setPage] = useState(initial);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(initialError);
-  const [removing, setRemoving] = useState<FriendFeedPost | null>(null);
-  const [deleteBusy, setDeleteBusy] = useState(false);
-  const [deleteError, setDeleteError] = useState("");
-  const [cleanup, setCleanup] = useState<string[]>([]);
   const [composerOpen, setComposerOpen] = useState(false);
-  const deleting = useRef(false);
-  const storage = wallAdapter ?? liveWall;
   const pending = useRef(false);
   const request = useRef(0);
   const timeline = useRef<HTMLDivElement>(null);
@@ -61,37 +55,43 @@ export function HomeFriendFeed({
     return cancel;
   }, [initial, initialError, cancel]);
 
-  const reload = useCallback(async () => {
-    const id = ++request.current;
-    pending.current = true;
-    setBusy(true);
-    setError("");
-    // Revalidate on return/block changes instead of retaining cached private posts.
-    setPage({ items: [], next: null });
-    try {
-      const next = await load();
-      if (id === request.current) setPage(next);
-    } catch {
-      if (id === request.current)
-        setError("Couldn't refresh your feed. Please try again.");
-    } finally {
-      if (id === request.current) {
-        pending.current = false;
-        setBusy(false);
+  const reload = useCallback(
+    async (clear = false) => {
+      const id = ++request.current;
+      pending.current = true;
+      setBusy(true);
+      setError("");
+      // Block changes hide cached posts immediately; ordinary refreshes keep previews.
+      if (clear) setPage({ items: [], next: null });
+      try {
+        const next = await load();
+        if (id === request.current) setPage(next);
+      } catch {
+        if (id === request.current) {
+          setPage({ items: [], next: null });
+          setError("Couldn't refresh your feed. Please try again.");
+        }
+      } finally {
+        if (id === request.current) {
+          pending.current = false;
+          setBusy(false);
+        }
       }
-    }
-  }, [load]);
+    },
+    [load]
+  );
 
   useEffect(() => {
     const refresh = () => {
       if (document.visibilityState === "visible") void reload();
     };
+    const blockChanged = () => void reload(true);
     window.addEventListener("focus", refresh);
-    window.addEventListener("player-block-changed", refresh);
+    window.addEventListener("player-block-changed", blockChanged);
     document.addEventListener("visibilitychange", refresh);
     return () => {
       window.removeEventListener("focus", refresh);
-      window.removeEventListener("player-block-changed", refresh);
+      window.removeEventListener("player-block-changed", blockChanged);
       document.removeEventListener("visibilitychange", refresh);
     };
   }, [reload]);
@@ -141,42 +141,6 @@ export function HomeFriendFeed({
         pending.current = false;
         setBusy(false);
       }
-    }
-  }
-  async function discard(path: string) {
-    try {
-      await storage.discard(path);
-      setCleanup(current => current.filter(item => item !== path));
-    } catch {
-      setCleanup(current => [...new Set([...current, path])]);
-    }
-  }
-  async function removePost() {
-    if (deleting.current || !removing || removing.author.id !== viewer?.id)
-      return;
-    deleting.current = true;
-    setDeleteBusy(true);
-    setDeleteError("");
-    try {
-      const path = await storage.remove(removing.id);
-      request.current++;
-      pending.current = false;
-      setBusy(false);
-      setPage(current => ({
-        ...current,
-        items: current.items.filter(post => post.id !== removing.id)
-      }));
-      setRemoving(null);
-      if (path) void discard(path);
-    } catch (reason) {
-      setDeleteError(
-        reason instanceof Error
-          ? reason.message
-          : "Couldn't delete this post. Please try again."
-      );
-    } finally {
-      deleting.current = false;
-      setDeleteBusy(false);
     }
   }
 
@@ -326,19 +290,6 @@ export function HomeFriendFeed({
                       minute: "2-digit"
                     })}
                   </time>
-                  {post.author.id === viewer?.id && (
-                    <button
-                      type="button"
-                      className="yk-feed-delete"
-                      disabled={deleteBusy}
-                      onClick={() => {
-                        setDeleteError("");
-                        setRemoving(post);
-                      }}
-                    >
-                      Delete post
-                    </button>
-                  )}
                 </header>
                 {(post.hasMedia || post.gifUrl) && (
                   <Link
@@ -386,53 +337,6 @@ export function HomeFriendFeed({
           <p className="yk-feed-end">You&apos;re all caught up.</p>
         )}
       </div>
-      {!!cleanup.length && (
-        <div className="yk-feed-empty" role="alert">
-          <p>
-            Your post was deleted, but its image couldn&apos;t be cleaned up.
-          </p>
-          <Button
-            variant="secondary"
-            onClick={() => {
-              for (const path of cleanup) void discard(path);
-            }}
-          >
-            Retry file cleanup
-          </Button>
-        </div>
-      )}
-      {removing && (
-        <Modal
-          className="yk-feed-delete-modal"
-          open
-          onClose={() => {
-            if (!deleting.current) setRemoving(null);
-          }}
-          title="Delete this post?"
-        >
-          <p>
-            This removes it from your wall and your friends&apos; feeds, along
-            with its replies and reactions. This cannot be undone.
-          </p>
-          {deleteError && <p role="alert">{deleteError}</p>}
-          <div>
-            <Button
-              variant="secondary"
-              disabled={deleteBusy}
-              onClick={() => setRemoving(null)}
-            >
-              Cancel
-            </Button>
-            <Button
-              className="yk-feed-delete"
-              disabled={deleteBusy}
-              onClick={() => void removePost()}
-            >
-              {deleteBusy ? "Deleting…" : "Delete post"}
-            </Button>
-          </div>
-        </Modal>
-      )}
     </section>
   );
 }
