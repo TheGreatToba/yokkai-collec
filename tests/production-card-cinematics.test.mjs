@@ -39,7 +39,7 @@ const card = {
   category: "ANIME/MANGA",
   anime: "Naruto",
   image: "/assets/card.png",
-  rarity: "LR"
+  rarity: "SSR"
 };
 function descendants(element) {
   if (!element || typeof element !== "object") return [];
@@ -95,9 +95,7 @@ test("live SSR/LR document endpoint serves validated inert templates in producti
       "node:fs/promises": {
         readFile: async file => {
           reads.push(file);
-          return read(
-            `data/card-cinematics/${file.endsWith("lr.html") ? "lr" : "ssr"}.html`
-          );
+          return read("data/card-cinematics/ssr.html");
         }
       },
       "@/lib/ui/card-cinematic-document": { cardCinematicDocument }
@@ -114,7 +112,7 @@ test("live SSR/LR document endpoint serves validated inert templates in producti
         ...extra
       })}`
     );
-  for (const rarity of ["C", "../../secret", "lr", ""]) {
+  for (const rarity of ["C", "LR", "../../secret", "lr", ""]) {
     assert.equal((await GET(request(rarity))).status, 400);
   }
   assert.equal(reads.length, 0);
@@ -123,7 +121,7 @@ test("live SSR/LR document endpoint serves validated inert templates in producti
     400
   );
   assert.equal(reads.length, 0);
-  for (const rarity of ["SSR", "LR", "SSR", "LR"]) {
+  for (const rarity of ["SSR", "SSR"]) {
     const response = await GET(request(rarity));
     assert.equal(response.status, 200);
     assert.equal(
@@ -140,13 +138,13 @@ test("live SSR/LR document endpoint serves validated inert templates in producti
     assert.match(html, /setRate\(1\.4\)/);
     assert.match(html, /YOKKAI_CARD_COMPLETE/);
   }
-  assert.equal(reads.length, 2, "two fixed immutable templates are cached");
+  assert.equal(reads.length, 1, "the fixed SSR template is cached");
   for (const image of [
     "javascript:alert(1)",
     "file:///etc/passwd",
     "http://example.com/card.png"
   ]) {
-    const response = await GET(request("LR", { image }));
+    const response = await GET(request("SSR", { image }));
     assert.equal(response.status, 400);
     assert.equal(await response.text(), "The cinematic is unavailable.");
   }
@@ -164,7 +162,7 @@ test("failed immutable template reads can be retried without leaking filesystem 
       "node:fs/promises": {
         readFile: async () => {
           if (++reads === 1) throw Error("secret filesystem path");
-          return read("data/card-cinematics/lr.html");
+          return read("data/card-cinematics/ssr.html");
         }
       },
       "@/lib/ui/card-cinematic-document": { cardCinematicDocument }
@@ -172,7 +170,7 @@ test("failed immutable template reads can be retried without leaking filesystem 
     { process: { cwd: () => "/workspace" } }
   );
   const request = new Request(
-    "https://yokkai-collec.com/api/card-cinematics?rarity=LR&image=https://example.com/card.png"
+    "https://yokkai-collec.com/api/card-cinematics?rarity=SSR&image=https://example.com/card.png"
   );
   const failure = await GET(request);
   assert.equal(failure.status, 400);
@@ -221,7 +219,8 @@ test("released player uses the public route while the default preview stays deve
   assert.equal(tree.filter(node => node.type === "button").length, 0);
   cleanup();
   const wrapper = load("components/card-cinematic.tsx", {
-    "@/components/local-card-cinematic": { LocalCardCinematic: "Player" }
+    "@/components/local-card-cinematic": { LocalCardCinematic: "Player" },
+    "@/components/lr-card-reveal": { LrCardReveal: "NativeLR" }
   }).CardCinematic({ card, onContinue() {} });
   assert.equal(wrapper.type, "Player");
   assert.equal(wrapper.props.controls, false);

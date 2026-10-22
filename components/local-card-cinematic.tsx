@@ -31,7 +31,11 @@ export function LocalCardCinematic({
   const { name, category, anime, image, rarity } = card;
 
   useEffect(() => {
-    if (process.env.NODE_ENV !== "development" && !productionEnabled) return;
+    if (
+      rarity !== "SSR" ||
+      (process.env.NODE_ENV !== "development" && !productionEnabled)
+    )
+      return;
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 10000);
     let active = true;
@@ -101,7 +105,11 @@ export function LocalCardCinematic({
     continueCallback.current = onContinue;
   }, [onContinue]);
 
-  if (process.env.NODE_ENV !== "development" && !productionEnabled) return null;
+  if (
+    rarity !== "SSR" ||
+    (process.env.NODE_ENV !== "development" && !productionEnabled)
+  )
+    return null;
   return (
     <section
       className={`yk-lr-preview yk-card-cinematic${controls ? "" : " yk-card-cinematic-clean"}`}

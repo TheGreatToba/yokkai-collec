@@ -101,10 +101,7 @@ async function playback(rarity, reduced = false) {
 }
 
 test("only the introduction is accelerated; both rarities finish once after the actual reveal", async () => {
-  for (const [rarity, remaining] of [
-    ["SSR", 5920],
-    ["LR", 13380]
-  ]) {
+  for (const [rarity, remaining] of [["SSR", 5920]]) {
     const player = await playback(rarity);
     assert.deepEqual(player.messages, ["YOKKAI_CARD_READY"]);
     assert.ok(
@@ -144,7 +141,7 @@ test("the completion clock respects pause and ignores untrusted pause messages",
 });
 
 test("reduced motion keeps native static visuals and advances after a short hold", async () => {
-  const player = await playback("LR", true);
+  const player = await playback("SSR", true);
   assert.ok(player.animations.every(animation => animation.playbackRate === 1));
   player.tick(0);
   player.tick(699);
@@ -199,7 +196,7 @@ test("buttonless player supports click, keyboard and trusted completion without 
       LocalCardCinematic({
         card: {
           name: "Actual card",
-          rarity: "LR",
+          rarity: "SSR",
           category: "ANIME/MANGA",
           image: "/card.png"
         },
@@ -251,7 +248,12 @@ test("all final demo and pack integrations hide controls through the shared play
     "components/card-cinematics-preview.tsx",
     "app/design-system/lr-cinematic/page.tsx"
   ]) {
-    assert.match(read(file), /controls=\{false\}/);
+    assert.match(
+      read(file),
+      file.endsWith("card-cinematic.tsx")
+        ? /controls=\{false\}/
+        : /<CardCinematic/
+    );
   }
   assert.match(
     read("styles/lr-cinematic-preview.css"),
@@ -260,7 +262,7 @@ test("all final demo and pack integrations hide controls through the shared play
 });
 
 test("unmount cancels the playback frame, animations and trusted message listener", async () => {
-  const player = await playback("LR");
+  const player = await playback("SSR");
   player.cleanup();
   assert.equal(player.cancelled.length, 1);
   assert.ok(player.animations.every(animation => animation.cancelled));

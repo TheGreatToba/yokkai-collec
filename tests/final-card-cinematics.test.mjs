@@ -33,7 +33,7 @@ function load(file, mocks = {}, globals = {}) {
 }
 const { cardCinematicDocument } = load("lib/ui/card-cinematic-document.ts");
 const assets = Object.fromEntries(
-  ["LR", "SSR"].map(rarity => [
+  ["SSR"].map(rarity => [
     rarity,
     read(`data/card-cinematics/${rarity.toLowerCase()}.html`).replaceAll(
       "\r\n",
@@ -57,12 +57,11 @@ const documentFor = (rarity, extra) =>
     rarity
   );
 
-test("final user-supplied SSR/LR assets retain their original bytes, timing and reduced-motion visuals", () => {
+test("the SSR reference retains its original bytes, timing and reduced-motion visuals", () => {
   const hashes = {
-    LR: "d9a4637cfe388325825f6008b61b45e224ece7e2c0ab9b473501b0167fbabb87",
     SSR: "8b8e71ba5930332bd431749c04daa65b490a081df47569402174c43126cae4f7"
   };
-  for (const rarity of ["LR", "SSR"]) {
+  for (const rarity of ["SSR"]) {
     assert.equal(
       createHash("sha256").update(assets[rarity]).digest("hex"),
       hashes[rarity]
@@ -83,12 +82,11 @@ test("final user-supplied SSR/LR assets retain their original bytes, timing and 
     assert.match(html, /form-action 'none'/);
     assert.match(html, /setTimeout\(\(\)=>finish\(false\),5000\)/);
   }
-  assert.match(documentFor("LR"), /--card-hover-start:16\.34s!important/);
   assert.match(documentFor("SSR"), /float-no-stall 2\.5s/);
 });
 
 test("only actual app fields are injected, escaped as JSON, with the site's rarity border colors", () => {
-  for (const rarity of ["LR", "SSR"]) {
+  for (const rarity of ["SSR"]) {
     const name = '</script><img src=x onerror="alert(1)"> & \u2028';
     const html = documentFor(rarity, { name });
     const injected = html.match(/const hostCard=([^\n]+);/)[1];
@@ -97,7 +95,7 @@ test("only actual app fields are injected, escaped as JSON, with the site's rari
     assert.equal(card.category, "ANIME/MANGA");
     assert.equal(card.license, "Naruto");
     assert.equal(card.rank, rarity);
-    assert.equal(card.borderColor, rarity === "LR" ? "#E8C26A" : "#FF4FB6");
+    assert.equal(card.borderColor, "#FF4FB6");
     assert.equal(card.borderImage, undefined);
     assert.match(injected, /\\u003c/);
     assert.doesNotMatch(injected, /<\/script>/);
@@ -110,12 +108,12 @@ test("only actual app fields are injected, escaped as JSON, with the site's rari
     "https://user:pass@example.com/a.png",
     "bad"
   ]) {
-    assert.throws(() => documentFor("LR", { image }));
+    assert.throws(() => documentFor("SSR", { image }));
   }
-  assert.throws(() => documentFor("LR", { image: "" }));
-  assert.throws(() => documentFor("LR", { name: "x".repeat(241) }));
+  assert.throws(() => documentFor("SSR", { image: "" }));
+  assert.throws(() => documentFor("SSR", { name: "x".repeat(241) }));
   assert.throws(() =>
-    cardCinematicDocument(assets.LR, params(), "http://localhost:3000", "C")
+    cardCinematicDocument(assets.SSR, params(), "http://localhost:3000", "C")
   );
 });
 
@@ -180,13 +178,13 @@ test("startup waits for artwork, never shows a demo on failure, and only accepts
   }
 });
 
-test("document routing is development-only and asset selection cannot escape the fixed SSR/LR allowlist", async () => {
+test("document routing is development-only and asset selection cannot escape the fixed SSR allowlist", async () => {
   const reads = [];
   const mocks = {
     "node:fs/promises": {
       readFile: async file => {
         reads.push(file);
-        return /ssr\.html$/.test(file) ? assets.SSR : assets.LR;
+        return assets.SSR;
       }
     },
     "@/lib/ui/card-cinematic-document": { cardCinematicDocument }
@@ -204,11 +202,11 @@ test("document routing is development-only and asset selection cannot escape the
     assert.equal((await route(environment).GET(request("LR"))).status, 404);
   }
   assert.equal(reads.length, 0);
-  for (const rarity of ["../../secret", "C", "", "lr"]) {
+  for (const rarity of ["LR", "../../secret", "C", "", "lr"]) {
     assert.equal((await route("development").GET(request(rarity))).status, 400);
   }
   assert.equal(reads.length, 0);
-  for (const rarity of ["SSR", "LR"]) {
+  for (const rarity of ["SSR"]) {
     const response = await route("development").GET(request(rarity));
     assert.equal(response.status, 200);
     assert.equal(response.headers.get("cache-control"), "no-store");

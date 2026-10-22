@@ -175,7 +175,7 @@ try {
     await viewport(375);
     if (pack === 0) {
       await send("Page.navigate", {
-        url: "http://localhost:3108/design-system/booster-opening-preview"
+        url: "http://localhost:3108/design-system/lr-packs"
       });
       await until(
         "!!document.querySelector('.yk-pack-panel .yk-pack-body > button')"
@@ -219,7 +219,7 @@ try {
     await until("!!document.querySelector('.yk-deck-button')");
     for (let card = 0; card < 5; card++) {
       await evaluate("document.querySelector('.yk-deck-button').click()");
-      if (card >= 3) {
+      if (card === 3) {
         await until("!!document.querySelector('.yk-card-cinematic iframe')");
         assert.equal(
           await evaluate(
@@ -275,6 +275,72 @@ try {
         await evaluate(
           "document.querySelector('.yk-card-cinematic-skip').click()"
         );
+      } else if (card === 4) {
+        await until("!!document.querySelector('.yk-lr-reveal')");
+        assert.equal(
+          await evaluate("document.querySelectorAll('.yk-lr-reveal').length"),
+          1
+        );
+        assert.equal(
+          await evaluate(
+            "document.querySelectorAll('.yk-card-cinematic iframe,.yk-reveal-stage').length"
+          ),
+          0
+        );
+        assert.ok(
+          (
+            await evaluate(
+              "getComputedStyle(document.querySelector('.yk-lr-world')).backgroundImage"
+            )
+          ).includes("lr-gold-world.webp")
+        );
+        assert.ok(
+          (
+            await evaluate(
+              "getComputedStyle(document.querySelector('.yk-reveal-screen'),'::before').backgroundImage"
+            )
+          ).includes("regular-opening-nebula.webp")
+        );
+        for (const width of [320, 375, 600, 768, 900, 1024, 1440]) {
+          await viewport(width);
+          assert.equal(
+            await evaluate("document.documentElement.scrollWidth>innerWidth"),
+            false
+          );
+          const bounds = await evaluate(
+            "(()=>{const r=document.querySelector('.yk-lr-stage').getBoundingClientRect();return {x:r.x,right:r.right,y:r.y,bottom:r.bottom,w:innerWidth,h:innerHeight};})()"
+          );
+          assert.ok(
+            bounds.x >= 0 &&
+              bounds.right <= bounds.w &&
+              bounds.y >= 0 &&
+              bounds.bottom <= bounds.h,
+            JSON.stringify(bounds)
+          );
+        }
+        await viewport(1440, 2);
+        assert.equal(
+          await evaluate("document.documentElement.scrollWidth>innerWidth"),
+          false
+        );
+        await viewport(1440);
+        if (pack === 0) {
+          await delay(9800);
+          const { data } = await send("Page.captureScreenshot", {
+            format: "png"
+          });
+          await writeFile(
+            new URL(
+              "../artifacts/single-animation/LR-native-pack.png",
+              import.meta.url
+            ),
+            Buffer.from(data, "base64")
+          );
+          await until("!document.querySelector('.yk-lr-reveal')");
+        } else {
+          await delay(5500); // Unmount during the active glass/particle sequence.
+          await evaluate("document.querySelector('.yk-lr-skip').click()");
+        }
       } else if (card === 2) await delay(550);
       await until("!!document.querySelector('.yk-deck-button')");
       await evaluate("document.querySelector('.yk-deck-button').click()");
@@ -295,6 +361,13 @@ try {
       });
   }
   console.log(JSON.stringify({ report, errors }, null, 2));
+  await writeFile(
+    new URL(
+      "../artifacts/single-animation/lr-runtime-proof.json",
+      import.meta.url
+    ),
+    JSON.stringify({ report, errors }, null, 2)
+  );
   assert.equal(errors.length, 0);
   assert.equal(
     requests.length,

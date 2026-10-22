@@ -7,16 +7,12 @@ import {
 
 export const runtime = "nodejs";
 
-// Only two immutable, public visual templates. No card/account data is read here.
+// The immutable SSR visual template. No card/account data is read here.
 const assets: Partial<Record<CinematicRarity, Promise<string>>> = {};
 function template(rarity: CinematicRarity) {
   if (!assets[rarity]) {
     assets[rarity] = readFile(
-      join(
-        process.cwd(),
-        "data/card-cinematics",
-        rarity === "LR" ? "lr.html" : "ssr.html"
-      ),
+      join(process.cwd(), "data/card-cinematics", "ssr.html"),
       "utf8"
     ).catch(error => {
       delete assets[rarity];
@@ -38,7 +34,7 @@ export async function GET(request: Request) {
   }
   const url = new URL(request.url);
   const rarity = url.searchParams.get("rarity");
-  if (rarity !== "SSR" && rarity !== "LR") {
+  if (rarity !== "SSR") {
     return new Response("Invalid cinematic rarity.", { status: 400, headers });
   }
   try {

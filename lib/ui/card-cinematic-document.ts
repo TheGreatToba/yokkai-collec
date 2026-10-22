@@ -1,4 +1,4 @@
-export type CinematicRarity = "SSR" | "LR";
+export type CinematicRarity = "SSR";
 
 // The files stay untouched on disk; adapt only the document inside the sandbox.
 export function cardCinematicDocument(
@@ -7,7 +7,7 @@ export function cardCinematicDocument(
   parentOrigin: string,
   rarity: CinematicRarity
 ) {
-  if (rarity !== "SSR" && rarity !== "LR") throw new Error("Invalid rarity");
+  if (rarity !== "SSR") throw new Error("Invalid rarity");
   const label = (key: string) => {
     const value = params.get(key) ?? "";
     if (value.length > 240) throw new Error("Invalid card label");
@@ -31,7 +31,7 @@ export function cardCinematicDocument(
     rank: rarity,
     image: url.href,
     // These are the site's existing CSS rarity borders; no invented frame URL.
-    borderColor: rarity === "LR" ? "#E8C26A" : "#FF4FB6"
+    borderColor: "#FF4FB6"
   };
   const json = (value: unknown) =>
     JSON.stringify(value).replace(
@@ -98,7 +98,7 @@ export function cardCinematicDocument(
       const reduced=window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
       const animations=document.getAnimations();
       const introEnd=4300;
-      const revealEnd=hostCard.rank==="LR"?16980:9520;
+      const revealEnd=9520;
       let accelerated=!reduced;
       let elapsed=0;
       let previous=null;

@@ -458,7 +458,10 @@ test("the real Game and safe simulated packs opt in; the legacy renderer and SSR
   );
   assert.match(source, /if \(openingLock\.current\) return;/);
   assert.match(source, /type: "yokkai-booster-next-step"/);
-  assert.match(source, /open: \(\) => onOpen\(kind\)/);
+  assert.match(
+    source,
+    /open: count > 1 && onOpenMany \? \(\) => onOpenMany\(count\) : \(\) => onOpen\(kind\)/
+  );
   assert.match(source, /kind=\{openingKind\}/);
   assert.match(source, /<CardCinematic/);
   assert.match(source, /role="button" tabIndex=\{0\}/);
@@ -601,7 +604,7 @@ test("production proxy origins use configured public site, not localhost or atta
       "app/api/card-cinematics/route.ts",
       {
         "node:fs/promises": {
-          readFile: async () => read("data/card-cinematics/lr.html")
+          readFile: async () => read("data/card-cinematics/ssr.html")
         },
         "@/lib/ui/card-cinematic-document": { cardCinematicDocument }
       },
@@ -632,7 +635,7 @@ test("production proxy origins use configured public site, not localhost or atta
     );
     const response = await cinematic.GET(
       request(
-        "/api/card-cinematics?rarity=LR&image=https://yokkai-collec.com/card.png"
+        "/api/card-cinematics?rarity=SSR&image=https://yokkai-collec.com/card.png"
       )
     );
     assert.equal(response.status, 200);
