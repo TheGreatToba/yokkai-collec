@@ -248,11 +248,7 @@ export function ReferralReminder({
                     : "Copy link"}
               </Button>
               {typeof navigator.share === "function" && (
-                <Button
-                  variant="secondary"
-                  disabled={!code}
-                  onClick={() => void shareLink()}
-                >
+                <Button disabled={!code} onClick={() => void shareLink()}>
                   Share
                 </Button>
               )}
