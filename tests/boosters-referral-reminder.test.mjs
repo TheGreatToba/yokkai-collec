@@ -59,6 +59,11 @@ function reminder(pathname, dismissed = false) {
           React.createElement("a", props, children)
       },
       "next/navigation": { usePathname: () => pathname },
+      "next/image": {
+        __esModule: true,
+        default: ({ alt, src }) => React.createElement("img", { alt, src })
+      },
+      "@/lib/premium/offer": load("lib/premium/offer.ts"),
       "@/components/ui": {
         Modal: ({ open, children }) =>
           open ? React.createElement("div", null, children) : null,
@@ -140,6 +145,15 @@ test("Boosters reminder ignores old dismissals, has no close action, and keeps c
       if (found) return found;
     }
   };
+  const modalHtml = renderToStaticMarkup(modalTree);
+  assert.match(modalHtml, /<strong>\+5<\/strong> packs/);
+  assert.match(
+    modalHtml,
+    /value="https:\/\/example\.test\/signup\?ref=my%20code"/
+  );
+  assert.match(modalHtml, /every 5 min instead\s+of 10/);
+  assert.match(modalHtml, /2 Decision Packs per day instead\s+of 1/);
+  assert.doesNotMatch(modalHtml, />Share</);
   const copy = findCopy(modalTree);
   assert.ok(copy);
   copy.props.onClick();
