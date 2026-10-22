@@ -279,6 +279,23 @@ try {
         );
       } else if (card === 4) {
         await until("!!document.querySelector('.yk-lr-reveal')");
+        await until(
+          "!!document.querySelector('.yk-lr-reveal').style.getPropertyValue('--yk-lr-glass-1')"
+        );
+        assert.equal(
+          await evaluate("document.querySelectorAll('.yk-lr-stroke').length"),
+          96
+        );
+        assert.equal(
+          await evaluate("document.querySelectorAll('.yk-lr-dot').length"),
+          72
+        );
+        assert.equal(
+          await evaluate(
+            "document.querySelectorAll('.yk-lr-reveal canvas').length"
+          ),
+          0
+        );
         assert.equal(
           await evaluate("document.querySelectorAll('.yk-lr-reveal').length"),
           1
@@ -329,7 +346,16 @@ try {
         );
         await viewport(1440);
         if (pack === 0) {
-          await delay(9800);
+          await delay(6800);
+          const glass = await send("Page.captureScreenshot", { format: "png" });
+          await writeFile(
+            new URL(
+              "../artifacts/single-animation/LR-native-glass.png",
+              import.meta.url
+            ),
+            Buffer.from(glass.data, "base64")
+          );
+          await delay(3000);
           const { data } = await send("Page.captureScreenshot", {
             format: "png"
           });

@@ -12,7 +12,7 @@ test("LR uses one native effect and the reference final sequence, without the re
   assert.match(component, /animated={false}/);
   assert.doesNotMatch(
     component,
-    /iframe|requestAnimationFrame|setInterval|createElement|new Audio/
+    /iframe|requestAnimationFrame|setInterval|new Audio/
   );
   assert.match(css, /prefers-reduced-motion/);
   assert.match(css, /6\.3s/);
@@ -86,6 +86,21 @@ test("LR completes once at 15.37s (700ms with reduced motion), cleans its timer 
       },
       onContinue: () => continued++
     });
+    const traits = React.Children.toArray(tree.props.children).find(
+      child => child.props.className === "yk-lr-traits"
+    );
+    assert.equal(React.Children.count(traits.props.children), 4);
+    for (const phase of React.Children.toArray(traits.props.children)) {
+      const nodes = React.Children.toArray(phase.props.children);
+      assert.equal(
+        nodes.filter(node => node.props.className === "yk-lr-stroke").length,
+        24
+      );
+      assert.equal(
+        nodes.filter(node => node.props.className === "yk-lr-dot").length,
+        18
+      );
+    }
     refs[2].current = {
       isConnected: true,
       getAnimations: () => [
@@ -111,12 +126,136 @@ test("LR completes once at 15.37s (700ms with reduced motion), cleans its timer 
     button.props.onClick();
     timer.fn();
     assert.equal(continued, 1);
-    assert.equal(paused, 0);
+    assert.equal(paused, 1);
     refs[2].current.isConnected = false;
     cleanup();
     assert.equal(timers.size, 0);
-    assert.equal(cancelled, 2);
+    assert.equal(cancelled, 1);
     assert.equal(cleared.length, 2);
+  }
+});
+
+test("artwork colors are sampled once and the canvas, handlers and timeout are released on success, CORS denial or unmount", async () => {
+  const { createRequire } = await import("node:module");
+  const { default: vm } = await import("node:vm");
+  const { default: ts } = await import("typescript");
+  const { default: React } = await import("react");
+  const require = createRequire(import.meta.url);
+  for (const outcome of ["ready", "cors", "unmount"]) {
+    const effects = [],
+      refs = [],
+      images = [],
+      properties = new Map(),
+      timers = new Map();
+    let samples = 0,
+      removed = 0;
+    const pixels = new Uint8ClampedArray(96 * 96 * 4);
+    for (let i = 0; i < pixels.length; i += 4) {
+      pixels[i] = i < pixels.length * 0.7 ? 220 : 30;
+      pixels[i + 1] = 40;
+      pixels[i + 2] = i < pixels.length * 0.7 ? 30 : 220;
+      pixels[i + 3] = 255;
+    }
+    const canvas = {
+      width: 0,
+      height: 0,
+      getContext: () => ({
+        drawImage: () => {
+          assert.equal(canvas.width, 96);
+          assert.equal(canvas.height, 96);
+          samples++;
+        },
+        getImageData: () => {
+          if (outcome === "cors") throw Error("tainted image");
+          return { data: pixels };
+        }
+      })
+    };
+    const exports = {};
+    vm.runInNewContext(
+      ts.transpileModule(read("components/lr-card-reveal.tsx"), {
+        compilerOptions: {
+          module: ts.ModuleKind.CommonJS,
+          target: ts.ScriptTarget.ES2022,
+          jsx: ts.JsxEmit.ReactJSX
+        }
+      }).outputText,
+      {
+        exports,
+        require: name =>
+          name === "react"
+            ? {
+                ...React,
+                useRef: initial => {
+                  const ref = { current: initial };
+                  refs.push(ref);
+                  return ref;
+                },
+                useEffect: fn => effects.push(fn)
+              }
+            : name === "@/components/yokai-card"
+              ? { YokaiCard: "Card" }
+              : name.endsWith(".css")
+                ? {}
+                : require(name),
+        Image: class {
+          constructor() {
+            images.push(this);
+          }
+          removeAttribute(name) {
+            assert.equal(name, "src");
+            removed++;
+          }
+        },
+        document: {
+          createElement: name => {
+            assert.equal(name, "canvas");
+            return canvas;
+          }
+        },
+        window: {
+          setTimeout: (fn, delay) => {
+            assert.equal(delay, 5000);
+            timers.set(1, fn);
+            return 1;
+          },
+          clearTimeout: id => timers.delete(id)
+        }
+      }
+    );
+    exports.LrCardReveal({
+      card: {
+        name: "Actual",
+        image: "/art.png",
+        category: "ANIME/MANGA",
+        rarity: "LR"
+      }
+    });
+    refs[2].current = {
+      style: { setProperty: (key, value) => properties.set(key, value) }
+    };
+    const cleanup = effects[2]();
+    assert.equal(images.length, 1);
+    assert.equal(images[0].crossOrigin, "anonymous");
+    if (outcome !== "unmount") images[0].onload();
+    cleanup();
+    assert.equal(canvas.width, 0);
+    assert.equal(canvas.height, 0);
+    assert.equal(images[0].onload, null);
+    assert.equal(images[0].onerror, null);
+    assert.equal(timers.size, 0);
+    assert.ok(removed >= 1);
+    assert.equal(samples, outcome === "unmount" ? 0 : 1);
+    if (outcome === "ready") {
+      const primary = properties.get("--yk-lr-glass-1").split(" ").map(Number);
+      const secondary = properties
+        .get("--yk-lr-glass-2")
+        .split(" ")
+        .map(Number);
+      assert.ok(primary[0] > primary[2] + 50);
+      assert.ok(secondary[2] > secondary[0] + 50);
+      assert.equal(properties.size, 10);
+    } else assert.equal(properties.size, 0);
   }
 });
 

@@ -41,7 +41,7 @@
 }
 .yk-lr-stroke {
   height: 1.5px;
-  transform-origin: left center;
+  transform-origin: center;
   background: linear-gradient(90deg, transparent, #fff, transparent);
   animation: yk-lr-four-phase-white-stroke 0.234s
     cubic-bezier(0.2, 0.78, 0.2, 1) both;
@@ -134,6 +134,7 @@
   animation: yk-lr-grow 0.45s cubic-bezier(0.15, 0.83, 0.18, 1) 11.84s both;
 }
 .yk-lr-float {
+  transform-style: preserve-3d;
   animation:
     yk-lr-card-slide-in 0.96s cubic-bezier(0.16, 0.86, 0.2, 1) 4.19s both,
     yk-lr-card-backdrop-impact 1.14s linear 10.7s forwards,
@@ -177,9 +178,9 @@
     #ffffff0e,
     #ffffff35 17%,
     transparent 29%,
-    #beccd65e 43%,
+    rgb(var(--yk-lr-glass-1, 190 199 214) / 0.37) 43%,
     #ffffff2b 49%,
-    #e7e9ef5c 66%,
+    rgb(var(--yk-lr-glass-2, 231 233 239) / 0.36) 66%,
     transparent 93%
   );
   animation: yk-lr-lr-preart-glass 3.55s ease-out 5.5s both;
@@ -191,9 +192,12 @@
   background: linear-gradient(
     108deg,
     transparent 32%,
+    rgb(var(--yk-lr-glass-1, 190 199 214) / 0.07) 37%,
     #ffffff0d 40%,
     #ffffff61 43%,
+    rgb(var(--yk-lr-glass-1, 190 199 214) / 0.33) 45%,
     #ffffff3b 47%,
+    rgb(var(--yk-lr-glass-2, 231 233 239) / 0.26) 50%,
     transparent 60%
   );
   animation: yk-lr-lr-glass-travel 3.9s ease-in-out 5.5s 1 alternate both;
@@ -614,7 +618,43 @@
 }
 .yk-lr-reveal .yk-card {
   aspect-ratio: 260/360;
-  background: linear-gradient(130deg, #17100a, #4c3314 57%, #0b0907);
+  background:
+    radial-gradient(
+      ellipse at 12% 12%,
+      rgb(var(--yk-lr-color-1, 190 199 214) / 0.44),
+      transparent 68%
+    ),
+    radial-gradient(
+      ellipse at 84% 12%,
+      rgb(var(--yk-lr-color-2, 231 233 239) / 0.34),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse at 85% 86%,
+      rgb(var(--yk-lr-color-3, 242 185 105) / 0.4),
+      transparent 68%
+    ),
+    radial-gradient(
+      ellipse at 52% 44%,
+      rgb(var(--yk-lr-color-4, 198 143 124) / 0.3),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse at 22% 82%,
+      rgb(var(--yk-lr-color-5, 199 204 142) / 0.24),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse at 60% 80%,
+      rgb(var(--yk-lr-color-6, 53 59 131) / 0.22),
+      transparent 70%
+    ),
+    linear-gradient(
+      140deg,
+      rgb(var(--yk-lr-shadow, 18 12 13)),
+      rgb(var(--yk-lr-base, 49 32 35)) 55%,
+      rgb(var(--yk-lr-shadow, 18 12 13))
+    );
   border: 1px solid #bd9a4f;
   box-shadow:
     0 24px 50px #000d,
@@ -623,8 +663,16 @@
 }
 .yk-lr-reveal .yk-card-interior {
   background:
-    radial-gradient(ellipse at 24% 18%, #bec7d64d, transparent 47%),
-    radial-gradient(ellipse at 82% 77%, #e7e9ef47, transparent 51%),
+    radial-gradient(
+      ellipse at 24% 18%,
+      rgb(var(--yk-lr-glass-1, 190 199 214) / 0.3),
+      transparent 47%
+    ),
+    radial-gradient(
+      ellipse at 82% 77%,
+      rgb(var(--yk-lr-glass-2, 231 233 239) / 0.28),
+      transparent 51%
+    ),
     linear-gradient(142deg, #17151b, #15111a 42%, #281b16);
 }
 .yk-lr-reveal .yk-card-ring,
