@@ -2740,3 +2740,232 @@
     background-attachment: scroll;
   }
 }
+
+/* Batch reveals are a compact stage + a five-card window, never a 50-card fan. */
+.yk-game-main:has(.yk-reveal-batch) {
+  max-width: 1440px;
+}
+.yk-reveal-screen.yk-reveal-batch {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1.3fr);
+  gap: 18px 36px;
+  align-items: center;
+}
+.yk-reveal-batch > .yk-reveal-header {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+.yk-batch-progress {
+  grid-column: 2;
+  grid-row: 2;
+  width: 190px;
+  display: grid;
+  gap: 10px;
+  text-align: right;
+  color: #aebfd7;
+  font-size: 12px;
+}
+.yk-batch-progress strong {
+  color: #e9f1ff;
+  font-size: 18px;
+}
+.yk-batch-progress p > span {
+  margin-left: 6px;
+}
+.yk-batch-meter {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #17263d;
+}
+.yk-batch-meter > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #709cd6, #bfd9ff);
+}
+.yk-reveal-batch > .yk-reveal-stage {
+  grid-column: 1;
+  grid-row: 2 / span 2;
+}
+.yk-reveal-batch > .yk-reveal-stage:not(.yk-reveal-ssr):not(.yk-reveal-lr) {
+  min-height: 310px;
+  padding: 36px 12px 24px;
+  justify-content: center;
+}
+.yk-reveal-batch
+  > .yk-reveal-stage:not(.yk-reveal-ssr):not(.yk-reveal-lr)
+  .yk-deck {
+  width: clamp(150px, 22svh, 220px);
+}
+.yk-reveal-batch .yk-stacked-back {
+  display: none;
+}
+.yk-reveal-batch .yk-stacked-back:nth-child(-n + 3) {
+  display: block;
+  transform: translate(6px, -6px) rotate(1deg) !important;
+  filter: brightness(0.9) !important;
+}
+.yk-reveal-batch .yk-stacked-back:first-child {
+  transform: translate(18px, -18px) rotate(3deg) !important;
+  filter: brightness(0.72) !important;
+}
+.yk-reveal-batch .yk-stacked-back:nth-child(2) {
+  transform: translate(12px, -12px) rotate(2deg) !important;
+  filter: brightness(0.82) !important;
+}
+.yk-reveal-batch > .yk-reveal-grid {
+  grid-column: 2;
+  grid-row: 2;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 14px 12px;
+  width: 100%;
+  max-width: min(100%, 62svh);
+  margin: 0 auto;
+  padding: 16px;
+  border: 1px solid #22324b;
+  border-radius: 18px;
+  background: #080e1aa6;
+}
+.yk-reveal-batch > .yk-reveal-grid > li {
+  grid-column: span 2;
+}
+.yk-reveal-batch > .yk-reveal-grid > li:nth-child(4) {
+  grid-column: 2 / span 2;
+}
+.yk-reveal-batch > .yk-reveal-grid > li:nth-child(5) {
+  grid-column: 4 / span 2;
+}
+.yk-batch-pagination {
+  grid-column: 2;
+  grid-row: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  max-width: min(100%, 62svh);
+  margin-inline: auto;
+}
+.yk-batch-pagination > div {
+  display: grid;
+  gap: 3px;
+  text-align: center;
+  font-size: 13px;
+}
+.yk-batch-pagination > div > span {
+  color: #91a4c2;
+  font-size: 11px;
+}
+.yk-batch-pagination button {
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid #304564;
+  border-radius: 999px;
+  background: #101c2e;
+  color: #d5e6ff;
+  font-size: 12px;
+}
+.yk-batch-pagination button:hover:not(:disabled) {
+  background: #253b59;
+}
+.yk-batch-pagination button:focus-visible {
+  outline: 2px solid #b8d2fa;
+  outline-offset: 3px;
+}
+.yk-batch-pagination button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.yk-batch-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #aebfd7;
+}
+.yk-reveal-batch > .yk-reveal-summary {
+  grid-column: 1 / -1;
+  margin-top: 12px;
+}
+.yk-reveal-batch.yk-reveal-complete {
+  grid-template-columns: minmax(0, 1fr);
+}
+.yk-reveal-batch.yk-reveal-complete
+  > :is(.yk-reveal-grid, .yk-batch-pagination) {
+  grid-column: 1;
+  max-width: 1000px;
+}
+.yk-reveal-batch.yk-reveal-complete > .yk-reveal-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.yk-reveal-batch.yk-reveal-complete > .yk-reveal-grid > li {
+  grid-column: auto;
+}
+@media (max-width: 900px) {
+  .yk-reveal-screen.yk-reveal-batch {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .yk-reveal-batch > .yk-reveal-stage {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .yk-reveal-batch > .yk-reveal-stage:not(.yk-reveal-ssr):not(.yk-reveal-lr) {
+    min-height: 240px;
+    padding-block: 24px 12px;
+  }
+  .yk-reveal-batch
+    > .yk-reveal-stage:not(.yk-reveal-ssr):not(.yk-reveal-lr)
+    .yk-deck {
+    width: clamp(135px, 20svh, 175px);
+  }
+  .yk-reveal-batch > .yk-batch-pagination {
+    grid-column: 1;
+    grid-row: 4;
+    max-width: 100%;
+  }
+  .yk-reveal-batch > .yk-reveal-grid {
+    grid-column: 1;
+    grid-row: 3;
+    max-width: 100%;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding: 12px;
+    gap: 10px;
+  }
+  .yk-reveal-batch > .yk-reveal-grid > li {
+    grid-column: auto !important;
+  }
+  .yk-reveal-batch.yk-reveal-complete > .yk-batch-pagination {
+    grid-row: 3;
+  }
+  .yk-reveal-batch.yk-reveal-complete > .yk-reveal-grid {
+    grid-row: 2;
+  }
+}
+@media (max-width: 600px) {
+  .yk-reveal-batch > .yk-reveal-header {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+  .yk-reveal-batch .yk-reveal-copy {
+    grid-row: auto;
+  }
+  .yk-batch-progress {
+    grid-column: 1;
+    grid-row: auto;
+    width: 100%;
+    text-align: left;
+  }
+  .yk-batch-progress p {
+    display: inline;
+  }
+  .yk-reveal-batch > .yk-reveal-grid,
+  .yk-reveal-batch.yk-reveal-complete > .yk-reveal-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .yk-batch-pagination {
+    gap: 6px;
+  }
+  .yk-batch-pagination button {
+    padding-inline: 9px;
+  }
+}
