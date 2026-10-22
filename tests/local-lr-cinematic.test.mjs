@@ -332,6 +332,7 @@ test("LR flip opens the preview immediately only in development without awarding
       },
       "next/dynamic": { default: () => "LazyPreview" },
       "next/link": { default: "Link" },
+      "@/components/ambient-glow": { AmbientGlow: "AmbientGlow" },
       "@/components/referral-reminder": {},
       "@/lib/ui/pack-opening": {},
       "@/components/card-sharing": {},

@@ -5,7 +5,8 @@ import postcss from "postcss";
 
 const read = file =>
   readFileSync(new URL(`../${file}`, import.meta.url), "utf8");
-const css = read("styles/boosters-showcase.css");
+const css =
+  read("styles/boosters-showcase.css") + read("styles/ambient-glow.css");
 
 test("desktop pack sizing adapts to viewport height without hiding content or locking scrolling", () => {
   const root = postcss.parse(css);
@@ -77,7 +78,8 @@ test("pack lighting stays decorative and buttons follow a reserved info line", (
     root.nodes
       .find(node => node.selector === selector)
       ?.nodes.find(node => node.prop === prop)?.value;
-  const boosters = read("components/boosters.tsx");
+  const boosters =
+    read("components/boosters.tsx") + read("components/ambient-glow.tsx");
   for (const name of ["ambient", "aura", "floor"]) {
     assert.ok(
       boosters.includes(`className="yk-pack-${name}" aria-hidden="true"`)

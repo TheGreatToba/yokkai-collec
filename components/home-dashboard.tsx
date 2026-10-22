@@ -1,3 +1,4 @@
+import { AmbientGlow } from "@/components/ambient-glow";
 import { Suspense, type ReactNode } from "react";
 import Link from "next/link";
 import { cookies } from "next/headers";
@@ -220,7 +221,8 @@ async function HomeTopbar() {
 export function HomeDashboard({ userId }: { userId: string }) {
   const discordEnabled = Boolean(getDiscordInviteUrl());
   return (
-    <div className="flex min-h-dvh w-full flex-col">
+    <div className="relative isolate flex min-h-dvh w-full flex-col">
+      <AmbientGlow variant="home" />
       <Suspense fallback={<Topbar view="home" account={<AccountMenu />} />}>
         <HomeTopbar />
       </Suspense>

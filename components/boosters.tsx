@@ -1,4 +1,5 @@
 "use client";
+import { AmbientGlow } from "@/components/ambient-glow";
 import { ReferralReminder } from "@/components/referral-reminder";
 import { packCopySnapshot, packCopyLabels } from "@/lib/ui/pack-opening";
 
@@ -1447,7 +1448,7 @@ export function Boosters({
         />
       ) : (
         <div className="yk-pack-grid">
-          <span className="yk-pack-ambient" aria-hidden="true" />
+          <AmbientGlow />
           <article
             className="yk-pack-panel"
             data-unavailable={!status || status.available === 0}

@@ -483,6 +483,7 @@ test("live Boosters locks double clicks, permits keyboard skip and cannot reveal
       react: state.react,
       "next/dynamic": { default: () => "Dynamic" },
       "next/link": { default: "Link" },
+      "@/components/ambient-glow": { AmbientGlow: "AmbientGlow" },
       "@/components/referral-reminder": { ReferralReminder: "Reminder" },
       "@/components/card-sharing": {},
       "@/lib/ui/pack-opening": {
