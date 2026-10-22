@@ -93,6 +93,7 @@ export function BoosterReveal({
   nextLabel = "Next pack",
   decision,
   onDiscard,
+  onDiscardMany,
   onAuction,
   onMoveCard,
   onSetLocked,
@@ -114,6 +115,7 @@ export function BoosterReveal({
   nextLabel?: string;
   decision?: Decision;
   onDiscard?: (instanceId: string) => Promise<void>;
+  onDiscardMany?: (instanceIds: string[]) => Promise<void>;
   onAuction?: (
     instanceId: string,
     startingPrice: number,
@@ -327,20 +329,37 @@ export function BoosterReveal({
     }
   }
   async function discardSelection() {
-    if (!onDiscard || !selectedCards.length || bulkDiscarding || bulkActionLock.current) return;
+    if (
+      (!onDiscardMany && !onDiscard) ||
+      !selectedCards.length ||
+      bulkDiscarding ||
+      bulkActionLock.current
+    )
+      return;
     bulkActionLock.current = true;
     const destroyingAll = selectedCards.length === visibleCards.length;
+    const selectedIds = selectedCards.map(card => card.instanceId);
     setBulkDiscarding(true);
     setError("");
     try {
-      for (const card of selectedCards) {
-        await onDiscard(card.instanceId);
-        setDiscarded(current => new Set(current).add(card.instanceId));
+      if (onDiscardMany) {
+        await onDiscardMany(selectedIds);
+        setDiscarded(current => new Set([...current, ...selectedIds]));
         setSelection(current => {
           const next = new Set(current);
-          next.delete(card.instanceId);
+          for (const instanceId of selectedIds) next.delete(instanceId);
           return next;
         });
+      } else if (onDiscard) {
+        for (const instanceId of selectedIds) {
+          await onDiscard(instanceId);
+          setDiscarded(current => new Set(current).add(instanceId));
+          setSelection(current => {
+            const next = new Set(current);
+            next.delete(instanceId);
+            return next;
+          });
+        }
       }
       setBulkConfirm(false);
       setSelecting(false);
@@ -918,6 +937,7 @@ export function Boosters({
   onOpenMany,
   onKeepDecision,
   onDiscard,
+  onDiscardMany,
   onAuction,
   onMoveCard,
   onSetLocked,
@@ -951,6 +971,7 @@ export function Boosters({
   onOpenMany?: (count: 1 | 5 | 10) => Promise<RevealCard[] | undefined>;
   onKeepDecision: (instanceId: string) => Promise<number>;
   onDiscard: (instanceId: string) => Promise<void>;
+  onDiscardMany?: (instanceIds: string[]) => Promise<void>;
   onAuction?: (
     instanceId: string,
     startingPrice: number,
@@ -1205,6 +1226,11 @@ export function Boosters({
             status?.available === 0 ? `Next in ${countdown}` : selectedCount > 1 ? `Next ${selectedCount} packs` : "Next pack"
           }
           onDiscard={(!localPreview || simulateActions) && drawKind === "regular" ? onDiscard : undefined}
+          onDiscardMany={
+            (!localPreview || simulateActions) && drawKind === "regular"
+              ? onDiscardMany
+              : undefined
+          }
           onAuction={drawKind === "regular" ? onAuction : undefined}
           onMoveCard={drawKind === "regular" ? onMoveCard : undefined}
           onSetLocked={drawKind === "regular" ? onSetLocked : undefined}

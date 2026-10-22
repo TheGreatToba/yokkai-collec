@@ -300,6 +300,18 @@ try {
           await evaluate("document.querySelectorAll('.yk-lr-reveal').length"),
           1
         );
+        assert.ok(
+          await evaluate(
+            "document.querySelector('.yk-lr-reveal').getAnimations({subtree:true}).some(animation=>animation.playState==='running')"
+          ),
+          "StrictMode must leave the LR sequence running"
+        );
+        assert.equal(
+          await evaluate(
+            "getComputedStyle(document.querySelector('.yk-lr-reveal')).padding"
+          ),
+          "0px"
+        );
         assert.equal(
           await evaluate(
             "document.querySelectorAll('.yk-card-cinematic iframe,.yk-reveal-stage').length"

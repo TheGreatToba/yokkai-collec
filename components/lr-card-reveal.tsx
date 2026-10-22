@@ -270,7 +270,7 @@ export function LrCardReveal({
   return (
     <section
       ref={root}
-      className="yk-lr-reveal yk-card-cinematic"
+      className="yk-lr-reveal yk-card-cinematic yk-card-cinematic-clean"
       aria-label={`LR cinematic: ${card.name}`}
     >
       <div className="yk-lr-world" aria-hidden="true" />

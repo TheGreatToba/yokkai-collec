@@ -695,6 +695,56 @@ test("batch selection covers the whole lot, excludes locked/listed copies, and c
   assert.equal(slots(render()).length, 1);
 });
 
+test("batch selection destroys every selected card with one atomic request", async () => {
+  const { props, render, slots } = revealHarness(5);
+  props.cards.forEach(card => {
+    card.destructionValue = 2;
+  });
+  props.revealed = props.cards.length;
+  const requests = [];
+  props.onDiscard = () =>
+    assert.fail("the single-card fallback must not run for a bulk request");
+  props.onDiscardMany = async ids => {
+    requests.push(ids);
+  };
+  render()
+    .find(node => node.type === "SelectionModeButton")
+    .props.onClick();
+  render()
+    .find(node => node.type === "SelectionBar")
+    .props.onAll();
+  render()
+    .find(node => node.type === "SelectionBar")
+    .props.onDestroy();
+  const confirmation = render().find(
+    node =>
+      node.type === "Modal" && node.props.title === "Destroy selected cards?"
+  );
+  descendants(confirmation)
+    .find(node => node.type === "Button" && node.props.variant === "danger")
+    .props.onClick();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(requests.length, 1);
+  assert.deepEqual(
+    [...requests[0]],
+    props.cards.map(card => card.instanceId)
+  );
+  assert.equal(slots(render()).length, 0);
+});
+
+test("the live boosters route connects its existing atomic collection discard", () => {
+  const game = read("components/game.tsx");
+  const boosters = read("components/boosters.tsx");
+  assert.match(
+    game,
+    /<Boosters[^]*onDiscardMany=\{[^]*discardCollectionCards[^]*\}/
+  );
+  assert.match(
+    boosters,
+    /<BoosterReveal[^]*onDiscardMany=\{[^]*onDiscardMany[^]*\}/
+  );
+});
+
 test("listed copies remain inspectable but cannot enter bulk selection", async () => {
   const { props, render, slots } = revealHarness(5);
   props.revealed = props.cards.length;
