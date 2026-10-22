@@ -164,17 +164,31 @@ export function HomeFriendFeed({
         <div className="yk-feed-actions">
           {viewer && (
             <Button
-              className="yk-home-panel-action"
+              variant="secondary"
+              className="yk-home-panel-action yk-feed-icon-action"
+              aria-label="Add post"
+              title="Add post"
               aria-expanded={composerOpen}
               aria-controls="home-feed-composer"
               onClick={() => setComposerOpen(open => !open)}
             >
-              Add post
+              <svg
+                aria-hidden="true"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
             </Button>
           )}
           <Button
             variant="secondary"
-            className="yk-home-panel-action yk-feed-refresh"
+            className="yk-home-panel-action yk-feed-icon-action yk-feed-refresh"
             aria-label={busy ? "Refreshing feed" : "Refresh feed"}
             title="Refresh feed"
             disabled={busy}

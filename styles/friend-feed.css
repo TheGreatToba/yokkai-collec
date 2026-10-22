@@ -223,8 +223,7 @@
   }
   .yk-feed-heading {
     align-items: flex-start;
-    flex-direction: column;
-    gap: 16px;
+    gap: 12px;
     padding: 20px 16px;
   }
   .yk-feed-heading h2 {
@@ -260,12 +259,12 @@
   grid-row: 3;
 }
 
-.yk-home-main .yk-button.yk-home-panel-action.yk-feed-refresh {
+.yk-home-main .yk-button.yk-home-panel-action.yk-feed-icon-action {
   width: 44px;
   padding: 0;
 }
 
-.yk-feed-refresh > svg {
+.yk-feed-icon-action > svg {
   width: 24px;
   height: 24px;
   flex-shrink: 0;

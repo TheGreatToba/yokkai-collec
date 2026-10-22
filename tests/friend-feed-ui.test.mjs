@@ -174,7 +174,7 @@ test("home composer stays mounted and closed behind Add post beside refresh", ()
   );
   assert.match(
     html,
-    /class="yk-feed-actions"><button[^>]*aria-expanded="false"[^>]*aria-controls="home-feed-composer"[^>]*>Add post<\/button><button[^>]*aria-label="Refresh feed"/
+    /class="yk-feed-actions"><button[^>]*aria-label="Add post"[^>]*aria-expanded="false"[^>]*aria-controls="home-feed-composer"[^>]*>[\s\S]*?<\/svg><\/button><button[^>]*aria-label="Refresh feed"/
   );
   assert.match(
     html,
