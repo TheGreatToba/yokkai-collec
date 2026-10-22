@@ -29,9 +29,13 @@
   line-height: 1.18;
   letter-spacing: -0.035em;
   margin-block: 14px 18px;
+  text-shadow: 0 0 18px rgb(220 222 255 / 22%);
 }
 .yk-home-hero h1 em {
   color: var(--color-accent-gold);
+  text-shadow:
+    0 0 12px rgb(238 190 77 / 45%),
+    0 0 32px rgb(238 190 77 / 25%);
   font-weight: inherit;
   font-style: normal;
 }
