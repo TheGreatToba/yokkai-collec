@@ -3197,3 +3197,185 @@ body:has(.yk-reveal-screen[data-reveal-state="revealing"]) {
     grid-row: 5;
   }
 }
+
+/* Fit the complete batch into the available viewport, not five oversized cards. */
+.yk-reveal-screen.yk-reveal-batch.yk-reveal-instant {
+  --overview-columns: 5;
+  --overview-rows: var(--overview-rows-small);
+  --overview-gap: 6px;
+  --overview-gutter: 12px;
+  --overview-chrome: 228px;
+  --overview-card-width: max(
+    44px,
+    min(
+      150px,
+      calc(
+        (
+            100dvw - var(--overview-gutter) * 2 - 40px -
+              (var(--overview-columns) - 1) * var(--overview-gap)
+          ) /
+          var(--overview-columns)
+      ),
+      calc(
+        (
+            (
+                100dvh - var(--overview-chrome) - (var(--overview-rows) - 1) *
+                  var(--overview-gap)
+              ) /
+              var(--overview-rows) - 28px
+          ) *
+          5 / 7
+      )
+    )
+  );
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: max(12px, env(safe-area-inset-top)) var(--overview-gutter)
+    max(12px, env(safe-area-inset-bottom));
+  overflow-y: auto;
+  background: var(--color-night);
+}
+.yk-reveal-instant > .yk-reveal-header {
+  width: 100%;
+  padding-bottom: 8px;
+  gap: 4px 12px;
+}
+.yk-reveal-instant .yk-reveal-copy .eyebrow {
+  font-size: 10px;
+}
+.yk-reveal-instant .yk-reveal-copy h2 {
+  margin-top: 2px;
+  font-size: 20px;
+}
+.yk-reveal-instant .yk-reveal-copy [role="status"] {
+  margin-top: 2px;
+  font-size: 12px;
+}
+.yk-reveal-instant .yk-batch-progress {
+  grid-row: 1;
+  font-size: 11px;
+  gap: 5px;
+}
+.yk-reveal-instant .yk-batch-highlights {
+  gap: 4px 12px;
+  font-size: 11px;
+}
+.yk-reveal-screen.yk-reveal-batch.yk-reveal-instant > .yk-reveal-grid {
+  grid-row: 2;
+  height: 100%;
+  min-height: 0;
+  grid-template-columns: repeat(
+    var(--overview-columns),
+    var(--overview-card-width)
+  );
+  align-content: safe center;
+  justify-content: center;
+  gap: var(--overview-gap);
+  padding: 16px;
+  overflow: auto;
+}
+.yk-reveal-instant > .yk-reveal-grid > li {
+  padding: 3px;
+  border-radius: 9px;
+  align-self: start;
+}
+.yk-reveal-instant > .yk-reveal-grid > li:focus-within {
+  z-index: 4;
+}
+.yk-reveal-instant .yk-reveal-card:focus-visible {
+  outline: 2px solid #c8ddff;
+  outline-offset: 3px;
+  transform: translateY(-3px) scale(1.12);
+}
+@media (hover: hover) and (pointer: fine) {
+  .yk-reveal-instant > .yk-reveal-grid > li:hover {
+    z-index: 4;
+  }
+  .yk-reveal-instant .yk-reveal-card:hover {
+    transform: translateY(-3px) scale(1.12);
+    filter: brightness(1.15) drop-shadow(0 6px 12px #02040bbb);
+  }
+}
+.yk-reveal-instant .yk-batch-rarity-label {
+  display: inline;
+  margin-top: 2px;
+  font-size: 9px;
+  line-height: 12px;
+}
+.yk-batch-copy-label {
+  display: block;
+  min-height: 12px;
+  color: #c4d0e5;
+  font-size: 9px;
+  line-height: 12px;
+  text-align: center;
+}
+.yk-reveal-instant > .yk-reveal-summary {
+  grid-row: 3;
+  width: 100%;
+  max-width: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin: 0;
+  padding: 8px 0 0;
+}
+.yk-reveal-instant > .yk-reveal-summary h2,
+.yk-reveal-instant > .yk-reveal-summary p {
+  margin: 0;
+  font-size: 12px;
+}
+.yk-reveal-instant .yk-reveal-navigation {
+  gap: 6px;
+}
+.yk-reveal-instant .yk-reveal-navigation .yk-button {
+  min-height: 44px;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+.yk-batch-card-preview {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  text-align: center;
+}
+.yk-batch-card-preview > .yk-card {
+  width: min(260px, 54dvh, 100%);
+}
+@media (min-width: 700px) {
+  .yk-reveal-screen.yk-reveal-batch.yk-reveal-instant {
+    --overview-columns: var(--overview-columns-medium);
+    --overview-rows: var(--overview-rows-medium);
+    --overview-gap: 8px;
+    --overview-gutter: 20px;
+    --overview-chrome: 200px;
+  }
+}
+@media (min-width: 1024px) {
+  .yk-reveal-screen.yk-reveal-batch.yk-reveal-instant {
+    --overview-columns: var(--overview-columns-wide);
+    --overview-rows: var(--overview-rows-wide);
+  }
+}
+@media (max-width: 699px) {
+  .yk-reveal-instant .yk-batch-progress {
+    grid-column: 1;
+    grid-row: 2;
+    width: 100%;
+    text-align: left;
+  }
+  .yk-reveal-instant .yk-batch-highlights {
+    grid-row: 3;
+  }
+  .yk-reveal-instant > .yk-reveal-summary .yk-reveal-navigation {
+    width: 100%;
+    justify-content: center;
+  }
+}

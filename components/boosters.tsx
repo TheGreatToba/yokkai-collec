@@ -166,6 +166,7 @@ export function BoosterReveal({
   const [auctioned, setAuctioned] = useState(() => new Set<string>());
   const [batchReview, setBatchReview] = useState<{ at: number; page: number } | null>(null);
   const [showAll, setShowAll] = useState(false);
+  const [inspected, setInspected] = useState<RevealCard | null>(null);
   const keepLock = useRef(false);
   const revealTimer = useRef<number | null>(null);
   const next = useRef<HTMLButtonElement>(null);
@@ -406,6 +407,13 @@ export function BoosterReveal({
       data-pack-kind={decision ? "decision" : "regular"}
       data-reveal-state={done ? "complete" : "revealing"}
       className={`yk-reveal-screen ${done && !choosing ? "yk-reveal-complete" : ""} ${batch ? "yk-reveal-batch" : ""} ${overview ? "yk-reveal-instant" : ""}`}
+      style={overview ? {
+        "--overview-rows-small": Math.max(1, Math.ceil(visibleCards.length / 5)),
+        "--overview-columns-medium": visibleCards.length > 25 ? 10 : 7,
+        "--overview-rows-medium": Math.max(1, Math.ceil(visibleCards.length / (visibleCards.length > 25 ? 10 : 7))),
+        "--overview-columns-wide": visibleCards.length > 25 ? 13 : 10,
+        "--overview-rows-wide": Math.max(1, Math.ceil(visibleCards.length / (visibleCards.length > 25 ? 13 : 10)))
+      } as CSSProperties : undefined}
     >
       <header className="yk-reveal-header">
         <div className="yk-reveal-copy">
@@ -435,6 +443,7 @@ export function BoosterReveal({
           <span className="yk-batch-lr-count">✦ {keptCards.filter(card => card.rarity === "LR").length} LR</span>
           <span className="yk-batch-ssr-count">✦ {keptCards.filter(card => card.rarity === "SSR").length} SSR</span>
           <span>All {cards.length} cards · No cinematics</span>
+          <span>Select a card for a closer look.</span>
         </p>}
         {!localPreview && done && !decision && visibleCards.length > 0 && (
           <SelectionModeButton
@@ -638,7 +647,7 @@ export function BoosterReveal({
                       confirming ||
                       isDiscarded ||
                       auctioned.has(card.instanceId) ||
-                      (!choosing && !selecting && !onAuction && !onSetLocked)
+                      (!overview && !choosing && !selecting && !onAuction && !onSetLocked)
                     }
                     aria-pressed={
                       choosing
@@ -652,6 +661,8 @@ export function BoosterReveal({
                         ? `Choose ${card.name}`
                         : selecting
                           ? `Select ${card.name}, ${card.rarity}`
+                          : overview
+                            ? `Inspect ${card.name}, ${card.rarity}`
                           : onAuction || onSetLocked
                             ? `Manage ${card.name}`
                             : `${card.name}, ${card.rarity}`
@@ -661,7 +672,7 @@ export function BoosterReveal({
                         ? setPick(card.instanceId)
                         : selecting
                           ? toggleSelection(card.instanceId)
-                          : setDetailCard(card)
+                          : overview && localPreview ? setInspected(card) : setDetailCard(card)
                     }
                     className={`yk-reveal-card block w-full rounded-card text-left disabled:cursor-default ${selecting && selection.has(card.instanceId) ? "yk-selected-card" : ""}`}
                     style={
@@ -684,8 +695,9 @@ export function BoosterReveal({
                       </span>
                     )}
                   </button>
-                  {overview && (card.rarity === "SSR" || card.rarity === "LR") && <span className="yk-batch-rarity-label">✦ {card.rarity === "LR" ? "Legendary pull" : "Exceptional pull"}</span>}
-                  {done && <div className="yk-reveal-actions">
+                  {overview && (card.rarity === "SSR" || card.rarity === "LR") && <span className="yk-batch-rarity-label" title={card.rarity === "LR" ? "Legendary pull" : "Exceptional pull"}>✦ {card.rarity}</span>}
+                  {overview && <span className="yk-batch-copy-label">{auctioned.has(card.instanceId) ? "LISTED" : card.isNew ? "NEW" : card.copies && card.copies > 1 ? `×${card.copies}` : ""}</span>}
+                  {done && !overview && <div className="yk-reveal-actions">
                     {auctioned.has(card.instanceId) ? (
                       <StatusPill tone="info">LISTED</StatusPill>
                     ) : kept ? (
@@ -737,7 +749,7 @@ export function BoosterReveal({
                   </span>
                 </span>
               )}
-              {!localPreview && done &&
+              {!overview && !localPreview && done &&
                 !choosing &&
                 !lost &&
                 !selecting &&
@@ -868,6 +880,14 @@ export function BoosterReveal({
           </div>
         </div>
       )}
+      <Modal open={!!inspected} onClose={() => setInspected(null)} title={inspected?.name ?? "Card preview"} className="yk-batch-inspection">
+        {inspected && <div className="yk-batch-card-preview">
+          <YokaiCard {...inspected} animated={false} />
+          <p>{inspected.rarity}{inspected.shiny ? " · Shiny" : ""} · {inspected.anime || inspected.category}</p>
+          {inspected.isNew ? <StatusPill>NEW</StatusPill> : inspected.copies && inspected.copies > 1 ? <p>Duplicate ×{inspected.copies}</p> : null}
+          <Button variant="secondary" onClick={() => setInspected(null)}>Back to results</Button>
+        </div>}
+      </Modal>
       <Modal
         open={!!spot}
         onClose={() => setSpot(null)}

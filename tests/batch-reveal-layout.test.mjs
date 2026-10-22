@@ -68,7 +68,7 @@ function hooks() {
     }
   };
 }
-function revealHarness(count = 10) {
+function revealHarness(count = 10, environment = "development") {
   const state = hooks();
   const { BoosterReveal } = load(
     "components/boosters.tsx",
@@ -93,7 +93,7 @@ function revealHarness(count = 10) {
         YokaiCard: "YokaiCard"
       }
     },
-    { process: { env: { NODE_ENV: "development" } } }
+    { process: { env: { NODE_ENV: environment } } }
   );
   const props = {
     previewOnly: true,
@@ -490,4 +490,114 @@ test("Reveal all stays under the stack and the static full grid adapts from two 
         `\\.yk-reveal-instant \\[data-batch-rarity="${rarity}"\\] \\{[^}]*box-shadow:`
       )
     );
+});
+
+test("complete batch results expose viewport sizing and allow mouse, keyboard and touch inspection without cinematics", () => {
+  for (const count of [5, 10]) {
+    const { props, render } = revealHarness(count);
+    props.onReveal = index => {
+      if (index === props.revealed) props.revealed++;
+    };
+    render()
+      .find(node => node.props?.children === "Reveal all")
+      .props.onClick();
+    let tree = render();
+    const screen = tree.find(
+      node => node.props?.["aria-label"] === "Pack cards"
+    );
+    assert.equal(
+      screen.props.style["--overview-columns-wide"],
+      count === 10 ? 13 : 10
+    );
+    assert.equal(
+      screen.props.style["--overview-rows-wide"],
+      count === 10 ? 4 : 3
+    );
+    const card = tree.find(
+      node =>
+        node.type === "button" &&
+        node.props?.["aria-label"]?.startsWith("Inspect ")
+    );
+    assert.ok(card);
+    assert.equal(card.props.disabled, false);
+    card.props.onClick();
+    tree = render();
+    const preview = tree.find(
+      node =>
+        node.type === "Modal" && node.props.className === "yk-batch-inspection"
+    );
+    assert.equal(preview.props.open, true);
+    assert.ok(preview.props.title);
+    assert.equal(
+      descendants(preview).find(node => node.type === "YokaiCard").props
+        .animated,
+      false
+    );
+    assert.equal(
+      tree.some(node => node.type === "Dynamic"),
+      false,
+      "inspection is not a cinematic"
+    );
+    preview.props.onClose();
+    assert.equal(
+      render().find(node => node.props?.className === "yk-batch-inspection")
+        .props.open,
+      false
+    );
+  }
+});
+
+test("production overview inspection retains the existing card-management surface and server callbacks", () => {
+  const { props, render } = revealHarness(10, "production");
+  props.onReveal = index => {
+    if (index === props.revealed) props.revealed++;
+  };
+  props.onDiscard = () => assert.fail("inspection cannot discard a card");
+  props.onAuction = () => assert.fail("inspection cannot create an auction");
+  props.onSetLocked = () => assert.fail("inspection cannot change a lock");
+  render()
+    .find(node => node.props?.children === "Reveal all")
+    .props.onClick();
+  render()
+    .find(
+      node =>
+        node.type === "button" &&
+        node.props?.["aria-label"]?.startsWith("Inspect ")
+    )
+    .props.onClick();
+  const detail = render().find(
+    node => node.type === "Dynamic" && node.props.detailOnly
+  );
+  assert.ok(detail);
+  assert.equal(
+    detail.props.cards.length,
+    1,
+    "the inspected result is available before the collection refresh finishes"
+  );
+  assert.equal(detail.props.onDiscard, props.onDiscard);
+  assert.equal(typeof detail.props.onCreateAuction, "function");
+  assert.equal(typeof detail.props.onSetLocked, "function");
+});
+
+test("compact batch results use viewport-bounded tiles, preserve hover/focus and keep cramped screens scrollable", () => {
+  const css = read("styles/boosters.css").replace(/\s+/g, " ");
+  assert.match(css, /--overview-card-width: max\(\s*44px,\s*min\(\s*150px,/);
+  assert.match(
+    css,
+    /grid-template-columns: repeat\(\s*var\(--overview-columns\),\s*var\(--overview-card-width\)\s*\);/
+  );
+  assert.match(css, /height: 100dvh;/);
+  assert.match(
+    css,
+    /\.yk-reveal-instant \.yk-reveal-card:focus-visible \{[^}]*transform: translateY\(-3px\) scale\(1\.12\);/
+  );
+  assert.match(css, /@media \(hover: hover\) and \(pointer: fine\)/);
+  assert.match(
+    css,
+    /\.yk-reveal-instant \.yk-reveal-card:hover \{[^}]*transform: translateY\(-3px\) scale\(1\.12\);/
+  );
+  assert.match(
+    css,
+    /align-content: safe center; justify-content: center;[^}]*overflow: auto;/
+  );
 });
