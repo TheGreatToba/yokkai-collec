@@ -922,9 +922,11 @@
   transform: none;
 }
 .yk-reveal-screen {
+  margin-top: 0;
+}
+.yk-reveal-screen {
   position: relative;
   isolation: isolate;
-  margin-top: 0;
 }
 .yk-reveal-screen::before {
   position: fixed;
