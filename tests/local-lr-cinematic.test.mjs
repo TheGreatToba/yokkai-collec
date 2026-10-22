@@ -273,27 +273,32 @@ test("replay remounts the sandbox only, while pause and continue stay accessible
   );
 });
 
-test("only development LR reveals use the new cinematic; other paths are preserved", () => {
+test("both rare reveals use the shared cinematic without a legacy fallback", () => {
   const source = read("components/boosters.tsx");
   const flip = source.slice(
     source.indexOf("  function flip()"),
     source.indexOf("  async function keep()")
   );
-  assert.match(flip, /process\.env\.NODE_ENV === "development" && isLR/);
+  assert.match(flip, /if \(isLR \|\| isSSR\) \{/);
   assert.match(flip, /setSpot\(current\);[\s\S]*?return;/);
-  assert.match(flip, /const revealDuration = isLR\s*\? 4400/);
-  assert.match(source, /spot\.rarity === "LR" \? \(\s*<LocalLrCinematic/);
+  assert.match(
+    flip,
+    /const revealDuration = current\.rarity === "SR" \? 520 : 0/
+  );
+  assert.doesNotMatch(flip, /4400|3200|NODE_ENV/);
+  assert.match(source, /<CardCinematic[^>]*card=\{spot\}/);
   assert.match(source, /Replay cinematic: \{card\.name\}/);
   const page = read("app/design-system/lr-cinematic/page.tsx");
   assert.match(page, /NODE_ENV !== "development"\) notFound\(\)/);
   assert.match(page, /No packs consumed, no collection changes/);
 });
 
-test("LR flip opens the preview immediately only in development without awarding cards", () => {
+test("LR and SSR open immediately in every environment without awarding cards", () => {
   for (const [environment, rarity, delay] of [
     ["development", "LR", null],
-    ["production", "LR", 4400],
-    ["development", "SSR", 3200],
+    ["production", "LR", null],
+    ["development", "SSR", null],
+    ["production", "SSR", null],
     ["development", "SR", 520],
     ["development", "R", null]
   ]) {
@@ -374,9 +379,9 @@ test("LR flip opens the preview immediately only in development without awarding
           node.props["aria-label"] === "Reveal card 1 of 1"
       )
       .props.onClick();
-    assert.equal(states[0], true);
+    assert.equal(states[0], rarity !== "LR" && rarity !== "SSR");
     assert.deepEqual(awards, []);
-    if (environment === "development" && rarity === "LR") {
+    if (rarity === "LR" || rarity === "SSR") {
       assert.equal(states[2], card);
       assert.equal(timers.length, 0);
       const modal = render().find(

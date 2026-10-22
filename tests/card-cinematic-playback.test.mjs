@@ -48,18 +48,29 @@ async function playback(rarity, reduced = false) {
   const animations = [{ playbackRate: 1 }, { playbackRate: 1 }];
   const frames = [];
   const parent = { postMessage: data => messages.push(data.type) };
-  let listener;
+  let listener, cleanup;
+  const removed = [],
+    cancelled = [];
+  animations.forEach(animation => {
+    animation.cancel = () => {
+      animation.cancelled = true;
+    };
+  });
   vm.runInNewContext(script, {
     parent,
     prefetchSiteImage: async () => true,
     document: {
+      styleSheets: [],
       getAnimations: () => animations,
       documentElement: { classList: { toggle() {} } }
     },
     window: {
       addEventListener: (type, fn) => {
-        listener = fn;
+        if (type === "message") listener = fn;
+        if (type === "pagehide") cleanup = fn;
       },
+      removeEventListener: (type, fn) => removed.push([type, fn]),
+      cancelAnimationFrame: id => cancelled.push(id),
       setYokkaiCard: async () => true,
       matchMedia: () => ({ matches: reduced }),
       requestAnimationFrame: fn => frames.push(fn)
@@ -69,6 +80,9 @@ async function playback(rarity, reduced = false) {
   let time = 0;
   return {
     animations,
+    cleanup: () => cleanup(),
+    cancelled,
+    removed,
     messages,
     frames,
     tick(ms) {
@@ -227,9 +241,13 @@ test("buttonless player supports click, keyboard and trusted completion without 
   }
 });
 
-test("all final demo and pack integrations explicitly hide controls without changing legacy defaults", () => {
+test("all final demo and pack integrations hide controls through the shared player", () => {
+  assert.match(
+    read("components/boosters.tsx"),
+    /<CardCinematic[^>]*card=\{spot\}/
+  );
   for (const file of [
-    "components/boosters.tsx",
+    "components/card-cinematic.tsx",
     "components/card-cinematics-preview.tsx",
     "app/design-system/lr-cinematic/page.tsx"
   ]) {
@@ -239,4 +257,13 @@ test("all final demo and pack integrations explicitly hide controls without chan
     read("styles/lr-cinematic-preview.css"),
     /\.yk-lr-file-modal:has\(\.yk-card-cinematic-clean\) > div:first-child\s*\{\s*display: none;/
   );
+});
+
+test("unmount cancels the playback frame, animations and trusted message listener", async () => {
+  const player = await playback("LR");
+  player.cleanup();
+  assert.equal(player.cancelled.length, 1);
+  assert.ok(player.animations.every(animation => animation.cancelled));
+  assert.equal(player.removed.length, 1);
+  assert.equal(player.removed[0][0], "message");
 });

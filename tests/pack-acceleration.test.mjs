@@ -2,63 +2,29 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-test("accelerating the seal preserves its remaining animation instead of resolving immediately", () => {
+test("pack advance is delegated only to the final iframe player", () => {
   const source = readFileSync("components/boosters.tsx", "utf8");
   const body = source.match(
-    /accelerateSeal.current = \(\) => \{([\s\S]*?)\n        \};/
+    /const speedUpSeal = \(\) => \{([\s\S]*?)\n  \};/
   )[1];
-  const calls = [];
-  const ref = { current: null };
-  const accelerate = new Function(
-    "accelerateSeal",
-    "reducedMotion",
-    "openingStage",
-    "window",
-    "performance",
-    "startedAt",
-    "duration",
-    "finish",
-    "timer",
-    body
-  );
+  const messages = [];
+  const advance = new Function("openingStage", body);
   const stage = {
     current: {
-      getAnimations: () => [
-        { updatePlaybackRate: rate => calls.push(["rate", rate]) }
-      ]
+      querySelector: selector => {
+        assert.equal(selector, "iframe");
+        return {
+          contentWindow: { postMessage: (...args) => messages.push(args) }
+        };
+      }
     }
   };
-  const timers = {
-    clearTimeout: id => calls.push(["clear", id]),
-    setTimeout: (callback, delay) => calls.push(["timer", delay])
-  };
-  accelerate(
-    ref,
-    false,
-    stage,
-    timers,
-    { now: () => 300 },
-    100,
-    800,
-    () => assert.fail("must not skip"),
-    7
-  );
-  assert.deepEqual(calls, [
-    ["rate", 3],
-    ["clear", 7],
-    ["timer", 200]
+  advance(stage);
+  advance(stage);
+  assert.deepEqual(messages, [
+    [{ type: "yokkai-booster-next-step" }, "*"],
+    [{ type: "yokkai-booster-next-step" }, "*"]
   ]);
-  calls.length = 0;
-  accelerate(
-    ref,
-    true,
-    stage,
-    timers,
-    { now: () => 300 },
-    100,
-    800,
-    () => assert.fail("must not skip"),
-    7
-  );
-  assert.deepEqual(calls, []);
+  assert.doesNotMatch(body, /onOpen|finishOpening|setOpeningPhase|setTimeout/);
+  assert.doesNotMatch(source, /accelerateSeal|updatePlaybackRate/);
 });

@@ -212,7 +212,7 @@ test("demo summaries disable real sharing/selection without changing production 
 
 test("demo BoosterReveal returns to packs and never receives a destruction handler", () => {
   const hooks = stateHooks();
-  hooks.states.push("idle", "regular", false, false, true);
+  hooks.states.push("idle", "regular", false, true);
   const { Boosters } = load(
     "components/boosters.tsx",
     boostersMocks(hooks.react),
@@ -240,7 +240,7 @@ test("demo BoosterReveal returns to packs and never receives a destruction handl
   assert.equal(reveal.props.previewOnly, true);
   assert.equal(reveal.props.onDiscard, undefined);
   reveal.props.onComplete();
-  assert.equal(hooks.states[4], false);
+  assert.equal(hooks.states[3], false);
   assert.ok(!tree.some(node => node.type === "ReferralReminder"));
 });
 
