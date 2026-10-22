@@ -244,6 +244,7 @@ test("released real-pack reveals use final SSR/LR without a new reward call and 
               : "OtherDynamic"
         },
         "next/link": { default: "Link" },
+        "@/components/ambient-glow": { AmbientGlow: "AmbientGlow" },
         "@/components/referral-reminder": {},
         "@/lib/ui/pack-opening": {},
         "@/components/card-sharing": {},

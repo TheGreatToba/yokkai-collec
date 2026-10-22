@@ -1,4 +1,5 @@
 "use client";
+import { AmbientGlow } from "@/components/ambient-glow";
 import { ReferralReminder } from "@/components/referral-reminder";
 import { packCopySnapshot, packCopyLabels } from "@/lib/ui/pack-opening";
 
@@ -375,14 +376,16 @@ export function BoosterReveal({
   return (
     <section
       aria-label="Pack cards"
+      data-pack-kind={decision ? "decision" : "regular"}
+      data-reveal-state={done ? "complete" : "revealing"}
       className={`yk-reveal-screen ${done && !choosing ? "yk-reveal-complete" : ""}`}
     >
       <header className="yk-reveal-header">
         <div className="yk-reveal-copy">
-          <p className="eyebrow">
+          <p className={`eyebrow ${!done ? "sr-only" : ""}`}>
             {decision ? "Decision Pack" : "Regular Pack"}
           </p>
-          <h2 className="mt-2 font-display text-2xl">
+          <h2 className={done ? "mt-2 font-display text-2xl" : "sr-only"}>
             {decision
               ? choosing
                 ? "Make your choice"
@@ -591,6 +594,7 @@ export function BoosterReveal({
               <button
                     type="button"
                     disabled={
+                      !done ||
                       confirming ||
                       isDiscarded ||
                       auctioned.has(card.instanceId) ||
@@ -640,7 +644,7 @@ export function BoosterReveal({
                       </span>
                     )}
                   </button>
-                  <div className="yk-reveal-actions">
+                  {done && <div className="yk-reveal-actions">
                     {auctioned.has(card.instanceId) ? (
                       <StatusPill tone="info">LISTED</StatusPill>
                     ) : kept ? (
@@ -680,7 +684,7 @@ export function BoosterReveal({
                         </span>
                       ) : null)
                     )}
-                  </div>
+                  </div>}
                 </>
               ) : (
                 <span className="yk-slot-placeholder">
@@ -1099,7 +1103,9 @@ export function Boosters({
   const playSound = onSound ?? noopSound;
   const speedUpSeal = () => {
     if (releasedOpening) {
-      finishOpening.current?.();
+      openingStage.current?.querySelector("iframe")?.contentWindow?.postMessage(
+        { type: "yokkai-booster-next-step" }, "*"
+      );
       return;
     }
     if (openingPhase === "seal") {
@@ -1306,7 +1312,7 @@ export function Boosters({
           className={`yk-opening-stage yk-opening-${openingPhase} yk-opening-kind-${openingKind}`}
           role="button" tabIndex={0}
           aria-label={
-            releasedOpening ? "Skip booster opening" : openingPhase === "seal"
+            releasedOpening ? "Next opening step" : openingPhase === "seal"
               ? "Speed up the opening animation"
               : tearRequested
                 ? "Opening pack"
@@ -1442,7 +1448,7 @@ export function Boosters({
         />
       ) : (
         <div className="yk-pack-grid">
-          <span className="yk-pack-ambient" aria-hidden="true" />
+          <AmbientGlow />
           <article
             className="yk-pack-panel"
             data-unavailable={!status || status.available === 0}

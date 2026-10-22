@@ -1,3 +1,4 @@
+import { AmbientGlow } from "@/components/ambient-glow";
 import type { Metadata } from "next";
 import { Topbar } from "@/components/topbar";
 import { SiteFooter } from "@/components/site-footer";
@@ -49,7 +50,8 @@ export default function HomePreview() {
     watched: false
   }));
   return (
-    <div className="flex min-h-dvh w-full flex-col">
+    <div className="relative isolate flex min-h-dvh w-full flex-col">
+      <AmbientGlow variant="home" />
       <Topbar
         view="home"
         name="Kitsune"

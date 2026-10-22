@@ -69,6 +69,8 @@ export function boosterOpeningDocument(
     let hostState='loading';
     let finished=false;
     let completionTimer;
+    let startedAt=0;
+    let advancedBy=0;
     const notify=type=>parent.postMessage({type},hostOrigin);
     const complete=()=>{
       if(finished)return;
@@ -77,6 +79,19 @@ export function boosterOpeningDocument(
     window.addEventListener('message',event=>{
       if(event.source!==parent||event.origin!==hostOrigin)return;
       if(event.data?.type==='yokkai-booster-status'&&hostState!=='loading')notify(hostState);
+      if(event.data?.type==='yokkai-booster-next-step'&&hostState==='YOKKAI_BOOSTER_READY'&&!finished){
+        const elapsed=performance.now()-startedAt+advancedBy;
+        const next=[2680,3740,5200].find(time=>time>elapsed+50);
+        if(next===undefined){complete();return;}
+        const jump=next-elapsed;
+        for(const animation of document.getAnimations()){
+          if(animation.currentTime!==null)animation.currentTime=Number(animation.currentTime)+jump;
+        }
+        advancedBy+=jump;
+        clearTimeout(completionTimer);
+        if(next===5200)complete();
+        else completionTimer=setTimeout(complete,5200-next);
+      }
     });
     document.addEventListener('animationstart',event=>{
       if(event.animationName==='foil-peel')notify('YOKKAI_BOOSTER_TEAR');
@@ -85,6 +100,7 @@ export function boosterOpeningDocument(
       try{
         if(!await window.setYokkaiBooster(booster))throw new Error('Booster unavailable');
         document.documentElement.classList.remove('yokkai-wait-booster');
+        startedAt=performance.now();
         hostState='YOKKAI_BOOSTER_READY';notify(hostState);
         // The last finite effect ends at 5s. Keep a short final hold, not the idle loop.
         const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -101,6 +117,7 @@ export function boosterOpeningDocument(
     .replace(
       "</head>",
       `<style>
+      body{background:#070b13 url(${json(new URL(`/assets/${kind}-opening-nebula.webp`, origin).href)}) center / cover no-repeat}
       .replay{display:none!important}
       .yokkai-wait-booster .scene{visibility:hidden}
       .yokkai-wait-booster *, .yokkai-wait-booster *::before, .yokkai-wait-booster *::after{animation-play-state:paused!important}

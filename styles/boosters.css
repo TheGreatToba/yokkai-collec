@@ -917,8 +917,45 @@
 .yk-game-main:has(.yk-reveal-screen) > .yk-pack-page-heading {
   display: none;
 }
+.yk-page-transition:has(.yk-reveal-screen) {
+  animation: none;
+  transform: none;
+}
 .yk-reveal-screen {
   margin-top: 0;
+}
+.yk-reveal-screen {
+  position: relative;
+  isolation: isolate;
+}
+.yk-reveal-screen::before {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  background:
+    linear-gradient(
+      color-mix(in srgb, var(--color-night) 40%, transparent),
+      color-mix(in srgb, var(--color-night) 40%, transparent)
+    ),
+    var(--reveal-background) center / cover no-repeat;
+  opacity: 1;
+  transition: opacity var(--duration-slow) var(--ease-standard);
+}
+.yk-reveal-screen[data-pack-kind="regular"] {
+  --reveal-background: url("/assets/regular-opening-nebula.webp");
+}
+.yk-reveal-screen[data-pack-kind="decision"] {
+  --reveal-background: url("/assets/decision-opening-nebula.webp");
+}
+.yk-reveal-screen[data-reveal-state="complete"]::before {
+  opacity: 0.2;
+}
+@media (prefers-reduced-motion: reduce) {
+  .yk-reveal-screen::before {
+    transition: none;
+  }
 }
 .yk-reveal-header {
   display: grid;
@@ -2641,5 +2678,70 @@
 @media (max-width: 760px), (prefers-reduced-motion: reduce) {
   .yk-boosters-page {
     background-attachment: scroll;
+  }
+}
+
+/* Keep the individual reveal framed like the fullscreen pack opening. */
+body:has(.yk-reveal-screen[data-reveal-state="revealing"]) {
+  overflow: hidden;
+}
+.yk-reveal-screen[data-reveal-state="revealing"] {
+  position: fixed;
+  z-index: 50;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 16px;
+  padding: max(16px, env(safe-area-inset-top))
+    max(24px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom))
+    max(24px, env(safe-area-inset-left));
+  background: var(--color-night);
+}
+.yk-reveal-screen[data-reveal-state="revealing"] .yk-reveal-header {
+  width: min(100%, var(--booster-reveal-max));
+  margin-inline: auto;
+  align-items: center;
+}
+.yk-reveal-screen[data-reveal-state="revealing"] .yk-reveal-copy {
+  grid-column: 1;
+  grid-row: 1;
+}
+.yk-reveal-screen[data-reveal-state="revealing"]
+  .yk-reveal-copy
+  > [role="status"] {
+  margin-top: 0;
+}
+.yk-reveal-screen[data-reveal-state="revealing"] .yk-reveal-progress {
+  grid-column: 2;
+  grid-row: 1;
+}
+.yk-reveal-screen[data-reveal-state="revealing"] .yk-reveal-stage {
+  justify-content: center;
+  padding: 0;
+  min-height: 0;
+}
+.yk-reveal-screen[data-reveal-state="revealing"] .yk-deck {
+  width: min(190px, 26dvh);
+}
+.yk-reveal-screen[data-reveal-state="revealing"] .yk-reveal-grid {
+  width: min(100%, var(--booster-reveal-max), 110dvh);
+  margin: 0 auto;
+}
+@media (max-width: 639px) {
+  .yk-reveal-screen[data-reveal-state="revealing"] {
+    gap: 12px;
+  }
+  .yk-reveal-screen[data-reveal-state="revealing"] .yk-reveal-header {
+    grid-template-columns: 1fr;
+  }
+  .yk-reveal-screen[data-reveal-state="revealing"] .yk-reveal-progress {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .yk-reveal-screen[data-reveal-state="revealing"] .yk-reveal-grid {
+    width: min(100%, 55dvh);
+  }
+  .yk-reveal-screen[data-reveal-state="revealing"] .yk-deck {
+    width: min(150px, 23dvh);
   }
 }

@@ -416,6 +416,7 @@ test("SSR opt-in opens the cinematic without progressing or changing production 
         react: state.react,
         "next/dynamic": { default: () => "Cinematic" },
         "next/link": { default: "Link" },
+        "@/components/ambient-glow": { AmbientGlow: "AmbientGlow" },
         "@/components/referral-reminder": {},
         "@/lib/ui/pack-opening": {},
         "@/components/card-sharing": {},

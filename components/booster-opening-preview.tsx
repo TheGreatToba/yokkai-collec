@@ -102,6 +102,7 @@ export function BoosterOpeningPreview() {
         </p>
       )}
       <Boosters
+        releasedOpening
         key={resetKey}
         status={{ available: 3, maximum: 5, nextPackAt: 4_102_444_800_000 }}
         countdown="02:00"
