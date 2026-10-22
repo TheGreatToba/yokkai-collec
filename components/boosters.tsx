@@ -1321,7 +1321,9 @@ export function Boosters({
           aria-label={
             releasedOpening && clickToOpen && !tearRequested
               ? "Tear open the pack"
-              : releasedOpening ? "Skip booster opening" : openingPhase === "seal"
+              : releasedOpening && clickToOpen && openingPhase !== "seal"
+                ? "Opening pack"
+                : releasedOpening ? "Skip booster opening" : openingPhase === "seal"
               ? "Speed up the opening animation"
               : tearRequested
                 ? "Opening pack"
@@ -1352,7 +1354,7 @@ export function Boosters({
                 onComplete={() => finishOpening.current?.()}
                 onTear={() => { setOpeningPhase("seal"); playSound("tear"); }}
               />
-              {waiting && <p className="yk-opening-server-status" role="status">Your pack is still being prepared…</p>}
+              {waiting && (!clickToOpen || tearRequested) && <p className="yk-opening-server-status" role="status">Your pack is still being prepared…</p>}
             </>
           ) : <>
           <div className="yk-opening-pack yk-pack-tear" aria-hidden="true">
