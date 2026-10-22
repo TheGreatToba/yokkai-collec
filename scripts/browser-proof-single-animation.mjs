@@ -400,6 +400,10 @@ try {
       ),
       0
     );
+    // Let React's passive unmount cleanup and animation cancellation events settle.
+    await evaluate(
+      "new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))"
+    );
     await send("HeapProfiler.collectGarbage");
     if (pack > 0)
       report.push({

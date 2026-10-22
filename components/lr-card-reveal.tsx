@@ -190,6 +190,7 @@ export function LrCardReveal({
   const callback = useRef(onContinue);
   const completed = useRef(false);
   const root = useRef<HTMLElement>(null);
+  const sampledImage = useRef<HTMLImageElement | null>(null);
   useEffect(() => {
     callback.current = onContinue;
   }, [onContinue]);
@@ -216,16 +217,16 @@ export function LrCardReveal({
   }, []);
   useEffect(() => {
     const element = root.current;
-    const image = new Image();
-    image.crossOrigin = "anonymous";
+    const image = element?.querySelector("img");
+    if (!image || sampledImage.current === image) return;
     const release = () => {
       window.clearTimeout(timeout);
-      image.onload = null;
-      image.onerror = null;
-      image.removeAttribute("src");
+      image.removeEventListener("load", sample);
+      image.removeEventListener("error", release);
     };
     const timeout = window.setTimeout(release, 5000);
-    image.onload = () => {
+    const sample = () => {
+      sampledImage.current = image;
       const canvas = document.createElement("canvas");
       canvas.width = canvas.height = 96;
       try {
@@ -263,8 +264,9 @@ export function LrCardReveal({
         release();
       }
     };
-    image.onerror = release;
-    image.src = card.image;
+    image.addEventListener("load", sample, { once: true });
+    image.addEventListener("error", release, { once: true });
+    if (image.complete && image.naturalWidth > 0) sample();
     return release;
   }, [card.image]);
   return (
@@ -379,7 +381,12 @@ export function LrCardReveal({
         <div className="yk-lr-float">
           <div className="yk-lr-edge" aria-hidden="true" />
           <div className="yk-lr-spin">
-            <YokaiCard {...card} rarity="LR" animated={false} />
+            <YokaiCard
+              {...card}
+              rarity="LR"
+              animated={false}
+              crossOrigin="anonymous"
+            />
             <div className="yk-lr-glass" aria-hidden="true" />
             <div className="yk-lr-rim" aria-hidden="true" />
           </div>

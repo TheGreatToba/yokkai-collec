@@ -144,11 +144,20 @@ test("artwork colors are sampled once and the canvas, handlers and timeout are r
   for (const outcome of ["ready", "cors", "unmount"]) {
     const effects = [],
       refs = [],
-      images = [],
+      listeners = new Map(),
       properties = new Map(),
       timers = new Map();
     let samples = 0,
       removed = 0;
+    const image = {
+      complete: false,
+      naturalWidth: 96,
+      addEventListener: (name, fn) => listeners.set(name, fn),
+      removeEventListener: name => {
+        listeners.delete(name);
+        removed++;
+      }
+    };
     const pixels = new Uint8ClampedArray(96 * 96 * 4);
     for (let i = 0; i < pixels.length; i += 4) {
       pixels[i] = i < pixels.length * 0.7 ? 220 : 30;
@@ -198,15 +207,6 @@ test("artwork colors are sampled once and the canvas, handlers and timeout are r
               : name.endsWith(".css")
                 ? {}
                 : require(name),
-        Image: class {
-          constructor() {
-            images.push(this);
-          }
-          removeAttribute(name) {
-            assert.equal(name, "src");
-            removed++;
-          }
-        },
         document: {
           createElement: name => {
             assert.equal(name, "canvas");
@@ -232,20 +232,32 @@ test("artwork colors are sampled once and the canvas, handlers and timeout are r
       }
     });
     refs[2].current = {
+      querySelector: selector => {
+        assert.equal(selector, "img");
+        return image;
+      },
       style: { setProperty: (key, value) => properties.set(key, value) }
     };
     const cleanup = effects[2]();
-    assert.equal(images.length, 1);
-    assert.equal(images[0].crossOrigin, "anonymous");
-    if (outcome !== "unmount") images[0].onload();
+    assert.equal(listeners.size, 2);
+    if (outcome !== "unmount") listeners.get("load")();
     cleanup();
     assert.equal(canvas.width, 0);
     assert.equal(canvas.height, 0);
-    assert.equal(images[0].onload, null);
-    assert.equal(images[0].onerror, null);
+    assert.equal(listeners.size, 0);
     assert.equal(timers.size, 0);
     assert.ok(removed >= 1);
     assert.equal(samples, outcome === "unmount" ? 0 : 1);
+    if (outcome !== "unmount") {
+      assert.equal(
+        effects[2](),
+        undefined,
+        "StrictMode must reuse the sampled artwork"
+      );
+      assert.equal(listeners.size, 0);
+      assert.equal(timers.size, 0);
+      assert.equal(samples, 1);
+    }
     if (outcome === "ready") {
       const primary = properties.get("--yk-lr-glass-1").split(" ").map(Number);
       const secondary = properties
