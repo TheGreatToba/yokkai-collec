@@ -1985,7 +1985,9 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
     onReturn() {},
     async onDiscard() {}
   });
-  assert.equal((regular.match(/>Discard</g) || []).length, 2);
+  assert.equal((regular.match(/>Discard</g) || []).length, 0);
+  assert.match(regular, /data-reveal-state="revealing"/);
+  assert.match(regular, /data-pack-kind="regular"/);
   assert.doesNotMatch(
     normalizeWhitespace(regular),
     normalizeWhitespace(/>Select</)
@@ -2010,6 +2012,7 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
     normalizeWhitespace(/>Select</)
   );
   assert.equal((regularDone.match(/>Discard</g) || []).length, 5);
+  assert.match(regularDone, /data-reveal-state="complete"/);
   assert.equal(
     (regularDone.match(/yk-slot-button yk-reveal-discard/g) || []).length,
     5

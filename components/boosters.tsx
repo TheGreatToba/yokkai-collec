@@ -375,6 +375,8 @@ export function BoosterReveal({
   return (
     <section
       aria-label="Pack cards"
+      data-pack-kind={decision ? "decision" : "regular"}
+      data-reveal-state={done ? "complete" : "revealing"}
       className={`yk-reveal-screen ${done && !choosing ? "yk-reveal-complete" : ""}`}
     >
       <header className="yk-reveal-header">
@@ -591,6 +593,7 @@ export function BoosterReveal({
               <button
                     type="button"
                     disabled={
+                      !done ||
                       confirming ||
                       isDiscarded ||
                       auctioned.has(card.instanceId) ||
@@ -640,7 +643,7 @@ export function BoosterReveal({
                       </span>
                     )}
                   </button>
-                  <div className="yk-reveal-actions">
+                  {done && <div className="yk-reveal-actions">
                     {auctioned.has(card.instanceId) ? (
                       <StatusPill tone="info">LISTED</StatusPill>
                     ) : kept ? (
@@ -680,7 +683,7 @@ export function BoosterReveal({
                         </span>
                       ) : null)
                     )}
-                  </div>
+                  </div>}
                 </>
               ) : (
                 <span className="yk-slot-placeholder">
