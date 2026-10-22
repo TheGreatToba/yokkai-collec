@@ -6,6 +6,7 @@
 }
 :root {
   color-scheme: dark;
+  --color-karas-readable-gold: #ffda75;
   --ease-yokkai: var(--ease-standard);
 }
 /* Frame the supplied PNG's transparent margins without altering the artwork. */
@@ -190,6 +191,37 @@ a[aria-current="page"] {
   border-radius: 2px;
   background: var(--background-karas);
   box-shadow: 0 0 10px color-mix(in srgb, var(--color-karas) 32%, transparent);
+}
+/* Opt-in gold for the header balance and auction amounts, not all currency UI. */
+.yk-karas-gold,
+.yk-bid-quick.yk-karas-gold,
+.yk-auction-history .text-karas,
+.yk-market-price {
+  color: var(--color-karas-readable-gold);
+}
+.yk-karas-gold .yk-karas-gem,
+.yk-market-price .yk-karas-gem {
+  background:
+    radial-gradient(
+      circle at 25% 20%,
+      #fffdf3 0%,
+      rgb(255 243 189 / 80%) 18%,
+      transparent 45%
+    ),
+    linear-gradient(
+      145deg,
+      #fff1b0 0%,
+      #f2ca72 30%,
+      #c08318 47%,
+      #fff1ba 52%,
+      #ffd66e 68%,
+      #b77515 100%
+    );
+  box-shadow:
+    inset 1px 1px 1px rgb(255 249 223 / 75%),
+    inset -1px -1px 1px rgb(135 81 9 / 65%),
+    0 0 5px rgb(255 217 123 / 55%),
+    0 0 13px rgb(233 172 58 / 35%);
 }
 .yk-modal {
   margin: auto;
