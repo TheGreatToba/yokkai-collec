@@ -202,6 +202,7 @@ test("trusted bridge completes once after the last effect, respects reduced moti
       let listener;
       vm.runInNewContext(script, {
         parent,
+        performance: { now: () => 0 },
         setTimeout: (fn, ms) => {
           timers.push({ fn, ms });
           return 1;
@@ -454,15 +455,12 @@ test("the real Game and safe simulated packs opt in; the legacy renderer and SSR
   const source = read("components/boosters.tsx");
   assert.match(source, /releasedOpening = false/);
   assert.match(source, /if \(openingLock\.current\) return;/);
-  assert.match(
-    source,
-    /if \(releasedOpening\) \{\s+finishOpening\.current\?\.\(\);\s+return;/
-  );
+  assert.match(source, /type: "yokkai-booster-next-step"/);
   assert.match(source, /open: \(\) => onOpen\(kind\)/);
   assert.match(source, /kind=\{openingKind\}/);
   assert.match(source, /releasedCinematics/);
   assert.match(source, /role="button" tabIndex=\{0\}/);
-  assert.match(source, /Skip booster opening/);
+  assert.match(source, /Next opening step/);
   assert.match(source, /element\.inert = true/);
   assert.match(
     read("styles/booster-opening.css"),
@@ -485,6 +483,7 @@ test("live Boosters locks double clicks, permits keyboard skip and cannot reveal
       react: state.react,
       "next/dynamic": { default: () => "Dynamic" },
       "next/link": { default: "Link" },
+      "@/components/ambient-glow": { AmbientGlow: "AmbientGlow" },
       "@/components/referral-reminder": { ReferralReminder: "Reminder" },
       "@/components/card-sharing": {},
       "@/lib/ui/pack-opening": {
@@ -545,7 +544,7 @@ test("live Boosters locks double clicks, permits keyboard skip and cannot reveal
   open.props.onClick({ currentTarget: {} });
   assert.equal(requests, 1);
   const stage = render().find(
-    node => node.props?.["aria-label"] === "Skip booster opening"
+    node => node.props?.["aria-label"] === "Next opening step"
   );
   assert.ok(stage);
   stage.props.onKeyDown({ key: "Enter", preventDefault() {} });
@@ -558,6 +557,16 @@ test("live Boosters locks double clicks, permits keyboard skip and cannot reveal
   respond([
     { id: "real-card", instanceId: "real-instance", image: "/card.png" }
   ]);
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(
+    state.states[0],
+    "tension",
+    "server response must not skip the animation"
+  );
+  const openingAnimation = render().find(
+    node => node.type === "Dynamic" && node.props.onComplete
+  );
+  openingAnimation.props.onComplete();
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(state.states[0], "idle");
   assert.equal(requests, 1);
@@ -629,4 +638,68 @@ test("production proxy origins use configured public site, not localhost or atta
     );
     assert.doesNotMatch(html, /evil\.example/);
   }
+});
+
+test("opening keeps the matching nebula behind both pack animations", () => {
+  for (const kind of ["regular", "decision"]) {
+    assert.ok(
+      documentFor(kind).includes(
+        `body{background:#070b13 url("https://yokkai-collec.com/assets/${kind}-opening-nebula.webp") center / cover no-repeat}`
+      )
+    );
+  }
+});
+
+test("latency preview uses the same opening animation as the site", () => {
+  assert.match(
+    read("components/booster-opening-preview.tsx"),
+    /<Boosters\s+releasedOpening/
+  );
+});
+
+test("two clicks advance to tearing then finish the opening", async () => {
+  const script = [
+    ...documentFor("regular").matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)
+  ].at(-1)[1];
+  const messages = [];
+  const animation = { currentTime: 0 };
+  const parent = { postMessage: data => messages.push(data.type) };
+  let receive;
+  vm.runInNewContext(script, {
+    parent,
+    performance: { now: () => 0 },
+    setTimeout: () => 1,
+    clearTimeout() {},
+    document: {
+      getAnimations: () => [animation],
+      addEventListener() {},
+      documentElement: { classList: { remove() {} } }
+    },
+    window: {
+      addEventListener: (_, fn) => {
+        receive = fn;
+      },
+      matchMedia: () => ({ matches: false }),
+      setYokkaiBooster: async () => true
+    }
+  });
+  await new Promise(resolve => setImmediate(resolve));
+  const event = {
+    source: parent,
+    origin: "https://yokkai-collec.com",
+    data: { type: "yokkai-booster-next-step" }
+  };
+  receive({ ...event, origin: "https://evil.example" });
+  assert.equal(animation.currentTime, 0);
+  receive(event);
+  assert.equal(animation.currentTime, 2680);
+  assert.equal(messages.includes("YOKKAI_BOOSTER_COMPLETE"), false);
+  receive(event);
+  assert.equal(animation.currentTime, 5200);
+  receive(event);
+  assert.equal(animation.currentTime, 5200);
+  assert.equal(
+    messages.filter(type => type === "YOKKAI_BOOSTER_COMPLETE").length,
+    1
+  );
 });

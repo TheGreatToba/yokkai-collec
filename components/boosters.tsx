@@ -1,4 +1,5 @@
 "use client";
+import { AmbientGlow } from "@/components/ambient-glow";
 import { ReferralReminder } from "@/components/referral-reminder";
 import { packCopySnapshot, packCopyLabels, packRevealWindow } from "@/lib/ui/pack-opening";
 
@@ -383,14 +384,16 @@ export function BoosterReveal({
   return (
     <section
       aria-label="Pack cards"
+      data-pack-kind={decision ? "decision" : "regular"}
+      data-reveal-state={done ? "complete" : "revealing"}
       className={`yk-reveal-screen ${done && !choosing ? "yk-reveal-complete" : ""} ${batch ? "yk-reveal-batch" : ""}`}
     >
       <header className="yk-reveal-header">
         <div className="yk-reveal-copy">
-          <p className="eyebrow">
+          <p className={`eyebrow ${!done && !batch ? "sr-only" : ""}`}>
             {decision ? "Decision Pack" : packCount > 1 ? `${packCount} Regular Packs` : "Regular Pack"}
           </p>
-          <h2 className="mt-2 font-display text-2xl">
+          <h2 className={done || batch ? "mt-2 font-display text-2xl" : "sr-only"}>
             {decision
               ? choosing
                 ? "Make your choice"
@@ -606,6 +609,7 @@ export function BoosterReveal({
               <button
                     type="button"
                     disabled={
+                      !done ||
                       confirming ||
                       isDiscarded ||
                       auctioned.has(card.instanceId) ||
@@ -655,7 +659,7 @@ export function BoosterReveal({
                       </span>
                     )}
                   </button>
-                  <div className="yk-reveal-actions">
+                  {done && <div className="yk-reveal-actions">
                     {auctioned.has(card.instanceId) ? (
                       <StatusPill tone="info">LISTED</StatusPill>
                     ) : kept ? (
@@ -695,7 +699,7 @@ export function BoosterReveal({
                         </span>
                       ) : null)
                     )}
-                  </div>
+                  </div>}
                 </>
               ) : (
                 <span className="yk-slot-placeholder">
@@ -1141,7 +1145,9 @@ export function Boosters({
       return;
     }
     if (releasedOpening) {
-      finishOpening.current?.();
+      openingStage.current?.querySelector("iframe")?.contentWindow?.postMessage(
+        { type: "yokkai-booster-next-step" }, "*"
+      );
       return;
     }
     if (openingPhase === "seal") {
@@ -1355,7 +1361,7 @@ export function Boosters({
               ? "Tear open the pack"
               : releasedOpening && clickToOpen && openingPhase !== "seal"
                 ? "Opening pack"
-                : releasedOpening ? "Skip booster opening" : openingPhase === "seal"
+                : releasedOpening && clickToOpen ? "Skip booster opening" : releasedOpening ? "Next opening step" : openingPhase === "seal"
               ? "Speed up the opening animation"
               : tearRequested
                 ? "Opening pack"
@@ -1498,7 +1504,7 @@ export function Boosters({
         />
       ) : (
         <div className="yk-pack-grid">
-          <span className="yk-pack-ambient" aria-hidden="true" />
+          <AmbientGlow />
           <article
             className="yk-pack-panel"
             data-unavailable={!status || status.available === 0}

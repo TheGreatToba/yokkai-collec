@@ -73,6 +73,8 @@ export function boosterOpeningDocument(
     let started=false;
     let finished=false;
     let completionTimer;
+    let startedAt=0;
+    let advancedBy=0;
     const notify=type=>parent.postMessage({type},hostOrigin);
     const complete=()=>{
       if(finished)return;
@@ -81,6 +83,7 @@ export function boosterOpeningDocument(
     const beginOpening=()=>{
       if(started||!openRequested||hostState!=='YOKKAI_BOOSTER_READY')return;
       started=true;
+      startedAt=performance.now();
       if(waitForClick){
         document.documentElement.classList.remove('yokkai-await-click');
         window.replayYokkaiBooster();
@@ -94,6 +97,19 @@ export function boosterOpeningDocument(
       if(event.data?.type==='yokkai-booster-status'&&hostState!=='loading')notify(hostState);
       if(waitForClick&&event.data?.type==='yokkai-booster-open'){
         openRequested=true;beginOpening();
+      }
+      if(event.data?.type==='yokkai-booster-next-step'&&started&&hostState==='YOKKAI_BOOSTER_READY'&&!finished){
+        const elapsed=performance.now()-startedAt+advancedBy;
+        const next=[2680,5200].find(time=>time>elapsed+50);
+        if(next===undefined){complete();return;}
+        const jump=next-elapsed;
+        for(const animation of document.getAnimations()){
+          if(animation.currentTime!==null)animation.currentTime=Number(animation.currentTime)+jump;
+        }
+        advancedBy+=jump;
+        clearTimeout(completionTimer);
+        if(next===5200)complete();
+        else completionTimer=setTimeout(complete,5200-next);
       }
     });
     document.addEventListener('animationstart',event=>{
@@ -119,6 +135,7 @@ export function boosterOpeningDocument(
     .replace(
       "</head>",
       `<style>
+      body{background:#070b13 url(${json(new URL(`/assets/${kind}-opening-nebula.webp`, origin).href)}) center / cover no-repeat}
       .replay{display:none!important}
       .yokkai-wait-booster .scene{visibility:hidden}
       .yokkai-wait-booster *, .yokkai-wait-booster *::before, .yokkai-wait-booster *::after{animation-play-state:paused!important}

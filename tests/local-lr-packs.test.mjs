@@ -164,6 +164,7 @@ function boostersMocks(react) {
     react,
     "next/dynamic": { default: () => "LazyPreview" },
     "next/link": { default: "Link" },
+    "@/components/ambient-glow": { AmbientGlow: "AmbientGlow" },
     "@/components/referral-reminder": { ReferralReminder: "ReferralReminder" },
     "@/lib/ui/pack-opening": { packCopyLabels: cards => cards },
     "@/components/card-sharing": { CardShareButton: "CardShareButton" },

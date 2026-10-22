@@ -124,3 +124,11 @@ rollback;
 - PR, commits et docs internes peuvent rester en français ; seul ce que voient les joueurs doit être en anglais.
 - Avant chaque PR : grep des textes visibles ajoutés, aucun mot de français dans l'interface.
 - Toute nouvelle fonctionnalité ou modification doit écrire directement en anglais ses textes destinés aux joueurs, y compris les états d’erreur et les textes accessibles, sans attendre une PR de traduction.
+
+## Responsive obligatoire pour les interfaces web
+
+- Toute création ou modification de site, page ou composant doit fonctionner sur mobile, tablette et ordinateur dès son ajout. Le responsive fait partie des critères de réalisation, même sans demande explicite.
+- Concevoir pour les petits écrans en premier (mobile-first), dès 320 px, puis adapter la mise en page au contenu avec les conventions et points de rupture du projet. Préférer les dimensions fluides, Flexbox/Grid et les images adaptatives aux largeurs fixes.
+- Éviter tout débordement horizontal de la page, texte tronqué, chevauchement ou contenu inaccessible. Pour les tableaux ou contenus qui nécessitent un défilement horizontal, le limiter à leur conteneur sans masquer les informations utiles.
+- Adapter navigation, menus, fenêtres modales, formulaires, images et grilles ; conserver des textes lisibles, des commandes accessibles au clavier et des zones tactiles suffisantes. Aucune interaction essentielle ne doit dépendre uniquement du survol.
+- Vérifier les zones modifiées dans un navigateur à 320, 375, 768, 1024 et 1440 px, ainsi que les tailles intermédiaires pertinentes ; vérifier aussi le zoom à 200 %. Corriger les régressions avant de déclarer la tâche terminée. Si une vérification est impossible, indiquer explicitement ce qui reste non vérifié.

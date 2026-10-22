@@ -38,15 +38,11 @@
   padding: 0 24px 24px;
   min-width: 0;
 }
-.yk-feed-composer > summary {
-  width: fit-content;
-  list-style: none;
-}
-.yk-feed-composer > summary::-webkit-details-marker {
-  display: none;
-}
-.yk-feed-composer[open] > summary {
-  margin-bottom: 16px;
+.yk-feed-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .yk-feed-composer .yk-wall-composer {
   margin: 0;
@@ -65,15 +61,6 @@
   color: #b9c9df;
   font-size: 12px;
   line-height: 1.6;
-}
-.yk-feed-following {
-  color: var(--color-ink);
-  font-size: 13px;
-  font-weight: 600;
-}
-.yk-feed-following span {
-  margin-left: 6px;
-  color: var(--color-accent-neon);
 }
 .yk-feed-toolbar .yk-button {
   font-size: 12px;
@@ -144,47 +131,6 @@
   font-size: 15px;
   font-weight: 600;
 }
-.yk-feed-delete {
-  margin-left: auto;
-  color: #ff8297;
-  background: #391823;
-  border: 1px solid #a84a60;
-  border-radius: 999px;
-  padding: 7px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  min-height: 36px;
-}
-.yk-feed-delete:hover:not(:disabled) {
-  color: #fff;
-  background: #842d44;
-  border-color: #ff8297;
-}
-.yk-feed-delete:disabled {
-  opacity: 0.5;
-}
-.yk-feed-delete-modal {
-  width: min(460px, calc(100vw - 32px));
-  padding: 26px;
-  border: 1px solid #344964;
-  border-radius: 18px;
-  background: #080d19;
-}
-.yk-feed-delete-modal h2 {
-  font-size: 22px;
-}
-.yk-feed-delete-modal p {
-  margin-top: 0;
-  color: #c4d9f5;
-  line-height: 1.7;
-  font-size: 14px;
-}
-.yk-feed-delete-modal > div {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 24px;
-}
 .yk-feed-text {
   grid-row: 3;
   display: -webkit-box;
@@ -213,11 +159,6 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-.yk-feed-post .yk-feed-delete {
-  position: absolute;
-  bottom: 10px;
-  right: 16px;
 }
 .yk-feed-wall-link {
   grid-row: 4;
@@ -274,8 +215,7 @@
   }
   .yk-feed-heading {
     align-items: flex-start;
-    flex-direction: column;
-    gap: 16px;
+    gap: 12px;
     padding: 20px 16px;
   }
   .yk-feed-heading h2 {
@@ -311,12 +251,12 @@
   grid-row: 3;
 }
 
-.yk-home-main .yk-button.yk-home-panel-action.yk-feed-refresh {
+.yk-home-main .yk-button.yk-home-panel-action.yk-feed-icon-action {
   width: 44px;
   padding: 0;
 }
 
-.yk-feed-refresh > svg {
+.yk-feed-icon-action > svg {
   width: 24px;
   height: 24px;
   flex-shrink: 0;

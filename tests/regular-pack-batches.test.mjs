@@ -165,6 +165,7 @@ function boostersHarness(available = 10) {
       "next/dynamic": { default: () => "Dynamic" },
       "next/link": { default: "Link" },
       "@/components/referral-reminder": { ReferralReminder: "Reminder" },
+      "@/components/ambient-glow": { AmbientGlow: "AmbientGlow" },
       "@/components/card-sharing": {},
       "@/lib/ui/pack-opening": pack,
       "@/lib/ui/animations": { animation },

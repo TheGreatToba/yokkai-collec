@@ -1,3 +1,4 @@
+import { AmbientGlow } from "@/components/ambient-glow";
 import type { Metadata } from "next";
 import { Topbar } from "@/components/topbar";
 import { SiteFooter } from "@/components/site-footer";
@@ -49,7 +50,8 @@ export default function HomePreview() {
     watched: false
   }));
   return (
-    <div className="flex min-h-dvh w-full flex-col">
+    <div className="relative isolate flex min-h-dvh w-full flex-col">
+      <AmbientGlow variant="home" />
       <Topbar
         view="home"
         name="Kitsune"
@@ -101,7 +103,6 @@ export default function HomePreview() {
         <HomePanel id="home-big" title="Big pulls">
           <BigPulls pulls={pulls} />
         </HomePanel>
-        <HomeFriendFeedPreview />
         <HomePanel
           id="home-market"
           title="The market"
@@ -110,6 +111,7 @@ export default function HomePreview() {
         >
           <HomeMarket initial={auctions} preview />
         </HomePanel>
+        <HomeFriendFeedPreview />
         <HomeLinks discordEnabled />
       </main>
       <SiteFooter discordEnabled />

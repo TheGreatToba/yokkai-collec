@@ -79,6 +79,7 @@ function revealHarness(count = 10) {
       "@/lib/ui/pack-opening": pack,
       "@/lib/ui/animations": {},
       "@/components/referral-reminder": { ReferralReminder: "Reminder" },
+      "@/components/ambient-glow": { AmbientGlow: "AmbientGlow" },
       "@/components/card-sharing": { CardShareButton: "CardShareButton" },
       "@/components/ui": {
         Button: "Button",
@@ -333,4 +334,23 @@ test("batch styles cap the visible stack, override its unbounded inline fan, and
     /\.yk-reveal-batch\.yk-reveal-complete > \.yk-reveal-grid \{ grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/
   );
   assert.doesNotMatch(css, /\.yk-reveal-batch[^}]*overflow:\s*hidden/);
+});
+
+test("batch fullscreen keeps its controls scrollable on short/mobile screens while retaining the pack background", () => {
+  const css = read("styles/boosters.css").replace(/\s+/g, " ");
+  assert.match(
+    css,
+    /\.yk-reveal-screen\.yk-reveal-batch\[data-reveal-state="revealing"\] \{ overflow-y: auto;/
+  );
+  assert.match(
+    css,
+    /grid-template-rows: auto auto auto auto; align-content: start;/
+  );
+  assert.match(css, /\.yk-batch-pagination button \{ min-height: 44px;/);
+  const section = revealHarness()
+    .render()
+    .find(node => node.type === "section");
+  assert.equal(section.props["data-pack-kind"], "regular");
+  assert.equal(section.props["data-reveal-state"], "revealing");
+  assert.ok(section.props.className.includes("yk-reveal-batch"));
 });

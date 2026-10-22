@@ -109,6 +109,7 @@ test("closed Regular and Decision packs never tear or complete before a trusted 
         };
         vm.runInNewContext(script, {
           parent,
+          performance: { now: () => 0 },
           setTimeout: (fn, ms) => {
             timers.push({ fn, ms });
             return timers.length;
@@ -136,6 +137,12 @@ test("closed Regular and Decision packs never tear or complete before a trusted 
           }
         });
         assert.ok(classes.has("yokkai-await-click"));
+        receive({ ...gesture, data: { type: "yokkai-booster-next-step" } });
+        assert.equal(
+          timers.length,
+          0,
+          "advancing cannot bypass the closed pack"
+        );
         receive({ ...gesture, source: {} });
         receive({ ...gesture, origin: "https://evil.example" });
         if (earlyClick) receive(gesture);
@@ -143,6 +150,7 @@ test("closed Regular and Decision packs never tear or complete before a trusted 
         await tick();
         assert.equal(messages[0], "YOKKAI_BOOSTER_READY");
         if (!earlyClick) {
+          receive({ ...gesture, data: { type: "yokkai-booster-next-step" } });
           assert.equal(
             timers.length,
             0,
@@ -325,6 +333,7 @@ test("the real pack stage requires a first pointer/keyboard gesture; repeated ke
         "next/dynamic": { default: () => "Dynamic" },
         "next/link": { default: "Link" },
         "@/components/referral-reminder": { ReferralReminder: "Reminder" },
+        "@/components/ambient-glow": { AmbientGlow: "AmbientGlow" },
         "@/components/card-sharing": {},
         "@/lib/ui/pack-opening": packOpening,
         "@/lib/ui/animations": { animation },
