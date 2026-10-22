@@ -173,6 +173,7 @@ export function BoosterReveal({
   const completeLink = useRef<HTMLAnchorElement>(null);
   const nextBooster = useRef<HTMLButtonElement>(null);
   const revealAllLock = useRef(false);
+  const bulkActionLock = useRef(false);
   const current = cards[revealed];
   const done = revealed >= cards.length;
   // Summary counts only the cards that stay in the collection (not destroyed, not lost in a Decision Pack).
@@ -214,11 +215,12 @@ export function BoosterReveal({
     ? (collection.find(card => card.instanceId === detailCard.instanceId) ??
       (detailCard as CollectedCard))
     : null;
-  const detailCards = liveDetailCard
+  const sourceDetailCards = liveDetailCard
     ? collection.some(card => card.instanceId === liveDetailCard.instanceId)
       ? collection
       : [...collection, liveDetailCard]
     : collection;
+  const detailCards = sourceDetailCards.filter(card => !discarded.has(card.instanceId)).map(card => ({ ...card, locked: locked.has(card.instanceId) || !!card.locked }));
   const decisionReward = (keptId: string) => {
     const lost = cards.filter(
       card => card.instanceId !== keptId && !discarded.has(card.instanceId)
@@ -328,6 +330,7 @@ export function BoosterReveal({
     }
   }
   function toggleSelection(instanceId: string) {
+    if (bulkActionLock.current || locked.has(instanceId) || auctioned.has(instanceId) || discarded.has(instanceId)) return;
     setSelection(current => {
       const next = new Set(current);
       if (next.has(instanceId)) next.delete(instanceId);
@@ -351,7 +354,8 @@ export function BoosterReveal({
     }
   }
   async function discardSelection() {
-    if (!onDiscard || !selectedCards.length || bulkDiscarding) return;
+    if (!onDiscard || !selectedCards.length || bulkDiscarding || bulkActionLock.current) return;
+    bulkActionLock.current = true;
     const destroyingAll = selectedCards.length === visibleCards.length;
     setBulkDiscarding(true);
     setError("");
@@ -373,6 +377,7 @@ export function BoosterReveal({
         e instanceof Error ? e.message : "Couldn't destroy the selected cards."
       );
     } finally {
+      bulkActionLock.current = false;
       setBulkDiscarding(false);
     }
   }
@@ -442,16 +447,17 @@ export function BoosterReveal({
         {overview && <p className="yk-batch-highlights" role="status">
           <span className="yk-batch-lr-count">✦ {keptCards.filter(card => card.rarity === "LR").length} LR</span>
           <span className="yk-batch-ssr-count">✦ {keptCards.filter(card => card.rarity === "SSR").length} SSR</span>
-          <span>All {cards.length} cards · No cinematics</span>
+          <span>{visibleCards.length === cards.length ? `All ${cards.length} cards` : `${visibleCards.length} ${visibleCards.length === 1 ? "card" : "cards"} remaining`} · No cinematics</span>
           <span>Select a card for a closer look.</span>
         </p>}
-        {!localPreview && done && !decision && visibleCards.length > 0 && (
+        {(!localPreview || onDiscard) && done && !decision && visibleCards.length > 0 && (
           <SelectionModeButton
             active={selecting}
             inactiveLabel="Select"
             activeLabel="Cancel"
             className="yk-reveal-selection-mode"
             onClick={() => {
+              if (bulkActionLock.current) return;
               setSelecting(current => !current);
               setSelection(new Set());
             }}
@@ -646,7 +652,7 @@ export function BoosterReveal({
                       !done ||
                       confirming ||
                       isDiscarded ||
-                      auctioned.has(card.instanceId) ||
+                      (selecting && (auctioned.has(card.instanceId) || locked.has(card.instanceId))) ||
                       (!overview && !choosing && !selecting && !onAuction && !onSetLocked)
                     }
                     aria-pressed={
@@ -672,7 +678,7 @@ export function BoosterReveal({
                         ? setPick(card.instanceId)
                         : selecting
                           ? toggleSelection(card.instanceId)
-                          : overview && localPreview ? setInspected(card) : setDetailCard(card)
+                          : overview && localPreview && !onAuction && !onSetLocked ? setInspected(card) : setDetailCard(card)
                     }
                     className={`yk-reveal-card block w-full rounded-card text-left disabled:cursor-default ${selecting && selection.has(card.instanceId) ? "yk-selected-card" : ""}`}
                     style={
@@ -681,7 +687,7 @@ export function BoosterReveal({
                         : undefined
                     }
                   >
-                    <YokaiCard {...card} animated={overview ? false : undefined} />
+                    <YokaiCard {...card} {...collection.find(owned => owned.instanceId === card.instanceId)} animated={overview ? false : undefined} />
                     {selecting && (
                       <span
                         className={`yk-selection-check ${selection.has(card.instanceId) ? "yk-checked" : ""}`}
@@ -696,7 +702,7 @@ export function BoosterReveal({
                     )}
                   </button>
                   {overview && (card.rarity === "SSR" || card.rarity === "LR") && <span className="yk-batch-rarity-label" title={card.rarity === "LR" ? "Legendary pull" : "Exceptional pull"}>✦ {card.rarity}</span>}
-                  {overview && <span className="yk-batch-copy-label">{auctioned.has(card.instanceId) ? "LISTED" : card.isNew ? "NEW" : card.copies && card.copies > 1 ? `×${card.copies}` : ""}</span>}
+                  {overview && <span className="yk-batch-copy-label">{auctioned.has(card.instanceId) ? "LISTED" : locked.has(card.instanceId) ? "LOCKED" : card.isNew ? "NEW" : card.copies && card.copies > 1 ? `×${card.copies}` : ""}</span>}
                   {done && !overview && <div className="yk-reveal-actions">
                     {auctioned.has(card.instanceId) ? (
                       <StatusPill tone="info">LISTED</StatusPill>
@@ -1013,6 +1019,8 @@ export function BoosterReveal({
         <CollectionView
           key={detailCard.instanceId}
           cards={detailCards}
+          previewOnly={localPreview}
+          presentation={Object.fromEntries([...auctioned].map(id => [id, { frozen: { remaining: "Listed" } }]))}
           categories={[]}
           folders={folders}
           detailOnly
@@ -1024,6 +1032,10 @@ export function BoosterReveal({
           onEvolve={onEvolve}
           onSetCustomImage={onSetCustomImage}
           onDiscard={onDiscard}
+          onCardsRemoved={ids => {
+            setDiscarded(current => new Set([...current, ...ids]));
+            setSelection(current => new Set([...current].filter(id => !ids.includes(id))));
+          }}
         />
       )}
       <Modal
@@ -1078,6 +1090,7 @@ export function BoosterReveal({
 
 export function Boosters({
   previewOnly = false,
+  simulateActions = false,
   releasedOpening = false,
   clickToOpen = false,
   statusError,
@@ -1111,6 +1124,7 @@ export function Boosters({
   onSound
 }: {
   previewOnly?: boolean;
+  simulateActions?: boolean;
   releasedOpening?: boolean;
   clickToOpen?: boolean;
   statusError?: string;
@@ -1524,7 +1538,7 @@ export function Boosters({
           nextLabel={
             status?.available === 0 ? `Next in ${countdown}` : selectedCount > 1 ? `Next ${selectedCount} packs` : "Next pack"
           }
-          onDiscard={!localPreview && drawKind === "regular" ? onDiscard : undefined}
+          onDiscard={(!localPreview || simulateActions) && drawKind === "regular" ? onDiscard : undefined}
           onAuction={drawKind === "regular" ? onAuction : undefined}
           onMoveCard={drawKind === "regular" ? onMoveCard : undefined}
           onSetLocked={drawKind === "regular" ? onSetLocked : undefined}

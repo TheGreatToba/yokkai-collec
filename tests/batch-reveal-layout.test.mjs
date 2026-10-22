@@ -601,3 +601,179 @@ test("compact batch results use viewport-bounded tiles, preserve hover/focus and
     /align-content: safe center; justify-content: center;[^}]*overflow: auto;/
   );
 });
+
+test("interactive demo results reuse the normal details modal without running actions on inspection", () => {
+  const { props, render, slots } = revealHarness(5);
+  props.onAuction = () =>
+    assert.fail("opening details cannot create an auction");
+  props.onDiscard = () => assert.fail("opening details cannot destroy a card");
+  props.onSetLocked = () => assert.fail("opening details cannot lock a card");
+  props.revealed = props.cards.length;
+  slots(render())[0].props.children[0].props.children[0].props.onClick();
+  const detail = render().find(
+    node => node.type === "Dynamic" && node.props.detailOnly
+  );
+  assert.ok(detail);
+  assert.equal(detail.props.previewOnly, true);
+  assert.equal(detail.props.onDiscard, props.onDiscard);
+  detail.props.onCardsRemoved([detail.props.initialSelectedId]);
+  assert.equal(
+    render().find(node => node.type === "Dynamic" && node.props.detailOnly)
+      .props.cards.length,
+    0
+  );
+});
+
+test("batch selection covers the whole lot, excludes locked/listed copies, and confirms Karas before destruction", async () => {
+  const { props, render, slots } = revealHarness(5);
+  props.cards.forEach(card => {
+    card.destructionValue = 2;
+  });
+  props.cards[20].locked = true;
+  props.revealed = props.cards.length;
+  const destroyed = [];
+  props.onDiscard = async id => {
+    destroyed.push(id);
+  };
+  render()
+    .find(node => node.type === "SelectionModeButton")
+    .props.onClick();
+  let bar = render().find(node => node.type === "SelectionBar");
+  bar.props.onAll();
+  bar = render().find(node => node.type === "SelectionBar");
+  assert.equal(bar.props.count, 24);
+  assert.equal(bar.props.value, 48);
+  assert.equal(destroyed.length, 0);
+  const locked = descendants(slots(render())[0]).find(
+    node => node.type === "button"
+  );
+  assert.equal(locked.props.disabled, true);
+  locked.props.onClick();
+  assert.equal(
+    render().find(node => node.type === "SelectionBar").props.count,
+    24
+  );
+  bar.props.onNone();
+  assert.equal(
+    render().find(node => node.type === "SelectionBar").props.count,
+    0
+  );
+  bar.props.onAll();
+  render()
+    .find(node => node.type === "SelectionBar")
+    .props.onDestroy();
+  const confirmation = render().find(
+    node =>
+      node.type === "Modal" && node.props.title === "Destroy selected cards?"
+  );
+  assert.equal(confirmation.props.open, true);
+  const destroy = descendants(confirmation).find(
+    node => node.type === "Button" && node.props.variant === "danger"
+  );
+  destroy.props.onClick();
+  destroy.props.onClick();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(
+    destroyed.length,
+    24,
+    "a repeated click cannot send the same batch twice"
+  );
+  assert.ok(!destroyed.includes(props.cards[20].instanceId));
+  assert.equal(slots(render()).length, 1);
+});
+
+test("listed copies remain inspectable but cannot enter bulk selection", async () => {
+  const { props, render, slots } = revealHarness(5);
+  props.revealed = props.cards.length;
+  const listed = [];
+  props.onAuction = async id => listed.push(id);
+  props.onDiscard = () => assert.fail("selection cannot destroy a card");
+  descendants(slots(render())[0])
+    .find(node => node.type === "button")
+    .props.onClick();
+  const detail = render().find(
+    node => node.type === "Dynamic" && node.props.detailOnly
+  );
+  const id = detail.props.initialSelectedId;
+  await detail.props.onCreateAuction(id, 10, 60);
+  assert.deepEqual(listed, [id]);
+  assert.ok(
+    render().find(node => node.type === "Dynamic" && node.props.detailOnly)
+      .props.presentation[id].frozen
+  );
+  detail.props.onDetailClose();
+  assert.equal(
+    descendants(slots(render())[0]).find(node => node.type === "button").props
+      .disabled,
+    false
+  );
+  render()
+    .find(node => node.type === "SelectionModeButton")
+    .props.onClick();
+  const bar = render().find(node => node.type === "SelectionBar");
+  bar.props.onAll();
+  assert.equal(
+    render().find(node => node.type === "SelectionBar").props.count,
+    24
+  );
+  assert.equal(
+    descendants(slots(render())[0]).find(node => node.type === "button").props
+      .disabled,
+    true
+  );
+});
+
+test("result cards reflect the current collection artwork without changing reward indices", () => {
+  const { props, render, slots } = revealHarness(5);
+  props.revealed = props.cards.length;
+  props.collection = [{ ...props.cards[20], image: "/updated-artwork.png" }];
+  const tile = descendants(slots(render())[0]).find(
+    node => node.type === "YokaiCard"
+  );
+  assert.equal(tile.props.instanceId, props.cards[20].instanceId);
+  assert.equal(tile.props.image, "/updated-artwork.png");
+  assert.equal(slots(render()).length, 5);
+});
+
+test("bulk errors retain unprocessed selections and never retry successful destruction", async () => {
+  const { props, render } = revealHarness(5);
+  props.revealed = props.cards.length;
+  props.cards.forEach(card => {
+    card.destructionValue = 1;
+  });
+  const called = [];
+  props.onDiscard = async id => {
+    called.push(id);
+    if (called.length === 2) throw new Error("Card is locked");
+  };
+  render()
+    .find(node => node.type === "SelectionModeButton")
+    .props.onClick();
+  render()
+    .find(node => node.type === "SelectionBar")
+    .props.onAll();
+  render()
+    .find(node => node.type === "SelectionBar")
+    .props.onDestroy();
+  const modal = render().find(
+    node =>
+      node.type === "Modal" && node.props.title === "Destroy selected cards?"
+  );
+  descendants(modal)
+    .find(node => node.type === "Button" && node.props.variant === "danger")
+    .props.onClick();
+  await new Promise(resolve => setImmediate(resolve));
+  const bar = render().find(node => node.type === "SelectionBar");
+  assert.equal(bar.props.count, 24);
+  // Errors thrown outside the VM use the safe generic message across realms.
+  assert.equal(bar.props.error, "Couldn't destroy the selected cards.");
+  assert.equal(bar.props.busy, false);
+  assert.equal(called.length, 2);
+  assert.equal(
+    render().find(
+      node =>
+        node.type === "Modal" && node.props.title === "Destroy selected cards?"
+    ).props.open,
+    true
+  );
+});

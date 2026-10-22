@@ -3349,6 +3349,37 @@ body:has(.yk-reveal-screen[data-reveal-state="revealing"]) {
 .yk-batch-card-preview > .yk-card {
   width: min(260px, 54dvh, 100%);
 }
+.yk-reveal-instant > .yk-reveal-header:has(.yk-reveal-selection-mode) {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.yk-reveal-instant .yk-reveal-selection-mode {
+  grid-column: 2;
+  grid-row: 1;
+  min-height: 44px;
+}
+.yk-reveal-instant:has(.yk-reveal-selection-mode) .yk-batch-progress {
+  grid-row: 2;
+}
+.yk-reveal-instant > .yk-selection-bar {
+  position: static;
+  grid-column: 1 / -1;
+  grid-row: 3;
+  margin: 0;
+  padding: 8px 12px;
+  gap: 8px 12px;
+  border-radius: 12px;
+}
+.yk-reveal-instant > .yk-selection-bar button {
+  min-height: 44px;
+  min-width: 44px;
+}
+.yk-reveal-instant .yk-reveal-card:disabled {
+  opacity: 0.55;
+}
+.yk-reveal-instant .yk-selected-card {
+  outline: 2px solid var(--color-accent-neon);
+  outline-offset: 2px;
+}
 @media (min-width: 700px) {
   .yk-reveal-screen.yk-reveal-batch.yk-reveal-instant {
     --overview-columns: var(--overview-columns-medium);
