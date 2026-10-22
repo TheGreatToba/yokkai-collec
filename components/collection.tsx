@@ -171,6 +171,7 @@ export function CollectionView({
   categories,
   presentation = {},
   readOnly = false,
+  previewOnly = false,
   adminRemoval = false,
   tradeHref,
   folders = [],
@@ -187,6 +188,7 @@ export function CollectionView({
   onSetCustomImage,
   onDiscard,
   onDiscardMany,
+  onCardsRemoved,
   loadPaniniAlbums,
   loadPaniniAlbumCards,
   onSetPaniniAlbumFavorite,
@@ -198,6 +200,7 @@ export function CollectionView({
   presentation?: Record<string, CollectionPresentation>;
   totals?: Partial<Record<Rarity, number>>;
   readOnly?: boolean;
+  previewOnly?: boolean;
   adminRemoval?: boolean;
   tradeHref?: (card: CollectedCard) => string;
   folders?: Folder[];
@@ -224,6 +227,7 @@ export function CollectionView({
   ) => Promise<void>;
   onDiscard?: (instanceId: string) => Promise<void>;
   onDiscardMany?: (instanceIds: string[]) => Promise<void>;
+  onCardsRemoved?: (instanceIds: string[]) => void;
   loadPaniniAlbums?: (options: {
     query?: string;
     category?: string;
@@ -250,7 +254,9 @@ export function CollectionView({
   ) => Promise<{ marketValue: number | null }>;
 }) {
   const pathname = usePathname();
-  const pro = useProAccess();
+  const proAccess = useProAccess();
+  const localPreview = previewOnly && process.env.NODE_ENV === "development";
+  const pro = proAccess || localPreview;
   const profileIdentifier = pathname?.startsWith("/profile/")
     ? decodeURIComponent(pathname.slice("/profile/".length))
     : undefined;
@@ -645,6 +651,7 @@ export function CollectionView({
       const evolved = await onEvolve(
         evolutionCards.map(card => card.instanceId)
       );
+      onCardsRemoved?.(evolutionCards.map(card => card.instanceId));
       setEvolveConfirm(false);
       setSelectedId(evolved.instanceId);
     } catch (error) {
@@ -700,7 +707,9 @@ export function CollectionView({
     setAuctionSuggestionBusy(true);
     setAuctionOpen(true);
     try {
-      const discovery = await loadCardDiscovery(selected.id);
+      const discovery = localPreview
+        ? { marketValue: null }
+        : await loadCardDiscovery(selected.id);
       const value = discovery.marketValue;
       setAuctionSuggestion(
         value != null && Number.isFinite(value) && value > 0
@@ -776,6 +785,7 @@ export function CollectionView({
         await onDiscardMany(discardCards.map(card => card.instanceId));
       else if (discardCards.length === 1 && onDiscard)
         await onDiscard(discardCards[0].instanceId);
+      onCardsRemoved?.(discardCards.map(card => card.instanceId));
       setDiscardConfirm(false);
       closeDetail();
     } catch (error) {
@@ -1966,19 +1976,30 @@ export function CollectionView({
                   )}
                 </div>
                 <div className="yk-detail-utility-actions">
-                  {!readOnly && (
-                    <CardShareButton
-                      key={selected.instanceId}
-                      instanceId={selected.instanceId}
-                      name={selected.name}
-                      iconOnly
-                    />
+                  {localPreview ? (
+                    <p
+                      className="text-xs text-ink-3"
+                      title="Sharing and reporting are unavailable in this local demo."
+                    >
+                      Local demo
+                    </p>
+                  ) : (
+                    <>
+                      {!readOnly && (
+                        <CardShareButton
+                          key={selected.instanceId}
+                          instanceId={selected.instanceId}
+                          name={selected.name}
+                          iconOnly
+                        />
+                      )}
+                      <CardReportButton
+                        cardId={selected.id}
+                        cardName={selected.name}
+                        iconOnly
+                      />
+                    </>
                   )}
-                  <CardReportButton
-                    cardId={selected.id}
-                    cardName={selected.name}
-                    iconOnly
-                  />
                 </div>
               </header>
               {(selectedGroup?.cards.length ?? 0) > 1 && (
@@ -2436,7 +2457,13 @@ export function CollectionView({
       <Modal
         open={auctionOpen && !!selected}
         onClose={closeAuction}
-        title={auctionDone ? "Card listed for auction" : "List for auction"}
+        title={
+          auctionDone
+            ? localPreview
+              ? "Demo auction created"
+              : "Card listed for auction"
+            : "List for auction"
+        }
         className="yk-auction-modal"
       >
         {selected &&
@@ -2444,17 +2471,25 @@ export function CollectionView({
             <>
               <Feedback
                 tone="success"
-                title="Card listed for auction — locked until the auction ends"
+                title={
+                  localPreview
+                    ? "Demo auction created"
+                    : "Card listed for auction — locked until the auction ends"
+                }
               >
-                It&apos;s now listed on the market.
+                {localPreview
+                  ? "This listing is simulated. Nothing was published to the market."
+                  : "It's now listed on the market."}
               </Feedback>
               <div className="mt-6 flex flex-wrap justify-end gap-3">
                 <Button variant="secondary" onClick={closeAuction}>
                   Close
                 </Button>
-                <Link href="/market" className="yk-button yk-button-primary">
-                  View market
-                </Link>
+                {!localPreview && (
+                  <Link href="/market" className="yk-button yk-button-primary">
+                    View market
+                  </Link>
+                )}
               </div>
             </>
           ) : (

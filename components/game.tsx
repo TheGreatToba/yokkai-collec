@@ -27,6 +27,7 @@ import {
   moveCardToFolder,
   moveCardsToFolder,
   openBooster,
+  openBoosters,
   openDecisionPack,
   setPaniniAlbumFavorite,
   setCardCustomImage,
@@ -230,14 +231,18 @@ export function Game({
       unsubscribe();
     };
   }, [previewData, setCollection]);
-  async function open(kind: "regular" | "decision") {
+  async function open(kind: "regular" | "decision", count: 1 | 5 | 10 = 1) {
     if (draw.length > 0 && revealed < draw.length) return [];
     return await runPackOpeningOnce(opening, async () => {
       setBusy(true);
       setError("");
       try {
         const cards =
-          kind === "regular" ? await openBooster() : await openDecisionPack();
+          kind === "regular" && count > 1
+            ? await openBoosters(count)
+            : kind === "regular"
+              ? await openBooster()
+              : await openDecisionPack();
         setDraw(cards);
         setDrawKind(kind);
         setRevealed(0);
@@ -260,6 +265,7 @@ export function Game({
         throw e;
       } finally {
         setBusy(false);
+        if (count > 1) void getPackStatus().then(setStatus, () => undefined);
       }
     });
   }
@@ -474,6 +480,10 @@ export function Game({
         {view === "packs" && (
           <Boosters
             releasedOpening
+            clickToOpen
+            onOpenMany={
+              previewData ? undefined : count => open("regular", count)
+            }
             status={status}
             statusError={loadErrors.regular}
             decisionError={loadErrors.decision}

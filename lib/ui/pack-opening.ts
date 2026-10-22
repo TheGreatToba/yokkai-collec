@@ -67,6 +67,26 @@ export function packCopySnapshot<T extends { id: string }>(
       }, {})
     : null;
 }
+
+// Results are browsed five at a time; unrevealed future groups stay inaccessible.
+export function packRevealWindow(
+  total: number,
+  revealed: number,
+  requestedPage?: number
+) {
+  const pages = Math.max(1, Math.ceil(total / 5));
+  const latest = Math.min(pages - 1, Math.floor(Math.max(0, revealed) / 5));
+  const page = Number.isInteger(requestedPage)
+    ? Math.max(0, Math.min(latest, requestedPage!))
+    : latest;
+  return {
+    page,
+    pages,
+    latest,
+    start: page * 5,
+    end: Math.min(total, (page + 1) * 5)
+  };
+}
 export function packCopyLabels<T extends { id: string }>(
   cards: T[],
   snapshot: Record<string, number> | null

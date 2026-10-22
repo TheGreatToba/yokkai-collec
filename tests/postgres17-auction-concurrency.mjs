@@ -1051,3 +1051,33 @@ for (const [name, signature, scenario, mutate] of [
     `BIZ-07 ${name}: unsafe counterproof rejected; restored RPC passes with two authenticated sessions`
   );
 }
+
+// Batch draws retain the same profile lock across the entire outer transaction.
+// The second real authenticated session must wait, then refuse the whole lot.
+for (const count of [5, 10]) {
+  const [player] = await bizPlayers();
+  await query(`update public.user_profiles set
+    next_regular_pack_at=clock_timestamp()-interval '2 hours',
+    bonus_regular_packs=${count === 10 ? 5 : 0} where user_id='${player}';`);
+  const results = await heldRpcOverlap(
+    player,
+    `select public.open_regular_packs(${count})`
+  );
+  singleWinner(results, /INSUFFICIENT_PACKS/);
+  const state = JSON.parse(
+    await query(`select json_build_object(
+    'cards',(select count(*) from public.user_cards where user_id='${player}'),
+    'opened',(select regular_packs_opened from public.user_achievement_stats where user_id='${player}'),
+    'bonus',(select bonus_regular_packs from public.user_profiles where user_id='${player}'),
+    'cooldown',(select next_regular_pack_at>clock_timestamp() from public.user_profiles where user_id='${player}'));`)
+  );
+  assert.deepEqual(state, {
+    cards: count * 5,
+    opened: count,
+    bonus: 0,
+    cooldown: true
+  });
+  console.log(
+    `Regular Pack ×${count}: two overlapping authenticated sessions consume exactly one complete lot`
+  );
+}

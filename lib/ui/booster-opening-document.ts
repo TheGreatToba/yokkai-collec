@@ -4,7 +4,8 @@ export type BoosterKind = "regular" | "decision";
 export function boosterOpeningDocument(
   source: string,
   parentOrigin: string,
-  kind: BoosterKind
+  kind: BoosterKind,
+  waitForClick = false
 ) {
   if (kind !== "regular" && kind !== "decision")
     throw new Error("Invalid pack kind");
@@ -66,7 +67,10 @@ export function boosterOpeningDocument(
   const bridge = `<script>
     const hostOrigin=${json(origin.origin)};
     const booster=${json(booster)};
+    const waitForClick=${json(waitForClick)};
     let hostState='loading';
+    let openRequested=!waitForClick;
+    let started=false;
     let finished=false;
     let completionTimer;
     let startedAt=0;
@@ -76,10 +80,25 @@ export function boosterOpeningDocument(
       if(finished)return;
       finished=true;clearTimeout(completionTimer);notify('YOKKAI_BOOSTER_COMPLETE');
     };
+    const beginOpening=()=>{
+      if(started||!openRequested||hostState!=='YOKKAI_BOOSTER_READY')return;
+      started=true;
+      startedAt=performance.now();
+      if(waitForClick){
+        document.documentElement.classList.remove('yokkai-await-click');
+        window.replayYokkaiBooster();
+      }
+      // No completion clock runs while the closed pack waits for a gesture.
+      const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      completionTimer=setTimeout(complete,reduced?500:5200);
+    };
     window.addEventListener('message',event=>{
       if(event.source!==parent||event.origin!==hostOrigin)return;
       if(event.data?.type==='yokkai-booster-status'&&hostState!=='loading')notify(hostState);
-      if(event.data?.type==='yokkai-booster-next-step'&&hostState==='YOKKAI_BOOSTER_READY'&&!finished){
+      if(waitForClick&&event.data?.type==='yokkai-booster-open'){
+        openRequested=true;beginOpening();
+      }
+      if(event.data?.type==='yokkai-booster-next-step'&&started&&hostState==='YOKKAI_BOOSTER_READY'&&!finished){
         const elapsed=performance.now()-startedAt+advancedBy;
         const next=[2680,5200].find(time=>time>elapsed+50);
         if(next===undefined){complete();return;}
@@ -100,13 +119,12 @@ export function boosterOpeningDocument(
       try{
         if(!await window.setYokkaiBooster(booster))throw new Error('Booster unavailable');
         document.documentElement.classList.remove('yokkai-wait-booster');
-        startedAt=performance.now();
         hostState='YOKKAI_BOOSTER_READY';notify(hostState);
         // The last finite effect ends at 5s. Keep a short final hold, not the idle loop.
-        const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-        completionTimer=setTimeout(complete,reduced?500:5200);
+        beginOpening();
       }catch{hostState='YOKKAI_BOOSTER_ERROR';notify(hostState);}
     }
+    if(waitForClick)document.documentElement.classList.add('yokkai-await-click');
     void startBooster();
   </script>`;
   return document
@@ -122,6 +140,12 @@ export function boosterOpeningDocument(
       .yokkai-wait-booster .scene{visibility:hidden}
       .yokkai-wait-booster *, .yokkai-wait-booster *::before, .yokkai-wait-booster *::after{animation-play-state:paused!important}
       .scene:not(.running) *, .scene:not(.running) *::before, .scene:not(.running) *::after{animation-name:none!important}
+      .yokkai-await-click .scene *, .yokkai-await-click .scene *::before, .yokkai-await-click .scene *::after{animation:none!important}
+      .yokkai-await-click .stage,.yokkai-await-click .ambient{opacity:1!important}
+      .yokkai-await-click .pack-entrance{opacity:1!important;transform:none!important}
+      .yokkai-await-click .foil-body{transform:none!important}
+      .yokkai-await-click .foil-lid{display:block!important;opacity:1!important;transform:none!important}
+      .yokkai-await-click .foil-edge,.yokkai-await-click .foil-opening,.yokkai-await-click .sheen-behind{opacity:0!important}
     </style></head>`
     )
     .replace("</body>", `${bridge}</body>`);
