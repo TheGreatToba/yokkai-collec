@@ -195,10 +195,12 @@ a[aria-current="page"] {
 /* Opt-in gold for the header balance and auction amounts, not all currency UI. */
 .yk-karas-gold,
 .yk-bid-quick.yk-karas-gold,
-.yk-auction-history .text-karas {
+.yk-auction-history .text-karas,
+.yk-market-price {
   color: var(--color-karas-readable-gold);
 }
-.yk-karas-gold .yk-karas-gem {
+.yk-karas-gold .yk-karas-gem,
+.yk-market-price .yk-karas-gem {
   background: linear-gradient(135deg, #fff3c4, #f2ca72 55%, #bc852e);
   box-shadow: 0 0 8px rgb(242 202 114 / 30%);
 }
