@@ -25,7 +25,7 @@ import {
 import { CardBack, YokaiCard } from "@/components/yokai-card";
 import type { SfxName } from "@/hooks/use-sfx";
 import { animation } from "@/lib/ui/animations";
-import { runPackOpeningSequence } from "@/lib/ui/pack-opening";
+import { runPackOpeningSequence, runFinalBoosterOpening } from "@/lib/ui/pack-opening";
 
 const CollectionView = dynamic(
   () => import("@/components/collection").then(module => module.CollectionView),
@@ -40,6 +40,11 @@ const LocalLrCinematic = dynamic(
 const CardCinematic = dynamic(
   () => import("@/components/card-cinematic").then(module => module.CardCinematic),
   { loading: () => <p role="status">Loading cinematic…</p> }
+);
+
+const BoosterOpening = dynamic(
+  () => import("@/components/booster-opening").then(module => module.BoosterOpening),
+  { loading: () => <p role="status">Preparing your pack…</p> }
 );
 
 export type RevealCard = Card & {
@@ -998,6 +1003,7 @@ export function BoosterReveal({
 
 export function Boosters({
   previewOnly = false,
+  releasedOpening = false,
   statusError,
   decisionError,
   onRetryRegular,
@@ -1028,6 +1034,7 @@ export function Boosters({
   onSound
 }: {
   previewOnly?: boolean;
+  releasedOpening?: boolean;
   statusError?: string;
   decisionError?: string;
   onRetryRegular?: () => void;
@@ -1088,8 +1095,13 @@ export function Boosters({
   const requestSeal = useRef<(() => void) | null>(null);
   const accelerateSeal = useRef<(() => void) | null>(null);
   const preloading = useRef<Promise<void>>(Promise.resolve());
+  const finishOpening = useRef<(() => void) | null>(null);
   const playSound = onSound ?? noopSound;
   const speedUpSeal = () => {
+    if (releasedOpening) {
+      finishOpening.current?.();
+      return;
+    }
     if (openingPhase === "seal") {
       accelerateSeal.current?.();
       return;
@@ -1135,6 +1147,31 @@ export function Boosters({
       () => setWaiting(true),
       animation.packOpening.slowResponse
     );
+    if (releasedOpening) {
+      const finished = new Promise<void>(resolve => { finishOpening.current = resolve; });
+      void runFinalBoosterOpening({
+        open: () => onOpen(kind),
+        finished,
+        onResponse: cards => {
+          clearTimeout(waitingTimer);
+          setWaiting(false);
+          if (cards?.length) preload(cards);
+        },
+        preload: () => reducedMotion ? Promise.resolve() : preloading.current
+      }).then(
+        success => {
+          if (!success) setShowDraw(false);
+          setOpeningPhase("idle");
+        },
+        () => { setShowDraw(false); setOpeningPhase("idle"); }
+      ).finally(() => {
+        clearTimeout(waitingTimer);
+        setWaiting(false);
+        finishOpening.current = null;
+        openingLock.current = false;
+      });
+      return;
+    }
     const tear = new Promise<void>(resolve => {
       requestSeal.current = resolve;
     });
@@ -1228,6 +1265,7 @@ export function Boosters({
     if (openingPhase === "seal")
       openingStage.current?.focus({ preventScroll: true });
   }, [openingPhase]);
+  useEffect(() => () => { finishOpening.current?.(); }, []);
   const shownRates = ratesKind === "decision" ? decisionDropRates : dropRates;
   const rateDetails = <>
         <p className="text-sm leading-6 text-ink-2">
@@ -1268,7 +1306,7 @@ export function Boosters({
           className={`yk-opening-stage yk-opening-${openingPhase} yk-opening-kind-${openingKind}`}
           role="button" tabIndex={0}
           aria-label={
-            openingPhase === "seal"
+            releasedOpening ? "Skip booster opening" : openingPhase === "seal"
               ? "Speed up the opening animation"
               : tearRequested
                 ? "Opening pack"
@@ -1287,6 +1325,16 @@ export function Boosters({
             }
           }}
         >
+          {releasedOpening ? (
+            <>
+              <BoosterOpening
+                kind={openingKind}
+                onComplete={() => finishOpening.current?.()}
+                onTear={() => { setOpeningPhase("seal"); playSound("tear"); }}
+              />
+              {waiting && <p className="yk-opening-server-status" role="status">Your pack is still being prepared…</p>}
+            </>
+          ) : <>
           <div className="yk-opening-pack yk-pack-tear" aria-hidden="true">
             <div className="yk-pack-tear-sparks">
               {[
@@ -1347,6 +1395,7 @@ export function Boosters({
                   : "Getting your cards ready…"
                 : "Click the pack to tear it open."}
           </p>
+          </>}
         </div>
       ) : revealing ? (
         <BoosterReveal

@@ -42,11 +42,16 @@ export async function GET(request: Request) {
     return new Response("Invalid cinematic rarity.", { status: 400, headers });
   }
   try {
+    // The proxy's internal localhost URL is not the iframe's parent origin.
+    const parentOrigin =
+      process.env?.NODE_ENV === "production" && process.env.NEXT_PUBLIC_SITE_URL
+        ? new URL(process.env.NEXT_PUBLIC_SITE_URL).origin
+        : url.origin;
     return new Response(
       cardCinematicDocument(
         await template(rarity),
         url.searchParams,
-        url.origin,
+        parentOrigin,
         rarity
       ),
       { headers }
