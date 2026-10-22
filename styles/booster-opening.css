@@ -1,0 +1,35 @@
+.yk-opening-stage:has(.yk-booster-opening) {
+  padding: 0;
+  overflow: hidden;
+}
+.yk-opening-stage:has(.yk-booster-opening)::after {
+  display: none;
+}
+.yk-booster-opening {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: #070b13;
+}
+.yk-booster-opening iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+.yk-booster-opening-loading {
+  position: absolute;
+  inset: 50% 16px auto;
+  text-align: center;
+}
+.yk-opening-server-status {
+  position: absolute;
+  z-index: 2;
+  right: 16px;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  left: 16px;
+  text-align: center;
+  font-size: 14px;
+  color: #bbc6dc;
+}

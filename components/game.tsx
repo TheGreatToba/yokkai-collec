@@ -473,6 +473,7 @@ export function Game({
         )}
         {view === "packs" && (
           <Boosters
+            releasedOpening
             status={status}
             statusError={loadErrors.regular}
             decisionError={loadErrors.decision}

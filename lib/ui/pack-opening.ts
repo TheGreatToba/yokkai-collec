@@ -36,6 +36,26 @@ export async function runPackOpeningSequence<T>({
   return result;
 }
 
+// Wait for the existing server result and the decorative opening independently.
+// Skipping visuals must never submit a second pack request.
+export async function runFinalBoosterOpening<T>({
+  open,
+  finished,
+  onResponse,
+  preload
+}: {
+  open: () => Promise<T[] | undefined>;
+  finished: Promise<void>;
+  onResponse: (cards: T[] | undefined) => void;
+  preload: () => Promise<void>;
+}) {
+  const cards = await open();
+  onResponse(cards);
+  if (!cards?.length) return false;
+  await Promise.all([finished, preload()]);
+  return true;
+}
+
 export function packCopySnapshot<T extends { id: string }>(
   collection: T[],
   complete: boolean
