@@ -474,6 +474,7 @@ export function Game({
         {view === "packs" && (
           <Boosters
             releasedOpening
+            clickToOpen
             status={status}
             statusError={loadErrors.regular}
             decisionError={loadErrors.decision}

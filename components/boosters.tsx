@@ -1004,6 +1004,7 @@ export function BoosterReveal({
 export function Boosters({
   previewOnly = false,
   releasedOpening = false,
+  clickToOpen = false,
   statusError,
   decisionError,
   onRetryRegular,
@@ -1035,6 +1036,7 @@ export function Boosters({
 }: {
   previewOnly?: boolean;
   releasedOpening?: boolean;
+  clickToOpen?: boolean;
   statusError?: string;
   decisionError?: string;
   onRetryRegular?: () => void;
@@ -1096,8 +1098,18 @@ export function Boosters({
   const accelerateSeal = useRef<(() => void) | null>(null);
   const preloading = useRef<Promise<void>>(Promise.resolve());
   const finishOpening = useRef<(() => void) | null>(null);
+  const openingClicked = useRef(false);
   const playSound = onSound ?? noopSound;
   const speedUpSeal = () => {
+    if (releasedOpening && clickToOpen) {
+      if (!openingClicked.current) {
+        openingClicked.current = true;
+        setTearRequested(true);
+      } else if (openingPhase === "seal") {
+        finishOpening.current?.();
+      }
+      return;
+    }
     if (releasedOpening) {
       finishOpening.current?.();
       return;
@@ -1141,6 +1153,7 @@ export function Boosters({
     setShowDraw(true);
     setWaiting(false);
     setTearRequested(false);
+    openingClicked.current = false;
     setOpeningPhase("tension");
     playSound("rumble");
     const waitingTimer = window.setTimeout(
@@ -1306,7 +1319,9 @@ export function Boosters({
           className={`yk-opening-stage yk-opening-${openingPhase} yk-opening-kind-${openingKind}`}
           role="button" tabIndex={0}
           aria-label={
-            releasedOpening ? "Skip booster opening" : openingPhase === "seal"
+            releasedOpening && clickToOpen && !tearRequested
+              ? "Tear open the pack"
+              : releasedOpening ? "Skip booster opening" : openingPhase === "seal"
               ? "Speed up the opening animation"
               : tearRequested
                 ? "Opening pack"
@@ -1317,6 +1332,10 @@ export function Boosters({
           }
           onClick={speedUpSeal}
           onKeyDown={event => {
+            if (event.repeat) {
+              event.preventDefault();
+              return;
+            }
             if (event.key === "Tab") {
               event.preventDefault();
             } else if (event.key==="Enter"||event.key===" ") {
@@ -1329,6 +1348,7 @@ export function Boosters({
             <>
               <BoosterOpening
                 kind={openingKind}
+                openRequested={clickToOpen ? tearRequested : undefined}
                 onComplete={() => finishOpening.current?.()}
                 onTear={() => { setOpeningPhase("seal"); playSound("tear"); }}
               />
