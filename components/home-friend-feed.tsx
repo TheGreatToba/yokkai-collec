@@ -158,9 +158,6 @@ export function HomeFriendFeed({
         </Link>
       </header>
       <div className="yk-feed-toolbar">
-        <span className="yk-feed-following">
-          You &amp; friends <span aria-hidden="true">✦</span>
-        </span>
         <div className="yk-feed-actions">
           {viewer && (
             <Button

@@ -39,6 +39,7 @@
   min-width: 0;
 }
 .yk-feed-actions {
+  margin-left: auto;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -60,15 +61,6 @@
   color: #b9c9df;
   font-size: 12px;
   line-height: 1.6;
-}
-.yk-feed-following {
-  color: var(--color-ink);
-  font-size: 13px;
-  font-weight: 600;
-}
-.yk-feed-following span {
-  margin-left: 6px;
-  color: var(--color-accent-neon);
 }
 .yk-feed-toolbar .yk-button {
   font-size: 12px;
