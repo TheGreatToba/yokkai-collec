@@ -3,15 +3,21 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { createPortal } from "react-dom";
 import { Button, Modal } from "@/components/ui";
 import { createClient } from "@/utils/supabase/client";
+import { PROPOSED_PLAN_RULES as rules } from "@/lib/premium/offer";
 import "@/styles/referral-reminder.css";
 
 type CopyState = "idle" | "copied" | "error";
 
 function dismissalKey(userId: string) {
   return `yokkai-referral-reminder-dismissed:${userId}`;
+}
+
+function referralLink(code: string) {
+  return `${window.location.origin}/signup?ref=${encodeURIComponent(code)}`;
 }
 
 function fallbackCopy(value: string) {
@@ -39,6 +45,7 @@ export function ReferralReminder({
   const [userId, setUserId] = useState<string | null>(null);
   const [code, setCode] = useState<string | null>(null);
   const [copyState, setCopyState] = useState<CopyState>("idle");
+  const [progress, setProgress] = useState({ friends: 0, packs: 0 });
 
   useEffect(() => {
     if (isHome || (isBoosters && !packChoices)) return;
@@ -60,6 +67,17 @@ export function ReferralReminder({
 
       const { data: status } = await supabase.rpc("get_referral_status");
       if (!active) return;
+      if (status && typeof status === "object") {
+        const { verifiedReferrals, packsEarned } = status as Record<
+          string,
+          unknown
+        >;
+        if (typeof verifiedReferrals === "number" && verifiedReferrals > 0)
+          setProgress({
+            friends: verifiedReferrals,
+            packs: typeof packsEarned === "number" ? packsEarned : 0
+          });
+      }
       const existingCode =
         status &&
         typeof status === "object" &&
@@ -89,7 +107,7 @@ export function ReferralReminder({
 
   async function copyLink() {
     if (!code) return;
-    const link = `${window.location.origin}/signup?ref=${encodeURIComponent(code)}`;
+    const link = referralLink(code);
     try {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(link);
@@ -104,6 +122,19 @@ export function ReferralReminder({
       } catch {
         setCopyState("error");
       }
+    }
+  }
+
+  async function shareLink() {
+    if (!code) return;
+    try {
+      await navigator.share({
+        title: "Yokkai Collec'",
+        text: "Join me on Yokkai Collec' and open card packs.",
+        url: referralLink(code)
+      });
+    } catch {
+      // Cancelled by the player or unsupported target: nothing to report.
     }
   }
 
@@ -172,34 +203,97 @@ export function ReferralReminder({
         open={choicesOpen}
         onClose={() => setChoicesOpen(false)}
         title="Want more boosters?"
+        className="yk-referral-modal"
       >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <section className="rounded-panel border border-veil p-5">
-            <h3 className="font-display text-xl">Invite friends</h3>
-            <p className="my-4 text-sm text-ink-2">
-              Earn 5 bonus packs when your friend verifies their email.
+        <p className="yk-referral-modal-lead">Two ways to open more packs.</p>
+        <div className="yk-referral-options">
+          <section className="yk-referral-option yk-referral-option--invite">
+            <div className="yk-referral-option-head">
+              <Image
+                src="/assets/chrome-regular-booster-v1.png"
+                alt=""
+                width={36}
+                height={64}
+              />
+              <div>
+                <h3>Invite friends</h3>
+                <p className="yk-referral-option-reward">
+                  <strong>+5</strong> packs
+                </p>
+              </div>
+            </div>
+            <p className="yk-referral-option-detail">
+              For each friend who verifies their email.
             </p>
-            <Button disabled={!code} onClick={() => void copyLink()}>
-              {!code
-                ? "Preparing…"
-                : copyState === "copied"
-                  ? "Copied"
-                  : "Copy link"}
-            </Button>
+            {progress.friends > 0 && (
+              <p className="yk-referral-option-progress">
+                {progress.friends}{" "}
+                {progress.friends === 1 ? "friend" : "friends"} joined ·{" "}
+                {progress.packs} packs earned
+              </p>
+            )}
+            <input
+              readOnly
+              aria-label="Your invite link"
+              className="yk-referral-link-field"
+              value={code ? referralLink(code) : "Preparing your link…"}
+              onFocus={event => event.currentTarget.select()}
+            />
+            <div className="yk-referral-option-actions">
+              <Button disabled={!code} onClick={() => void copyLink()}>
+                {!code
+                  ? "Preparing…"
+                  : copyState === "copied"
+                    ? "Copied"
+                    : "Copy link"}
+              </Button>
+              {typeof navigator.share === "function" && (
+                <Button disabled={!code} onClick={() => void shareLink()}>
+                  Share
+                </Button>
+              )}
+            </div>
             {copyState === "error" && (
-              <p role="alert" className="mt-3 text-sm text-danger">
+              <p role="alert" className="text-sm text-danger">
                 Couldn&apos;t copy the link. Please try again.
               </p>
             )}
           </section>
-          <section className="rounded-panel border border-veil p-5">
-            <h3 className="font-display text-xl">Get Pro</h3>
-            <p className="my-4 text-sm text-ink-2">
-              Refill your packs faster with Yokkai Pro.
-            </p>
-            <Link href="/premium" className="yk-button yk-button-primary">
-              Explore Pro
-            </Link>
+          <section className="yk-referral-option yk-referral-option--pro">
+            <div className="yk-referral-option-head">
+              <Image
+                src="/assets/chrome-decision-booster-v1.png"
+                alt=""
+                width={36}
+                height={64}
+              />
+              <div>
+                <h3>Yokkai Pro</h3>
+                <p className="yk-referral-option-reward">
+                  <strong>
+                    {rules.basic.regularPackMinutes /
+                      rules.pro.regularPackMinutes}
+                    ×
+                  </strong>{" "}
+                  faster packs
+                </p>
+              </div>
+            </div>
+            <ul className="yk-referral-option-detail">
+              <li>
+                1 Regular Pack every {rules.pro.regularPackMinutes} min instead
+                of {rules.basic.regularPackMinutes}
+              </li>
+              <li>
+                {rules.pro.decisionPacksPerDay} Decision Packs per day instead
+                of {rules.basic.decisionPacksPerDay}
+              </li>
+            </ul>
+            <div className="yk-referral-option-actions">
+              <Link href="/premium" className="yk-button yk-button-primary">
+                Explore Pro
+              </Link>
+            </div>
           </section>
         </div>
       </Modal>
