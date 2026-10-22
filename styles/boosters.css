@@ -1131,14 +1131,12 @@
   grid-column: 1;
   grid-row: 2 / span 2;
 }
-.yk-reveal-batch > .yk-reveal-stage:not(.yk-reveal-ssr):not(.yk-reveal-lr) {
+.yk-reveal-batch > .yk-reveal-stage {
   min-height: 310px;
   padding: 36px 12px 24px;
   justify-content: center;
 }
-.yk-reveal-batch
-  > .yk-reveal-stage:not(.yk-reveal-ssr):not(.yk-reveal-lr)
-  .yk-deck {
+.yk-reveal-batch > .yk-reveal-stage .yk-deck {
   width: clamp(150px, 22svh, 220px);
 }
 .yk-reveal-batch .yk-stacked-back {
@@ -1252,13 +1250,11 @@
     grid-column: 1;
     grid-row: 2;
   }
-  .yk-reveal-batch > .yk-reveal-stage:not(.yk-reveal-ssr):not(.yk-reveal-lr) {
+  .yk-reveal-batch > .yk-reveal-stage {
     min-height: 240px;
     padding-block: 24px 12px;
   }
-  .yk-reveal-batch
-    > .yk-reveal-stage:not(.yk-reveal-ssr):not(.yk-reveal-lr)
-    .yk-deck {
+  .yk-reveal-batch > .yk-reveal-stage .yk-deck {
     width: clamp(135px, 20svh, 175px);
   }
   .yk-reveal-batch > .yk-batch-pagination {

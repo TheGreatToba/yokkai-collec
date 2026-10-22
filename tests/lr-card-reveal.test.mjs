@@ -87,6 +87,7 @@ test("LR completes once at 15.37s (700ms with reduced motion), cleans its timer 
       onContinue: () => continued++
     });
     refs[2].current = {
+      isConnected: true,
       getAnimations: () => [
         { pause: () => paused++, cancel: () => cancelled++ }
       ]
@@ -94,6 +95,11 @@ test("LR completes once at 15.37s (700ms with reduced motion), cleans its timer 
     effects[0]();
     effects[1]()(); // StrictMode cleanup must remove the first timer.
     assert.equal(timers.size, 0);
+    assert.equal(
+      cancelled,
+      0,
+      "StrictMode must not cancel the visible sequence"
+    );
     const cleanup = effects[1]();
     assert.equal(timers.size, 1);
     const timer = [...timers.values()][0];
@@ -105,10 +111,11 @@ test("LR completes once at 15.37s (700ms with reduced motion), cleans its timer 
     button.props.onClick();
     timer.fn();
     assert.equal(continued, 1);
-    assert.equal(paused, 1);
+    assert.equal(paused, 0);
+    refs[2].current.isConnected = false;
     cleanup();
     assert.equal(timers.size, 0);
-    assert.equal(cancelled, 0);
+    assert.equal(cancelled, 2);
     assert.equal(cleared.length, 2);
   }
 });

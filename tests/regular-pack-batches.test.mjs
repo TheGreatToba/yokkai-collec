@@ -23,6 +23,7 @@ function load(file, mocks = {}, globals = {}) {
     {
       exports,
       URL,
+      AbortController,
       ...globals,
       require: name => (name in mocks ? mocks[name] : require(name))
     }
@@ -181,7 +182,11 @@ function boostersHarness(available = 10) {
     },
     {
       process: { env: { NODE_ENV: "production" } },
-      window: { matchMedia: () => ({ matches: false }), setTimeout: () => 1 },
+      window: {
+        matchMedia: () => ({ matches: false }),
+        setTimeout: () => 1,
+        clearTimeout() {}
+      },
       clearTimeout() {},
       Image: class {
         decode() {
@@ -307,7 +312,12 @@ test("a batch is requested once, stays closed until clicked and forwards all 25/
     assert.ok(reveal);
     assert.equal(reveal.props.cards.length, count * 5);
     assert.equal(reveal.props.packCount, count);
-    assert.equal(reveal.props.releasedCinematics, true);
+    assert.equal(reveal.props.releasedCinematics, undefined);
+    assert.ok(
+      read("components/boosters.tsx").includes(
+        "<CardCinematic key={spot.instanceId} card={spot}"
+      )
+    );
     assert.equal(batchCalls, 1);
   }
 });

@@ -8,7 +8,12 @@ test("pack advance is delegated only to the final iframe player", () => {
     /const speedUpSeal = \(\) => \{([\s\S]*?)\n  \};/
   )[1];
   const messages = [];
-  const advance = new Function("openingStage", body);
+  const advance = new Function(
+    "openingStage",
+    "clickToOpen",
+    "finishOpening",
+    body
+  );
   const stage = {
     current: {
       querySelector: selector => {
@@ -19,12 +24,15 @@ test("pack advance is delegated only to the final iframe player", () => {
       }
     }
   };
-  advance(stage);
-  advance(stage);
+  const finish = {
+    current: () => assert.fail("the iframe owns non-click advancement")
+  };
+  advance(stage, false, finish);
+  advance(stage, false, finish);
   assert.deepEqual(messages, [
     [{ type: "yokkai-booster-next-step" }, "*"],
     [{ type: "yokkai-booster-next-step" }, "*"]
   ]);
-  assert.doesNotMatch(body, /onOpen|finishOpening|setOpeningPhase|setTimeout/);
+  assert.doesNotMatch(body, /onOpen|setOpeningPhase|setTimeout/);
   assert.doesNotMatch(source, /accelerateSeal|updatePlaybackRate/);
 });

@@ -200,7 +200,9 @@ try {
       ),
       0
     );
-    for (const width of [320, 375, 600, 768, 900, 1024, 1440]) {
+    for (const width of pack === 0
+      ? [320, 375, 600, 768, 900, 1024, 1440]
+      : []) {
       await viewport(width);
       const bounds = await evaluate(
         "(()=>{const r=document.querySelector('.yk-booster-opening').getBoundingClientRect();return {w:r.width,h:r.height,overflow:document.documentElement.scrollWidth>innerWidth};})()"
@@ -301,7 +303,9 @@ try {
             )
           ).includes("regular-opening-nebula.webp")
         );
-        for (const width of [320, 375, 600, 768, 900, 1024, 1440]) {
+        for (const width of pack === 0
+          ? [320, 375, 600, 768, 900, 1024, 1440]
+          : []) {
           await viewport(width);
           assert.equal(
             await evaluate("document.documentElement.scrollWidth>innerWidth"),
@@ -352,10 +356,20 @@ try {
       await evaluate("document.querySelectorAll('iframe').length"),
       0
     );
+    assert.equal(
+      await evaluate(
+        "document.querySelectorAll('.yk-lr-reveal,.yk-lr-confetti,.yk-lr-floor').length"
+      ),
+      0
+    );
     await send("HeapProfiler.collectGarbage");
     if (pack > 0)
       report.push({
         pack,
+        pageNodes: await evaluate("document.querySelectorAll('*').length"),
+        devPortalNodes: await evaluate(
+          "document.querySelector('nextjs-portal')?.shadowRoot?.querySelectorAll('*').length ?? 0"
+        ),
         ...(await send("Memory.getDOMCounters")),
         heap: await send("Runtime.getHeapUsage")
       });

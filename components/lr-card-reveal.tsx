@@ -66,16 +66,23 @@ export function LrCardReveal({
     completed.current = true;
     root.current
       ?.getAnimations({ subtree: true })
-      .forEach(animation => animation.pause());
+      .forEach(animation =>
+        callback.current ? animation.cancel() : animation.pause()
+      );
     callback.current?.();
   };
   useEffect(() => {
     completed.current = false;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     const timer = window.setTimeout(advance, reduced.matches ? 700 : 15370);
-    // CSS timelines belong to these DOM nodes and disappear with them.
-    // Do not cancel them during StrictMode's simulated cleanup: it keeps the DOM.
-    return () => window.clearTimeout(timer);
+    const element = root.current;
+    const animations = element?.getAnimations({ subtree: true }) ?? [];
+    return () => {
+      window.clearTimeout(timer);
+      // StrictMode's simulated cleanup keeps the DOM and its running sequence.
+      if (!element?.isConnected)
+        animations.forEach(animation => animation.cancel());
+    };
   }, []);
   return (
     <section

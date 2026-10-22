@@ -12,9 +12,12 @@ test("rare labels belong to the single sandbox player, with no old callout benea
     read("styles/boosters.css"),
     /yk-callout|reveal-card-half-height/
   );
-  for (const rarity of ["SSR", "LR"]) {
+  for (const rarity of ["SSR"]) {
     const asset = read(`data/card-cinematics/${rarity.toLowerCase()}.html`);
     assert.match(asset, /class="rank"/);
     assert.match(asset, /class="name"/);
   }
+  assert.match(read("components/lr-card-reveal.tsx"), /<YokaiCard/);
+  assert.match(read("styles/lr-card-reveal.css"), /\.yk-card-badge/);
+  assert.match(read("styles/lr-card-reveal.css"), /\.yk-card-name/);
 });

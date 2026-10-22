@@ -196,7 +196,7 @@
     #ffffff3b 47%,
     transparent 60%
   );
-  animation: yk-lr-lr-glass-travel 3.9s ease-in-out 1 alternate;
+  animation: yk-lr-lr-glass-travel 3.9s ease-in-out 5.5s 1 alternate both;
 }
 .yk-lr-skip {
   position: absolute;
