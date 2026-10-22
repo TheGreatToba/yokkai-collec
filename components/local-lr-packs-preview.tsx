@@ -30,7 +30,6 @@ export function LocalLrPacksPreview() {
       </div>
       <Boosters
         previewOnly
-        releasedOpening
         status={{ available: 10, reserve: 10, maximum: 10, nextPackAt: null }}
         countdown="00:00"
         decisionStatus={{

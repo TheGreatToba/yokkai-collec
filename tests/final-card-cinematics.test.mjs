@@ -133,8 +133,7 @@ test("startup waits for artwork, never shows a demo on failure, and only accepts
       prefetchSiteImage: async () => succeeds,
       window: {
         addEventListener: (type, fn) => {
-          assert.equal(type, "message");
-          listener = fn;
+          if (type === "message") listener = fn;
         },
         setYokkaiCard: async (...args) => {
           calls.push(args);
@@ -142,6 +141,7 @@ test("startup waits for artwork, never shows a demo on failure, and only accepts
         }
       },
       document: {
+        styleSheets: [],
         documentElement: {
           classList: { toggle: (...args) => calls.push(args) }
         }
@@ -442,7 +442,6 @@ test("SSR opt-in opens the cinematic without progressing or changing production 
       }
     );
     const props = {
-      finalCinematics: true,
       cards: [{ ...card, id: "local", instanceId: "local-copy" }],
       revealed: 0,
       onReveal: () => progress++,
@@ -460,23 +459,18 @@ test("SSR opt-in opens the cinematic without progressing or changing production 
       )
       .props.onClick();
     assert.equal(progress, 0);
-    if (environment === "development") {
-      assert.equal(state.states[2], props.cards[0]);
-      assert.deepEqual(timers, []);
-      const modal = render().find(
-        node => node.type === "Modal" && node.props.open
-      );
-      assert.equal(modal.props.children.type, "Cinematic");
-      modal.props.children.props.onContinue();
-      assert.equal(state.states[2], null);
-      assert.equal(progress, 0);
-    } else {
-      assert.equal(state.states[2], null);
-      assert.deepEqual(timers, [3200]);
-    }
+    assert.equal(state.states[2], props.cards[0]);
+    assert.deepEqual(timers, []);
+    const modal = render().find(
+      node => node.type === "Modal" && node.props.open
+    );
+    assert.equal(modal.props.children.type, "Cinematic");
+    modal.props.children.props.onContinue();
+    assert.equal(state.states[2], null);
+    assert.equal(progress, 0);
   }
   assert.match(
     read("components/boosters.tsx"),
-    /finalCinematics=\{process\.env\.NODE_ENV === "development"\}/
+    /<CardCinematic[^>]*card=\{spot\}/
   );
 });

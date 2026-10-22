@@ -28,8 +28,6 @@ export const animation = {
   feedback: { duration: 350 },
   market: { extensionNotice: 6000, extensionPulse: 600 },
   packOpening: {
-    minimumTension: 250,
-    tension: 400,
     seal: 800,
     fade: 150,
     slowResponse: 1500
@@ -63,8 +61,6 @@ export const animationCssVariables = {
   "--modal-duration": `${animation.modal.duration}ms`,
   "--feedback-duration": `${animation.feedback.duration}ms`,
   "--market-extension-pulse": `${animation.market.extensionPulse}ms`,
-  "--pack-opening-tension-duration": `${animation.packOpening.tension}ms`,
-  "--pack-opening-duration": `${animation.packOpening.seal}ms`,
   "--pack-opening-fade-duration": `${animation.packOpening.fade}ms`,
   "--ease-instant": animation.easing.instant,
   "--ease-standard": animation.easing.standard,

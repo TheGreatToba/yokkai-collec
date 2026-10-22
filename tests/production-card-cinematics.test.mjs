@@ -272,7 +272,6 @@ test("released real-pack reveals use final SSR/LR without a new reward call and 
       }
     );
     const props = {
-      releasedCinematics: true,
       cards: [{ ...card, rarity }],
       revealed: 0,
       onReveal: () => progress++,
@@ -318,7 +317,7 @@ test("released real-pack reveals use final SSR/LR without a new reward call and 
   }
   assert.match(
     read("components/boosters.tsx"),
-    /finalCinematics=\{process\.env\.NODE_ENV === "development"\}\s+releasedCinematics/
+    /<CardCinematic[^>]*card=\{spot\}/
   );
   assert.doesNotMatch(
     read("components/card-cinematic.tsx"),

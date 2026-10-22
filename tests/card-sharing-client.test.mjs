@@ -61,10 +61,10 @@ test("reveal : partage uniquement final et animation LR intacte", () => {
         source.indexOf("    <ol className={`yk-reveal-grid")
       )
       .replaceAll("\r\n", "\n");
-  // English copy only; cinematic structure, SVGs and animation behavior are unchanged.
+  // Lock the single-player reveal structure after removal of the legacy SSR/LR effects.
   assert.equal(
     createHash("sha256").update(animation(current)).digest("hex"),
-    "be6a8de9bff60401d525de435bd826ee61ca22ac447cf9662ee16610e0bb7ca2"
+    "7851982725528cd39c6074bc631e3ac0f6f2effca5363cd2f2bf4ad76336e4c4"
   );
   assert.match(
     normalizeWhitespace(current),

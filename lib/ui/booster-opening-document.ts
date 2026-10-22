@@ -1,6 +1,6 @@
 export type BoosterKind = "regular" | "decision";
 
-// Preserve the supplied artwork/keyframes, adapt only its standalone startup.
+// Preserve the supplied artwork; adapt startup and composite-only playback.
 export function boosterOpeningDocument(
   source: string,
   parentOrigin: string,
@@ -55,6 +55,15 @@ export function boosterOpeningDocument(
   }
 ` +
     document.slice(readyEnd);
+  document = document.replace(
+    "  window.addEventListener('resize', handleResize, {passive:true});",
+    `  window.addEventListener('pagehide',()=>{
+      if(resizeFrame)cancelAnimationFrame(resizeFrame);
+      window.removeEventListener('resize',handleResize);
+      window.visualViewport?.removeEventListener('resize',handleResize);
+    },{once:true});
+    window.addEventListener('resize', handleResize, {passive:true});`
+  );
   document = document
     .replace('<html lang="fr">', '<html lang="en" class="yokkai-wait-booster">')
     .replace(/<title>[^<]*<\/title>/, "<title>Yokkai booster opening</title>")
@@ -64,6 +73,20 @@ export function boosterOpeningDocument(
   const policy =
     "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src https: http://localhost:* http://127.0.0.1:* http://[::1]:*; connect-src 'none'; base-uri 'none'; form-action 'none'";
   const bridge = `<script>
+    // Keep paint-heavy artwork static; animate only composited properties.
+    const optimizeRules=rules=>{
+      for(const rule of rules){
+        if(rule.type===CSSRule.KEYFRAMES_RULE){
+          for(const frame of rule.cssRules){
+            for(const property of Array.from(frame.style)){
+              if(property!=="transform"&&property!=="opacity")frame.style.removeProperty(property);
+            }
+          }
+        }else if(rule.cssRules)optimizeRules(rule.cssRules);
+        rule.style?.removeProperty("will-change");
+      }
+    };
+    for(const sheet of document.styleSheets)optimizeRules(sheet.cssRules);
     const hostOrigin=${json(origin.origin)};
     const booster=${json(booster)};
     let hostState='loading';
@@ -76,7 +99,7 @@ export function boosterOpeningDocument(
       if(finished)return;
       finished=true;clearTimeout(completionTimer);notify('YOKKAI_BOOSTER_COMPLETE');
     };
-    window.addEventListener('message',event=>{
+    const receive=event=>{
       if(event.source!==parent||event.origin!==hostOrigin)return;
       if(event.data?.type==='yokkai-booster-status'&&hostState!=='loading')notify(hostState);
       if(event.data?.type==='yokkai-booster-next-step'&&hostState==='YOKKAI_BOOSTER_READY'&&!finished){
@@ -92,10 +115,18 @@ export function boosterOpeningDocument(
         if(next===5200)complete();
         else completionTimer=setTimeout(complete,5200-next);
       }
-    });
-    document.addEventListener('animationstart',event=>{
+    };
+    window.addEventListener('message',receive);
+    const onAnimationStart=event=>{
       if(event.animationName==='foil-peel')notify('YOKKAI_BOOSTER_TEAR');
-    });
+    };
+    document.addEventListener('animationstart',onAnimationStart);
+    window.addEventListener('pagehide',()=>{
+      clearTimeout(completionTimer);
+      window.removeEventListener('message',receive);
+      document.removeEventListener('animationstart',onAnimationStart);
+      document.getAnimations().forEach(animation=>animation.cancel());
+    },{once:true});
     async function startBooster(){
       try{
         if(!await window.setYokkaiBooster(booster))throw new Error('Booster unavailable');

@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import sharp from "sharp";
-import { assertTearAssets, imageAsset } from "./helpers/visual-assets.mjs";
+import { imageAsset } from "./helpers/visual-assets.mjs";
 
 const assets = {
   regular: "2ecd0642c0a5b607254e5a3ced3eae428a64b07104680a4e4ee5aa66738ef235",
@@ -46,19 +46,19 @@ test("chrome packs keep their native aspect ratio in the picker and tear layers"
   const decision = imageAsset(source, "yk-pack-image yk-decision-image");
   assert.equal(regular, "/assets/chrome-regular-booster-v1.png");
   assert.equal(decision, "/assets/chrome-decision-booster-v1.png");
-  assertTearAssets(source, decision, regular);
+  assert.doesNotMatch(source, /yk-pack-tear/);
   const images = source
     .match(/<img\b[^>]*>/g)
     .filter(tag => /chrome-(?:regular|decision)-booster/.test(tag));
-  assert.equal(images.length, 4);
+  assert.equal(images.length, 2);
   for (const image of images) {
     assert.match(image, /width=\{941\}/);
     assert.match(image, /height=\{1672\}/);
   }
   const css = readFileSync(
-    new URL("../styles/pack-tear.css", import.meta.url),
+    new URL("../data/booster-opening/reveal.html", import.meta.url),
     "utf8"
   );
-  assert.match(css, /aspect-ratio: 941 \/ 1672;/);
-  assert.match(css, /object-fit: contain;/);
+  assert.match(css, /packRatio/);
+  assert.match(css, /object-fit:\s*contain/);
 });

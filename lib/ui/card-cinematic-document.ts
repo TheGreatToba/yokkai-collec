@@ -73,11 +73,26 @@ export function cardCinematicDocument(
   });`
   );
   const bridge = `<script>
+    // Keep paint-heavy artwork static; animate only composited properties.
+    const optimizeRules=rules=>{
+      for(const rule of rules){
+        if(rule.type===CSSRule.KEYFRAMES_RULE){
+          for(const frame of rule.cssRules){
+            for(const property of Array.from(frame.style)){
+              if(property!=="transform"&&property!=="opacity")frame.style.removeProperty(property);
+            }
+          }
+        }else if(rule.cssRules)optimizeRules(rule.cssRules);
+        rule.style?.removeProperty("will-change");
+      }
+    };
+    for(const sheet of document.styleSheets)optimizeRules(sheet.cssRules);
     const hostOrigin=${json(parentOrigin)};
     const hostCard=${json(data)};
     let hostState="loading";
     let hostPaused=false;
     const notifyHost=type=>parent.postMessage({type},hostOrigin);
+    let playbackFrame=0;
     function startPlayback(){
       if(!document.getAnimations||!window.requestAnimationFrame)return;
       const reduced=window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -98,11 +113,11 @@ export function cardCinematicDocument(
           notifyHost("YOKKAI_CARD_COMPLETE");
           return;
         }
-        window.requestAnimationFrame(tick);
+        playbackFrame=window.requestAnimationFrame(tick);
       };
-      window.requestAnimationFrame(tick);
+      playbackFrame=window.requestAnimationFrame(tick);
     }
-    window.addEventListener("message",event=>{
+    const receive=event=>{
       if(event.source!==parent||event.origin!==hostOrigin)return;
       if(event.data?.type==="yokkai-card-status"){
         if(hostState!=="loading")notifyHost(hostState);
@@ -111,7 +126,13 @@ export function cardCinematicDocument(
       if(event.data?.type!=="yokkai-card-pause"||typeof event.data.paused!=="boolean")return;
       hostPaused=event.data.paused;
       document.documentElement.classList.toggle("preview-paused",event.data.paused);
-    });
+    };
+    window.addEventListener("message",receive);
+    window.addEventListener("pagehide",()=>{
+      window.cancelAnimationFrame(playbackFrame);
+      window.removeEventListener("message",receive);
+      document.getAnimations().forEach(animation=>animation.cancel());
+    },{once:true});
     async function startSiteCard(){
       try{
         if(!await prefetchSiteImage(hostCard.image))throw new Error("Card image unavailable");

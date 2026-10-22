@@ -25,6 +25,7 @@ function load(file, mocks = {}, globals = {}) {
       URL,
       URLSearchParams,
       Response,
+      AbortController,
       ...globals,
       require: name =>
         name in mocks ? mocks[name] : name.endsWith(".css") ? {} : require(name)
@@ -209,6 +210,7 @@ test("trusted bridge completes once after the last effect, respects reduced moti
         },
         clearTimeout() {},
         document: {
+          styleSheets: [],
           addEventListener() {},
           documentElement: {
             classList: { remove: value => removed.push(value) }
@@ -216,7 +218,7 @@ test("trusted bridge completes once after the last effect, respects reduced moti
         },
         window: {
           addEventListener: (type, fn) => {
-            listener = fn;
+            if (type === "message") listener = fn;
           },
           matchMedia: () => ({ matches: reduced }),
           setYokkaiBooster: async () => success
@@ -447,24 +449,24 @@ test("sandbox player scopes messages and cleans up; failure/timeout/completion r
 });
 
 test("the real Game and safe simulated packs opt in; the legacy renderer and SSR/LR flow remain intact", () => {
-  assert.match(read("components/game.tsx"), /<Boosters\s+releasedOpening/);
-  assert.match(
-    read("components/local-lr-packs-preview.tsx"),
-    /previewOnly\s+releasedOpening/
-  );
+  assert.match(read("components/game.tsx"), /<Boosters\s/);
+  assert.match(read("components/local-lr-packs-preview.tsx"), /previewOnly/);
   const source = read("components/boosters.tsx");
-  assert.match(source, /releasedOpening = false/);
+  assert.doesNotMatch(
+    source,
+    /releasedOpening|yk-pack-tear|runPackOpeningSequence/
+  );
   assert.match(source, /if \(openingLock\.current\) return;/);
   assert.match(source, /type: "yokkai-booster-next-step"/);
   assert.match(source, /open: \(\) => onOpen\(kind\)/);
   assert.match(source, /kind=\{openingKind\}/);
-  assert.match(source, /releasedCinematics/);
+  assert.match(source, /<CardCinematic/);
   assert.match(source, /role="button" tabIndex=\{0\}/);
   assert.match(source, /Next opening step/);
   assert.match(source, /element\.inert = true/);
   assert.match(
     read("styles/booster-opening.css"),
-    /\.yk-opening-stage:has\(\.yk-booster-opening\)::after\s*\{\s*display: none;/
+    /\.yk-opening-stage\s*\{[^}]*position: fixed;/
   );
 });
 
@@ -504,7 +506,11 @@ test("live Boosters locks double clicks, permits keyboard skip and cannot reveal
     },
     {
       process: { env: { NODE_ENV: "production" } },
-      window: { matchMedia: () => ({ matches: false }), setTimeout: () => 1 },
+      window: {
+        matchMedia: () => ({ matches: false }),
+        setTimeout: () => 1,
+        clearTimeout() {}
+      },
       clearTimeout() {},
       Image: class {
         decode() {
@@ -514,7 +520,6 @@ test("live Boosters locks double clicks, permits keyboard skip and cannot reveal
     }
   );
   const props = {
-    releasedOpening: true,
     status: { available: 1, reserve: 1, maximum: 5 },
     countdown: "00:00",
     decisionStatus: { available: true, pending: [], maximum: 1, remaining: 1 },
@@ -651,10 +656,7 @@ test("opening keeps the matching nebula behind both pack animations", () => {
 });
 
 test("latency preview uses the same opening animation as the site", () => {
-  assert.match(
-    read("components/booster-opening-preview.tsx"),
-    /<Boosters\s+releasedOpening/
-  );
+  assert.match(read("components/booster-opening-preview.tsx"), /<Boosters\s/);
 });
 
 test("two clicks advance to tearing then finish the opening", async () => {
@@ -671,13 +673,14 @@ test("two clicks advance to tearing then finish the opening", async () => {
     setTimeout: () => 1,
     clearTimeout() {},
     document: {
+      styleSheets: [],
       getAnimations: () => [animation],
       addEventListener() {},
       documentElement: { classList: { remove() {} } }
     },
     window: {
-      addEventListener: (_, fn) => {
-        receive = fn;
+      addEventListener: (type, fn) => {
+        if (type === "message") receive = fn;
       },
       matchMedia: () => ({ matches: false }),
       setYokkaiBooster: async () => true

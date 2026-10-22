@@ -1,10 +1,6 @@
 import { normalizeWhitespace } from "./helpers/normalize-whitespace.mjs";
 import { homePresentation } from "./helpers/home-presentation.mjs";
-import {
-  assertPngAsset,
-  assertTearAssets,
-  imageAsset
-} from "./helpers/visual-assets.mjs";
+import { assertPngAsset, imageAsset } from "./helpers/visual-assets.mjs";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -443,7 +439,7 @@ test("les nouveaux visuels distinguent le booster régulier du Decision Pack", (
     boosters.includes(`src="${regular}" alt="Yokkai Collec’ Regular Pack`)
   );
   assert.ok(boosters.includes(`src="${decision}" alt="Decision Pack`));
-  assertTearAssets(boosters, decision, regular);
+  assert.doesNotMatch(boosters, /yk-pack-tear/);
   assert.doesNotMatch(
     normalizeWhitespace(styles),
     normalizeWhitespace(/\.yk-decision-image \{[^}]*hue-rotate/)
@@ -514,184 +510,43 @@ test("le verrou d'ouverture est libéré après une erreur serveur", async () =>
   assert.equal(retried, true);
 });
 
-test("la rupture attend la réponse et la tension minimale sans additionner leurs durées", async () => {
-  const { runPackOpeningSequence } = load("lib/ui/pack-opening.ts");
-  const events = [];
-  let releaseResponse;
-  let releaseTension;
-  let releaseSeal;
-  const response = new Promise(resolve => {
-    releaseResponse = resolve;
-  });
-  const waits = new Map([
-    [
-      250,
-      new Promise(resolve => {
-        releaseTension = resolve;
-      })
-    ],
-    [
-      800,
-      new Promise(resolve => {
-        releaseSeal = resolve;
-      })
-    ]
-  ]);
-  const opening = runPackOpeningSequence({
-    open: () => response,
-    wait: duration => waits.get(duration),
-    onResponse: () => events.push("response"),
-    onSeal: () => events.push("seal")
-  });
-
-  releaseTension();
-  await Promise.resolve();
-  assert.equal(
-    events.join(","),
-    "",
-    "contre-preuve : l'ancien minuteur pouvait finir avant le serveur"
-  );
-  releaseResponse([]);
-  await new Promise(resolve => setImmediate(resolve));
-  assert.equal(events.join(","), "response,seal");
-  releaseSeal();
-  await opening;
-
-  events.length = 0;
-  let releaseFastTension;
-  let releaseFastSeal;
-  const fastOpening = runPackOpeningSequence({
-    open: async () => [],
-    wait: duration =>
-      new Promise(resolve => {
-        if (duration === 250) releaseFastTension = resolve;
-        else releaseFastSeal = resolve;
-      }),
-    onResponse: () => events.push("response"),
-    onSeal: () => events.push("seal")
-  });
-  await new Promise(resolve => setImmediate(resolve));
-  assert.equal(
-    events.join(","),
-    "response",
-    "une réponse rapide conserve les 250 ms de tension"
-  );
-  releaseFastTension();
-  await new Promise(resolve => setImmediate(resolve));
-  assert.equal(events.join(","), "response,seal");
-  releaseFastSeal();
-  await fastOpening;
-});
-
-test("la rupture peut attendre un geste utilisateur avant de lancer le seal", async () => {
-  const { runPackOpeningSequence } = load("lib/ui/pack-opening.ts");
-  const events = [];
-  let releaseTension;
-  let releaseGesture;
-  let releaseSeal;
-  const gesture = new Promise(resolve => {
-    releaseGesture = resolve;
-  });
-  const opening = runPackOpeningSequence({
-    open: async () => [],
-    wait: duration =>
-      new Promise(resolve => {
-        if (duration === 250) releaseTension = resolve;
-        else releaseSeal = resolve;
-      }),
-    onResponse: () => events.push("response"),
-    onSeal: async () => {
-      events.push("waiting-for-gesture");
-      await gesture;
-      events.push("seal");
-    }
-  });
-
-  await new Promise(resolve => setImmediate(resolve));
-  releaseTension();
-  await new Promise(resolve => setImmediate(resolve));
-  assert.deepEqual(events, ["response", "waiting-for-gesture"]);
-  assert.equal(releaseSeal, undefined);
-
-  releaseGesture();
-  await new Promise(resolve => setImmediate(resolve));
-  assert.deepEqual(events, ["response", "waiting-for-gesture", "seal"]);
-  releaseSeal();
-  await opening;
-});
-
-test("l'ouverture centralise ses durées, se passe et ne bloque pas le reveal sur les rafraîchissements", () => {
-  const animations = readFileSync(
-    path.join(root, "lib/ui/animations.ts"),
-    "utf8"
-  );
-  const boosters = readFileSync(
+test("opening waits for both the response and the single final animation", async () => {
+  const { runFinalBoosterOpening } = load("lib/ui/pack-opening.ts");
+  for (const responseFirst of [true, false]) {
+    let respond,
+      finish,
+      complete = false;
+    const response = new Promise(resolve => {
+      respond = resolve;
+    });
+    const finished = new Promise(resolve => {
+      finish = resolve;
+    });
+    const opening = runFinalBoosterOpening({
+      open: () => response,
+      finished,
+      onResponse() {},
+      preload: async () => {}
+    }).then(() => {
+      complete = true;
+    });
+    (responseFirst ? () => respond([card]) : finish)();
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(complete, false);
+    (responseFirst ? finish : () => respond([card]))();
+    await opening;
+    assert.equal(complete, true);
+  }
+  const source = readFileSync(
     path.join(root, "components/boosters.tsx"),
     "utf8"
   );
-  const game = readFileSync(path.join(root, "components/game.tsx"), "utf8");
-  const css = readFileSync(path.join(root, "styles/boosters.css"), "utf8");
-  assert.match(
-    normalizeWhitespace(animations),
-    normalizeWhitespace(
-      /packOpening:\s*\{ minimumTension: 250, tension: 400, seal: 800, fade: 150, slowResponse: 1500 \}/
-    )
-  );
-  assert.match(
-    normalizeWhitespace(css),
-    normalizeWhitespace(/--pack-opening-tension-duration/)
-  );
-  assert.match(
-    normalizeWhitespace(css),
-    normalizeWhitespace(/--pack-opening-duration/)
-  );
-  assert.match(
-    normalizeWhitespace(css),
-    normalizeWhitespace(/--pack-opening-fade-duration/)
-  );
-  assert.match(
-    normalizeWhitespace(css),
-    normalizeWhitespace(
-      /\.yk-opening-tension \.yk-opening-pack \{ animation: none;/
-    )
-  );
-  assert.match(
-    normalizeWhitespace(boosters),
-    normalizeWhitespace(/matchMedia\("\(prefers-reduced-motion: reduce\)"\)/)
-  );
-  assert.match(
-    normalizeWhitespace(boosters),
-    normalizeWhitespace(/event\.key==="Enter"\|\|event\.key===" "/)
-  );
-  assert.match(
-    normalizeWhitespace(boosters),
-    normalizeWhitespace(/runPackOpeningSequence\(\{/)
-  );
-  assert.match(
-    normalizeWhitespace(boosters),
-    normalizeWhitespace(
-      /Promise\.race\(\[decoding,[\s\S]*animation\.packOpening\.seal/
-    )
-  );
-  assert.match(
-    normalizeWhitespace(boosters),
-    normalizeWhitespace(/reducedMotion \? 0 : duration/)
-  );
-  assert.match(
-    normalizeWhitespace(css),
-    normalizeWhitespace(
-      /\.yk-opening-seal \.yk-opening-pack \{ animation: none;/
-    )
-  );
-  assert.match(
-    normalizeWhitespace(game),
-    normalizeWhitespace(
-      /setDraw\([\s\S]*?setBusy\(false\);[\s\S]*?void Promise\.all\(\[getPackStatus\(\)/
-    )
-  );
-  assert.match(
-    normalizeWhitespace(game),
-    normalizeWhitespace(/runPackOpeningOnce\(opening/)
+  assert.match(source, /if \(openingLock\.current\) return;/);
+  assert.match(source, /element\.inert = true/);
+  assert.match(source, /type: "yokkai-booster-next-step"/);
+  assert.doesNotMatch(
+    source,
+    /runPackOpeningSequence|requestSeal|accelerateSeal/
   );
 });
 
@@ -2180,30 +2035,8 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
       /\.yk-invocation > div:last-child \{ grid-area: 1 \/ 1;/
     )
   );
-  assert.match(
-    normalizeWhitespace(boosterStyles),
-    normalizeWhitespace(
-      /\.yk-reveal-ssr \{ position: fixed; inset: 0; z-index: 40;[^}]*justify-content: center;/
-    )
-  );
-  assert.match(
-    normalizeWhitespace(boosterStyles),
-    normalizeWhitespace(
-      /\.yk-reveal-lr \{ position: fixed; inset: 0; z-index: 40;[^}]*justify-content: center;/
-    )
-  );
-  assert.match(
-    normalizeWhitespace(boosterStyles),
-    normalizeWhitespace(
-      /\.yk-reveal-ssr \.yk-face-up \{ transform: scale\(1\.14\); \}/
-    )
-  );
-  assert.match(
-    normalizeWhitespace(boosterStyles),
-    normalizeWhitespace(
-      /\.yk-reveal-lr \.yk-face-up \{ transform: scale\(1\.18\); \}/
-    )
-  );
+  assert.doesNotMatch(boosterStyles, /\.yk-reveal-(?:ssr|lr)/);
+  assert.match(source, /<CardCinematic[^>]*card=\{spot\}/);
 });
 
 test("les boosters annoncent les gains autoritaires avant confirmation", () => {

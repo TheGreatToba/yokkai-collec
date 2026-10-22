@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import postcss from "postcss";
 import sharp from "sharp";
 
 const read = file =>
@@ -10,23 +9,10 @@ const read = file =>
 test("the supplied pink nebula is scoped to the decision pack opening", async () => {
   const source = read("components/boosters.tsx");
   assert.match(source, /setOpeningKind\(kind\)/);
-  assert.match(
-    source,
-    /yk-opening-\$\{openingPhase\} yk-opening-kind-\$\{openingKind\}/
-  );
-
-  const css = read("styles/pack-tear.css");
-  const root = postcss.parse(css);
-  const rule = root.nodes.find(
-    node =>
-      node.type === "rule" &&
-      node.selector ===
-        ".yk-opening-stage.yk-opening-kind-decision:has(.yk-pack-tear)"
-  );
-  assert.ok(rule);
-  const background = rule.nodes.find(node => node.prop === "background");
-  assert.match(background.value, /decision-opening-nebula\.webp/);
-  assert.doesNotMatch(rule.selector, /regular/);
+  assert.match(source, /kind=\{openingKind\}/);
+  const adapter = read("lib/ui/booster-opening-document.ts");
+  assert.match(adapter, /\$\{kind\}-opening-nebula\.webp/);
+  assert.match(adapter, /center \/ cover no-repeat/);
 
   const metadata = await sharp(
     readFileSync(

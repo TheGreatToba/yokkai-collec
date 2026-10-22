@@ -32,65 +32,18 @@ test("le reveal SR possede un flash bref et un pulse sans reprendre le burst SSR
   );
 });
 
-test("SSR et LR escaladent rayons, particules, shake et duree", () => {
+test("SSR and LR use only the final sandbox cinematic", () => {
   const source = readFileSync(
     path.join(root, "components/boosters.tsx"),
     "utf8"
   );
   const css = readFileSync(path.join(root, "styles/boosters.css"), "utf8");
-  assert.match(
-    normalizeWhitespace(source),
-    normalizeWhitespace(/isLR \? 4400 : isSSR \? 3200/)
-  );
-  assert.match(
-    normalizeWhitespace(source),
-    normalizeWhitespace(/className="yk-ssr-cinematic-stage"/)
-  );
-  assert.match(
-    normalizeWhitespace(source),
-    normalizeWhitespace(/className="yk-lr-cinematic-stage"/)
-  );
-  assert.match(
-    normalizeWhitespace(source),
-    normalizeWhitespace(/className="yk-ssr-godray"/)
-  );
-  assert.match(
-    normalizeWhitespace(source),
-    normalizeWhitespace(/className="yk-lr-godray"/)
-  );
-  assert.match(
-    normalizeWhitespace(source),
-    normalizeWhitespace(/Array\.from\(\{ length: 36 \}/)
-  );
-  assert.match(
-    normalizeWhitespace(source),
-    normalizeWhitespace(/Array\.from\(\{ length: 48 \}/)
-  );
-  assert.match(
-    normalizeWhitespace(css),
-    normalizeWhitespace(
-      /\.yk-reveal-ssr \.yk-deck \{ animation: yk-ssr-deck-charge 3\.2s/
-    )
-  );
-  assert.match(
-    normalizeWhitespace(css),
-    normalizeWhitespace(
-      /\.yk-reveal-lr \.yk-deck \{ animation: yk-lr-deck-charge 4\.4s/
-    )
-  );
-  assert.match(
-    normalizeWhitespace(css),
-    normalizeWhitespace(/\.yk-ssr-cinematic-stage[^}]*pointer-events: none/)
-  );
-  assert.match(
-    normalizeWhitespace(css),
-    normalizeWhitespace(/\.yk-lr-cinematic-stage[^}]*pointer-events: none/)
-  );
-  assert.match(
-    normalizeWhitespace(css),
-    normalizeWhitespace(
-      /prefers-reduced-motion:[^}]+[\s\S]*\.yk-ssr-cinematic-stage,\.yk-lr-cinematic-stage[^}]+display: none/
-    )
+  assert.match(source, /if \(isLR \|\| isSSR\) \{/);
+  assert.match(source, /<CardCinematic[^>]*card=\{spot\}/);
+  assert.doesNotMatch(source, /yk-(?:ssr|lr)-cinematic-stage|4400|3200/);
+  assert.doesNotMatch(
+    css,
+    /yk-(?:ssr|lr)-(?:deck-charge|godray|petal|spark|card-glow)/
   );
 });
 
