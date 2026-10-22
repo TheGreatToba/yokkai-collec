@@ -24,10 +24,10 @@ export default function LocalLrPacksPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Link
-            href="/design-system/lr-cinematic"
+            href="/design-system/card-cinematics"
             className="yk-button yk-button-secondary"
           >
-            Cinematic only
+            SSR &amp; LR cinematics
           </Link>
           <Link href="/boosters" className="yk-button yk-button-secondary">
             Back to packs

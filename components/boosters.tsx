@@ -33,7 +33,7 @@ const CollectionView = dynamic(
 );
 
 const LocalLrCinematic = dynamic(
-  () => import("@/components/local-lr-cinematic").then(module => module.LocalLrCinematic),
+  () => import("@/components/local-card-cinematic").then(module => module.LocalCardCinematic),
   { loading: () => <p role="status">Loading cinematic…</p> }
 );
 
@@ -75,6 +75,7 @@ type Decision = {
 
 export function BoosterReveal({
   previewOnly = false,
+  finalCinematics = false,
   cards,
   collection = [],
   folders = [],
@@ -95,6 +96,7 @@ export function BoosterReveal({
   onSound
 }: {
   previewOnly?: boolean;
+  finalCinematics?: boolean;
   cards: RevealCard[];
   revealed: number;
   onReveal: (index: number) => void;
@@ -237,6 +239,11 @@ export function BoosterReveal({
     if (process.env.NODE_ENV === "development" && isLR) {
       setSpot(current);
       onSound?.(shiny ? "shiny" : "lr");
+      return;
+    }
+    if (process.env.NODE_ENV === "development" && finalCinematics && isSSR) {
+      setSpot(current);
+      onSound?.(shiny ? "shiny" : "ssr");
       return;
     }
     const revealDuration = isLR
@@ -774,16 +781,24 @@ export function BoosterReveal({
                   Replay cinematic: {card.name}
                 </Button>
               ))}
+            {process.env.NODE_ENV === "development" && finalCinematics &&
+              cards.filter(card => card.rarity === "SSR").map(card => (
+                <Button key={card.instanceId} variant="secondary" onClick={() => setSpot(card)}>
+                  Replay cinematic: {card.name}
+                </Button>
+              ))}
           </div>
         </div>
       )}
       <Modal
         open={!!spot}
         onClose={() => setSpot(null)}
-        title={spot?.shiny ? "✦ Shiny Summon ✦" : "Legendary summon"}
-        className={`yk-invocation ${spot?.shiny ? "yk-invocation-shiny" : ""} ${process.env.NODE_ENV === "development" && spot?.rarity === "LR" ? "yk-lr-file-modal" : ""}`}
+        title={spot?.shiny ? "✦ Shiny Summon ✦" : spot?.rarity === "SSR" ? "SSR summon" : "Legendary summon"}
+        className={`yk-invocation ${spot?.shiny ? "yk-invocation-shiny" : ""} ${process.env.NODE_ENV === "development" && (spot?.rarity === "LR" || spot?.rarity === "SSR") ? "yk-lr-file-modal" : ""}`}
       >
         {spot && process.env.NODE_ENV === "development" && spot.rarity === "LR" ? (
+          <LocalLrCinematic card={spot} onContinue={() => setSpot(null)} />
+        ) : spot && process.env.NODE_ENV === "development" && spot.rarity === "SSR" ? (
           <LocalLrCinematic card={spot} onContinue={() => setSpot(null)} />
         ) : spot && (
           <div className="relative z-10 flex flex-col items-center gap-6">
@@ -1315,6 +1330,7 @@ export function Boosters({
         </div>
       ) : revealing ? (
         <BoosterReveal
+          finalCinematics={process.env.NODE_ENV === "development"}
           previewOnly={localPreview}
           onComplete={localPreview ? () => setShowDraw(false) : undefined}
           key={draw[0].instanceId}

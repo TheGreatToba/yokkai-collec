@@ -15,6 +15,17 @@
   border: 0;
 }
 
+.yk-card-cinematic {
+  padding-block: 60px 88px;
+}
+
+.yk-card-cinematic-demo {
+  height: max(580px, calc(100dvh - 200px));
+  overflow: hidden;
+  border: 1px solid #34445f;
+  border-radius: 16px;
+}
+
 .yk-lr-preview-controls {
   position: absolute;
   z-index: 2;

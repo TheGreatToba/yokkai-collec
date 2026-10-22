@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { LocalLrCinematic } from "@/components/local-lr-cinematic";
+import { LocalCardCinematic } from "@/components/local-card-cinematic";
+import { createLocalLrPack } from "@/lib/ui/local-lr-packs";
 
 export const metadata: Metadata = {
   title: "Local LR cinematic · Yokkai Collec’",
@@ -19,6 +20,12 @@ export default function LrCinematicPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Link
+            href="/design-system/card-cinematics"
+            className="yk-button yk-button-primary"
+          >
+            New SSR &amp; LR cinematics
+          </Link>
+          <Link
             href="/design-system/lr-packs"
             className="yk-button yk-button-primary"
           >
@@ -29,7 +36,9 @@ export default function LrCinematicPage() {
           </Link>
         </div>
       </header>
-      <LocalLrCinematic />
+      <div className="yk-card-cinematic-demo">
+        <LocalCardCinematic card={createLocalLrPack("regular", 0)[4]} />
+      </div>
     </main>
   );
 }
