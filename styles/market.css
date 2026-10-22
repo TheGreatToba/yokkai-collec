@@ -406,15 +406,19 @@
   color: inherit;
   font-weight: 600;
 }
-.yk-bid-quick:hover:not(:disabled) {
-  background: linear-gradient(
-    110deg,
-    var(--color-pack-button-start),
-    var(--color-pack-button-middle) 55%,
-    var(--color-pack-button-end)
-  );
-  box-shadow: 0 0 24px
-    color-mix(in srgb, var(--color-pack-accent) 25%, transparent);
+.yk-bid-quick:not(:disabled):focus-visible,
+.yk-auction-offer-row > .yk-button:not(:disabled):focus-visible {
+  background: var(--color-veil-strong);
+  box-shadow: var(--shadow-interactive);
+  border-color: var(--color-pack-accent);
+}
+@media (hover: hover) and (pointer: fine) {
+  .yk-auction-offer-row > .yk-button:not(:disabled):hover,
+  .yk-bid-quick:hover:not(:disabled) {
+    background: var(--color-veil-strong);
+    box-shadow: var(--shadow-interactive);
+    border-color: var(--color-pack-accent);
+  }
 }
 .yk-auction-offer-row {
   display: grid;
