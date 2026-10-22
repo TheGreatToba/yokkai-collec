@@ -6,17 +6,26 @@ import "@/styles/lr-cinematic-preview.css";
 
 export function LocalCardCinematic({
   card,
-  onContinue
+  onContinue,
+  controls = true
 }: {
   card: Pick<Card, "name" | "category" | "anime" | "image" | "rarity">;
   onContinue?: () => void;
+  controls?: boolean;
 }) {
   const [html, setHtml] = useState("");
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [replay, setReplay] = useState(0);
   const [paused, setPaused] = useState(false);
   const [retry, setRetry] = useState(0);
+  const completed = useRef(false);
+  const continueCallback = useRef(onContinue);
   const frame = useRef<HTMLIFrameElement>(null);
+  const advance = () => {
+    if (completed.current) return;
+    completed.current = true;
+    onContinue?.();
+  };
   const { name, category, anime, image, rarity } = card;
 
   useEffect(() => {
@@ -58,6 +67,7 @@ export function LocalCardCinematic({
 
   useEffect(() => {
     if (!html) return;
+    completed.current = false;
     const timeout = window.setTimeout(() => setState("error"), 15000);
     const receive = (event: MessageEvent) => {
       if (
@@ -71,6 +81,11 @@ export function LocalCardCinematic({
       } else if (event.data?.type === "YOKKAI_CARD_ERROR") {
         window.clearTimeout(timeout);
         setState("error");
+      } else if (event.data?.type === "YOKKAI_CARD_COMPLETE" && !controls) {
+        if (!completed.current) {
+          completed.current = true;
+          continueCallback.current?.();
+        }
       }
     };
     window.addEventListener("message", receive);
@@ -78,12 +93,16 @@ export function LocalCardCinematic({
       window.clearTimeout(timeout);
       window.removeEventListener("message", receive);
     };
-  }, [html, replay]);
+  }, [html, replay, controls]);
+
+  useEffect(() => {
+    continueCallback.current = onContinue;
+  }, [onContinue]);
 
   if (process.env.NODE_ENV !== "development") return null;
   return (
     <section
-      className="yk-lr-preview yk-card-cinematic"
+      className={`yk-lr-preview yk-card-cinematic${controls ? "" : " yk-card-cinematic-clean"}`}
       aria-label={`${rarity} cinematic: ${name}`}
     >
       {html && (
@@ -109,50 +128,69 @@ export function LocalCardCinematic({
           role={state === "error" ? "alert" : "status"}
         >
           {state === "error"
-            ? "The cinematic could not load. Replay to retry, or continue safely."
+            ? controls
+              ? "The cinematic could not load. Replay to retry, or continue safely."
+              : "The cinematic could not load. Tap to continue safely."
             : "Loading cinematic…"}
         </p>
       )}
-      <div className="yk-lr-preview-controls">
-        <button
-          type="button"
-          className="yk-button yk-button-secondary"
-          disabled={!html && state !== "error"}
-          onClick={() => {
-            setPaused(false);
-            setState("loading");
-            if (!html) setRetry(value => value + 1);
-            setReplay(value => value + 1);
+      {!controls && onContinue && (
+        <div
+          className="yk-card-cinematic-skip"
+          role="button"
+          tabIndex={0}
+          aria-label="Skip cinematic"
+          onClick={advance}
+          onKeyDown={event => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              advance();
+            }
           }}
-        >
-          Replay cinematic
-        </button>
-        <button
-          type="button"
-          className="yk-button yk-button-secondary"
-          aria-pressed={paused}
-          disabled={state !== "ready"}
-          onClick={() => {
-            const next = !paused;
-            frame.current?.contentWindow?.postMessage(
-              { type: "yokkai-card-pause", paused: next },
-              "*"
-            );
-            setPaused(next);
-          }}
-        >
-          {paused ? "Resume animations" : "Pause animations"}
-        </button>
-        {onContinue && (
+        />
+      )}
+      {controls && (
+        <div className="yk-lr-preview-controls">
           <button
             type="button"
-            className="yk-button yk-button-primary"
-            onClick={onContinue}
+            className="yk-button yk-button-secondary"
+            disabled={!html && state !== "error"}
+            onClick={() => {
+              setPaused(false);
+              setState("loading");
+              if (!html) setRetry(value => value + 1);
+              setReplay(value => value + 1);
+            }}
           >
-            Continue
+            Replay cinematic
           </button>
-        )}
-      </div>
+          <button
+            type="button"
+            className="yk-button yk-button-secondary"
+            aria-pressed={paused}
+            disabled={state !== "ready"}
+            onClick={() => {
+              const next = !paused;
+              frame.current?.contentWindow?.postMessage(
+                { type: "yokkai-card-pause", paused: next },
+                "*"
+              );
+              setPaused(next);
+            }}
+          >
+            {paused ? "Resume animations" : "Pause animations"}
+          </button>
+          {onContinue && (
+            <button
+              type="button"
+              className="yk-button yk-button-primary"
+              onClick={onContinue}
+            >
+              Continue
+            </button>
+          )}
+        </div>
+      )}
     </section>
   );
 }

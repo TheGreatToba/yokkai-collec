@@ -19,6 +19,26 @@
   padding-block: 60px 88px;
 }
 
+.yk-card-cinematic-clean {
+  padding: 0;
+}
+
+.yk-card-cinematic-skip {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  cursor: pointer;
+}
+
+.yk-card-cinematic-skip:focus-visible {
+  outline: 2px solid #b8d2ff;
+  outline-offset: -4px;
+}
+
+.yk-lr-file-modal:has(.yk-card-cinematic-clean) > div:first-child {
+  display: none;
+}
+
 .yk-card-cinematic-demo {
   height: max(580px, calc(100dvh - 200px));
   overflow: hidden;

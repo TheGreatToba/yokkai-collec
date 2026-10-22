@@ -28,7 +28,7 @@ export function CardCinematicsPreview() {
         ))}
       </div>
       <div className="yk-card-cinematic-demo">
-        <LocalCardCinematic key={rarity} card={card} />
+        <LocalCardCinematic key={rarity} card={card} controls={false} />
       </div>
     </>
   );

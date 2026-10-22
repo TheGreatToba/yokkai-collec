@@ -797,9 +797,9 @@ export function BoosterReveal({
         className={`yk-invocation ${spot?.shiny ? "yk-invocation-shiny" : ""} ${process.env.NODE_ENV === "development" && (spot?.rarity === "LR" || spot?.rarity === "SSR") ? "yk-lr-file-modal" : ""}`}
       >
         {spot && process.env.NODE_ENV === "development" && spot.rarity === "LR" ? (
-          <LocalLrCinematic card={spot} onContinue={() => setSpot(null)} />
+          <LocalLrCinematic card={spot} controls={false} onContinue={() => setSpot(null)} />
         ) : spot && process.env.NODE_ENV === "development" && spot.rarity === "SSR" ? (
-          <LocalLrCinematic card={spot} onContinue={() => setSpot(null)} />
+          <LocalLrCinematic card={spot} controls={false} onContinue={() => setSpot(null)} />
         ) : spot && (
           <div className="relative z-10 flex flex-col items-center gap-6">
             <div className="yk-invoked-card">

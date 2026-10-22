@@ -7,9 +7,11 @@ Original assets supplied by the user, copied without modification:
 
 Open **http://localhost:3000/design-system/card-cinematics** to compare them,
 or **http://localhost:3000/design-system/lr-packs** to open a full simulated
-pack (SSR in slot 4, LR in slot 5). Replay remounts the entire document, so
-all introduction phases restart. Pause, resume and continue stay accessible
-outside the iframe. The older `/design-system/lr-cinematic` URL now uses the
+pack (SSR in slot 4, LR in slot 5). The cinematic has no visible controls:
+pack openings continue automatically after the reveal, or on click, Enter or
+Space. Escape still closes the native dialog. Replay remains available from
+the pack summary. The reusable player's optional manual controls are retained
+for compatibility. The older `/design-system/lr-cinematic` URL now uses the
 final LR file as well; its legacy document endpoint is retained for regression
 coverage, not used by the new flow.
 
@@ -31,7 +33,7 @@ No card mutation is accepted through postMessage. The supplied showCard
 function loads actual artwork before releasing the hidden, paused stage.
 Image preloads time out after 5 seconds; a failed image never reveals the
 standalone example. The parent also bounds document/image startup and keeps
-Continue available even on failure. Palette sampling remains optional when
+click/keyboard skip available even on failure. Palette sampling remains optional when
 CORS/canvas access is unavailable.
 
 The document is fetched as inert plain text, then used only as `srcDoc` inside
@@ -39,3 +41,10 @@ an iframe with `sandbox="allow-scripts"` (no same-origin access, forms, popups,
 or top-level navigation). Its restrictive CSP permits inline visuals/scripts
 and images but disables connections and other resources. Global security
 headers remain unchanged. Supplied reduced-motion behavior is preserved.
+
+The served document accelerates only the first 4.3 seconds at 1.4× (~3.1 seconds),
+then restores normal animation speed. All layers share the same clock, so
+delayed effects stay synchronized. Completion follows the final LR scale-up
+(16.98s on the original timeline) or SSR arrival (9.52s), plus a 700ms hold.
+Reduced-motion users advance after a short static hold. Original HTML assets
+remain byte-identical; adaptation is confined to the sandbox bridge.

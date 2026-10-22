@@ -76,7 +76,32 @@ export function cardCinematicDocument(
     const hostOrigin=${json(parentOrigin)};
     const hostCard=${json(data)};
     let hostState="loading";
+    let hostPaused=false;
     const notifyHost=type=>parent.postMessage({type},hostOrigin);
+    function startPlayback(){
+      if(!document.getAnimations||!window.requestAnimationFrame)return;
+      const reduced=window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      const animations=document.getAnimations();
+      const introEnd=4300;
+      const revealEnd=hostCard.rank==="LR"?16980:9520;
+      let accelerated=!reduced;
+      let elapsed=0;
+      let previous=null;
+      const setRate=rate=>animations.forEach(animation=>{animation.playbackRate=rate;});
+      if(accelerated)setRate(1.4);
+      const tick=now=>{
+        const delta=previous===null?0:Math.max(0,now-previous);
+        previous=now;
+        if(!hostPaused)elapsed+=delta*(accelerated?1.4:1);
+        if(accelerated&&elapsed>=introEnd){accelerated=false;setRate(1);}
+        if(elapsed>=(reduced?700:revealEnd+700)){
+          notifyHost("YOKKAI_CARD_COMPLETE");
+          return;
+        }
+        window.requestAnimationFrame(tick);
+      };
+      window.requestAnimationFrame(tick);
+    }
     window.addEventListener("message",event=>{
       if(event.source!==parent||event.origin!==hostOrigin)return;
       if(event.data?.type==="yokkai-card-status"){
@@ -84,6 +109,7 @@ export function cardCinematicDocument(
         return;
       }
       if(event.data?.type!=="yokkai-card-pause"||typeof event.data.paused!=="boolean")return;
+      hostPaused=event.data.paused;
       document.documentElement.classList.toggle("preview-paused",event.data.paused);
     });
     async function startSiteCard(){
@@ -91,6 +117,7 @@ export function cardCinematicDocument(
         if(!await prefetchSiteImage(hostCard.image))throw new Error("Card image unavailable");
         if(!await window.setYokkaiCard(hostCard,{replay:false}))throw new Error("Card unavailable");
         hostState="YOKKAI_CARD_READY";notifyHost(hostState);
+        startPlayback();
       }catch{hostState="YOKKAI_CARD_ERROR";notifyHost(hostState);}
     }
     void startSiteCard();

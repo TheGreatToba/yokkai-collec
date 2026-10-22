@@ -37,7 +37,10 @@ export default function LrCinematicPage() {
         </div>
       </header>
       <div className="yk-card-cinematic-demo">
-        <LocalCardCinematic card={createLocalLrPack("regular", 0)[4]} />
+        <LocalCardCinematic
+          card={createLocalLrPack("regular", 0)[4]}
+          controls={false}
+        />
       </div>
     </main>
   );
