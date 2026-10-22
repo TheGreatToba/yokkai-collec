@@ -1580,7 +1580,10 @@ export function AuctionView({
           <div className="yk-auction-figures">
             <div>
               <p className="yk-auction-label">Current price</p>
-              <Karas amount={auction.amount} className="yk-auction-price" />
+              <Karas
+                amount={auction.amount}
+                className="yk-auction-price yk-karas-gold"
+              />
               <p className="mt-1 text-xs text-ink-3">
                 {auction.bids} bid{auction.bids === 1 ? "" : "s"}
               </p>
@@ -1638,7 +1641,7 @@ export function AuctionView({
           ) : (
             <>
               <Button
-                className="yk-bid-quick"
+                className="yk-bid-quick yk-karas-gold"
                 disabled={!biddable || pending || quickShort}
                 aria-busy={pending || undefined}
                 onClick={() => void bid(auction.nextBid!)}
@@ -1699,7 +1702,7 @@ export function AuctionView({
               </form>
               <div className="yk-auction-balance">
                 <span>Your balance</span>
-                <Karas amount={auction.balance} />
+                <Karas amount={auction.balance} className="yk-karas-gold" />
               </div>
               {(quickShort || offerShort) && (
                 <p role="alert" className="yk-auction-alert">

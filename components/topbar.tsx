@@ -616,7 +616,7 @@ export function Topbar({
                 className="yk-balance-skeleton"
               />
             ) : (
-              <Karas amount={karas} />
+              <Karas amount={karas} className="yk-karas-gold" />
             )}
           </span>
           <div className="relative">
