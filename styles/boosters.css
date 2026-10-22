@@ -7,6 +7,103 @@
   gap: var(--layout-gutter);
   margin-top: var(--layout-gutter);
 }
+.yk-pack-batch-picker {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  margin: 8px 0;
+}
+.yk-pack-quantity {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid #304361;
+  border-radius: 999px;
+  background: #080e1b;
+}
+.yk-pack-quantity button {
+  min-width: 52px;
+  min-height: 36px;
+  border-radius: 999px;
+  color: #b6c9e6;
+  font-size: 13px;
+  font-weight: 700;
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+.yk-pack-quantity button[aria-pressed="true"] {
+  background: #b8d2fa;
+  color: #08101e;
+  box-shadow: 0 0 16px #8fbaff30;
+}
+.yk-pack-quantity button:not(:disabled):hover {
+  background: #29425f;
+  color: #f0f6ff;
+}
+.yk-pack-quantity button[aria-pressed="true"]:hover {
+  background: #d0e2ff;
+  color: #08101e;
+}
+.yk-pack-quantity button:focus-visible {
+  outline: 2px solid #b8d2fa;
+  outline-offset: 3px;
+}
+.yk-pack-quantity button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.yk-pack-batch-details {
+  color: #aebfd7;
+  font-size: 11px;
+}
+.yk-opening-batch-count {
+  position: absolute;
+  top: max(28px, env(safe-area-inset-top));
+  z-index: 2;
+  color: #d7e6ff;
+  font-weight: 600;
+  pointer-events: none;
+}
+.yk-reveal-progress.yk-reveal-progress-batch {
+  width: min(100%, 360px);
+  max-width: 100%;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px;
+}
+.yk-reveal-progress-batch li {
+  flex: 0 0 12px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .yk-pack-quantity button {
+    transition: none;
+  }
+}
+@media (min-width: 701px) {
+  .yk-pack-grid:has(.yk-pack-batch-picker) .yk-pack-panel .yk-pack-body {
+    flex: 1;
+  }
+  .yk-pack-grid:has(.yk-pack-batch-picker)
+    .yk-pack-panel
+    .yk-pack-body
+    > .yk-button {
+    margin-top: auto;
+  }
+}
+@media (min-width: 1024px) and (max-height: 1200px) {
+  .yk-boosters-page
+    .yk-pack-grid:has(.yk-pack-batch-picker)
+    .yk-pack-panel
+    .yk-pack-art-stage {
+    height: clamp(
+      100px,
+      calc(100svh - var(--pack-viewport-chrome) - 74px),
+      620px
+    );
+  }
+}
 .yk-pack-panel {
   position: relative;
   overflow: hidden;

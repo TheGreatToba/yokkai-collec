@@ -87,6 +87,7 @@ export function BoosterReveal({
   previewOnly = false,
   finalCinematics = false,
   releasedCinematics = false,
+  packCount = 1,
   cards,
   collection = [],
   folders = [],
@@ -109,6 +110,7 @@ export function BoosterReveal({
   previewOnly?: boolean;
   finalCinematics?: boolean;
   releasedCinematics?: boolean;
+  packCount?: number;
   cards: RevealCard[];
   revealed: number;
   onReveal: (index: number) => void;
@@ -380,7 +382,7 @@ export function BoosterReveal({
       <header className="yk-reveal-header">
         <div className="yk-reveal-copy">
           <p className="eyebrow">
-            {decision ? "Decision Pack" : "Regular Pack"}
+            {decision ? "Decision Pack" : packCount > 1 ? `${packCount} Regular Packs` : "Regular Pack"}
           </p>
           <h2 className="mt-2 font-display text-2xl">
             {decision
@@ -413,7 +415,7 @@ export function BoosterReveal({
             }}
           />
         )}
-        <ol className="yk-reveal-progress" aria-hidden="true">
+        <ol className={`yk-reveal-progress ${packCount > 1 ? "yk-reveal-progress-batch" : ""}`} aria-hidden="true">
           {cards.map((card, i) => (
             <li
               key={card.instanceId}
@@ -1024,6 +1026,7 @@ export function Boosters({
   folders = [],
   revealed,
   onOpen,
+  onOpenMany,
   onKeepDecision,
   onDiscard,
   onAuction,
@@ -1056,6 +1059,7 @@ export function Boosters({
   folders?: Folder[];
   revealed: number;
   onOpen: (kind: "regular" | "decision") => Promise<RevealCard[] | undefined>;
+  onOpenMany?: (count: 1 | 5 | 10) => Promise<RevealCard[] | undefined>;
   onKeepDecision: (instanceId: string) => Promise<number>;
   onDiscard: (instanceId: string) => Promise<void>;
   onAuction?: (
@@ -1091,6 +1095,10 @@ export function Boosters({
   const [ratesKind, setRatesKind] = useState<"regular" | "decision" | null>(
     null
   );
+  const [regularCount, setRegularCount] = useState<1 | 5 | 10>(1);
+  const [activePackCount, setActivePackCount] = useState(1);
+  const batchEnabled = releasedOpening && !!onOpenMany;
+  const selectedCount = batchEnabled && status && status.available >= regularCount ? regularCount : 1;
   const openingLock = useRef(false);
   const openingStage = useRef<HTMLDivElement>(null);
   const openingTrigger = useRef<HTMLElement | null>(null);
@@ -1143,6 +1151,8 @@ export function Boosters({
     if (openingLock.current) return;
     openingTrigger.current = trigger ?? (document.activeElement instanceof HTMLElement && document.activeElement.tabIndex >= 0 ? document.activeElement : null);
     openingLock.current = true;
+    const count = kind === "regular" ? selectedCount : 1;
+    setActivePackCount(count);
     setOpeningKind(kind);
     setPriorCopies(packCopySnapshot(collection, collectionReady));
     const reducedMotion = window.matchMedia(
@@ -1163,7 +1173,7 @@ export function Boosters({
     if (releasedOpening) {
       const finished = new Promise<void>(resolve => { finishOpening.current = resolve; });
       void runFinalBoosterOpening({
-        open: () => onOpen(kind),
+        open: count > 1 && onOpenMany ? () => onOpenMany(count) : () => onOpen(kind),
         finished,
         onResponse: cards => {
           clearTimeout(waitingTimer);
@@ -1354,6 +1364,7 @@ export function Boosters({
                 onComplete={() => finishOpening.current?.()}
                 onTear={() => { setOpeningPhase("seal"); playSound("tear"); }}
               />
+              {activePackCount > 1 && <p className="yk-opening-batch-count">{activePackCount} Regular Packs · {activePackCount * 5} cards</p>}
               {waiting && (!clickToOpen || tearRequested) && <p className="yk-opening-server-status" role="status">Your pack is still being prepared…</p>}
             </>
           ) : <>
@@ -1423,6 +1434,7 @@ export function Boosters({
         <BoosterReveal
           finalCinematics={process.env.NODE_ENV === "development"}
           releasedCinematics
+          packCount={drawKind === "regular" ? activePackCount : 1}
           previewOnly={localPreview}
           onComplete={localPreview ? () => setShowDraw(false) : undefined}
           key={draw[0].instanceId}
@@ -1433,9 +1445,9 @@ export function Boosters({
           onReveal={onReveal}
           onReturn={() => setShowDraw(false)}
           onNext={drawKind === "regular" ? () => start("regular") : undefined}
-          nextDisabled={!status || status.available === 0 || busy}
+          nextDisabled={!status || status.available < selectedCount || busy}
           nextLabel={
-            status?.available === 0 ? `Next in ${countdown}` : "Next pack"
+            status?.available === 0 ? `Next in ${countdown}` : selectedCount > 1 ? `Next ${selectedCount} packs` : "Next pack"
           }
           onDiscard={!localPreview && drawKind === "regular" ? onDiscard : undefined}
           onAuction={drawKind === "regular" ? onAuction : undefined}
@@ -1550,12 +1562,25 @@ export function Boosters({
                   </button>
                 </p>
               )}
+              {batchEnabled && <div className="yk-pack-batch-picker">
+                <div className="yk-pack-quantity" role="group" aria-label="Regular Pack quantity">
+                  {([1, 5, 10] as const).map(count => <button
+                    key={count}
+                    type="button"
+                    aria-label={`Open ${count} ${count === 1 ? "Regular Pack" : "Regular Packs"}`}
+                    aria-pressed={selectedCount === count}
+                    disabled={busy || !status || status.available < count}
+                    onClick={() => setRegularCount(count)}
+                  >×{count}</button>)}
+                </div>
+                <p className="yk-pack-batch-details" aria-live="polite">{selectedCount * 5} cards · {selectedCount} {selectedCount === 1 ? "pack" : "packs"}</p>
+              </div>}
               <Button
                 className="w-full"
                 disabled={!status || status.available === 0 || busy}
                 onClick={event => start("regular", event.currentTarget)}
               >
-                {status?.available === 0 ? `Next in ${countdown}` : "Open"}
+                {status?.available === 0 ? `Next in ${countdown}` : selectedCount > 1 ? `Open ×${selectedCount}` : "Open"}
               </Button>
             </div>
           </article>

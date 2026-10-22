@@ -32,6 +32,16 @@ export function LocalLrPacksPreview() {
         previewOnly
         releasedOpening
         clickToOpen
+        onOpenMany={async count => {
+          const cards = Array.from({ length: count }, (_, index) =>
+            createLocalLrPack("regular", sequence + index)
+          ).flat();
+          setSequence(current => current + count);
+          setKind("regular");
+          setRevealed(0);
+          setDraw(cards);
+          return cards;
+        }}
         status={{ available: 10, reserve: 10, maximum: 10, nextPackAt: null }}
         countdown="00:00"
         decisionStatus={{
