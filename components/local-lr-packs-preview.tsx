@@ -110,6 +110,18 @@ export function LocalLrPacksPreview() {
           return cards;
         }}
         onKeepDecision={async () => 0}
+        onSellDecisionAll={async () => {
+          const reward = draw.reduce(
+            (sum, card) => sum + (card.destructionValue ?? 0),
+            0
+          );
+          const ids = new Set(draw.map(card => card.instanceId));
+          setBalance(current => current + reward);
+          setCollection(current =>
+            current.filter(card => !ids.has(card.instanceId))
+          );
+          return reward;
+        }}
         onDiscard={async id => {
           const card = assertAvailable(id);
           setBalance(current => current + (card.destructionValue ?? 0));

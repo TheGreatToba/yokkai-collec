@@ -215,6 +215,10 @@ function setup({
         }
         return { data: karasBalance, error: null };
       }
+      if (name === "discard_decision_pack") {
+        karasBalance += 15;
+        return { data: 15, error: null };
+      }
       assert.fail(name);
     }
   };
@@ -500,6 +504,23 @@ test("destruction groupée : un seul RPC supprime tout le lot et invalide les ca
     calls.filter(call => call.rpc === "discard_collection_card").length,
     0
   );
+});
+
+test("Decision Pack sell-all uses one atomic RPC and invalidates the balance", async () => {
+  const { api, calls, subscribeInvalidations } = setup();
+  await api.getGameInfo();
+  const events = [];
+  const unsubscribe = subscribeInvalidations(scopes =>
+    events.push(Array.from(scopes))
+  );
+  assert.equal(await api.discardDecisionPack(), 15);
+  unsubscribe();
+  assert.equal((await api.getGameInfo()).karasBalance, 15);
+  assert.equal(
+    calls.filter(call => call.rpc === "discard_decision_pack").length,
+    1
+  );
+  assert.deepEqual(events, [["balance", "collection"]]);
 });
 
 test("erreurs DB explicites, requêtes réessayables et aucune relance automatique d'ouverture", async () => {

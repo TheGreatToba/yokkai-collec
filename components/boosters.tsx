@@ -79,7 +79,9 @@ function decisionReturnLabel(nextPackAt: number) {
 }
 type Decision = {
   onKeep: (instanceId: string) => Promise<number>;
+  onSellAll?: () => Promise<number>;
   keptId?: string;
+  soldAll?: boolean;
   busy?: boolean;
   karasReward?: number;
 };
@@ -148,6 +150,8 @@ export function BoosterReveal({
   const [confirm, setConfirm] = useState(false);
   const [error, setError] = useState("");
   const [confirming, setConfirming] = useState(false);
+  const [sellAllConfirm, setSellAllConfirm] = useState(false);
+  const [sellingAll, setSellingAll] = useState(false);
   const [discarded, setDiscarded] = useState(
     () =>
       new Set(cards.filter(card => card.discarded).map(card => card.instanceId))
@@ -170,6 +174,7 @@ export function BoosterReveal({
   const [showAll, setShowAll] = useState(false);
   const [inspected, setInspected] = useState<RevealCard | null>(null);
   const keepLock = useRef(false);
+  const sellAllLock = useRef(false);
   const revealTimer = useRef<number | null>(null);
   const next = useRef<HTMLButtonElement>(null);
   const completeLink = useRef<HTMLAnchorElement>(null);
@@ -182,6 +187,7 @@ export function BoosterReveal({
   const keptCards = cards.filter(
     c =>
       !discarded.has(c.instanceId) &&
+      !decision?.soldAll &&
       (!decision?.keptId || decision.keptId === c.instanceId)
   );
   const visibleCards = decision
@@ -209,7 +215,8 @@ export function BoosterReveal({
     selectedCards.every(card => card.destructionValue != null)
       ? selectedCards.reduce((sum, card) => sum + card.destructionValue!, 0)
       : undefined;
-  const choosing = !!decision && done && !decision.keptId;
+  const choosing =
+    !!decision && done && !decision.keptId && !decision.soldAll;
   const chosen = cards.find(
     c => c.instanceId === pick && !discarded.has(c.instanceId)
   );
@@ -231,6 +238,17 @@ export function BoosterReveal({
       ? lost.reduce((sum, card) => sum + card.destructionValue!, 0)
       : undefined;
   };
+  const sellableDecisionCards = cards.filter(
+    card => !discarded.has(card.instanceId)
+  );
+  const sellAllReward = sellableDecisionCards.every(
+    card => card.destructionValue != null
+  )
+    ? sellableDecisionCards.reduce(
+        (sum, card) => sum + card.destructionValue!,
+        0
+      )
+    : undefined;
   const deposit = useCallback(() => {
     if (revealTimer.current) window.clearTimeout(revealTimer.current);
     revealTimer.current = null;
@@ -329,6 +347,24 @@ export function BoosterReveal({
     } finally {
       keepLock.current = false;
       setConfirming(false);
+    }
+  }
+  async function sellAll() {
+    if (!decision?.onSellAll || sellAllLock.current) return;
+    sellAllLock.current = true;
+    setSellingAll(true);
+    setError("");
+    try {
+      await decision.onSellAll();
+      setDiscarded(new Set(cards.map(card => card.instanceId)));
+      setSellAllConfirm(false);
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "Couldn't sell these cards."
+      );
+    } finally {
+      sellAllLock.current = false;
+      setSellingAll(false);
     }
   }
   function toggleSelection(instanceId: string) {
@@ -654,6 +690,7 @@ export function BoosterReveal({
           const isDiscarded = discarded.has(card.instanceId);
           const lost =
             isDiscarded ||
+            !!decision?.soldAll ||
             (!!decision?.keptId && decision.keptId !== card.instanceId);
           const kept = decision?.keptId === card.instanceId;
           return (
@@ -670,6 +707,7 @@ export function BoosterReveal({
                     disabled={
                       !done ||
                       confirming ||
+                      sellingAll ||
                       isDiscarded ||
                       (selecting && (auctioned.has(card.instanceId) || locked.has(card.instanceId))) ||
                       (!overview && !choosing && !selecting && !onAuction && !onSetLocked)
@@ -791,6 +829,26 @@ export function BoosterReveal({
           );
         })}
       </ol>
+      {choosing && decision.onSellAll && (
+        <div className="yk-decision-sell-all">
+          <Button
+            variant="danger"
+            disabled={decision.busy || confirming || sellingAll}
+            onClick={() => {
+              setError("");
+              setSellAllConfirm(true);
+            }}
+          >
+            Sell all cards
+          </Button>
+          {sellAllReward != null && (
+            <p>
+              Receive {sellAllReward.toLocaleString("en-US")} Karas and keep
+              none.
+            </p>
+          )}
+        </div>
+      )}
       {batch && !done && <button type="button" className="yk-button yk-button-secondary yk-reveal-all" onClick={revealAll}>Reveal all</button>}
       {batch && !overview && <nav className="yk-batch-pagination" aria-label="Batch card groups">
         <button type="button" aria-label="Previous five cards" disabled={batchWindow.page === 0} onClick={() => setBatchReview({ at: revealed, page: batchWindow.page - 1 })}>‹ Previous</button>
@@ -839,7 +897,9 @@ export function BoosterReveal({
           className={`yk-reveal-summary ${decision ? "yk-reveal-summary-decision" : ""}`}
         >
           <h2 className="mb-5 font-display text-2xl">
-            {decision
+            {decision?.soldAll
+              ? `All cards sold · +${(decision.karasReward ?? 0).toLocaleString("en-US")} Karas`
+              : decision
               ? `Card added to your collection · +${(decision.karasReward ?? 0).toLocaleString("en-US")} Karas from the cards you didn't keep`
               : "Summon complete"}
           </h2>
@@ -939,6 +999,52 @@ export function BoosterReveal({
             </Button>
           </div>
         )}
+      </Modal>
+      <Modal
+        open={sellAllConfirm}
+        onClose={() => {
+          if (!sellingAll) setSellAllConfirm(false);
+        }}
+        title="Sell all cards?"
+      >
+        <p className="text-center text-sm leading-6 text-ink-2">
+          None of these cards will join your collection.
+          {sellAllReward != null && (
+            <>
+              {" "}
+              You&apos;ll receive{" "}
+              <strong className="text-karas">
+                {sellAllReward.toLocaleString("en-US")} Karas
+              </strong>
+              .
+            </>
+          )}
+        </p>
+        <p className="mt-2 text-center text-xs text-ink-3">
+          This choice is final.
+        </p>
+        {error && (
+          <p role="alert" className="mt-4 text-center text-sm text-danger">
+            {error}
+          </p>
+        )}
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <Button
+            variant="secondary"
+            disabled={sellingAll}
+            onClick={() => setSellAllConfirm(false)}
+          >
+            Back to choices
+          </Button>
+          <Button
+            variant="danger"
+            disabled={sellingAll || sellAllReward == null}
+            aria-busy={sellingAll || undefined}
+            onClick={() => void sellAll()}
+          >
+            {sellingAll ? "Selling…" : "Sell all cards"}
+          </Button>
+        </div>
       </Modal>
       <Modal
         open={confirm}
@@ -1133,6 +1239,7 @@ export function Boosters({
   onOpen,
   onOpenMany,
   onKeepDecision,
+  onSellDecisionAll,
   onDiscard,
   onDiscardMany,
   onAuction,
@@ -1168,6 +1275,7 @@ export function Boosters({
   onOpen: (kind: "regular" | "decision") => Promise<RevealCard[] | undefined>;
   onOpenMany?: (count: 1 | 5 | 10) => Promise<RevealCard[] | undefined>;
   onKeepDecision: (instanceId: string) => Promise<number>;
+  onSellDecisionAll?: () => Promise<number>;
   onDiscard: (instanceId: string) => Promise<void>;
   onDiscardMany?: (instanceIds: string[]) => Promise<void>;
   onAuction?: (
@@ -1199,6 +1307,7 @@ export function Boosters({
     null
   );
   const [keptId, setKeptId] = useState<string>();
+  const [decisionSoldAll, setDecisionSoldAll] = useState(false);
   const [decisionKaras, setDecisionKaras] = useState<number>();
   const [ratesKind, setRatesKind] = useState<"regular" | "decision" | null>(
     null
@@ -1269,6 +1378,7 @@ export function Boosters({
       "(prefers-reduced-motion: reduce)"
     ).matches;
     setKeptId(undefined);
+    setDecisionSoldAll(false);
     setDecisionKaras(undefined);
     setShowDraw(true);
     setWaiting(false);
@@ -1576,6 +1686,7 @@ export function Boosters({
             drawKind === "decision"
               ? {
                   keptId,
+                  soldAll: decisionSoldAll,
                   busy,
                   karasReward: decisionKaras,
                   onKeep: async id => {
@@ -1583,7 +1694,15 @@ export function Boosters({
                     setDecisionKaras(reward);
                     setKeptId(id);
                     return reward;
-                  }
+                  },
+                  onSellAll: onSellDecisionAll
+                    ? async () => {
+                        const reward = await onSellDecisionAll();
+                        setDecisionKaras(reward);
+                        setDecisionSoldAll(true);
+                        return reward;
+                      }
+                    : undefined
                 }
               : undefined
           }
