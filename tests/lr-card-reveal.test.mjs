@@ -7,7 +7,7 @@ test("LR uses one native effect and the reference final sequence, without the re
   const component = read("components/lr-card-reveal.tsx");
   const css = read("styles/lr-card-reveal.css");
   assert.match(read("components/card-cinematic.tsx"), /rarity === "LR"/);
-  assert.match(component, /15370/);
+  assert.match(component, /12400/);
   assert.match(component, /clearTimeout/);
   assert.match(component, /animated={false}/);
   assert.doesNotMatch(
@@ -22,7 +22,7 @@ test("LR uses one native effect and the reference final sequence, without the re
 });
 
 // Exercise StrictMode's setup/cleanup/setup, both completion paths and unmount.
-test("LR completes once at 15.37s (700ms with reduced motion), cleans its timer and leaves CSS owned by the DOM", async () => {
+test("LR exposes final controls at 12.4s (700ms with reduced motion), continues once and cleans its sequence", async () => {
   const { createRequire } = await import("node:module");
   const { default: vm } = await import("node:vm");
   const { default: ts } = await import("typescript");
@@ -57,7 +57,8 @@ test("LR completes once at 15.37s (700ms with reduced motion), cleans its timer 
                   refs.push(ref);
                   return ref;
                 },
-                useEffect: fn => effects.push(fn)
+                useEffect: fn => effects.push(fn),
+                useState: initial => [initial, () => {}]
               }
             : name === "@/components/yokai-card"
               ? { YokaiCard: "Card" }
@@ -118,8 +119,13 @@ test("LR completes once at 15.37s (700ms with reduced motion), cleans its timer 
     const cleanup = effects[1]();
     assert.equal(timers.size, 1);
     const timer = [...timers.values()][0];
-    assert.equal(timer.delay, reduced ? 700 : 15370);
+    assert.equal(timer.delay, reduced ? 700 : 12400);
     timer.fn();
+    assert.equal(
+      continued,
+      0,
+      "the reference waits for Next rather than cutting off its ending"
+    );
     const button = React.Children.toArray(tree.props.children).find(
       child => child.type === "button"
     );
@@ -200,7 +206,8 @@ test("artwork colors are sampled once and the canvas, handlers and timeout are r
                   refs.push(ref);
                   return ref;
                 },
-                useEffect: fn => effects.push(fn)
+                useEffect: fn => effects.push(fn),
+                useState: initial => [initial, () => {}]
               }
             : name === "@/components/yokai-card"
               ? { YokaiCard: "Card" }

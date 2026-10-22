@@ -378,6 +378,46 @@ try {
             ),
             Buffer.from(data, "base64")
           );
+          await until("!!document.querySelector('.yk-lr-ready')");
+          for (const [width, height] of [
+            [320, 667],
+            [375, 667],
+            [768, 900],
+            [1024, 900],
+            [1440, 900],
+            [900, 420]
+          ]) {
+            await send("Emulation.setDeviceMetricsOverride", {
+              width,
+              height,
+              deviceScaleFactor: 1,
+              mobile: width < 700
+            });
+            await delay(350);
+            assert.equal(
+              await evaluate(`(() => {
+              const card = document.querySelector('.yk-lr-stage').getBoundingClientRect();
+              const controls = document.querySelector('.yk-lr-end-controls').getBoundingClientRect();
+              return controls.left >= 0 && controls.right <= innerWidth && controls.top >= 0 && controls.bottom <= innerHeight &&
+                (controls.left >= card.right || controls.right <= card.left || controls.top >= card.bottom || controls.bottom <= card.top);
+            })()`),
+              true,
+              `LR actions overlap the card at ${width}x${height}`
+            );
+          }
+          await viewport(1440);
+          await evaluate(
+            "document.querySelector('.yk-lr-end-controls button').click()"
+          );
+          await until("!document.querySelector('.yk-lr-ready')");
+          assert.equal(
+            await evaluate("document.querySelectorAll('.yk-lr-reveal').length"),
+            1
+          );
+          await until("!!document.querySelector('.yk-lr-ready')");
+          await evaluate(
+            "document.querySelector('.yk-lr-end-controls button:last-child').click()"
+          );
           await until("!document.querySelector('.yk-lr-reveal')");
         } else {
           await delay(5500); // Unmount during the active glass/particle sequence.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { Card } from "@/lib/data/cards";
 import { YokaiCard } from "@/components/yokai-card";
 import "@/styles/lr-card-reveal.css";
@@ -191,6 +191,8 @@ export function LrCardReveal({
   const completed = useRef(false);
   const root = useRef<HTMLElement>(null);
   const sampledImage = useRef<HTMLImageElement | null>(null);
+  const [replay, setReplay] = useState(0);
+  const [ready, setReady] = useState(false);
   useEffect(() => {
     callback.current = onContinue;
   }, [onContinue]);
@@ -205,7 +207,10 @@ export function LrCardReveal({
   useEffect(() => {
     completed.current = false;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const timer = window.setTimeout(advance, reduced.matches ? 700 : 15370);
+    const timer = window.setTimeout(
+      () => setReady(true),
+      reduced.matches ? 700 : 12400
+    );
     const element = root.current;
     const animations = element?.getAnimations({ subtree: true }) ?? [];
     return () => {
@@ -214,7 +219,7 @@ export function LrCardReveal({
       if (!element?.isConnected)
         animations.forEach(animation => animation.cancel());
     };
-  }, []);
+  }, [replay]);
   useEffect(() => {
     const element = root.current;
     const image = element?.querySelector("img");
@@ -268,12 +273,16 @@ export function LrCardReveal({
     image.addEventListener("error", release, { once: true });
     if (image.complete && image.naturalWidth > 0) sample();
     return release;
-  }, [card.image]);
+  }, [card.image, replay]);
   return (
     <section
+      key={replay}
       ref={root}
       className="yk-lr-reveal yk-card-cinematic yk-card-cinematic-clean"
       aria-label={`LR cinematic: ${card.name}`}
+      data-long-name={card.name.trim().length > 20 || undefined}
+      data-long-license={(card.anime?.trim().length ?? 0) > 24 || undefined}
+      data-long-category={card.category.trim().length > 13 || undefined}
     >
       <div className="yk-lr-world" aria-hidden="true" />
       <div className="yk-lr-intro" aria-hidden="true" />
@@ -400,6 +409,26 @@ export function LrCardReveal({
           onClick={advance}
         />
       )}
+      <nav
+        className={`yk-lr-end-controls${ready ? " yk-lr-ready" : ""}`}
+        aria-label="Reveal actions"
+        inert={!ready}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            setReady(false);
+            setReplay(value => value + 1);
+          }}
+        >
+          Replay
+        </button>
+        {onContinue && (
+          <button type="button" onClick={advance}>
+            Next
+          </button>
+        )}
+      </nav>
     </section>
   );
 }
