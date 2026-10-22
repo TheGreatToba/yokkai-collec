@@ -354,3 +354,140 @@ test("batch fullscreen keeps its controls scrollable on short/mobile screens whi
   assert.equal(section.props["data-reveal-state"], "revealing");
   assert.ok(section.props.className.includes("yk-reveal-batch"));
 });
+
+test("Reveal all exposes every awarded batch copy immediately, once, with static LR/SSR highlights and no pagination or cinematic", () => {
+  for (const count of [5, 10])
+    for (const alreadyRevealed of [0, 3, 5, count * 5 - 1]) {
+      const { props, render, slots } = revealHarness(count);
+      const indices = [],
+        sounds = [];
+      props.revealed = alreadyRevealed;
+      props.onSound = name => sounds.push(name);
+      props.onReveal = index => {
+        indices.push(index);
+        if (props.revealed === index) props.revealed++;
+      };
+      const shortcut = render().find(
+        node => node.type === "button" && node.props.children === "Reveal all"
+      );
+      assert.ok(shortcut);
+      shortcut.props.onClick();
+      shortcut.props.onClick();
+      const tree = render(),
+        cards = slots(tree);
+      assert.deepEqual(
+        indices,
+        Array.from(
+          { length: count * 5 - alreadyRevealed },
+          (_, i) => alreadyRevealed + i
+        )
+      );
+      assert.deepEqual(
+        sounds,
+        [],
+        "the shortcut does not play reveals or rarity sounds"
+      );
+      assert.equal(props.revealed, count * 5);
+      assert.equal(cards.length, count * 5);
+      assert.equal(new Set(cards.map(node => node.key)).size, count * 5);
+      assert.ok(
+        cards.every(node => node.props.className.includes("yk-filled"))
+      );
+      const artworks = tree.filter(node => node.type === "YokaiCard");
+      assert.equal(artworks.length, count * 5);
+      assert.ok(artworks.every(node => node.props.animated === false));
+      assert.equal(cards[0].props["data-batch-rarity"], "LR");
+      assert.equal(
+        cards.filter(node => node.props["data-batch-rarity"] === "LR").length,
+        count
+      );
+      assert.equal(
+        cards.filter(node => node.props["data-batch-rarity"] === "SSR").length,
+        count
+      );
+      assert.equal(
+        tree.filter(node => node.props?.className === "yk-batch-rarity-label")
+          .length,
+        count * 2
+      );
+      assert.equal(
+        tree.some(node => node.props?.["aria-label"] === "Batch card groups"),
+        false
+      );
+      assert.equal(
+        tree.some(node => node.props?.children === "Reveal all"),
+        false
+      );
+      assert.equal(
+        tree.some(node => node.type === "Dynamic"),
+        false
+      );
+      assert.equal(
+        tree.some(
+          node =>
+            node.type === "Button" &&
+            String(node.props.children).startsWith("Replay cinematic:")
+        ),
+        false
+      );
+      assert.equal(
+        tree.some(node => node.type === "Modal" && node.props.open),
+        false
+      );
+    }
+});
+
+test("Reveal all is only available for batch Regular Packs, never single packs or Decision choices", () => {
+  for (const count of [1, 5, 10])
+    for (const decision of [undefined, { onKeep: async () => 0 }]) {
+      const { props, render } = revealHarness(count);
+      props.decision = decision;
+      assert.equal(
+        render().some(node => node.props?.children === "Reveal all"),
+        count > 1 && !decision
+      );
+    }
+});
+
+test("instant batch overview keeps discarded copies out without losing or repeating other rewards", () => {
+  const { props, render, slots } = revealHarness(10);
+  props.cards[0].discarded = true;
+  props.cards[7].discarded = true;
+  props.onReveal = index => {
+    if (index === props.revealed) props.revealed++;
+  };
+  render()
+    .find(node => node.props?.children === "Reveal all")
+    .props.onClick();
+  const tree = render();
+  assert.equal(slots(tree).length, 48);
+  const ids = tree
+    .filter(node => node.type === "YokaiCard")
+    .map(node => node.props.instanceId);
+  assert.equal(new Set(ids).size, 48);
+  assert.equal(ids.includes("copy-0"), false);
+  assert.equal(ids.includes("copy-7"), false);
+});
+
+test("Reveal all stays under the stack and the static full grid adapts from two to five columns", () => {
+  const css = read("styles/boosters.css").replace(/\s+/g, " ");
+  assert.match(
+    css,
+    /\.yk-reveal-batch > \.yk-reveal-all \{ grid-column: 1; grid-row: 3;/
+  );
+  assert.match(
+    css,
+    /\.yk-reveal-instant \*, \.yk-reveal-instant \*::before, \.yk-reveal-instant \*::after \{ animation: none !important; transition: none !important;/
+  );
+  for (const columns of [2, 3, 4, 5])
+    assert.ok(
+      css.includes(`grid-template-columns: repeat(${columns}, minmax(0, 1fr));`)
+    );
+  for (const rarity of ["LR", "SSR"])
+    assert.match(
+      css,
+      new RegExp(
+        `\\.yk-reveal-instant \\[data-batch-rarity="${rarity}"\\] \\{[^}]*box-shadow:`
+      )
+    );
+});

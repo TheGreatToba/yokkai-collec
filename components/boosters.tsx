@@ -165,11 +165,13 @@ export function BoosterReveal({
   const [detailCard, setDetailCard] = useState<RevealCard | null>(null);
   const [auctioned, setAuctioned] = useState(() => new Set<string>());
   const [batchReview, setBatchReview] = useState<{ at: number; page: number } | null>(null);
+  const [showAll, setShowAll] = useState(false);
   const keepLock = useRef(false);
   const revealTimer = useRef<number | null>(null);
   const next = useRef<HTMLButtonElement>(null);
   const completeLink = useRef<HTMLAnchorElement>(null);
   const nextBooster = useRef<HTMLButtonElement>(null);
+  const revealAllLock = useRef(false);
   const current = cards[revealed];
   const done = revealed >= cards.length;
   // Summary counts only the cards that stay in the collection (not destroyed, not lost in a Decision Pack).
@@ -182,10 +184,15 @@ export function BoosterReveal({
     ? cards
     : cards.filter(card => !discarded.has(card.instanceId));
   const batch = !decision && packCount > 1 && cards.length > 5;
-  const batchWindow = batch
+  const overview = batch && showAll;
+  const overviewCards = overview ? [...visibleCards].sort((a, b) => {
+    const priority = { LR: 4, SSR: 3, SR: 2, R: 1, C: 0 };
+    return priority[b.rarity] - priority[a.rarity];
+  }) : visibleCards;
+  const batchWindow = batch && !overview
     ? packRevealWindow(cards.length, revealed, batchReview?.at === revealed ? batchReview.page : undefined)
     : { page: 0, pages: 1, latest: 0, start: 0, end: cards.length };
-  const replayCards = batch ? cards.slice(batchWindow.start, batchWindow.end) : cards;
+  const replayCards = overview ? [] : batch ? cards.slice(batchWindow.start, batchWindow.end) : cards;
   const selectedCards = cards.filter(
     card =>
       selection.has(card.instanceId) &&
@@ -290,6 +297,18 @@ export function BoosterReveal({
     if (shiny || isLR) onSound?.(shiny ? "shiny" : "lr");
     else if (isSSR || current.rarity === "SR") onSound?.(isSSR ? "ssr" : "sr");
   }
+  function revealAll() {
+    if (!batch || done || revealAllLock.current) return;
+    revealAllLock.current = true;
+    if (revealTimer.current) window.clearTimeout(revealTimer.current);
+    revealTimer.current = null;
+    setRevealLocked(false);
+    setFaceUp(false);
+    setSpot(null);
+    setShowAll(true);
+    // Reveal only the already-awarded draw; never request or reroll a pack here.
+    for (let index = revealed; index < cards.length; index++) onReveal(index);
+  }
   async function keep() {
     if (!chosen || !decision || keepLock.current) return;
     keepLock.current = true;
@@ -386,7 +405,7 @@ export function BoosterReveal({
       aria-label="Pack cards"
       data-pack-kind={decision ? "decision" : "regular"}
       data-reveal-state={done ? "complete" : "revealing"}
-      className={`yk-reveal-screen ${done && !choosing ? "yk-reveal-complete" : ""} ${batch ? "yk-reveal-batch" : ""}`}
+      className={`yk-reveal-screen ${done && !choosing ? "yk-reveal-complete" : ""} ${batch ? "yk-reveal-batch" : ""} ${overview ? "yk-reveal-instant" : ""}`}
     >
       <header className="yk-reveal-header">
         <div className="yk-reveal-copy">
@@ -412,6 +431,11 @@ export function BoosterReveal({
                 : batch ? "Tap the card to reveal the next one." : `Tap the pack to reveal each card · ${revealed} / ${cards.length}`}
           </p>
         </div>
+        {overview && <p className="yk-batch-highlights" role="status">
+          <span className="yk-batch-lr-count">✦ {keptCards.filter(card => card.rarity === "LR").length} LR</span>
+          <span className="yk-batch-ssr-count">✦ {keptCards.filter(card => card.rarity === "SSR").length} SSR</span>
+          <span>All {cards.length} cards · No cinematics</span>
+        </p>}
         {!localPreview && done && !decision && visibleCards.length > 0 && (
           <SelectionModeButton
             active={selecting}
@@ -589,8 +613,8 @@ export function BoosterReveal({
       <p className="mt-8 text-center text-xs text-ink-3">{revealLocked ? "The energy is building…" : faceUp ? "Tap to place the card" : "Tap the pack to reveal a card"}</p>
     </div>}
     {choosing && <div className="yk-decision-banner"><p className="font-display text-lg text-karas">Choose your card</p><p className="mt-1 text-sm text-ink-2">Only one will join your collection — the other {cards.length - 1} {cards.length - 1 === 1 ? "card will" : "cards will"} be lost.</p></div>}
-    <ol className={`yk-reveal-grid ${choosing ? "yk-reveal-grid-choosing" : ""}`}>
-        {visibleCards.map((card, visibleIndex) => {
+    <ol className={`yk-reveal-grid ${choosing ? "yk-reveal-grid-choosing" : ""}`} aria-label={overview ? "All batch cards" : undefined}>
+        {overviewCards.map((card, visibleIndex) => {
           const i = batch ? cards.indexOf(card) : visibleIndex;
           if (batch && (i < batchWindow.start || i >= batchWindow.end)) return null;
           const isDiscarded = discarded.has(card.instanceId);
@@ -603,6 +627,7 @@ export function BoosterReveal({
               key={card.instanceId}
               style={{ "--slot-i": batch ? i - batchWindow.start : i } as CSSProperties}
               className={`yk-reveal-slot ${i < revealed ? "yk-filled" : ""} ${i === revealed && !done ? "yk-slot-next" : ""} ${pick === card.instanceId && choosing ? "yk-picked" : ""} ${lost ? "yk-lost" : ""} ${kept ? "yk-kept" : ""}`}
+              data-batch-rarity={overview ? card.rarity : undefined}
             >
               {i < revealed ? (
                 <>
@@ -645,7 +670,7 @@ export function BoosterReveal({
                         : undefined
                     }
                   >
-                    <YokaiCard {...card} />
+                    <YokaiCard {...card} animated={overview ? false : undefined} />
                     {selecting && (
                       <span
                         className={`yk-selection-check ${selection.has(card.instanceId) ? "yk-checked" : ""}`}
@@ -659,6 +684,7 @@ export function BoosterReveal({
                       </span>
                     )}
                   </button>
+                  {overview && (card.rarity === "SSR" || card.rarity === "LR") && <span className="yk-batch-rarity-label">✦ {card.rarity === "LR" ? "Legendary pull" : "Exceptional pull"}</span>}
                   {done && <div className="yk-reveal-actions">
                     {auctioned.has(card.instanceId) ? (
                       <StatusPill tone="info">LISTED</StatusPill>
@@ -728,7 +754,8 @@ export function BoosterReveal({
           );
         })}
       </ol>
-      {batch && <nav className="yk-batch-pagination" aria-label="Batch card groups">
+      {batch && !done && <button type="button" className="yk-button yk-button-secondary yk-reveal-all" onClick={revealAll}>Reveal all</button>}
+      {batch && !overview && <nav className="yk-batch-pagination" aria-label="Batch card groups">
         <button type="button" aria-label="Previous five cards" disabled={batchWindow.page === 0} onClick={() => setBatchReview({ at: revealed, page: batchWindow.page - 1 })}>‹ Previous</button>
         <div aria-live="polite">
           <strong>Cards {batchWindow.start + 1}–{batchWindow.end}</strong>

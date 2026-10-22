@@ -3101,3 +3101,99 @@ body:has(.yk-reveal-screen[data-reveal-state="revealing"]) {
     );
   }
 }
+
+/* Batch shortcut below the deck; instant results stay static and fully visible. */
+.yk-reveal-batch:has(> .yk-reveal-all) > .yk-reveal-stage {
+  grid-row: 2;
+}
+.yk-reveal-batch > .yk-reveal-all {
+  grid-column: 1;
+  grid-row: 3;
+  justify-self: center;
+  width: min(100%, 240px);
+  min-height: 44px;
+}
+.yk-batch-highlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  grid-column: 1 / -1;
+  font-size: 12px;
+  color: #b4c6e2;
+}
+.yk-batch-lr-count {
+  color: #ffe08a;
+}
+.yk-batch-ssr-count {
+  color: #ff9ccc;
+}
+.yk-reveal-screen.yk-reveal-batch.yk-reveal-instant > .yk-reveal-grid {
+  grid-column: 1;
+  grid-row: auto;
+  width: 100%;
+  max-width: none;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 12px;
+  padding: 12px;
+  background: #070e1acc;
+}
+.yk-reveal-instant > .yk-reveal-grid > li {
+  grid-column: auto !important;
+  padding: 6px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+}
+.yk-reveal-instant *,
+.yk-reveal-instant *::before,
+.yk-reveal-instant *::after {
+  animation: none !important;
+  transition: none !important;
+}
+.yk-reveal-instant [data-batch-rarity="LR"] {
+  border-color: #f4ce72;
+  background: linear-gradient(150deg, #70502244, #0e1423 70%);
+  box-shadow:
+    0 0 22px #eabb3938,
+    inset 0 0 16px #f7d17418;
+}
+.yk-reveal-instant [data-batch-rarity="SSR"] {
+  border-color: #fb74b9;
+  background: linear-gradient(150deg, #842d6644, #0e1423 70%);
+  box-shadow:
+    0 0 20px #ec489936,
+    inset 0 0 16px #ff7fbe18;
+}
+.yk-batch-rarity-label {
+  display: block;
+  margin-top: 10px;
+  color: #ffafd5;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+[data-batch-rarity="LR"] > .yk-batch-rarity-label {
+  color: #ffe08a;
+}
+@media (min-width: 640px) {
+  .yk-reveal-screen.yk-reveal-batch.yk-reveal-instant > .yk-reveal-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1024px) {
+  .yk-reveal-screen.yk-reveal-batch.yk-reveal-instant > .yk-reveal-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1280px) {
+  .yk-reveal-screen.yk-reveal-batch.yk-reveal-instant > .yk-reveal-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+@media (max-width: 900px) {
+  .yk-reveal-batch:has(> .yk-reveal-all) > .yk-reveal-grid {
+    grid-row: 4;
+  }
+  .yk-reveal-batch:has(> .yk-reveal-all) > .yk-batch-pagination {
+    grid-row: 5;
+  }
+}
