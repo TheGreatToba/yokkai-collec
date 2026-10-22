@@ -81,7 +81,7 @@ export function boosterOpeningDocument(
       if(event.data?.type==='yokkai-booster-status'&&hostState!=='loading')notify(hostState);
       if(event.data?.type==='yokkai-booster-next-step'&&hostState==='YOKKAI_BOOSTER_READY'&&!finished){
         const elapsed=performance.now()-startedAt+advancedBy;
-        const next=[2680,3740,5200].find(time=>time>elapsed+50);
+        const next=[2680,5200].find(time=>time>elapsed+50);
         if(next===undefined){complete();return;}
         const jump=next-elapsed;
         for(const animation of document.getAnimations()){
