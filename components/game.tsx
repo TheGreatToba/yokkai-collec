@@ -531,6 +531,9 @@ export function Game({
             }
             onKeepDecision={previewData ? async () => 0 : keepDecision}
             onDiscard={previewData ? async () => {} : discard}
+            onDiscardMany={
+              previewData ? async () => {} : discardCollectionCards
+            }
             onAuction={auctionCard}
             onMoveCard={moveCard}
             onSetLocked={lockCard}
