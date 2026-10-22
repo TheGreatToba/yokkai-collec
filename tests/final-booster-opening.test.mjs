@@ -657,7 +657,7 @@ test("latency preview uses the same opening animation as the site", () => {
   );
 });
 
-test("click advances arrival, tear and final hold separately", async () => {
+test("two clicks advance to tearing then finish the opening", async () => {
   const script = [
     ...documentFor("regular").matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)
   ].at(-1)[1];
@@ -695,8 +695,7 @@ test("click advances arrival, tear and final hold separately", async () => {
   assert.equal(animation.currentTime, 2680);
   assert.equal(messages.includes("YOKKAI_BOOSTER_COMPLETE"), false);
   receive(event);
-  assert.equal(animation.currentTime, 3740);
-  assert.equal(messages.includes("YOKKAI_BOOSTER_COMPLETE"), false);
+  assert.equal(animation.currentTime, 5200);
   receive(event);
   assert.equal(animation.currentTime, 5200);
   assert.equal(
