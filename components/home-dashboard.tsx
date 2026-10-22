@@ -221,13 +221,13 @@ async function HomeTopbar() {
 export function HomeDashboard({ userId }: { userId: string }) {
   const discordEnabled = Boolean(getDiscordInviteUrl());
   return (
-    <div className="flex min-h-dvh w-full flex-col">
+    <div className="relative isolate flex min-h-dvh w-full flex-col">
+      <AmbientGlow variant="home" />
       <Suspense fallback={<Topbar view="home" account={<AccountMenu />} />}>
         <HomeTopbar />
       </Suspense>
       <HomeRefresh />
       <main id="main-content" className="yk-home-main">
-        <AmbientGlow variant="home" />
         <HomeHero />
         <HomePacks>
           <Suspense fallback={<HomeSkeleton />}>

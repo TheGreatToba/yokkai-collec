@@ -50,7 +50,8 @@ export default function HomePreview() {
     watched: false
   }));
   return (
-    <div className="flex min-h-dvh w-full flex-col">
+    <div className="relative isolate flex min-h-dvh w-full flex-col">
+      <AmbientGlow variant="home" />
       <Topbar
         view="home"
         name="Kitsune"
@@ -68,7 +69,6 @@ export default function HomePreview() {
         ]}
       />
       <main id="main-content" className="yk-home-main">
-        <AmbientGlow variant="home" />
         <HomeHero />
         <HomePacks>
           <HomePackTimer

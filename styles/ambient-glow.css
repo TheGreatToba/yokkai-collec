@@ -21,7 +21,7 @@
 }
 .yk-home-ambient > span {
   position: absolute;
-  width: min(70%, 640px);
+  width: min(72%, 780px);
   height: 480px;
   border-radius: 50%;
   background: radial-gradient(
@@ -31,39 +31,78 @@
   );
   filter: blur(24px);
   opacity: 0.8;
-  animation: yk-ambient-drift 26s ease-in-out infinite alternate;
+  animation: yk-ambient-blue 29s ease-in-out -8s infinite;
   will-change: transform, opacity;
 }
 .yk-home-ambient > span:nth-child(1) {
   --ambient-color: var(--color-accent-neon);
-  top: 0;
-  right: 0;
+  top: 2%;
+  right: -8%;
 }
 .yk-home-ambient > span:nth-child(2) {
   --ambient-color: var(--color-rarity-ssr);
-  top: 430px;
-  left: 0;
-  animation-duration: 32s;
-  animation-delay: -12s;
+  top: 29%;
+  left: -10%;
+  height: 580px;
+  animation-name: yk-ambient-pink;
+  animation-duration: 37s;
+  animation-delay: -19s;
 }
 .yk-home-ambient > span:nth-child(3) {
   --ambient-color: var(--color-accent-gold);
-  top: 980px;
-  right: 0;
-  animation-duration: 38s;
-  animation-delay: -20s;
+  top: 67%;
+  right: -4%;
+  height: 400px;
+  animation-name: yk-ambient-gold;
+  animation-duration: 43s;
+  animation-delay: -27s;
 }
 .yk-home-ambient[data-paused="true"] > span {
   animation-play-state: paused;
 }
-@keyframes yk-ambient-drift {
-  from {
-    transform: translate3d(-20px, -12px, 0) scale(0.94);
+@keyframes yk-ambient-blue {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(0.96);
+    opacity: 0.72;
+  }
+  30% {
+    transform: translate3d(-65px, 45px, 0) scale(1.08);
+    opacity: 1;
+  }
+  68% {
+    transform: translate3d(-20px, -25px, 0) scale(1.02);
+    opacity: 0.82;
+  }
+}
+@keyframes yk-ambient-pink {
+  0%,
+  100% {
+    transform: translate3d(0, 15px, 0) scale(1.03);
+    opacity: 0.88;
+  }
+  38% {
+    transform: translate3d(70px, -35px, 0) scale(0.94);
     opacity: 0.65;
   }
-  to {
-    transform: translate3d(24px, 28px, 0) scale(1.08);
+  73% {
+    transform: translate3d(25px, 50px, 0) scale(1.08);
     opacity: 1;
+  }
+}
+@keyframes yk-ambient-gold {
+  0%,
+  100% {
+    transform: translate3d(-20px, 0, 0) scale(0.95);
+    opacity: 0.65;
+  }
+  27% {
+    transform: translate3d(20px, -50px, 0) scale(1.06);
+    opacity: 0.92;
+  }
+  64% {
+    transform: translate3d(-60px, 30px, 0) scale(1.02);
+    opacity: 0.78;
   }
 }
 @media (max-width: 639px) {
@@ -71,6 +110,10 @@
     width: 90%;
     height: 320px;
     filter: blur(12px);
+  }
+  .yk-home-ambient > span:nth-child(2) {
+    top: 48%;
+    height: 320px;
   }
   .yk-home-ambient > span:nth-child(3) {
     display: none;
