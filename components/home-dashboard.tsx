@@ -1,3 +1,4 @@
+import { AmbientGlow } from "@/components/ambient-glow";
 import { Suspense, type ReactNode } from "react";
 import Link from "next/link";
 import { cookies } from "next/headers";
@@ -226,6 +227,7 @@ export function HomeDashboard({ userId }: { userId: string }) {
       </Suspense>
       <HomeRefresh />
       <main id="main-content" className="yk-home-main">
+        <AmbientGlow variant="home" />
         <HomeHero />
         <HomePacks>
           <Suspense fallback={<HomeSkeleton />}>

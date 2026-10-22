@@ -1,4 +1,6 @@
 .yk-home-main {
+  position: relative;
+  isolation: isolate;
   --home-panel-title-size: 25px;
   --home-panel-background: linear-gradient(145deg, #111426ee, #090d19ee);
   width: 100%;

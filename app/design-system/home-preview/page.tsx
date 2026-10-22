@@ -1,3 +1,4 @@
+import { AmbientGlow } from "@/components/ambient-glow";
 import type { Metadata } from "next";
 import { Topbar } from "@/components/topbar";
 import { SiteFooter } from "@/components/site-footer";
@@ -67,6 +68,7 @@ export default function HomePreview() {
         ]}
       />
       <main id="main-content" className="yk-home-main">
+        <AmbientGlow variant="home" />
         <HomeHero />
         <HomePacks>
           <HomePackTimer

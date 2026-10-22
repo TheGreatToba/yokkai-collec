@@ -46,18 +46,6 @@
   isolation: isolate;
   background: none;
 }
-.yk-pack-ambient {
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  background: radial-gradient(
-    ellipse at 50% 0%,
-    color-mix(in srgb, var(--color-accent-neon) 10%, transparent),
-    transparent 65%
-  );
-  filter: blur(32px);
-  pointer-events: none;
-}
 .yk-pack-aura {
   position: absolute;
   z-index: -1;
