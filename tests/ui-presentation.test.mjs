@@ -1985,7 +1985,10 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
     onReturn() {},
     async onDiscard() {}
   });
-  assert.equal((regular.match(/>Discard</g) || []).length, 2);
+  assert.equal((regular.match(/>Discard</g) || []).length, 0);
+  assert.match(regular, /data-reveal-state="revealing"/);
+  assert.match(regular, /<h2 class="sr-only">Reveal your cards<\/h2>/);
+  assert.match(regular, /data-pack-kind="regular"/);
   assert.doesNotMatch(
     normalizeWhitespace(regular),
     normalizeWhitespace(/>Select</)
@@ -2010,6 +2013,7 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
     normalizeWhitespace(/>Select</)
   );
   assert.equal((regularDone.match(/>Discard</g) || []).length, 5);
+  assert.match(regularDone, /data-reveal-state="complete"/);
   assert.equal(
     (regularDone.match(/yk-slot-button yk-reveal-discard/g) || []).length,
     5
@@ -2028,6 +2032,21 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
     withNext,
     /class="yk-reveal-next"><button[^>]*>Next pack<\/button><\/span>/
   );
+  const decisionRevealing = render(BoosterReveal, {
+    cards,
+    revealed: 2,
+    onReveal() {},
+    onReturn() {},
+    decision: {
+      async onKeep() {
+        return 0;
+      }
+    }
+  });
+  assert.match(decisionRevealing, /data-pack-kind="decision"/);
+  assert.match(decisionRevealing, /data-reveal-state="revealing"/);
+  assert.match(decisionRevealing, /<h2 class="sr-only">One choice<\/h2>/);
+  assert.doesNotMatch(decisionRevealing, />Keep this one<|>Discard</);
   const choosing = render(BoosterReveal, {
     cards,
     revealed: 5,
@@ -2039,6 +2058,8 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
       }
     }
   });
+  assert.match(choosing, /data-pack-kind="decision"/);
+  assert.match(choosing, /data-reveal-state="complete"/);
   assert.equal((choosing.match(/>Keep this one</g) || []).length, 5);
   assert.doesNotMatch(
     normalizeWhitespace(choosing),
