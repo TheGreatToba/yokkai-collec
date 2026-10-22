@@ -196,3 +196,19 @@ ul.yk-referral-option-detail {
 .yk-referral-option--pro .yk-button-primary {
   border-color: var(--color-accent-gold);
 }
+
+/* Below desktop the reminder is sticky: keep it off the footer links and off
+   the first pack's Open button on short phones (the art scales with its stage). */
+@media (max-width: 1023px) {
+  body:has(.yk-referral-reminder--boosters) .yk-boosters-page .yk-site-footer {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  }
+}
+@media (max-width: 700px) {
+  body:has(.yk-referral-reminder--boosters)
+    .yk-pack-grid
+    .yk-pack-panel
+    .yk-pack-art-stage {
+    height: clamp(240px, calc(100svh - 520px), 340px);
+  }
+}
