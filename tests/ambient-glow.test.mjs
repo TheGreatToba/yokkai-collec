@@ -36,6 +36,11 @@ test("ambient motion only composites transforms and opacity, with static reduced
     node => node.params === "(prefers-reduced-motion: reduce)"
   );
   assert.ok(reduced);
+  assert.equal(
+    reduced.nodes[0].selector,
+    ".yk-home-ambient > span:nth-child(n)",
+    "reduced motion overrides each per-halo animation name"
+  );
   assert.ok(
     reduced.nodes.some(rule =>
       rule.nodes.some(

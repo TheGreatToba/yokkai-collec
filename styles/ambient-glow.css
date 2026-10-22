@@ -105,22 +105,36 @@
     opacity: 0.78;
   }
 }
+/* On stacked layouts, anchor the colors to the viewport rather than page length. */
+@media (max-width: 1279px), (max-height: 800px) {
+  .yk-home-ambient > span:nth-child(1) {
+    top: 64px;
+    right: -16%;
+  }
+  .yk-home-ambient > span:nth-child(2) {
+    top: clamp(280px, 48svh, 460px);
+    left: -18%;
+  }
+  .yk-home-ambient > span:nth-child(3) {
+    top: clamp(760px, 110svh, 1100px);
+  }
+}
 @media (max-width: 639px) {
   .yk-home-ambient > span {
-    width: 90%;
-    height: 320px;
+    width: 100%;
+    height: 400px;
     filter: blur(12px);
   }
   .yk-home-ambient > span:nth-child(2) {
-    top: 48%;
-    height: 320px;
+    top: clamp(240px, 42svh, 340px);
+    height: 440px;
   }
   .yk-home-ambient > span:nth-child(3) {
     display: none;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .yk-home-ambient > span {
+  .yk-home-ambient > span:nth-child(n) {
     animation: none;
     will-change: auto;
   }
