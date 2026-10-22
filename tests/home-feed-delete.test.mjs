@@ -8,7 +8,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import ts from "typescript";
 const require = createRequire(import.meta.url);
 
-test("Home deletion confirms, prevents double submits, retains failed posts and removes successful ones", async () => {
+test("Home leaves deletion to the wall and never calls the removal adapter", async () => {
   const post = {
     id: "my-post",
     text: "A favorite",
@@ -19,18 +19,18 @@ test("Home deletion confirms, prevents double submits, retains failed posts and 
   };
   const states = [],
     refs = [],
-    buttons = [];
+    buttons = [],
+    effects = [],
+    listeners = new Map();
   let stateIndex = 0,
     refIndex = 0,
     modal,
-    release,
-    calls = 0,
-    fail = true;
+    calls = 0;
   const component = { exports: {} };
   const mocks = {
     react: {
       ...React,
-      useEffect: () => {},
+      useEffect: effect => effects.push(effect),
       useState: initial => {
         const i = stateIndex++;
         if (!(i in states)) states[i] = initial;
@@ -80,27 +80,35 @@ test("Home deletion confirms, prevents double submits, retains failed posts and 
       }
     }
   ).outputText;
+  const events = {
+    addEventListener: (name, handler) => listeners.set(name, handler),
+    removeEventListener: (name, handler) => {
+      assert.equal(listeners.get(name), handler);
+      listeners.delete(name);
+    }
+  };
   vm.runInNewContext(js, {
     Error,
+    window: events,
+    document: { ...events, visibilityState: "visible" },
     module: component,
     exports: component.exports,
     require: name => (name in mocks ? mocks[name] : require(name))
   });
-  let cleaned;
+  let resolveFeed, rejectFeed;
   const adapter = {
-    remove: async id => {
+    remove: async () => {
       calls++;
-      assert.equal(id, post.id);
-      await new Promise(resolve => {
-        release = resolve;
-      });
-      if (fail) throw Error("Please retry deletion");
-      return "me/file.png";
     },
-    discard: async path => {
-      cleaned = path;
+    discard: async () => {
+      calls++;
     }
   };
+  const load = () =>
+    new Promise((resolve, reject) => {
+      resolveFeed = resolve;
+      rejectFeed = reject;
+    });
   const render = () => {
     stateIndex = 0;
     refIndex = 0;
@@ -110,41 +118,35 @@ test("Home deletion confirms, prevents double submits, retains failed posts and 
       React.createElement(component.exports.HomeFriendFeed, {
         initial: { items: [post], next: null },
         viewer: post.author,
-        wallAdapter: adapter
+        wallAdapter: adapter,
+        load
       })
     );
   };
-  render();
-  assert.equal(modal, null, "no confirmation until explicitly requested");
-  states[3] = post; // Open the same confirmation as the post's Delete button.
-  render();
-  assert.equal(modal.title, "Delete this post?");
-  buttons.find(button => button.children === "Cancel").onClick();
-  render();
+  const html = render();
+  const unsubscribe = effects[1]();
   assert.equal(modal, null);
-  assert.equal(calls, 0);
-  states[3] = post;
+  assert.doesNotMatch(html, /Delete post|yk-feed-delete/);
+  assert.match(html, /data-feed-post="my-post"/);
+  assert.match(html, /View wall/);
+  assert.equal(calls, 0, "home previews never request deletion");
+  buttons.find(button => button["aria-label"] === "Refresh feed").onClick();
+  const pending = render();
+  assert.match(pending, /data-feed-post="my-post"/);
+  assert.doesNotMatch(pending, /Loading your timeline/);
+  resolveFeed({ items: [{ ...post, id: "updated-post" }], next: null });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.match(render(), /data-feed-post="updated-post"/);
+  listeners.get("player-block-changed")();
+  assert.doesNotMatch(render(), /data-feed-post=/);
+  resolveFeed({ items: [post], next: null });
+  await new Promise(resolve => setImmediate(resolve));
   render();
-  const submit = buttons.find(button => button.children === "Delete post");
-  submit.onClick();
-  submit.onClick();
-  assert.equal(calls, 1, "synchronous lock prevents duplicate deletions");
-  release();
+  buttons.find(button => button["aria-label"] === "Refresh feed").onClick();
+  rejectFeed(Error("Access changed"));
   await new Promise(resolve => setImmediate(resolve));
-  const failed = render();
-  assert.match(failed, /Please retry deletion/);
-  assert.match(failed, /data-feed-post="my-post"/);
-  assert.equal(modal.open, true, "failed confirmation remains retryable");
-  fail = false;
-  buttons.find(button => button.children === "Delete post").onClick();
-  assert.equal(calls, 2);
-  release();
-  await new Promise(resolve => setImmediate(resolve));
-  assert.doesNotMatch(render(), /data-feed-post="my-post"/);
-  assert.equal(modal, null);
-  assert.equal(
-    cleaned,
-    "me/file.png",
-    "only the server-returned owned image is discarded"
-  );
+  assert.doesNotMatch(render(), /data-feed-post=/);
+  assert.match(render(), /Couldn&#x27;t refresh your feed/);
+  unsubscribe();
+  assert.equal(listeners.size, 0);
 });

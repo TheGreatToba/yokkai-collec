@@ -88,15 +88,15 @@ test("feed renders existing posts safely and links directly to the author's Wall
   assert.match(profile, /searchParams.get\("tab"\) === "wall"/);
 });
 
-test("Home offers a red delete control only on the signed-in player's posts", () => {
+test("Home previews never expose deletion, including the signed-in player's posts", () => {
   const own = renderToStaticMarkup(
     React.createElement(HomeFriendFeed, {
       initial: { items: [post], next: null },
       viewer: post.author
     })
   );
-  assert.match(own, /class="yk-feed-delete"/);
-  assert.equal((own.match(/Delete post/g) ?? []).length, 1);
+  assert.doesNotMatch(own, /class="yk-feed-delete"/);
+  assert.doesNotMatch(own, /Delete post/);
   const other = renderToStaticMarkup(
     React.createElement(HomeFriendFeed, {
       initial: { items: [post], next: null },
@@ -112,8 +112,6 @@ test("Home offers a red delete control only on the signed-in player's posts", ()
     ),
     /Delete post/
   );
-  const css = readFileSync("styles/friend-feed.css", "utf8");
-  assert.match(css, /\.yk-feed-delete\s*\{[^}]*color:\s*#ff8297/s);
 });
 
 test("empty feed has a useful friend link; bounded pagination is explicit", () => {
@@ -167,7 +165,7 @@ test("Home embeds the existing own-wall composer even if the friend feed fails",
   assert.match(html, /role="alert"/);
 });
 
-test("home composer is behind a closed native Add post disclosure", () => {
+test("home composer stays mounted and closed behind Add post beside refresh", () => {
   const html = renderToStaticMarkup(
     React.createElement(HomeFriendFeed, {
       initial: { items: [], next: null },
@@ -176,12 +174,15 @@ test("home composer is behind a closed native Add post disclosure", () => {
   );
   assert.match(
     html,
-    /<details class="yk-feed-composer"><summary class="yk-button yk-button-primary yk-home-panel-action">Add post<\/summary>/
+    /class="yk-feed-actions"><button[^>]*aria-label="Add post"[^>]*aria-expanded="false"[^>]*aria-controls="home-feed-composer"[^>]*>[\s\S]*?<\/svg><\/button><button[^>]*aria-label="Refresh feed"/
   );
-  assert.doesNotMatch(html, /<details[^>]*\bopen(?:=|\s|>)/);
   assert.match(
     html,
-    /<details[^>]*>[\s\S]*data-wall-composer="true"[\s\S]*<\/details>/
+    /id="home-feed-composer" class="yk-feed-composer" hidden=""/
+  );
+  assert.match(
+    html,
+    /id="home-feed-composer"[^>]*>[\s\S]*data-wall-composer="true"/
   );
 });
 
