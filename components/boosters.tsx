@@ -1102,7 +1102,9 @@ export function Boosters({
   const playSound = onSound ?? noopSound;
   const speedUpSeal = () => {
     if (releasedOpening) {
-      finishOpening.current?.();
+      openingStage.current?.querySelector("iframe")?.contentWindow?.postMessage(
+        { type: "yokkai-booster-next-step" }, "*"
+      );
       return;
     }
     if (openingPhase === "seal") {
@@ -1309,7 +1311,7 @@ export function Boosters({
           className={`yk-opening-stage yk-opening-${openingPhase} yk-opening-kind-${openingKind}`}
           role="button" tabIndex={0}
           aria-label={
-            releasedOpening ? "Skip booster opening" : openingPhase === "seal"
+            releasedOpening ? "Next opening step" : openingPhase === "seal"
               ? "Speed up the opening animation"
               : tearRequested
                 ? "Opening pack"
