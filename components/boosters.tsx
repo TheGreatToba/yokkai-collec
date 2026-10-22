@@ -32,6 +32,16 @@ const CollectionView = dynamic(
   { loading: () => <p role="status">Loading collection…</p> }
 );
 
+const LocalLrCinematic = dynamic(
+  () => import("@/components/local-card-cinematic").then(module => module.LocalCardCinematic),
+  { loading: () => <p role="status">Loading cinematic…</p> }
+);
+
+const CardCinematic = dynamic(
+  () => import("@/components/card-cinematic").then(module => module.CardCinematic),
+  { loading: () => <p role="status">Loading cinematic…</p> }
+);
+
 export type RevealCard = Card & {
   instanceId: string;
   shiny?: boolean;
@@ -69,6 +79,9 @@ type Decision = {
 };
 
 export function BoosterReveal({
+  previewOnly = false,
+  finalCinematics = false,
+  releasedCinematics = false,
   cards,
   collection = [],
   folders = [],
@@ -88,6 +101,9 @@ export function BoosterReveal({
   onComplete,
   onSound
 }: {
+  previewOnly?: boolean;
+  finalCinematics?: boolean;
+  releasedCinematics?: boolean;
   cards: RevealCard[];
   revealed: number;
   onReveal: (index: number) => void;
@@ -114,6 +130,7 @@ export function BoosterReveal({
   onComplete?: () => void;
   onSound?: (sound: Sound) => void;
 }) {
+  const localPreview = process.env.NODE_ENV === "development" && previewOnly;
   const [faceUp, setFaceUp] = useState(false);
   const [revealLocked, setRevealLocked] = useState(false);
   const [spot, setSpot] = useState<RevealCard | null>(null);
@@ -226,6 +243,21 @@ export function BoosterReveal({
     const isLR = current.rarity === "LR";
     const isSSR = current.rarity === "SSR";
     const shiny = current.shiny && (isSSR || isLR);
+    if (process.env.NODE_ENV === "development" && isLR) {
+      setSpot(current);
+      onSound?.(shiny ? "shiny" : "lr");
+      return;
+    }
+    if (process.env.NODE_ENV === "development" && finalCinematics && isSSR) {
+      setSpot(current);
+      onSound?.(shiny ? "shiny" : "ssr");
+      return;
+    }
+    if (releasedCinematics && (isLR || isSSR)) {
+      setSpot(current);
+      onSound?.(shiny ? "shiny" : isLR ? "lr" : "ssr");
+      return;
+    }
     const revealDuration = isLR
       ? 4400
       : isSSR
@@ -364,7 +396,7 @@ export function BoosterReveal({
                 : `Tap the pack to reveal each card · ${revealed} / ${cards.length}`}
           </p>
         </div>
-        {done && !decision && visibleCards.length > 0 && (
+        {!localPreview && done && !decision && visibleCards.length > 0 && (
           <SelectionModeButton
             active={selecting}
             inactiveLabel="Select"
@@ -655,7 +687,7 @@ export function BoosterReveal({
                   </span>
                 </span>
               )}
-              {done &&
+              {!localPreview && done &&
                 !choosing &&
                 !lost &&
                 !selecting &&
@@ -755,16 +787,40 @@ export function BoosterReveal({
             <Button variant="secondary" onClick={onReturn}>
               Back to packs
             </Button>
+            {process.env.NODE_ENV === "development" &&
+              cards.filter(card => card.rarity === "LR").map(card => (
+                <Button key={card.instanceId} variant="secondary" onClick={() => setSpot(card)}>
+                  Replay cinematic: {card.name}
+                </Button>
+              ))}
+            {process.env.NODE_ENV === "development" && finalCinematics &&
+              cards.filter(card => card.rarity === "SSR").map(card => (
+                <Button key={card.instanceId} variant="secondary" onClick={() => setSpot(card)}>
+                  Replay cinematic: {card.name}
+                </Button>
+              ))}
+            {process.env.NODE_ENV !== "development" && releasedCinematics &&
+              cards.filter(card => card.rarity === "LR" || card.rarity === "SSR").map(card => (
+                <Button key={card.instanceId} variant="secondary" onClick={() => setSpot(card)}>
+                  Replay cinematic: {card.name}
+                </Button>
+              ))}
           </div>
         </div>
       )}
       <Modal
         open={!!spot}
         onClose={() => setSpot(null)}
-        title={spot?.shiny ? "✦ Shiny Summon ✦" : "Legendary summon"}
-        className={`yk-invocation ${spot?.shiny ? "yk-invocation-shiny" : ""}`}
+        title={spot?.shiny ? "✦ Shiny Summon ✦" : spot?.rarity === "SSR" ? "SSR summon" : "Legendary summon"}
+        className={`yk-invocation ${spot?.shiny ? "yk-invocation-shiny" : ""} ${(process.env.NODE_ENV === "development" || releasedCinematics) && (spot?.rarity === "LR" || spot?.rarity === "SSR") ? "yk-lr-file-modal" : ""}`}
       >
-        {spot && (
+        {spot && process.env.NODE_ENV === "development" && spot.rarity === "LR" ? (
+          <LocalLrCinematic card={spot} controls={false} onContinue={() => setSpot(null)} />
+        ) : spot && process.env.NODE_ENV === "development" && spot.rarity === "SSR" ? (
+          <LocalLrCinematic card={spot} controls={false} onContinue={() => setSpot(null)} />
+        ) : spot && releasedCinematics && (spot.rarity === "LR" || spot.rarity === "SSR") ? (
+          <CardCinematic card={spot} onContinue={() => setSpot(null)} />
+        ) : spot && (
           <div className="relative z-10 flex flex-col items-center gap-6">
             <div className="yk-invoked-card">
               <YokaiCard {...spot} />
@@ -941,6 +997,7 @@ export function BoosterReveal({
 }
 
 export function Boosters({
+  previewOnly = false,
   statusError,
   decisionError,
   onRetryRegular,
@@ -970,6 +1027,7 @@ export function Boosters({
   onReveal,
   onSound
 }: {
+  previewOnly?: boolean;
   statusError?: string;
   decisionError?: string;
   onRetryRegular?: () => void;
@@ -1006,6 +1064,7 @@ export function Boosters({
   onReveal: (index: number) => void;
   onSound?: (sound: Sound) => void;
 }) {
+  const localPreview = process.env.NODE_ENV === "development" && previewOnly;
   const [openingPhase, setOpeningPhase] = useState<"idle" | "tension" | "seal">(
     "idle"
   );
@@ -1291,6 +1350,10 @@ export function Boosters({
         </div>
       ) : revealing ? (
         <BoosterReveal
+          finalCinematics={process.env.NODE_ENV === "development"}
+          releasedCinematics
+          previewOnly={localPreview}
+          onComplete={localPreview ? () => setShowDraw(false) : undefined}
           key={draw[0].instanceId}
           cards={revealCards}
           collection={collection}
@@ -1303,7 +1366,7 @@ export function Boosters({
           nextLabel={
             status?.available === 0 ? `Next in ${countdown}` : "Next pack"
           }
-          onDiscard={drawKind === "regular" ? onDiscard : undefined}
+          onDiscard={!localPreview && drawKind === "regular" ? onDiscard : undefined}
           onAuction={drawKind === "regular" ? onAuction : undefined}
           onMoveCard={drawKind === "regular" ? onMoveCard : undefined}
           onSetLocked={drawKind === "regular" ? onSetLocked : undefined}
@@ -1520,7 +1583,7 @@ export function Boosters({
           </article>
         </div>
       )}
-      {!opening && !revealing && <ReferralReminder packChoices />}
+      {!localPreview && !opening && !revealing && <ReferralReminder packChoices />}
 
     </>
   );
