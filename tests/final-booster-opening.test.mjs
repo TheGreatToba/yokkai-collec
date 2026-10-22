@@ -640,3 +640,10 @@ test("opening keeps the matching nebula behind both pack animations", () => {
     );
   }
 });
+
+test("latency preview uses the same opening animation as the site", () => {
+  assert.match(
+    read("components/booster-opening-preview.tsx"),
+    /<Boosters\s+releasedOpening/
+  );
+});
