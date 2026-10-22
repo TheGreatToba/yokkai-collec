@@ -38,15 +38,10 @@
   padding: 0 24px 24px;
   min-width: 0;
 }
-.yk-feed-composer > summary {
-  width: fit-content;
-  list-style: none;
-}
-.yk-feed-composer > summary::-webkit-details-marker {
-  display: none;
-}
-.yk-feed-composer[open] > summary {
-  margin-bottom: 16px;
+.yk-feed-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .yk-feed-composer .yk-wall-composer {
   margin: 0;

@@ -167,7 +167,7 @@ test("Home embeds the existing own-wall composer even if the friend feed fails",
   assert.match(html, /role="alert"/);
 });
 
-test("home composer is behind a closed native Add post disclosure", () => {
+test("home composer stays mounted and closed behind Add post beside refresh", () => {
   const html = renderToStaticMarkup(
     React.createElement(HomeFriendFeed, {
       initial: { items: [], next: null },
@@ -176,12 +176,15 @@ test("home composer is behind a closed native Add post disclosure", () => {
   );
   assert.match(
     html,
-    /<details class="yk-feed-composer"><summary class="yk-button yk-button-primary yk-home-panel-action">Add post<\/summary>/
+    /class="yk-feed-actions"><button[^>]*aria-expanded="false"[^>]*aria-controls="home-feed-composer"[^>]*>Add post<\/button><button[^>]*aria-label="Refresh feed"/
   );
-  assert.doesNotMatch(html, /<details[^>]*\bopen(?:=|\s|>)/);
   assert.match(
     html,
-    /<details[^>]*>[\s\S]*data-wall-composer="true"[\s\S]*<\/details>/
+    /id="home-feed-composer" class="yk-feed-composer" hidden=""/
+  );
+  assert.match(
+    html,
+    /id="home-feed-composer"[^>]*>[\s\S]*data-wall-composer="true"/
   );
 });
 
