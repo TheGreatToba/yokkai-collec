@@ -37,12 +37,12 @@
 .yk-home-ambient > span:nth-child(1) {
   --ambient-color: var(--color-accent-neon);
   top: 2%;
-  right: -8%;
+  right: max(-8%, calc((100% - 1248px) / 2 - 220px));
 }
 .yk-home-ambient > span:nth-child(2) {
   --ambient-color: var(--color-rarity-ssr);
   top: 29%;
-  left: -10%;
+  left: max(-10%, calc((100% - 1248px) / 2 - 220px));
   height: 580px;
   animation-name: yk-ambient-pink;
   animation-duration: 37s;
@@ -51,7 +51,7 @@
 .yk-home-ambient > span:nth-child(3) {
   --ambient-color: var(--color-accent-gold);
   top: 67%;
-  right: -4%;
+  right: max(-4%, calc((100% - 1248px) / 2 - 180px));
   height: 400px;
   animation-name: yk-ambient-gold;
   animation-duration: 43s;
@@ -105,29 +105,15 @@
     opacity: 0.78;
   }
 }
-/* On stacked layouts, anchor the colors to the viewport rather than page length. */
-@media (max-width: 1279px), (max-height: 800px) {
-  .yk-home-ambient > span:nth-child(1) {
-    top: 64px;
-    right: -16%;
-  }
-  .yk-home-ambient > span:nth-child(2) {
-    top: clamp(280px, 48svh, 460px);
-    left: -18%;
-  }
-  .yk-home-ambient > span:nth-child(3) {
-    top: clamp(760px, 110svh, 1100px);
-  }
-}
 @media (max-width: 639px) {
   .yk-home-ambient > span {
-    width: 100%;
-    height: 400px;
+    width: 90%;
+    height: 320px;
     filter: blur(12px);
   }
   .yk-home-ambient > span:nth-child(2) {
-    top: clamp(240px, 42svh, 340px);
-    height: 440px;
+    top: 54%;
+    height: 320px;
   }
   .yk-home-ambient > span:nth-child(3) {
     display: none;
