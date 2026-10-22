@@ -64,9 +64,19 @@
   width: 116px;
   flex: 0 0 auto;
   transform: rotate(-7deg);
+  transition:
+    scale 420ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    translate 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .yk-home-display-card:nth-child(even) {
   transform: rotate(7deg) translateY(8px);
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .yk-home-display-card:hover {
+    scale: 1.12;
+    translate: 0 -10px;
+    z-index: 1;
+  }
 }
 .yk-home-hero:hover .yk-home-ribbon,
 .yk-home-hero:focus-within .yk-home-ribbon {
@@ -377,7 +387,8 @@
   .yk-home-skeleton > div {
     animation: none;
   }
-  .yk-home-card-button {
+  .yk-home-card-button,
+  .yk-home-display-card {
     transition: none;
   }
 }
