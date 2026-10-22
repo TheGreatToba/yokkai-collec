@@ -255,7 +255,7 @@ export function CollectionView({
 }) {
   const pathname = usePathname();
   const proAccess = useProAccess();
-  const localPreview = process.env.NODE_ENV === "development" && previewOnly;
+  const localPreview = previewOnly && process.env.NODE_ENV === "development";
   const pro = proAccess || localPreview;
   const profileIdentifier = pathname?.startsWith("/profile/")
     ? decodeURIComponent(pathname.slice("/profile/".length))

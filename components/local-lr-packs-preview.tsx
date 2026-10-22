@@ -70,8 +70,8 @@ export function LocalLrPacksPreview() {
       </div>
       <Boosters
         previewOnly
-        simulateActions
         releasedOpening
+        simulateActions
         clickToOpen
         onOpenMany={async count => {
           const cards = remember(
