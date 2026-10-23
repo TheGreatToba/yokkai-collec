@@ -71,6 +71,9 @@ test("Home panel actions stay fully reachable on narrow screens", () => {
   assert.equal(heading.parent.params, "(max-width: 480px)");
   assert.equal(value(heading, "flex-direction"), "column");
   assert.equal(action.parent.params, "(max-width: 480px)");
-  assert.equal(value(action, "width"), "100%");
+  assert.equal(value(heading, "align-items"), "flex-start");
+  assert.equal(value(action, "width"), "auto");
+  assert.equal(value(action, "max-width"), "100%");
+  assert.equal(value(action, "padding-inline"), "14px");
   assert.equal(value(action, "white-space"), "normal");
 });
