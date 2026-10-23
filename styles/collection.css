@@ -199,8 +199,9 @@
 }
 .yk-collection-toolbar-actions {
   display: flex;
-  flex: 0 0 auto;
-  flex-wrap: nowrap;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  min-width: 0;
   gap: calc(var(--spacing) * 3);
 }
 .yk-collection-toolbar-actions > :not(dialog) {
