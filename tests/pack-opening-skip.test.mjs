@@ -274,3 +274,26 @@ test("only multi-click mousedown prevents selection; all generated pack images a
   );
   assert.match(read("components/booster-opening.tsx"), /draggable=\{false\}/);
 });
+
+test("after the actual cut ends, another click skips the remaining hold exactly once", async () => {
+  for (const click of [false, true])
+    for (const accelerated of [false, true]) {
+      const p = await player({ click });
+      if (click) p.open();
+      p.skip();
+      if (accelerated) p.skip();
+      p.listeners.get("animationend")?.({ animationName: "pack-arrive" });
+      assert.equal(p.messages.includes("YOKKAI_BOOSTER_COMPLETE"), false);
+      p.listeners.get("animationend")?.({ animationName: "foil-body-open" });
+      assert.equal(p.messages.includes("YOKKAI_BOOSTER_COMPLETE"), false);
+      p.skip();
+      assert.equal(p.messages.at(-1), "YOKKAI_BOOSTER_COMPLETE");
+      p.skip();
+      p.advance(10000);
+      assert.equal(
+        p.messages.filter(x => x === "YOKKAI_BOOSTER_COMPLETE").length,
+        1
+      );
+      assert.equal(p.timers.size, 0);
+    }
+});

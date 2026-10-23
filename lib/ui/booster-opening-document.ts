@@ -110,6 +110,7 @@ export function boosterOpeningDocument(
     };
     const advance=()=>{
       if(reduced||stage==='complete'||stage==='disposed'||stage==='accelerated')return;
+      if(stage==='settling'){complete();return;}
       if(stage==='waiting'){
         if(openRequested)pendingSkips=Math.min(2,pendingSkips+1);
         return;
@@ -159,11 +160,16 @@ export function boosterOpeningDocument(
       }
     };
     document.addEventListener('animationstart',onAnimationStart);
+    const onAnimationEnd=event=>{
+      if(event.animationName==='foil-body-open'&&(stage==='cutting'||stage==='accelerated'))stage='settling';
+    };
+    document.addEventListener('animationend',onAnimationEnd);
     window.addEventListener('pagehide',()=>{
       stage='disposed';pendingSkips=0;
       clearTimeout(completionTimer);
       window.removeEventListener('message',receive);
       document.removeEventListener('animationstart',onAnimationStart);
+      document.removeEventListener('animationend',onAnimationEnd);
       document.getAnimations().forEach(animation=>animation.cancel());
     },{once:true});
     async function startBooster(){
