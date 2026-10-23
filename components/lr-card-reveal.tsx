@@ -43,17 +43,11 @@ function artworkPalette(pixels: Uint8ClampedArray) {
     l: 0,
     count: 0
   }));
-  const average = [0, 0, 0];
-  let averageWeight = 0;
   for (let i = 0; i < pixels.length; i += 12) {
     if (pixels[i + 3] < 135) continue;
     const [h, s, l] = toHsl(pixels[i], pixels[i + 1], pixels[i + 2]);
     if (l < 0.08 || l > 0.96) continue;
     const weight = (0.18 + s) * (0.45 + Math.min(l, 0.82));
-    average.forEach((_, channel) => {
-      average[channel] += pixels[i + channel] * weight;
-    });
-    averageWeight += weight;
     if (s < 0.1) continue;
     const bin = bins[Math.floor(h / 10) % 36];
     bin.weight += weight * (0.45 + s);
@@ -110,8 +104,7 @@ function artworkPalette(pixels: Uint8ClampedArray) {
   );
   return {
     colors,
-    secondary: colors[contrast < 0 ? 1 : contrast],
-    average: average.map(value => Math.round(value / averageWeight))
+    secondary: colors[contrast < 0 ? 1 : contrast]
   };
 }
 
@@ -264,12 +257,6 @@ export function LrCardReveal({
         context.drawImage(image, 0, 0, 96, 96);
         const palette = artworkPalette(context.getImageData(0, 0, 96, 96).data);
         if (!palette) return;
-        palette.colors.forEach((color, index) =>
-          element?.style.setProperty(
-            `--yk-lr-color-${index + 1}`,
-            color.join(" ")
-          )
-        );
         element?.style.setProperty(
           "--yk-lr-glass-1",
           palette.colors[0].join(" ")
@@ -277,14 +264,6 @@ export function LrCardReveal({
         element?.style.setProperty(
           "--yk-lr-glass-2",
           palette.secondary.join(" ")
-        );
-        element?.style.setProperty(
-          "--yk-lr-shadow",
-          palette.average.map(value => Math.round(value * 0.1)).join(" ")
-        );
-        element?.style.setProperty(
-          "--yk-lr-base",
-          palette.average.map(value => Math.round(value * 0.28)).join(" ")
         );
       } catch {
         // Cross-origin artwork can forbid pixel reads; retain the reference's neutral glass.
@@ -304,9 +283,6 @@ export function LrCardReveal({
       ref={root}
       className="yk-lr-reveal yk-card-cinematic yk-card-cinematic-clean"
       aria-label={`LR cinematic: ${card.name}`}
-      data-long-name={card.name.trim().length > 20 || undefined}
-      data-long-license={(card.anime?.trim().length ?? 0) > 24 || undefined}
-      data-long-category={card.category.trim().length > 13 || undefined}
     >
       <div className="yk-lr-world" aria-hidden="true" />
       <div className="yk-lr-intro" aria-hidden="true" />
@@ -429,7 +405,6 @@ export function LrCardReveal({
               crossOrigin="anonymous"
             />
             <div className="yk-lr-glass" aria-hidden="true" />
-            <div className="yk-lr-rim" aria-hidden="true" />
           </div>
         </div>
       </div>

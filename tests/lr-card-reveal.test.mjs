@@ -343,7 +343,7 @@ test("artwork colors are sampled once and the canvas, handlers and timeout are r
         .map(Number);
       assert.ok(primary[0] > primary[2] + 50);
       assert.ok(secondary[2] > secondary[0] + 50);
-      assert.equal(properties.size, 10);
+      assert.equal(properties.size, 2);
     } else assert.equal(properties.size, 0);
   }
 });
@@ -362,6 +362,19 @@ test("all native LR keyframes change only transform and opacity, with no global 
     )
   );
   ast.walkRules(rule => {
+    if (
+      /\.yk-lr-reveal(?:\[[^\]]+\])?\s+\.yk-card(?:[-\s.]|$)/.test(
+        rule.selector
+      )
+    ) {
+      rule.walkDecls(decl =>
+        assert.equal(
+          decl.prop,
+          "animation",
+          `the shared card design must remain unchanged: ${decl.toString()}`
+        )
+      );
+    }
     if (rule.parent.type !== "atrule" || rule.parent.name !== "keyframes")
       assert.doesNotMatch(rule.selector, /(^|,)\s*(html|body|:root|\*)/);
   });

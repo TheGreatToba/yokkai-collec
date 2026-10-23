@@ -227,7 +227,7 @@ test("released player uses the public route while the default preview stays deve
   assert.equal(wrapper.props.productionEnabled, true);
 });
 
-test("released real-pack reveals use final SSR/LR without a new reward call and replays never progress", () => {
+test("released real-pack reveals use final SSR/LR without reward calls or summary replay controls", () => {
   for (const rarity of ["SSR", "LR"]) {
     const state = hooks();
     let progress = 0;
@@ -307,11 +307,11 @@ test("released real-pack reveals use final SSR/LR without a new reward call and 
           .join("")
           .includes("Replay cinematic:")
     );
-    assert.ok(replay);
-    replay.props.onClick();
-    render()
-      .find(node => node.type === "Modal" && node.props.open)
-      .props.children.props.onContinue();
+    assert.equal(replay, undefined);
+    assert.equal(
+      summary.filter(node => node.type === "Modal" && node.props.open).length,
+      0
+    );
     assert.equal(progress, 0);
   }
   assert.match(

@@ -394,6 +394,30 @@ try {
               mobile: width < 700
             });
             await delay(350);
+            const designDifferences = await evaluate(`(() => {
+              const card = document.querySelector('.yk-lr-reveal .yk-card');
+              const reference = document.createElement('div');
+              Object.assign(reference.style, {position:'fixed',top:'0',left:'0',opacity:'0',pointerEvents:'none',width:getComputedStyle(card).width});
+              const copy = card.cloneNode(true);
+              reference.append(copy);
+              document.body.append(reference);
+              try {
+                const differences = [];
+                for (const selector of ['', '.yk-card-frame', '.yk-card-interior', '.yk-card-ring', '.yk-card-line', '.yk-card-foil', '.yk-card-category', '.yk-card-badge', '.yk-card-name', '.yk-card-anime', '.yk-card-art img']) {
+                  const actual = getComputedStyle(selector ? card.querySelector(selector) : card);
+                  const expected = getComputedStyle(selector ? copy.querySelector(selector) : copy);
+                  for (const property of ['aspectRatio','backgroundImage','backgroundColor','borderRadius','borderColor','borderWidth','boxShadow','display','fontFamily','fontVariant','fontWeight','fontSize','color','whiteSpace','overflow','objectFit']) {
+                    if (actual[property] !== expected[property] && !(property === 'fontSize' && Math.abs(parseFloat(actual[property])-parseFloat(expected[property])) < .05)) differences.push({selector,property,actual:actual[property],expected:expected[property]});
+                  }
+                }
+                return differences;
+              } finally { reference.remove(); }
+            })()`);
+            assert.deepEqual(
+              designDifferences,
+              [],
+              `shared card design differs at ${width}x${height}`
+            );
             assert.equal(
               await evaluate(`(() => {
               const card = document.querySelector('.yk-lr-stage').getBoundingClientRect();
@@ -476,6 +500,13 @@ try {
     }
     await until(
       "document.querySelector('.yk-reveal-screen')?.dataset.revealState==='complete'"
+    );
+    assert.equal(
+      await evaluate(
+        "[...document.querySelectorAll('.yk-reveal-navigation button')].some(button=>button.textContent.includes('Replay cinematic:'))"
+      ),
+      false,
+      "summary must not duplicate the cinematic replay controls"
     );
     assert.equal(
       await evaluate("document.querySelectorAll('iframe').length"),

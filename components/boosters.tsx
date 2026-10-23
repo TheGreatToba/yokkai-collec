@@ -193,7 +193,6 @@ export function BoosterReveal({
   const batchWindow = batch && !overview
     ? packRevealWindow(cards.length, revealed, batchReview?.at === revealed ? batchReview.page : undefined)
     : { page: 0, pages: 1, latest: 0, start: 0, end: cards.length };
-  const replayCards = overview ? [] : batch ? cards.slice(batchWindow.start, batchWindow.end) : cards;
   const selectedCards = cards.filter(
     card =>
       selection.has(card.instanceId) &&
@@ -780,11 +779,6 @@ export function BoosterReveal({
             <Button variant="secondary" onClick={onReturn}>
               Back to packs
             </Button>
-            {replayCards.filter(card => card.rarity === "LR" || card.rarity === "SSR").map(card => (
-              <Button key={card.instanceId} variant="secondary" onClick={() => setSpot(card)}>
-                Replay cinematic: {card.name}
-              </Button>
-            ))}
           </div>
         </div>
       )}
