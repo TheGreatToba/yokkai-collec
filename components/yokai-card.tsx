@@ -141,7 +141,7 @@ export function YokaiCard({
                 } as CSSProperties
               }
             >
-              {evolved ? "◇" : "✦"}
+              ✦
             </span>
           ))}
           <div className="yk-card-content">
