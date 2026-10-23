@@ -251,9 +251,6 @@
     #180d17 64%,
     #08060b
   );
-  --card-badge: linear-gradient(145deg, #7d164d, #d92d85 48%, #5d0d36);
-  --card-badge-ink: #fff1f8;
-  --card-badge-border: #ffe0ef;
   --card-ring: rgba(248, 185, 216, 0.24);
   --card-glow:
     0 0 0 1px rgba(255, 199, 226, 0.55), 0 8px 28px var(--evolved-glow);
@@ -297,10 +294,61 @@
   animation: none;
 }
 .yk-evolved .yk-evolved-badge {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   background: var(--evolved-badge);
   color: var(--evolved-ink);
-  border-color: #ffe0ef;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  border-color: #fff0f8;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    inset 0 -2px 0 rgba(155, 34, 95, 0.3),
+    0 0 0 1px rgba(255, 101, 174, 0.5),
+    0 0 10px rgba(255, 67, 155, 0.65);
+}
+.yk-evolved-badge::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-size: 250% 100%;
+  background-position: 150% 0;
+  pointer-events: none;
+  opacity: 0;
+  background-image: linear-gradient(
+    110deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.9) 48%,
+    transparent 61%
+  );
+}
+.yk-evolved-badge::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 2px;
+  pointer-events: none;
+}
+.yk-evolved.yk-animated .yk-evolved-badge::before {
+  animation: yk-evolved-badge-gloss 4.8s ease-in-out infinite;
+}
+@keyframes yk-evolved-badge-gloss {
+  0%,
+  42% {
+    background-position: 150% 0;
+    opacity: 0;
+  }
+  52% {
+    opacity: 0.65;
+  }
+  67%,
+  100% {
+    background-position: -50% 0;
+    opacity: 0;
+  }
 }
 .yk-evolved .yk-evolved-spark {
   font-size: 7cqw !important;
@@ -514,7 +562,8 @@
   .yk-evolved.yk-animated .yk-evolved-seal,
   .yk-evolved.yk-animated .yk-evolved-scan,
   .yk-evolved.yk-animated .yk-card-interior::before,
-  .yk-evolved.yk-animated .yk-card-clip::after {
+  .yk-evolved.yk-animated .yk-card-clip::after,
+  .yk-evolved.yk-animated .yk-evolved-badge::before {
     animation: none;
   }
 }
