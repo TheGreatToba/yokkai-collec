@@ -127,7 +127,7 @@ test("OG images render a license-free card in every format", async () => {
 
 test("migration preserves existing cards and clears stale links only on future empty writes", async t => {
   const { readdirSync } = await import("node:fs");
-  const migration = "20261023000000_optional_card_franchise.sql";
+  const migration = "20261023233000_optional_card_franchise.sql";
   const migrations = readdirSync("supabase/migrations")
     .filter(name => name.endsWith(".sql") && name !== migration)
     .sort();
