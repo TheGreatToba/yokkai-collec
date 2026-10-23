@@ -114,7 +114,7 @@ test("Home previews never expose deletion, including the signed-in player's post
   );
 });
 
-test("empty feed has a useful friend link; bounded pagination is explicit", () => {
+test("empty feed has a useful friend link; Home shows only the ten latest posts", () => {
   const empty = renderToStaticMarkup(
     React.createElement(HomeFriendFeed, { initial: { items: [], next: null } })
   );
@@ -122,10 +122,20 @@ test("empty feed has a useful friend link; bounded pagination is explicit", () =
   assert.match(empty, /href="\/friends"/);
   const html = renderToStaticMarkup(
     React.createElement(HomeFriendFeed, {
-      initial: { items: [post], next: { at: post.createdAt, id: post.id } }
+      initial: {
+        items: Array.from({ length: 12 }, (_, index) => ({
+          ...post,
+          id: `post-${index + 1}`
+        })),
+        next: { at: post.createdAt, id: post.id }
+      }
     })
   );
-  assert.match(html, /Load older posts/);
+  assert.doesNotMatch(html, /Load older posts/);
+  assert.equal((html.match(/data-feed-post=/g) ?? []).length, 10);
+  assert.match(html, /data-feed-post="post-1"/);
+  assert.match(html, /data-feed-post="post-10"/);
+  assert.doesNotMatch(html, /data-feed-post="post-(?:11|12)"/);
   assert.match(html, /aria-label="Friends&#x27; wall posts"/);
   assert.match(
     readFileSync("styles/friend-feed.css", "utf8"),
