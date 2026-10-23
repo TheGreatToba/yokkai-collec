@@ -244,8 +244,8 @@ test("zero rares and reduced motion complete without mounting a player", () => {
   }
 });
 
-test("one rare completes once; Skip all and modal close reveal every remaining card", () => {
-  for (const action of ["one", "skip-all", "close"]) {
+test("one rare completes once; modal close reveals every remaining card", () => {
+  for (const action of ["one", "close"]) {
     const { props, render } = revealHarness(5);
     if (action === "one")
       props.cards.forEach((card, i) => {
@@ -258,7 +258,6 @@ test("one rare completes once; Skip all and modal close reveal every remaining c
     const tree = render();
     const player = tree.find(node => node.type === "Dynamic");
     if (action === "one") player.props.onContinue();
-    else if (action === "skip-all") player.props.onSkipAll();
     else
       tree
         .find(node => node.type === "Modal" && node.props.open)
@@ -282,7 +281,7 @@ test("unmount clears the queue so a late cinematic completion cannot advance it"
   assert.equal(commits, 0);
 });
 
-function playerHarness(reduced = false, hidden = false) {
+function playerHarness(reduced = false, hidden = false, rarity = "LR") {
   let playing = !hidden;
   const state = hooks();
   const timers = new Set();
@@ -337,15 +336,13 @@ function playerHarness(reduced = false, hidden = false) {
       }
     }
   );
-  let continued = 0,
-    skippedAll = 0;
+  let continued = 0;
   state.reset();
   const tree = descendants(
     LrCardReveal({
-      card: { name: "Rare", rarity: "LR", image: "/card.png", shiny: true },
+      card: { name: "Rare", rarity, image: "/card.png", shiny: true },
       autoAdvance: true,
-      onContinue: () => continued++,
-      onSkipAll: () => skippedAll++
+      onContinue: () => continued++
     })
   );
   tree[0].props.ref.current = element;
@@ -364,7 +361,6 @@ function playerHarness(reduced = false, hidden = false) {
     finite,
     infinite,
     continued: () => continued,
-    skippedAll: () => skippedAll,
     unmount() {
       element.isConnected = false;
       state.unmount();
@@ -385,15 +381,47 @@ test("player waits for real finite animation completion, ignoring infinite decor
   assert.equal(player.infinite.cancelled, true);
 });
 
-test("Skip advances exactly once and Skip all has a separate action", () => {
-  const player = playerHarness();
-  const skip = player.tree.find(node => node.props?.children === "Skip");
-  skip.props.onClick();
-  skip.props.onClick();
-  assert.equal(player.continued(), 1);
-  player.tree.find(node => node.props?.children === "Skip all").props.onClick();
-  assert.equal(player.skippedAll(), 1);
-  player.unmount();
+test("batch SSR/LR reuse single-pack click skipping without bottom buttons or skipping the artwork", async () => {
+  for (const rarity of ["SSR", "LR"]) {
+    const player = playerHarness(false, false, rarity);
+    assert.equal(
+      player.tree.some(node =>
+        ["Skip", "Skip all", "Next", "Replay"].includes(node.props?.children)
+      ),
+      false
+    );
+    const skip = player.tree.find(
+      node =>
+        node.props?.["aria-label"] === "Skip card entrance or final bounce"
+    );
+    assert.ok(skip);
+    const arrival = rarity === "SSR" ? 4214 : 5150;
+    const artEnd = rarity === "SSR" ? 9920 : 10060;
+    const end = rarity === "SSR" ? 10030 : 14670;
+    skip.props.onClick();
+    assert.equal(player.finite.currentTime, arrival);
+    assert.equal(player.infinite.currentTime, arrival);
+    assert.equal(player.continued(), 0);
+    player.finite.currentTime = player.infinite.currentTime = arrival + 100;
+    skip.props.onClick();
+    assert.equal(
+      player.finite.currentTime,
+      arrival + 100,
+      "the artwork phase is never skipped"
+    );
+    player.finite.currentTime = player.infinite.currentTime = artEnd + 1;
+    skip.props.onClick();
+    assert.equal(player.finite.currentTime, end);
+    assert.equal(
+      player.continued(),
+      0,
+      "advancement still waits for the animation completion"
+    );
+    player.completeFinite();
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(player.continued(), 1);
+    player.unmount();
+  }
 });
 
 test("unmount cancels pending animation completion and cleans timers/listeners", async () => {

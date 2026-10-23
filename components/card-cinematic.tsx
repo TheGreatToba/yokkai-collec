@@ -7,13 +7,11 @@ import { LrCardReveal } from "@/components/lr-card-reveal";
 export function CardCinematic({
   card,
   onContinue,
-  autoAdvance = false,
-  onSkipAll
+  autoAdvance = false
 }: {
   card: Pick<Card, "name" | "category" | "anime" | "image" | "rarity">;
   onContinue?: () => void;
   autoAdvance?: boolean;
-  onSkipAll?: () => void;
 }) {
   return (
     <LrCardReveal
@@ -21,7 +19,6 @@ export function CardCinematic({
       card={card}
       onContinue={onContinue}
       autoAdvance={autoAdvance}
-      onSkipAll={onSkipAll}
     />
   );
 }

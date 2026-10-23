@@ -1043,7 +1043,6 @@ export function BoosterReveal({
       >
         {spot && <CardCinematic key={spot.instanceId} card={spot}
           autoAdvance={sequencing}
-          onSkipAll={sequencing ? finishBatch : undefined}
           onContinue={() => {
             if (sequencing) finishRare(spot.instanceId);
             else { setSpot(null); if (!done) setFaceUp(true); }

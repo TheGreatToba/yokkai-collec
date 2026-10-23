@@ -176,13 +176,11 @@ const streaks = [
 export function LrCardReveal({
   card,
   onContinue,
-  autoAdvance = false,
-  onSkipAll
+  autoAdvance = false
 }: {
   card: Pick<Card, "name" | "category" | "anime" | "image" | "rarity">;
   onContinue?: () => void;
   autoAdvance?: boolean;
-  onSkipAll?: () => void;
 }) {
   const ssr = card.rarity === "SSR";
   const timing = ssr
@@ -462,20 +460,7 @@ export function LrCardReveal({
           </div>
         </div>
       </div>
-      {autoAdvance && (
-        <nav
-          className="yk-lr-sequence-controls"
-          aria-label="Batch reveal actions"
-        >
-          <button type="button" onClick={advance}>
-            Skip
-          </button>
-          <button type="button" onClick={onSkipAll}>
-            Skip all
-          </button>
-        </nav>
-      )}
-      {!autoAdvance && onContinue && (
+      {onContinue && (
         <button
           type="button"
           className="yk-lr-skip"
