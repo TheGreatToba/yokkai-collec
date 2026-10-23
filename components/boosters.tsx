@@ -26,16 +26,11 @@ import {
 import { CardBack, YokaiCard } from "@/components/yokai-card";
 import type { SfxName } from "@/hooks/use-sfx";
 import { animation } from "@/lib/ui/animations";
-import { runPackOpeningSequence, runFinalBoosterOpening } from "@/lib/ui/pack-opening";
+import { runFinalBoosterOpening } from "@/lib/ui/pack-opening";
 
 const CollectionView = dynamic(
   () => import("@/components/collection").then(module => module.CollectionView),
   { loading: () => <p role="status">Loading collection…</p> }
-);
-
-const LocalLrCinematic = dynamic(
-  () => import("@/components/local-card-cinematic").then(module => module.LocalCardCinematic),
-  { loading: () => <p role="status">Loading cinematic…</p> }
 );
 
 const CardCinematic = dynamic(
@@ -88,8 +83,6 @@ type Decision = {
 
 export function BoosterReveal({
   previewOnly = false,
-  finalCinematics = false,
-  releasedCinematics = false,
   packCount = 1,
   cards,
   collection = [],
@@ -112,8 +105,6 @@ export function BoosterReveal({
   onSound
 }: {
   previewOnly?: boolean;
-  finalCinematics?: boolean;
-  releasedCinematics?: boolean;
   packCount?: number;
   cards: RevealCard[];
   revealed: number;
@@ -202,7 +193,6 @@ export function BoosterReveal({
   const batchWindow = batch && !overview
     ? packRevealWindow(cards.length, revealed, batchReview?.at === revealed ? batchReview.page : undefined)
     : { page: 0, pages: 1, latest: 0, start: 0, end: cards.length };
-  const replayCards = overview ? [] : batch ? cards.slice(batchWindow.start, batchWindow.end) : cards;
   const selectedCards = cards.filter(
     card =>
       selection.has(card.instanceId) &&
@@ -282,43 +272,25 @@ export function BoosterReveal({
       if (!revealLocked) deposit();
       return;
     }
-    setFaceUp(true);
     onSound?.("flip");
     const isLR = current.rarity === "LR";
     const isSSR = current.rarity === "SSR";
     const shiny = current.shiny && (isSSR || isLR);
-    if (process.env.NODE_ENV === "development" && isLR) {
-      setSpot(current);
-      onSound?.(shiny ? "shiny" : "lr");
-      return;
-    }
-    if (process.env.NODE_ENV === "development" && finalCinematics && isSSR) {
-      setSpot(current);
-      onSound?.(shiny ? "shiny" : "ssr");
-      return;
-    }
-    if (releasedCinematics && (isLR || isSSR)) {
+    if (isLR || isSSR) {
       setSpot(current);
       onSound?.(shiny ? "shiny" : isLR ? "lr" : "ssr");
       return;
     }
-    const revealDuration = isLR
-      ? 4400
-      : isSSR
-        ? 3200
-        : current.rarity === "SR"
-          ? 520
-          : 0;
+    setFaceUp(true);
+    const revealDuration = current.rarity === "SR" ? 520 : 0;
     if (revealDuration) {
       setRevealLocked(true);
       revealTimer.current = window.setTimeout(() => {
         setRevealLocked(false);
-        if (shiny || isLR) setSpot(current);
         revealTimer.current = null;
       }, revealDuration);
     }
-    if (shiny || isLR) onSound?.(shiny ? "shiny" : "lr");
-    else if (isSSR || current.rarity === "SR") onSound?.(isSSR ? "ssr" : "sr");
+    if (current.rarity === "SR") onSound?.("sr");
   }
   function revealAll() {
     if (!batch || done || revealAllLock.current) return;
@@ -538,145 +510,8 @@ export function BoosterReveal({
           ))}
         </ol>}
       </header>
-    {!done && <div className={`yk-reveal-stage ${faceUp && current?.rarity === "SSR" ? "yk-reveal-ssr" : ""} ${faceUp && current?.rarity === "SR" ? "yk-reveal-sr" : ""} ${faceUp && current?.rarity === "LR" ? "yk-reveal-lr" : ""} ${faceUp && current?.shiny ? "yk-reveal-shiny" : ""}`}>
-      {faceUp && current?.rarity === "SSR" && <p className="yk-callout yk-ssr-callout">✦ Exceptional Rarity ✦</p>}
-      {faceUp && current?.rarity === "LR" && <p className="yk-callout yk-lr-callout">✦ Legendary Summon ✦</p>}
-      {faceUp && current?.shiny && <p className="yk-shiny-callout">✨ Shiny Version!</p>}
+    {!done && !spot && <div className={`yk-reveal-stage ${faceUp && current?.rarity === "SR" ? "yk-reveal-sr" : ""}`}>
       {faceUp && current?.rarity === "SR" && <div className="yk-sr-flash" aria-hidden="true" />}
-      {faceUp && current?.rarity === "SSR" && (
-        <div className="yk-ssr-cinematic-stage" aria-hidden="true">
-          <div className="yk-ssr-backdrop">
-            <div className="yk-ssr-nebula" />
-            <div className="yk-ssr-cosmic-dust-field">
-              {Array.from({ length: 20 }, (_, i) => (
-                <span key={i} style={{ "--dust-i": i } as CSSProperties} className="yk-ssr-cosmic-dust" />
-              ))}
-            </div>
-          </div>
-          <div className="yk-ssr-backlight" />
-          <div className="yk-ssr-ribbon-stage">
-            <svg className="yk-ssr-ribbon-svg" viewBox="0 0 300 400" fill="none">
-              <defs>
-                <linearGradient id="ssr-ribbon-grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#ff77bb" stopOpacity="0" />
-                  <stop offset="35%" stopColor="#ff3d8b" stopOpacity="0.95" />
-                  <stop offset="70%" stopColor="#ff99d6" stopOpacity="1" />
-                  <stop offset="100%" stopColor="#ffffff" stopOpacity="0.9" />
-                </linearGradient>
-                <linearGradient id="ssr-ribbon-grad2" x1="100%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#ec4899" stopOpacity="0" />
-                  <stop offset="45%" stopColor="#f43f5e" stopOpacity="0.9" />
-                  <stop offset="80%" stopColor="#fbcfe8" stopOpacity="1" />
-                  <stop offset="100%" stopColor="#ffffff" stopOpacity="0.85" />
-                </linearGradient>
-              </defs>
-              <path className="yk-ssr-ribbon-path yk-ssr-ribbon-1" d="M 40 370 C 15 280, 80 200, 165 180 C 255 160, 275 80, 205 30" stroke="url(#ssr-ribbon-grad1)" strokeWidth="6" strokeLinecap="round" />
-              <path className="yk-ssr-ribbon-path yk-ssr-ribbon-2" d="M 260 360 C 285 270, 220 210, 135 190 C 45 170, 25 90, 95 35" stroke="url(#ssr-ribbon-grad2)" strokeWidth="5.5" strokeLinecap="round" />
-            </svg>
-          </div>
-          <div className="yk-ssr-godrays">
-            {Array.from({ length: 20 }, (_, i) => (
-              <span key={i} style={{ "--ray-i": i } as CSSProperties} className="yk-ssr-godray" />
-            ))}
-          </div>
-          <div className="yk-ssr-supernova">
-            <div className="yk-ssr-flare-core" />
-            <div className="yk-ssr-flare-beam" />
-            <div className="yk-ssr-shockwave" />
-          </div>
-          <div className="yk-ssr-petals-explosion">
-            {Array.from({ length: 36 }, (_, i) => (
-              <span
-                key={i}
-                style={{
-                  "--p-idx": i,
-                  "--p-angle": `${(i * 360) / 36}deg`,
-                  "--p-dist": `${130 + (i % 5) * 35}px`,
-                  "--p-size": `${3 + (i % 3) * 1.5}px`,
-                  "--p-delay": `${(i % 4) * 30}ms`
-                } as CSSProperties}
-                className="yk-ssr-petal"
-              />
-            ))}
-          </div>
-          <div className="yk-ssr-ambient-petals">
-            {Array.from({ length: 22 }, (_, i) => (
-              <span
-                key={i}
-                style={{
-                  "--petal-i": i,
-                  "--petal-angle": `${(i * 360) / 22}deg`,
-                  "--petal-dist": `${135 + (i % 4) * 30}px`,
-                  "--petal-delay": `${i * 90}ms`
-                } as CSSProperties}
-                className="yk-ssr-ambient-petal"
-              />
-            ))}
-          </div>
-        </div>
-      )}
-      {faceUp && current?.rarity === "LR" && (
-        <div className="yk-lr-cinematic-stage" aria-hidden="true">
-          <div className="yk-lr-backdrop">
-            <div className="yk-lr-nebula" />
-            <div className="yk-lr-cosmic-dust-field">
-              {Array.from({ length: 24 }, (_, i) => (
-                <span key={i} style={{ "--dust-i": i } as CSSProperties} className="yk-lr-cosmic-dust" />
-              ))}
-            </div>
-          </div>
-          <div className="yk-lr-backlight" />
-          <div className="yk-lr-lightning-stage">
-            <svg className="yk-lr-lightning-svg" viewBox="0 0 240 340" fill="none">
-              <path className="yk-lr-bolt yk-lr-bolt-1" d="M20 50 L10 90 L25 100 L5 160 L20 180 L8 240 L25 250 L15 300" stroke="#ffd700" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              <path className="yk-lr-bolt yk-lr-bolt-2" d="M220 40 L230 85 L215 110 L235 170 L218 200 L232 260 L215 285 L225 310" stroke="#ffe57f" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              <path className="yk-lr-bolt yk-lr-bolt-3" d="M40 15 L90 8 L105 20 L150 5 L175 18 L210 10" stroke="#fff176" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              <path className="yk-lr-bolt yk-lr-bolt-4" d="M35 325 L85 332 L110 320 L160 335 L190 322 L215 330" stroke="#ffd700" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              <path className="yk-lr-bolt yk-lr-bolt-5" d="M15 70 L30 110 L12 150 L28 190" stroke="#d8b4fe" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              <path className="yk-lr-bolt yk-lr-bolt-6" d="M225 60 L210 120 L228 160 L212 210" stroke="#c084fc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-          <div className="yk-lr-godrays">
-            {Array.from({ length: 24 }, (_, i) => (
-              <span key={i} style={{ "--ray-i": i } as CSSProperties} className="yk-lr-godray" />
-            ))}
-          </div>
-          <div className="yk-lr-supernova">
-            <div className="yk-lr-flare-core" />
-            <div className="yk-lr-flare-beam" />
-            <div className="yk-lr-shockwave" />
-          </div>
-          <div className="yk-lr-spark-explosion">
-            {Array.from({ length: 48 }, (_, i) => (
-              <span
-                key={i}
-                style={{
-                  "--p-idx": i,
-                  "--p-angle": `${(i * 360) / 48}deg`,
-                  "--p-dist": `${140 + (i % 6) * 45}px`,
-                  "--p-size": `${2.5 + (i % 3) * 1.5}px`,
-                  "--p-delay": `${(i % 5) * 35}ms`
-                } as CSSProperties}
-                className="yk-lr-spark"
-              />
-            ))}
-          </div>
-          <div className="yk-lr-stardust-ring">
-            {Array.from({ length: 28 }, (_, i) => (
-              <span
-                key={i}
-                style={{
-                  "--star-i": i,
-                  "--star-angle": `${(i * 360) / 28}deg`,
-                  "--star-dist": `${145 + (i % 4) * 35}px`,
-                  "--star-delay": `${i * 80}ms`
-                } as CSSProperties}
-                className="yk-lr-stardust"
-              />
-            ))}
-          </div>
-        </div>
-      )}
       <div className="yk-deck">{cards.slice(revealed + 1).map((card, i, remaining) => <div className="yk-stacked-back" key={card.instanceId} style={{ transform: `translate(${(remaining.length-i)*3}px,${-(remaining.length-i)*4}px) rotate(${(remaining.length-i)*1.3}deg)`, filter: `brightness(${1-(remaining.length-i)*.045})` }}><CardBack /></div>)}
         <button type="button" ref={next} onClick={flip} aria-disabled={revealLocked} aria-label={revealLocked ? `Revealing ${current.name} in progress` : faceUp ? `Place ${current.name}` : `Reveal card ${revealed + 1} of ${cards.length}`} className={`yk-deck-button ${faceUp ? "yk-face-up" : ""}`}><span className="yk-flip"><span className="yk-flip-back" aria-hidden="true"><CardBack /></span><span className="yk-flip-front" aria-hidden="true">{faceUp && <YokaiCard {...current} />}</span></span></button>
       </div>
@@ -944,24 +779,6 @@ export function BoosterReveal({
             <Button variant="secondary" onClick={onReturn}>
               Back to packs
             </Button>
-            {process.env.NODE_ENV === "development" &&
-              replayCards.filter(card => card.rarity === "LR").map(card => (
-                <Button key={card.instanceId} variant="secondary" onClick={() => setSpot(card)}>
-                  Replay cinematic: {card.name}
-                </Button>
-              ))}
-            {process.env.NODE_ENV === "development" && finalCinematics &&
-              replayCards.filter(card => card.rarity === "SSR").map(card => (
-                <Button key={card.instanceId} variant="secondary" onClick={() => setSpot(card)}>
-                  Replay cinematic: {card.name}
-                </Button>
-              ))}
-            {process.env.NODE_ENV !== "development" && releasedCinematics &&
-              replayCards.filter(card => card.rarity === "LR" || card.rarity === "SSR").map(card => (
-                <Button key={card.instanceId} variant="secondary" onClick={() => setSpot(card)}>
-                  Replay cinematic: {card.name}
-                </Button>
-              ))}
           </div>
         </div>
       )}
@@ -975,30 +792,11 @@ export function BoosterReveal({
       </Modal>
       <Modal
         open={!!spot}
-        onClose={() => setSpot(null)}
+        onClose={() => { setSpot(null); if (!done) setFaceUp(true); }}
         title={spot?.shiny ? "✦ Shiny Summon ✦" : spot?.rarity === "SSR" ? "SSR summon" : "Legendary summon"}
-        className={`yk-invocation ${spot?.shiny ? "yk-invocation-shiny" : ""} ${(process.env.NODE_ENV === "development" || releasedCinematics) && (spot?.rarity === "LR" || spot?.rarity === "SSR") ? "yk-lr-file-modal" : ""}`}
+        className="yk-invocation yk-lr-file-modal"
       >
-        {spot && process.env.NODE_ENV === "development" && spot.rarity === "LR" ? (
-          <LocalLrCinematic card={spot} controls={false} onContinue={() => setSpot(null)} />
-        ) : spot && process.env.NODE_ENV === "development" && spot.rarity === "SSR" ? (
-          <LocalLrCinematic card={spot} controls={false} onContinue={() => setSpot(null)} />
-        ) : spot && releasedCinematics && (spot.rarity === "LR" || spot.rarity === "SSR") ? (
-          <CardCinematic card={spot} onContinue={() => setSpot(null)} />
-        ) : spot && (
-          <div className="relative z-10 flex flex-col items-center gap-6">
-            <div className="yk-invoked-card">
-              <YokaiCard {...spot} />
-            </div>
-            <h3 className="font-display text-[clamp(28px,4vw,44px)]">
-              {spot.name}
-            </h3>
-            {spot.isNew && <StatusPill>NEW</StatusPill>}
-            <Button variant="secondary" onClick={() => setSpot(null)}>
-              Tap to continue
-            </Button>
-          </div>
-        )}
+        {spot && <CardCinematic key={spot.instanceId} card={spot} onContinue={() => { setSpot(null); if (!done) setFaceUp(true); }} />}
       </Modal>
       <Modal
         open={sellAllConfirm}
@@ -1216,7 +1014,6 @@ export function BoosterReveal({
 export function Boosters({
   previewOnly = false,
   simulateActions = false,
-  releasedOpening = false,
   clickToOpen = false,
   statusError,
   decisionError,
@@ -1252,7 +1049,6 @@ export function Boosters({
 }: {
   previewOnly?: boolean;
   simulateActions?: boolean;
-  releasedOpening?: boolean;
   clickToOpen?: boolean;
   statusError?: string;
   decisionError?: string;
@@ -1300,7 +1096,6 @@ export function Boosters({
   const [openingKind, setOpeningKind] = useState<"regular" | "decision">(
     "regular"
   );
-  const [tearRequested, setTearRequested] = useState(false);
   const [waiting, setWaiting] = useState(false);
   const [showDraw, setShowDraw] = useState(false);
   const [priorCopies, setPriorCopies] = useState<Record<string, number> | null>(
@@ -1314,19 +1109,22 @@ export function Boosters({
   );
   const [regularCount, setRegularCount] = useState<1 | 5 | 10>(1);
   const [activePackCount, setActivePackCount] = useState(1);
-  const batchEnabled = releasedOpening && !!onOpenMany;
+  const batchEnabled = !!onOpenMany;
   const selectedCount = batchEnabled && status && status.available >= regularCount ? regularCount : 1;
   const openingLock = useRef(false);
   const openingStage = useRef<HTMLDivElement>(null);
   const openingTrigger = useRef<HTMLElement | null>(null);
-  const requestSeal = useRef<(() => void) | null>(null);
-  const accelerateSeal = useRef<(() => void) | null>(null);
   const preloading = useRef<Promise<void>>(Promise.resolve());
   const finishOpening = useRef<(() => void) | null>(null);
+  const openingAbort = useRef<AbortController | null>(null);
+  const waitingTimer = useRef<number | undefined>(undefined);
+  const preloadTimer = useRef<number | undefined>(undefined);
+  const finishPreload = useRef<(() => void) | null>(null);
+  const [tearRequested, setTearRequested] = useState(false);
   const openingClicked = useRef(false);
   const playSound = onSound ?? noopSound;
   const speedUpSeal = () => {
-    if (releasedOpening && clickToOpen) {
+    if (clickToOpen) {
       if (!openingClicked.current) {
         openingClicked.current = true;
         setTearRequested(true);
@@ -1335,21 +1133,9 @@ export function Boosters({
       }
       return;
     }
-    if (releasedOpening) {
-      openingStage.current?.querySelector("iframe")?.contentWindow?.postMessage(
-        { type: "yokkai-booster-next-step" }, "*"
-      );
-      return;
-    }
-    if (openingPhase === "seal") {
-      accelerateSeal.current?.();
-      return;
-    }
-    if (!requestSeal.current) return;
-    const beginTear = requestSeal.current;
-    requestSeal.current = null;
-    setTearRequested(true);
-    beginTear();
+    openingStage.current?.querySelector("iframe")?.contentWindow?.postMessage(
+      { type: "yokkai-booster-next-step" }, "*"
+    );
   };
   function preload(cards: RevealCard[]) {
     const decoding = Promise.allSettled(
@@ -1359,17 +1145,18 @@ export function Boosters({
         return image.decode();
       })
     );
-    preloading.current = Promise.race([
-      decoding,
-      new Promise(resolve =>
-        window.setTimeout(resolve, animation.packOpening.seal)
-      )
-    ]).then(() => undefined);
+    preloading.current = new Promise<void>(resolve => {
+      finishPreload.current = resolve;
+      preloadTimer.current = window.setTimeout(resolve, animation.packOpening.seal);
+      void decoding.then(() => { window.clearTimeout(preloadTimer.current); resolve(); });
+    });
   }
   function start(kind: "regular" | "decision", trigger?: HTMLElement) {
     if (openingLock.current) return;
     openingTrigger.current = trigger ?? (document.activeElement instanceof HTMLElement && document.activeElement.tabIndex >= 0 ? document.activeElement : null);
     openingLock.current = true;
+    const controller = new AbortController();
+    openingAbort.current = controller;
     const count = kind === "regular" ? selectedCount : 1;
     setActivePackCount(count);
     setOpeningKind(kind);
@@ -1386,86 +1173,33 @@ export function Boosters({
     openingClicked.current = false;
     setOpeningPhase("tension");
     playSound("rumble");
-    const waitingTimer = window.setTimeout(
+    waitingTimer.current = window.setTimeout(
       () => setWaiting(true),
       animation.packOpening.slowResponse
     );
-    if (releasedOpening) {
       const finished = new Promise<void>(resolve => { finishOpening.current = resolve; });
       void runFinalBoosterOpening({
         open: count > 1 && onOpenMany ? () => onOpenMany(count) : () => onOpen(kind),
         finished,
         onResponse: cards => {
-          clearTimeout(waitingTimer);
+          if (controller.signal.aborted) return;
+          clearTimeout(waitingTimer.current);
           setWaiting(false);
           if (cards?.length) preload(cards);
         },
         preload: () => reducedMotion ? Promise.resolve() : preloading.current
       }).then(
         success => {
+          if (controller.signal.aborted) return;
           if (!success) setShowDraw(false);
           setOpeningPhase("idle");
         },
-        () => { setShowDraw(false); setOpeningPhase("idle"); }
+        () => { if (!controller.signal.aborted) { setShowDraw(false); setOpeningPhase("idle"); } }
       ).finally(() => {
-        clearTimeout(waitingTimer);
-        setWaiting(false);
+        clearTimeout(waitingTimer.current);
+        window.clearTimeout(preloadTimer.current);
+        if (!controller.signal.aborted) setWaiting(false);
         finishOpening.current = null;
-        openingLock.current = false;
-      });
-      return;
-    }
-    const tear = new Promise<void>(resolve => {
-      requestSeal.current = resolve;
-    });
-    void runPackOpeningSequence({
-      open: () => onOpen(kind),
-      onResponse: cards => {
-        clearTimeout(waitingTimer);
-        setWaiting(false);
-        if (cards) preload(cards);
-      },
-      onSeal: async () => {
-        await tear;
-        setOpeningPhase("seal");
-        playSound("tear");
-      },
-      wait: duration =>
-        duration !== animation.packOpening.seal
-          ? new Promise(resolve => window.setTimeout(resolve, duration))
-          : new Promise(resolve => {
-              const startedAt = performance.now();
-              const finish = () => {
-                void (
-                  reducedMotion ? Promise.resolve() : preloading.current
-                ).then(resolve);
-              };
-              let timer = window.setTimeout(
-                finish,
-                reducedMotion ? 0 : duration
-              );
-              accelerateSeal.current = () => {
-          accelerateSeal.current = null;
-          if (reducedMotion) return;
-          openingStage.current?.getAnimations({ subtree: true }).forEach(effect => effect.updatePlaybackRate(3));
-          window.clearTimeout(timer);
-          timer = window.setTimeout(finish, Math.max(0, duration - (performance.now() - startedAt)) / 3);
-        };
-            })
-    })
-      .then(
-        () => setOpeningPhase("idle"),
-        () => {
-          setShowDraw(false);
-          setOpeningPhase("idle");
-        }
-      )
-      .finally(() => {
-        clearTimeout(waitingTimer);
-        setWaiting(false);
-        setTearRequested(false);
-        requestSeal.current = null;
-        accelerateSeal.current = null;
         openingLock.current = false;
       });
   }
@@ -1508,7 +1242,13 @@ export function Boosters({
     if (openingPhase === "seal")
       openingStage.current?.focus({ preventScroll: true });
   }, [openingPhase]);
-  useEffect(() => () => { finishOpening.current?.(); }, []);
+  useEffect(() => () => {
+    openingAbort.current?.abort();
+    window.clearTimeout(waitingTimer.current);
+    window.clearTimeout(preloadTimer.current);
+    finishPreload.current?.();
+    finishOpening.current?.();
+  }, []);
   const shownRates = ratesKind === "decision" ? decisionDropRates : dropRates;
   const rateDetails = <>
         <p className="text-sm leading-6 text-ink-2">
@@ -1546,22 +1286,9 @@ export function Boosters({
       {opening ? (
         <div
           ref={openingStage}
-          className={`yk-opening-stage yk-opening-${openingPhase} yk-opening-kind-${openingKind}`}
+          className="yk-opening-stage"
           role="button" tabIndex={0}
-          aria-label={
-            releasedOpening && clickToOpen && !tearRequested
-              ? "Tear open the pack"
-              : releasedOpening && clickToOpen && openingPhase !== "seal"
-                ? "Opening pack"
-                : releasedOpening && clickToOpen ? "Skip booster opening" : releasedOpening ? "Next opening step" : openingPhase === "seal"
-              ? "Speed up the opening animation"
-              : tearRequested
-                ? "Opening pack"
-                : "Tear open the pack"
-          }
-          aria-busy={
-            tearRequested && openingPhase !== "seal" ? true : undefined
-          }
+          aria-label={clickToOpen && !tearRequested ? "Tear open the pack" : clickToOpen ? "Skip booster opening" : "Next opening step"}
           onClick={speedUpSeal}
           onKeyDown={event => {
             if (event.repeat) {
@@ -1576,8 +1303,6 @@ export function Boosters({
             }
           }}
         >
-          {releasedOpening ? (
-            <>
               <BoosterOpening
                 kind={openingKind}
                 openRequested={clickToOpen ? tearRequested : undefined}
@@ -1586,74 +1311,9 @@ export function Boosters({
               />
               {activePackCount > 1 && <p className="yk-opening-batch-count">{activePackCount} Regular Packs · {activePackCount * 5} cards</p>}
               {waiting && (!clickToOpen || tearRequested) && <p className="yk-opening-server-status" role="status">Your pack is still being prepared…</p>}
-            </>
-          ) : <>
-          <div className="yk-opening-pack yk-pack-tear" aria-hidden="true">
-            <div className="yk-pack-tear-sparks">
-              {[
-                [11, 8],
-                [85, 12],
-                [5, 28],
-                [97, 34],
-                [9, 49],
-                [91, 53],
-                [2, 75],
-                [96, 80],
-                [19, 94],
-                [80, 97],
-                [14, 64],
-                [83, 69],
-                [23, 20],
-                [77, 26],
-                [48, 3],
-                [51, 101]
-              ].map(([x, y], i) => (
-                <span
-                  key={i}
-                  className="yk-pack-tear-spark"
-                  style={
-                    {
-                      left: `${x}%`,
-                      top: `${y}%`,
-                      "--spark-delay": `${-i * 0.41}s`,
-                      "--spark-duration": `${2.7 + (i % 5) * 0.35}s`,
-                      "--spark-length": i % 4 === 0 ? "18px" : "10px"
-                    } as CSSProperties
-                  }
-                />
-              ))}
-            </div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              className="yk-pack-tear-body" src={drawKind === "decision" ? "/assets/chrome-decision-booster-v1.png" : "/assets/chrome-regular-booster-v1.png"}
-              alt=""
-              width={941}
-              height={1672}
-            />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              className="yk-pack-tear-top" src={drawKind === "decision" ? "/assets/chrome-decision-booster-v1.png" : "/assets/chrome-regular-booster-v1.png"}
-              alt=""
-              width={941}
-              height={1672}
-            />
-            <div className="yk-pack-tear-glow" />
-          </div>
-          <p className="mt-8 text-sm text-ink-2">
-            {openingPhase === "seal"
-              ? "The seal is breaking…"
-              : tearRequested
-                ? waiting
-                  ? "Your pack is still being prepared…"
-                  : "Getting your cards ready…"
-                : "Click the pack to tear it open."}
-          </p>
-          </>}
         </div>
       ) : revealing ? (
         <BoosterReveal
-          finalCinematics={process.env.NODE_ENV === "development"}
-          releasedCinematics
           packCount={drawKind === "regular" ? activePackCount : 1}
           previewOnly={localPreview}
           onComplete={localPreview ? () => setShowDraw(false) : undefined}

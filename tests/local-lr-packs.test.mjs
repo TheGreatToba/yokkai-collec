@@ -212,7 +212,7 @@ test("demo summaries disable real sharing/selection without changing production 
 
 test("demo BoosterReveal returns to packs and never receives a destruction handler", () => {
   const hooks = stateHooks();
-  hooks.states.push("idle", "regular", false, false, true);
+  hooks.states.push("idle", "regular", false, true);
   const { Boosters } = load(
     "components/boosters.tsx",
     boostersMocks(hooks.react),
@@ -240,44 +240,18 @@ test("demo BoosterReveal returns to packs and never receives a destruction handl
   assert.equal(reveal.props.previewOnly, true);
   assert.equal(reveal.props.onDiscard, undefined);
   reveal.props.onComplete();
-  assert.equal(hooks.states[4], false);
+  assert.equal(hooks.states[3], false);
   assert.ok(!tree.some(node => node.type === "ReferralReminder"));
 });
 
-test("same-origin card assets are resolved absolutely before entering the sandbox", async () => {
-  let effect;
-  let request;
-  const { LocalLrCinematic } = load(
-    "components/local-lr-cinematic.tsx",
-    {
-      react: {
-        ...React,
-        useState: initial => [initial, () => {}],
-        useRef: () => ({ current: null }),
-        useEffect: fn => {
-          effect = fn;
-        }
-      }
-    },
-    {
-      process: { env: { NODE_ENV: "development" } },
-      window: { location: { origin: "http://localhost:3000" } },
-      AbortController,
-      fetch: async url => {
-        request = url;
-        return { ok: true, text: async () => "<html></html>" };
-      }
-    }
-  );
-  LocalLrCinematic({ card: createLocalLrPack("regular", 0)[4] });
-  const cleanup = effect();
-  const params = new URL(request, "http://localhost:3000").searchParams;
-  assert.equal(
-    params.get("image"),
-    "http://localhost:3000/assets/premium-examples/bbdou-card-1.png"
-  );
-  assert.equal(params.get("name"), "Madara Uchiha");
-  cleanup();
+test("LR packs route actual card fields to the native reveal without a sandbox request", () => {
+  const { CardCinematic } = load("components/card-cinematic.tsx", {
+    "@/components/lr-card-reveal": { LrCardReveal: "LR" }
+  });
+  const card = createLocalLrPack("regular", 0)[4];
+  const reveal = CardCinematic({ card });
+  assert.equal(reveal.type, "LR");
+  assert.equal(reveal.props.card, card);
 });
 
 test("the packs page and its client playground are development-only", () => {

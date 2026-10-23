@@ -70,7 +70,6 @@ export function LocalLrPacksPreview() {
       </div>
       <Boosters
         previewOnly
-        releasedOpening
         clickToOpen
         simulateActions
         onOpenMany={async count => {

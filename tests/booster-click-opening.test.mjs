@@ -24,6 +24,7 @@ function load(file, mocks = {}, globals = {}) {
       exports,
       URL,
       Response,
+      AbortController,
       ...globals,
       require: name =>
         name in mocks ? mocks[name] : name.endsWith(".css") ? {} : require(name)
@@ -116,6 +117,7 @@ test("closed Regular and Decision packs never tear or complete before a trusted 
           },
           clearTimeout() {},
           document: {
+            styleSheets: [],
             addEventListener() {},
             documentElement: {
               classList: {
@@ -125,8 +127,8 @@ test("closed Regular and Decision packs never tear or complete before a trusted 
             }
           },
           window: {
-            addEventListener: (_type, fn) => {
-              receive = fn;
+            addEventListener: (type, fn) => {
+              if (type === "message") receive = fn;
             },
             matchMedia: () => ({ matches: reduced }),
             setYokkaiBooster: () =>
@@ -349,7 +351,11 @@ test("the real pack stage requires a first pointer/keyboard gesture; repeated ke
       },
       {
         process: { env: { NODE_ENV: "production" } },
-        window: { matchMedia: () => ({ matches: false }), setTimeout: () => 1 },
+        window: {
+          matchMedia: () => ({ matches: false }),
+          setTimeout: () => 1,
+          clearTimeout() {}
+        },
         clearTimeout() {},
         Image: class {
           decode() {
@@ -359,7 +365,6 @@ test("the real pack stage requires a first pointer/keyboard gesture; repeated ke
       }
     );
     const props = {
-      releasedOpening: true,
       clickToOpen: true,
       status: { available: 1, reserve: 1, maximum: 5 },
       countdown: "00:00",
@@ -429,9 +434,12 @@ test("the real pack stage requires a first pointer/keyboard gesture; repeated ke
     assert.equal(state.states[0], "idle");
     assert.equal(requests, 1);
   }
-  assert.match(read("components/game.tsx"), /releasedOpening\s+clickToOpen/);
+  assert.match(
+    read("components/game.tsx"),
+    /<Boosters\s+(?:previewOnly\s+)?clickToOpen/
+  );
   assert.match(
     read("components/local-lr-packs-preview.tsx"),
-    /releasedOpening\s+clickToOpen/
+    /<Boosters\s+(?:previewOnly\s+)?clickToOpen/
   );
 });

@@ -238,7 +238,7 @@ test("previous groups remain reviewable and the next reveal follows the live gro
   );
 });
 
-test("completed batches can browse every group and only offer replays for the five visible cards", () => {
+test("completed batches can browse every group without duplicate replay controls", () => {
   const { props, render, slots } = revealHarness();
   props.revealed = 50;
   for (let page = 9; page >= 0; page--) {
@@ -257,7 +257,7 @@ test("completed batches can browse every group and only offer replays for the fi
           .join("")
           .startsWith("Replay cinematic:")
     );
-    assert.equal(replayButtons.length, 2);
+    assert.equal(replayButtons.length, 0);
     assert.equal(
       tree.find(node => node.props?.["aria-label"] === "Previous five cards")
         .props.disabled,

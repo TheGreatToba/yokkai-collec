@@ -17,6 +17,7 @@ export type YokaiCardProps = {
   fallbackImage?: string;
   catalogueImage?: string;
   imageSizes?: string;
+  crossOrigin?: "anonymous";
 };
 const spots = [
   [12, 18],
@@ -39,7 +40,8 @@ export function YokaiCard({
   animated = true,
   className = "",
   fallbackImage,
-  catalogueImage
+  catalogueImage,
+  crossOrigin
 }: YokaiCardProps) {
   const holo = shiny && (rarity === "SSR" || rarity === "LR");
   const franchise = anime?.trim();
@@ -53,6 +55,7 @@ export function YokaiCard({
           ? 3
           : 0;
   const artProps = {
+    crossOrigin,
     src: image ?? "",
     width: 300,
     height: 420,

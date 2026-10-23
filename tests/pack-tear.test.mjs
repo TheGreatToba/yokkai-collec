@@ -1,112 +1,17 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
-import postcss from "postcss";
-import { assertTearAssets, imageAsset } from "./helpers/visual-assets.mjs";
-
 const read = file =>
   readFileSync(new URL(`../${file}`, import.meta.url), "utf8");
-const source = read("components/boosters.tsx");
-const css = read("styles/pack-tear.css");
-const opening = source.slice(
-  source.indexOf("{opening ?"),
-  source.indexOf(": revealing ?")
-);
-
-test("native tear uses two copies of the active pack and decorative gold sparks, not a video", () => {
-  for (const part of ["body", "top"]) {
-    assert.match(
-      opening,
-      new RegExp(
-        `className="yk-pack-tear-${part}" src=\\{drawKind === "decision"`
-      )
-    );
-  }
-  assertTearAssets(
-    opening,
-    imageAsset(source, "yk-pack-image yk-decision-image"),
-    imageAsset(source, "yk-pack-image")
+test("legacy tear is deleted, with no import or renderer left", () => {
+  assert.equal(
+    existsSync(new URL("../styles/pack-tear.css", import.meta.url)),
+    false
   );
-  assert.match(opening, /yk-pack-tear-sparks/);
-  assert.match(opening, /yk-pack-tear-glow/);
-  assert.match(opening, /yk-pack-tear" aria-hidden="true"/);
+  assert.doesNotMatch(read("app/layout.tsx"), /pack-tear/);
   assert.doesNotMatch(
-    opening,
-    /<video|<iframe|dangerouslySetInnerHTML|data:image/
+    read("components/boosters.tsx"),
+    /yk-pack-tear|runPackOpeningSequence|releasedOpening/
   );
-  assert.match(read("app/layout.tsx"), /import "\.\.\/styles\/pack-tear\.css"/);
-});
-
-test("only the torn top moves away once the server-driven seal phase starts", () => {
-  const root = postcss.parse(css);
-  const rules = root.nodes.filter(node => node.type === "rule");
-  for (const part of ["body", "top"]) {
-    const rule = rules.find(node => node.selector === `.yk-pack-tear-${part}`);
-    assert.ok(
-      rule.nodes.some(
-        node => node.prop === "clip-path" && node.value.startsWith("polygon(")
-      )
-    );
-  }
-  const top = rules.find(
-    node => node.selector === ".yk-opening-seal .yk-pack-tear-top"
-  );
-  const animation = top.nodes.find(node => node.prop === "animation").value;
-  assert.match(animation, /yk-pack-tear-strip var\(--pack-opening-duration\)/);
-  assert.doesNotMatch(animation, /infinite/);
-  assert.ok(
-    !rules.some(
-      node =>
-        node.selector.includes("body") &&
-        node.nodes.some(d => d.prop === "animation")
-    )
-  );
-  assert.match(
-    css,
-    /100%\s*\{\s*transform: translate\(57%, -89%\) rotate\(47deg\);\s*opacity: 0/
-  );
-  assert.match(opening, /onClick=\{speedUpSeal\}/);
-  assert.match(opening, /Speed up the opening animation/);
-});
-
-test("the intact pack waits for an explicit pointer or keyboard tear gesture", () => {
-  assert.match(source, /const tear = new Promise<void>/);
-  assert.match(source, /onSeal: async \(\) => \{[\s\S]*await tear;/);
-  assert.match(opening, /Click the pack to tear it open\./);
-  assert.match(opening, /Tear open the pack/);
-  assert.match(opening, /role="button" tabIndex=\{0\}/);
-  assert.match(opening, /event\.key==="Enter"\|\|event\.key===" "/);
-  assert.match(
-    css,
-    /\.yk-opening-tension \.yk-pack-tear\s*\{[^}]*cursor: pointer/
-  );
-});
-
-test("reduced motion disables the strip, halo, seam and spark animations", () => {
-  const reduced = postcss
-    .parse(css)
-    .nodes.find(
-      node =>
-        node.type === "atrule" &&
-        node.params === "(prefers-reduced-motion: reduce)"
-    );
-  assert.ok(reduced);
-  for (const selector of [
-    ".yk-opening-stage .yk-pack-tear",
-    ".yk-pack-tear::before",
-    ".yk-pack-tear::after",
-    ".yk-opening-seal .yk-pack-tear-top",
-    ".yk-opening-seal .yk-pack-tear-glow",
-    ".yk-pack-tear-spark"
-  ]) {
-    assert.ok(
-      reduced.nodes.some(
-        rule =>
-          rule.selectors?.includes(selector) &&
-          rule.nodes.some(d => d.prop === "animation" && d.value === "none")
-      ),
-      selector
-    );
-  }
-  assert.doesNotMatch(css, /\.yk-reveal|\.yk-face-up|\.yk-card/);
+  assert.match(read("components/boosters.tsx"), /<BoosterOpening/);
 });

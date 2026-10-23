@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { LocalCardCinematic } from "@/components/local-card-cinematic";
+import { CardCinematic } from "@/components/card-cinematic";
 import { createLocalLrPack } from "@/lib/ui/local-lr-packs";
 
 export function CardCinematicsPreview() {
@@ -28,7 +28,7 @@ export function CardCinematicsPreview() {
         ))}
       </div>
       <div className="yk-card-cinematic-demo">
-        <LocalCardCinematic key={rarity} card={card} controls={false} />
+        <CardCinematic key={rarity} card={card} />
       </div>
     </>
   );

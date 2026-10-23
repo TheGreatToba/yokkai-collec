@@ -490,7 +490,6 @@ export function Game({
         )}
         {view === "packs" && (
           <Boosters
-            releasedOpening
             clickToOpen
             onOpenMany={
               previewData ? undefined : count => open("regular", count)

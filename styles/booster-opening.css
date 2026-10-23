@@ -1,9 +1,10 @@
-.yk-opening-stage:has(.yk-booster-opening) {
+.yk-opening-stage {
+  position: fixed;
+  z-index: 60;
+  inset: 0;
+  min-height: 0;
   padding: 0;
   overflow: hidden;
-}
-.yk-opening-stage:has(.yk-booster-opening)::after {
-  display: none;
 }
 .yk-booster-opening {
   position: absolute;

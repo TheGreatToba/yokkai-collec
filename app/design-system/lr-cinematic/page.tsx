@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { LocalCardCinematic } from "@/components/local-card-cinematic";
+import { CardCinematic } from "@/components/card-cinematic";
 import { createLocalLrPack } from "@/lib/ui/local-lr-packs";
 
 export const metadata: Metadata = {
@@ -37,10 +37,7 @@ export default function LrCinematicPage() {
         </div>
       </header>
       <div className="yk-card-cinematic-demo">
-        <LocalCardCinematic
-          card={createLocalLrPack("regular", 0)[4]}
-          controls={false}
-        />
+        <CardCinematic card={createLocalLrPack("regular", 0)[4]} />
       </div>
     </main>
   );

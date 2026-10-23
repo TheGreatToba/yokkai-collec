@@ -2,63 +2,37 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-test("accelerating the seal preserves its remaining animation instead of resolving immediately", () => {
+test("pack advance is delegated only to the final iframe player", () => {
   const source = readFileSync("components/boosters.tsx", "utf8");
   const body = source.match(
-    /accelerateSeal.current = \(\) => \{([\s\S]*?)\n        \};/
+    /const speedUpSeal = \(\) => \{([\s\S]*?)\n  \};/
   )[1];
-  const calls = [];
-  const ref = { current: null };
-  const accelerate = new Function(
-    "accelerateSeal",
-    "reducedMotion",
+  const messages = [];
+  const advance = new Function(
     "openingStage",
-    "window",
-    "performance",
-    "startedAt",
-    "duration",
-    "finish",
-    "timer",
+    "clickToOpen",
+    "finishOpening",
     body
   );
   const stage = {
     current: {
-      getAnimations: () => [
-        { updatePlaybackRate: rate => calls.push(["rate", rate]) }
-      ]
+      querySelector: selector => {
+        assert.equal(selector, "iframe");
+        return {
+          contentWindow: { postMessage: (...args) => messages.push(args) }
+        };
+      }
     }
   };
-  const timers = {
-    clearTimeout: id => calls.push(["clear", id]),
-    setTimeout: (callback, delay) => calls.push(["timer", delay])
+  const finish = {
+    current: () => assert.fail("the iframe owns non-click advancement")
   };
-  accelerate(
-    ref,
-    false,
-    stage,
-    timers,
-    { now: () => 300 },
-    100,
-    800,
-    () => assert.fail("must not skip"),
-    7
-  );
-  assert.deepEqual(calls, [
-    ["rate", 3],
-    ["clear", 7],
-    ["timer", 200]
+  advance(stage, false, finish);
+  advance(stage, false, finish);
+  assert.deepEqual(messages, [
+    [{ type: "yokkai-booster-next-step" }, "*"],
+    [{ type: "yokkai-booster-next-step" }, "*"]
   ]);
-  calls.length = 0;
-  accelerate(
-    ref,
-    true,
-    stage,
-    timers,
-    { now: () => 300 },
-    100,
-    800,
-    () => assert.fail("must not skip"),
-    7
-  );
-  assert.deepEqual(calls, []);
+  assert.doesNotMatch(body, /onOpen|setOpeningPhase|setTimeout/);
+  assert.doesNotMatch(source, /accelerateSeal|updatePlaybackRate/);
 });
