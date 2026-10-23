@@ -378,8 +378,11 @@ Aucune promesse de coupure nulle n'est faite.
    tailles, tables des matières et SHA-256 ; réexporter les rôles et droits si
    l'audit a constaté des changements. Garder ces fichiers sur la source.
 
-7. Arrêter les consommateurs sur la destination, dont RustFS pour le transfert
-   brut final de son volume. Synchroniser le delta exact du répertoire source
+7. Après le gel des écritures, arrêter aussi RustFS sur la source, puis les
+   consommateurs et RustFS sur la destination. Vérifier que les deux instances
+   RustFS sont arrêtées avant le transfert brut final ; elles ne doivent pas
+   modifier les métadonnées internes pendant cette copie. Synchroniser le delta
+   exact du répertoire source
    `/var/lib/docker/volumes/gawq4yyxiise96wens0dt1ex_supabase-rustfs-data/_data/`
    vers le même volume sur la destination, avec propriétaires, modes et contrôle
    d'intégrité. Utiliser rsync par tunnels SSH avec relais local, sans clé privée
