@@ -121,7 +121,7 @@ export function YokaiCard({
                     className="yk-shiny-badge"
                     title={cardRarityLabel(rarity, holo)}
                   >
-                    ✦
+                    {rarity === "SSR" ? "EV" : "✦"}
                   </span>
                 )}
               </span>

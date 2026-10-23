@@ -568,10 +568,14 @@ test("Shiny reste une surcouche SSR/LR et ne s'applique pas aux autres raretés"
     assert.match(
       html,
       new RegExp(
-        `aria-label="[^"]*, ${rarity === "SSR" ? "SSR Evolved" : "LR Shiny"},`
+        `aria-label="[^"]*, ${rarity === "SSR" ? "SSR EVOLVED" : "LR Shiny"},`
       )
     );
     assert.doesNotMatch(html, /SSR Shiny/);
+    assert.match(
+      html,
+      new RegExp(`yk-shiny-badge[^>]*>${rarity === "SSR" ? "EV" : "✦"}</span>`)
+    );
     assert.doesNotMatch(html, /yk-animated|yk-sparkle/);
     assert.match(html, /test-image\.png/);
   }
