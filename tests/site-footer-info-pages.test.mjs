@@ -27,10 +27,27 @@ test("public guide pages have English metadata and useful content", () => {
   }
   for (const rate of ["72.4%", "20%", "7%", "0.5%", "0.1%"])
     assert.match(rarities, new RegExp(rate.replace(".", "\\.")));
+  assert.match(rarities, /LR SHINY/);
+  assert.match(rarities, /0\.0001%/);
+  assert.match(rarities, /1 in 1,000,000 pull per card/);
   assert.match(rules, /Do not automate pack openings/);
   assert.match(rules, /Do not create accounts to farm referrals/);
   assert.match(info, /unofficial fan project/i);
   assert.match(info, /respective rights holders/);
+});
+
+test("the LR Shiny guide entry is distinctive and stays readable on mobile", () => {
+  const rarities = read("app/rarities/page.tsx");
+  const styles = read("styles/info-pages.css");
+
+  assert.match(rarities, /data-rarity="LR-SHINY"/);
+  assert.match(rarities, /Directly pulled Shiny cards are LR cards/);
+  assert.match(styles, /\.yk-rarity-row\[data-rarity="LR-SHINY"\]/);
+  assert.match(styles, /background-clip: text/);
+  assert.match(
+    styles,
+    /@media \(max-width: 640px\)[\s\S]*grid-template-columns: minmax\(76px, auto\) minmax\(0, 1fr\)/
+  );
 });
 
 test("the landing and player pack shell use the expanded footer", () => {

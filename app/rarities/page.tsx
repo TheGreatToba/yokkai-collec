@@ -32,10 +32,16 @@ export default function RaritiesPage() {
               <b>{odds}</b>
             </div>
           ))}
+          <div className="yk-rarity-row" data-rarity="LR-SHINY">
+            <strong>LR SHINY</strong>
+            <span>Legendary Rare · Shiny</span>
+            <b>0.0001%</b>
+          </div>
         </div>
         <p>
-          The percentages above are the current Regular Pack odds for each
-          individual card draw.
+          The first five percentages are the current Regular Pack odds for each
+          individual card draw. An LR then has an independent 0.1% chance to be
+          Shiny, making LR SHINY about a 1 in 1,000,000 pull per card.
         </p>
       </InfoSection>
       <InfoSection number="02" title="Decision Packs">
@@ -45,11 +51,12 @@ export default function RaritiesPage() {
           to keep.
         </p>
       </InfoSection>
-      <InfoSection number="03" title="Special card states">
+      <InfoSection number="03" title="Shiny and evolved cards">
         <p>
-          Shiny and evolved cards are special versions, not separate rarity
-          tiers. Their visual treatment and collection status appear directly on
-          the card.
+          Directly pulled Shiny cards are LR cards with an exclusive animated
+          treatment. Shiny and evolved cards are special versions, not separate
+          rarity tiers, and their collection status appears directly on the
+          card.
         </p>
       </InfoSection>
       <InfoSection number="04" title="Live odds">
