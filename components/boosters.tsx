@@ -1164,18 +1164,23 @@ export function Boosters({
   const finishPreload = useRef<(() => void) | null>(null);
   const [tearRequested, setTearRequested] = useState(false);
   const openingClicked = useRef(false);
+  const pendingOpeningSkips = useRef(0);
   const playSound = onSound ?? noopSound;
   const speedUpSeal = () => {
-    if (clickToOpen) {
-      if (!openingClicked.current) {
-        openingClicked.current = true;
-        setTearRequested(true);
-      } else if (openingPhase === "seal") {
-        finishOpening.current?.();
-      }
+    if (clickToOpen && !openingClicked.current) {
+      openingClicked.current = true;
+      setTearRequested(true);
+      openingStage.current?.querySelector("iframe")?.contentWindow?.postMessage(
+        { type: "yokkai-booster-open" }, "*"
+      );
       return;
     }
-    openingStage.current?.querySelector("iframe")?.contentWindow?.postMessage(
+    const player = openingStage.current?.querySelector("iframe");
+    if (!player || player.dataset?.ready === "false") {
+      pendingOpeningSkips.current = Math.min(2, pendingOpeningSkips.current + 1);
+      return;
+    }
+    player.contentWindow?.postMessage(
       { type: "yokkai-booster-next-step" }, "*"
     );
   };
@@ -1213,6 +1218,7 @@ export function Boosters({
     setWaiting(false);
     setTearRequested(false);
     openingClicked.current = false;
+    pendingOpeningSkips.current = 0;
     setOpeningPhase("tension");
     playSound("rumble");
     waitingTimer.current = window.setTimeout(
@@ -1332,6 +1338,9 @@ export function Boosters({
           role="button" tabIndex={0}
           aria-label={clickToOpen && !tearRequested ? "Tear open the pack" : clickToOpen ? "Skip booster opening" : "Next opening step"}
           onClick={speedUpSeal}
+          onMouseDown={event => {
+            if (event.detail > 1) event.preventDefault();
+          }}
           onKeyDown={event => {
             if (event.repeat) {
               event.preventDefault();
@@ -1348,6 +1357,14 @@ export function Boosters({
               <BoosterOpening
                 kind={openingKind}
                 openRequested={clickToOpen ? tearRequested : undefined}
+                onReady={() => {
+                  const player = openingStage.current?.querySelector("iframe")?.contentWindow;
+                  if (clickToOpen && openingClicked.current) player?.postMessage({ type: "yokkai-booster-open" }, "*");
+                  while (pendingOpeningSkips.current > 0) {
+                    pendingOpeningSkips.current--;
+                    player?.postMessage({ type: "yokkai-booster-next-step" }, "*");
+                  }
+                }}
                 onComplete={() => finishOpening.current?.()}
                 onTear={() => { setOpeningPhase("seal"); playSound("tear"); }}
               />

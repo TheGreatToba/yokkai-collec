@@ -1,3 +1,14 @@
+.yk-opening-stage,
+.yk-booster-opening {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+.yk-opening-stage:focus-visible {
+  outline: 2px solid #90c5ff;
+  outline-offset: -4px;
+}
 .yk-opening-stage {
   position: fixed;
   z-index: 60;
