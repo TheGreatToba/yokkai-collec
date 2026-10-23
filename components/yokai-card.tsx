@@ -103,7 +103,6 @@ export function YokaiCard({
           {special && <div className="yk-holo" />}
           {evolved && (
             <div className="yk-evolved-energy" aria-hidden="true">
-              <span className="yk-evolved-seal" />
               <span className="yk-evolved-scan" />
               <svg
                 className="yk-evolved-lightning"
