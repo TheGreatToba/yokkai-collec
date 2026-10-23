@@ -1,5 +1,6 @@
 "use client";
 
+import { cardRarityLabel } from "@/lib/ui/card-rarity-label";
 import { useState } from "react";
 import { Button, Karas, StatusPill } from "@/components/ui";
 import { YokaiCard } from "@/components/yokai-card";
@@ -38,7 +39,9 @@ function Lot({
                 </div>
                 <strong>
                   {card.name}
-                  {card.shiny ? " · Shiny" : ""}
+                  {card.shiny
+                    ? ` · ${cardRarityLabel(card.rarity, card.shiny)}`
+                    : ""}
                   {group.cards.length > 1 ? ` ×${group.cards.length}` : ""}
                 </strong>
                 {card.customImageUrl && <small>Custom image</small>}

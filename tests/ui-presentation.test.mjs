@@ -565,6 +565,13 @@ test("Shiny reste une surcouche SSR/LR et ne s'applique pas aux autres raretés"
     });
     assert.match(html, new RegExp(`yk-rarity-${rarity}`));
     assert.match(html, /yk-shiny-frame/);
+    assert.match(
+      html,
+      new RegExp(
+        `aria-label="[^"]*, ${rarity === "SSR" ? "SSR Evolved" : "LR Shiny"},`
+      )
+    );
+    assert.doesNotMatch(html, /SSR Shiny/);
     assert.doesNotMatch(html, /yk-animated|yk-sparkle/);
     assert.match(html, /test-image\.png/);
   }
@@ -1674,18 +1681,18 @@ test("Collection, Catalogue et Marché partagent une seule échelle de colonnes"
   }
 });
 
-test("la collection annonce l'évolution de cinq SSR non-Shiny en Shiny", () => {
+test("la collection annonce l'évolution de cinq SSR standard en SSR Evolved", () => {
   const source = readFileSync(
     path.join(root, "components/collection.tsx"),
     "utf8"
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/Shiny evolution/i)
+    normalizeWhitespace(/SSR evolution/i)
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/Shiny progress/)
+    normalizeWhitespace(/Evolution progress/)
   );
   assert.match(
     normalizeWhitespace(source),
@@ -1697,7 +1704,7 @@ test("la collection annonce l'évolution de cinq SSR non-Shiny en Shiny", () => 
   );
   assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/Confirm Shiny evolution/)
+    normalizeWhitespace(/Confirm SSR evolution/)
   );
   assert.match(
     normalizeWhitespace(source),

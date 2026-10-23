@@ -1,5 +1,6 @@
 "use client";
 
+import { cardRarityLabel } from "@/lib/ui/card-rarity-label";
 import type { CSSProperties, SyntheticEvent } from "react";
 import type { Rarity } from "@/lib/data/cards";
 import "@/styles/cards.css";
@@ -76,7 +77,7 @@ export function YokaiCard({
       <div
         className="yk-card-clip"
         role="img"
-        aria-label={`${name}, ${rarity}${holo ? " Shiny" : ""}, ${franchise || category}`}
+        aria-label={`${name}, ${cardRarityLabel(rarity, holo)}, ${franchise || category}`}
       >
         <div className="yk-card-frame" />
         {holo && <div className="yk-shiny-frame" />}
@@ -115,7 +116,14 @@ export function YokaiCard({
               </span>
               <span className="yk-card-badges">
                 <span className="yk-card-badge">{rarity}</span>
-                {holo && <span className="yk-shiny-badge">✦</span>}
+                {holo && (
+                  <span
+                    className="yk-shiny-badge"
+                    title={cardRarityLabel(rarity, holo)}
+                  >
+                    ✦
+                  </span>
+                )}
               </span>
             </div>
             {!image && (

@@ -1,5 +1,6 @@
 "use client";
 
+import { cardRarityLabel } from "@/lib/ui/card-rarity-label";
 import { useEffect, useRef, useState } from "react";
 import { Button, Modal } from "@/components/ui";
 import {
@@ -302,8 +303,7 @@ function ShareList() {
                 rel="noopener noreferrer"
                 className="text-accent-gold"
               >
-                {row.cardName} · {row.rarity}
-                {row.shiny ? " Shiny" : ""}
+                {row.cardName} · {cardRarityLabel(row.rarity, row.shiny)}
               </a>
               <p className="my-2 text-xs text-ink-3">
                 {row.showPseudo ? "Username shown" : "Sans pseudo"} ·{" "}

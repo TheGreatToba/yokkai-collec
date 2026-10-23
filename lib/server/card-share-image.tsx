@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
+import { cardRarityLabel } from "@/lib/ui/card-rarity-label";
 import "server-only";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -188,10 +189,7 @@ export async function renderSharedCardImage(
           </span>
           <span>YOKKAI COLLEC&apos;</span>
         </div>
-        <span>
-          {card.rarity}
-          {card.shiny ? " · SHINY" : ""}
-        </span>
+        <span>{cardRarityLabel(card.rarity, card.shiny).toUpperCase()}</span>
       </div>
       <div
         style={{

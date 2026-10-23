@@ -1,6 +1,7 @@
 "use client";
 /* eslint-disable react/no-unescaped-entities */
 
+import { cardRarityLabel } from "@/lib/ui/card-rarity-label";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useProAccess, ProFeatureNotice } from "@/components/pro-access";
@@ -1240,7 +1241,7 @@ export function CollectionView({
           setPage(1);
         }}
       >
-        <span>Shiny only</span>
+        <span>Shiny / Evolved</span>
         <i />
       </button>
       <div className="yk-view-toggle" aria-label="Display mode">
@@ -1936,14 +1937,8 @@ export function CollectionView({
                     <span
                       className={`text-sm font-bold tracking-widest ${rarityText[selected.rarity]}`}
                     >
-                      {selected.rarity}
-                      {selected.shiny ? " ✦ Shiny" : ""}
+                      {cardRarityLabel(selected.rarity, selected.shiny)}
                     </span>
-                    {selected.isEvolved && (
-                      <span className="text-[10px] font-semibold tracking-wider text-accent-gold">
-                        EVOLVED
-                      </span>
-                    )}
                   </div>
                   <div className="yk-detail-title-row">
                     <h3 className="font-display text-[28px] leading-tight">
@@ -2093,13 +2088,13 @@ export function CollectionView({
                     {selected.rarity === "SSR" && !selected.shiny && (
                       <div className="yk-detail-evolve">
                         <div className="yk-detail-progress-copy">
-                          <strong>Shiny progress</strong>
+                          <strong>Evolution progress</strong>
                           <span>{evolvableCopies}/5 copies</span>
                         </div>
                         <div
                           className="yk-detail-progress"
                           role="progressbar"
-                          aria-label="Progress toward Shiny evolution"
+                          aria-label="Progress toward SSR evolution"
                           aria-valuemin={0}
                           aria-valuemax={5}
                           aria-valuenow={Math.min(evolvableCopies, 5)}
@@ -2127,7 +2122,7 @@ export function CollectionView({
                             setEvolveConfirm(true);
                           }}
                         >
-                          Evolve to Shiny
+                          Evolve to SSR Evolved
                         </Button>
                       </div>
                     )}
@@ -2233,7 +2228,7 @@ export function CollectionView({
             setEvolutionError("");
           }
         }}
-        title="Confirm Shiny evolution"
+        title="Confirm SSR evolution"
       >
         {selected && (
           <>
@@ -2273,7 +2268,7 @@ export function CollectionView({
               })}
             </ul>
             <p className="mt-4 text-xs leading-5 text-ink-3">
-              The result is a new Shiny SSR card, with no folder and its
+              The result is a new SSR Evolved card, with no folder and its
               original image.
             </p>
             {evolutionError && (

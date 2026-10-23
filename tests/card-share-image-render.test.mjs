@@ -6,6 +6,17 @@ import vm from "node:vm";
 import ts from "typescript";
 
 const require = createRequire(import.meta.url);
+const rarityLabels = { exports: {} };
+vm.runInNewContext(
+  ts.transpileModule(
+    readFileSync(
+      new URL("../lib/ui/card-rarity-label.ts", import.meta.url),
+      "utf8"
+    ),
+    { compilerOptions: { module: ts.ModuleKind.CommonJS } }
+  ).outputText,
+  rarityLabels
+);
 const sharingContext = {
   exports: {},
   URL,
@@ -75,6 +86,7 @@ const context = {
   require(name) {
     if (name === "server-only") return {};
     if (name === "@/lib/server/card-sharing") return sharingContext.exports;
+    if (name === "@/lib/ui/card-rarity-label") return rarityLabels.exports;
     if (name.startsWith("@/")) return {};
     return require(name);
   }
