@@ -22,7 +22,7 @@ test("LR uses one native effect and the reference final sequence, without the re
 });
 
 // Exercise StrictMode's setup/cleanup/setup, both completion paths and unmount.
-test("LR only skips the entrance, preserves normal card playback and exposes final controls at 14.67s", async () => {
+test("LR skips entrance and post-art bounce while preserving the complete card-elements reveal", async () => {
   const { createRequire } = await import("node:module");
   const { default: vm } = await import("node:vm");
   const { default: ts } = await import("typescript");
@@ -165,7 +165,30 @@ test("LR only skips the entrance, preserves normal card playback and exposes fin
         assert.ok(timers.size <= 1, "seeking must replace the controls timer");
         assert.equal([...timers.values()][0].delay, 9520);
       }
-      animation.currentTime = 14670;
+      animation.currentTime = 10059;
+      button.props.onClick();
+      assert.equal(
+        animation.currentTime,
+        10059,
+        "the illustration must finish before bounce can be skipped"
+      );
+      animation.currentTime = 10060;
+      button.props.onClick();
+      assert.equal(
+        animation.currentTime,
+        14670,
+        "one post-art click reaches the final frame"
+      );
+      assert.equal(
+        continued,
+        0,
+        "skipping bounce leaves the final card visible"
+      );
+      assert.equal(
+        timers.size,
+        0,
+        "skipping bounce clears the pending controls timer"
+      );
     }
     button.props.onClick();
     assert.equal(continued, 0, "the skip button must never close the reveal");
@@ -184,7 +207,7 @@ test("LR only skips the entrance, preserves normal card playback and exposes fin
     cleanup();
     assert.equal(timers.size, 0);
     assert.equal(cancelled, 1);
-    assert.equal(cleared.length, reduced ? 2 : 3);
+    assert.equal(cleared.length, reduced ? 2 : 4);
   }
 });
 

@@ -446,6 +446,22 @@ try {
             ),
             "the card elements must remain in sequence"
           );
+          if (pack % 2 === 1) {
+            await until("!document.querySelector('.yk-lr-skip').disabled");
+            assert.ok(
+              await evaluate(
+                "Math.max(...document.querySelector('.yk-lr-reveal').getAnimations({subtree:true}).map(a=>Number(a.currentTime))) < 14670"
+              )
+            );
+            await evaluate("document.querySelector('.yk-lr-skip').click()");
+            assert.equal(
+              await evaluate(
+                "document.querySelectorAll('.yk-lr-reveal').length"
+              ),
+              1,
+              "skipping bounce keeps the final card visible"
+            );
+          }
           await until(
             "Math.max(...document.querySelector('.yk-lr-reveal').getAnimations({subtree:true}).map(a=>Number(a.currentTime))) >= 14670"
           );

@@ -214,16 +214,19 @@ export function LrCardReveal({
       ...animations.map(animation => Number(animation.currentTime ?? 0))
     );
     setEntranceSkipped(true);
-    if (time >= 5150) return;
-    // Only the entrance can be skipped; every card element still plays normally.
+    if ((time >= 5150 && time < 10060) || time >= 14670) return;
+    // Keep every element reveal; after the art finishes, only the bounce remains.
+    const target = time < 5150 ? 5150 : 14670;
     animations.forEach(animation => {
-      animation.currentTime = 5150;
+      animation.currentTime = target;
     });
     window.clearTimeout(controlsTimer.current);
-    controlsTimer.current = window.setTimeout(
-      () => setReady(true),
-      14670 - 5150
-    );
+    if (target === 14670) setReady(true);
+    else
+      controlsTimer.current = window.setTimeout(
+        () => setReady(true),
+        14670 - 5150
+      );
   };
   useEffect(() => {
     completed.current = false;
@@ -413,6 +416,8 @@ export function LrCardReveal({
           onAnimationEnd={event => {
             if (event.animationName === "yk-lr-card-slide-in")
               setEntranceSkipped(true);
+            if (event.animationName === "yk-lr-art-window")
+              setEntranceSkipped(false);
           }}
         >
           <div className="yk-lr-edge" aria-hidden="true" />
@@ -432,7 +437,7 @@ export function LrCardReveal({
         <button
           type="button"
           className="yk-lr-skip"
-          aria-label="Skip card entrance"
+          aria-label="Skip card entrance or final bounce"
           disabled={entranceSkipped || ready}
           onClick={nextStep}
         />
