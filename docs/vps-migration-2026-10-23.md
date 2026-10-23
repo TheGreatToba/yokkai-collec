@@ -1,5 +1,8 @@
 # Migration VPS — rapport avant bascule du 23 octobre 2026
 
+Rapport historique de préparation. La bascule autorisée est décrite dans le
+[rapport après bascule](vps-migration-postcutover-2026-10-23.md).
+
 **Statut : copie fonctionnelle préparée sur `62.83.37.242` ; aucune bascule effectuée.**
 La production reste sur `152.228.141.160`. Aucune modification Cloudflare/DNS,
 aucun arrêt de service de production et aucune suppression de données, conteneurs
