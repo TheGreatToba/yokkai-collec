@@ -5,7 +5,7 @@ import type { Rarity } from "@/lib/data/cards";
 
 export type SharedCard = {
   cardName: string;
-  franchise: string;
+  franchise: string | null;
   rarity: Rarity;
   shiny: boolean;
   catalogueImageUrl: string;
@@ -67,7 +67,7 @@ export async function getSharedCard(id: string): Promise<SharedCard | null> {
   const value = data as Record<string, unknown>;
   if (
     typeof value.cardName !== "string" ||
-    typeof value.franchise !== "string" ||
+    (value.franchise !== null && typeof value.franchise !== "string") ||
     typeof value.rarity !== "string" ||
     !rarities.has(value.rarity as Rarity) ||
     typeof value.shiny !== "boolean" ||

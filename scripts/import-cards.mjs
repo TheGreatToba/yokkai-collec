@@ -102,7 +102,7 @@ export function validateCard(row) {
     COLUMNS.map(column => [column, row[column]?.trim() ?? ""])
   );
   if (!card.source_id) card.source_id = deriveSourceId(card);
-  // The cleaned AniList CSV can contain unknown franchises (empty text is valid in DB).
+  card.franchise ||= null;
   for (const column of [
     "source_id",
     "nom",
