@@ -211,11 +211,20 @@ exactement après restauration**.
 | Cartes possédées    |          22 535 |                          22 535 |
 | Métadonnées Storage |         158 000 |                         158 000 |
 
-**La production reste active et évolue.** Au contrôle du 23 octobre à 15 h 40
-(13 h 40 UTC), elle contient déjà **22 660 cartes possédées**, soit 125 de plus
-que la référence. Ces écritures restent sur la production ; le dump final devra
-les reprendre avant la bascule. Le présent rapport ne prétend pas que la copie
-est déjà synchronisée avec chaque écriture en cours.
+**La production reste active et évolue.** Au contrôle du 23 octobre à 16 h 49
+(14 h 49 UTC), elle répond en HTTPS 200 et contient **22 760 cartes possédées**,
+soit **225 de plus** que la référence. Auth, profils, catalogue et métadonnées
+Storage conservent les effectifs du tableau. Le delta comprend aussi un decision
+pack et cinq decision pack choices supplémentaires, 12 refresh tokens et 28
+entrées de journal Auth supplémentaires ; les abonnements Realtime passent de
+12 à 20. Les 88 autres tables contrôlées conservent leurs effectifs.
+
+Ces écarts sont des deltas de comptage, pas un inventaire des modifications à
+effectif constant. Le dump final complet devra reprendre toutes les écritures.
+La copie conserve 22 535 cartes possédées ; ses trois entrées de journal Auth
+supplémentaires proviennent des tests et ses abonnements Realtime sont transitoires.
+Le présent rapport ne prétend pas que la copie est déjà synchronisée avec chaque
+écriture en cours. Ces relevés seront actualisés juste avant exécution.
 
 La base applicative source occupait environ 529 Mo au dernier contrôle, contre
 environ 340 Mo après restauration logique ; la base interne environ 3,19 Go
@@ -267,6 +276,13 @@ concordent.** Les 8 anciennes clés sont conservées ; aucune purge n'a été la
 Le jeu reconstitué contient donc 158 008 objets, soit 12 540 848 110 octets, hors
 objet temporaire de test supprimé. Il s'agit du jeu de référence complété, pas
 d'une garantie de synchronisation avec les écritures futures de la production.
+
+À 16 h 49–16 h 50, une nouvelle comparaison en lecture seule des tailles et dates
+des fichiers des deux volumes estime le delta brut à **8 333 605 octets**, sur
+36 fichiers internes : 13 absents de la destination, 17 de taille différente et
+6 de date différente uniquement. Les 29 fichiers supplémentaires de la destination
+devront être examinés au dry-run. Ce ne sont pas des nombres d'objets S3 ; cette
+estimation ne remplace ni le gel, ni les checksums, ni le dry-run final.
 
 ## 15. Résultat des tests Yokkai
 
@@ -325,18 +341,72 @@ Ces corrections concernent exclusivement la destination.
 - Réactivation du scheduler/Horizon Coolify et des tâches métier une fois le
   routage validé. Les anciens scripts de maintenance ont été archivés mais ne
   sont pas activés automatiquement sur le nouveau serveur.
-- Lecture/export des **vrais enregistrements et paramètres Cloudflare** avant
-  toute modification. Aucun accès Cloudflare de gestion n'a été utilisé ; la
-  recherche de connecteur disponible n'en a trouvé aucun. Les enregistrements
-  d'origine cachés derrière le proxy Cloudflare ne sont pas déduits du DNS public.
+- Relecture de la sauvegarde Cloudflare réelle avant toute modification et
+  vérification de l'absence de changement depuis l'audit final ci-dessous.
 - Vérifications contrôlées des intégrations externes après levée de l'isolement.
+
+### Audit Cloudflare final en lecture seule
+
+Lecture API du 23 octobre à partir de 16 h 49, après ajout par l'utilisateur des
+droits nécessaires. Les paramètres TLS et de zone, les définitions complètes des
+rulesets de zone, les Page Rules, Workers Routes et Load Balancers ont été lus
+avec succès pour les deux zones. Aucun appel de modification n'a été effectué.
+Les anciens refus HTTP 403 ont été résolus par l'utilisateur.
+
+Les réponses sont sauvegardées hors Git dans le dossier local protégé
+`cloudflare-readonly-20261023-final-144946`, sous le répertoire temporaire de la
+mission. Les identifiants de zones/enregistrements, les paramètres existants et
+les empreintes des sauvegardes y sont conservés. Le jeton n'est pas inclus.
+
+Les **six A** suivants pointent réellement vers `152.228.141.160`. Le plan de
+bascule remplace seulement leur valeur par `62.83.37.242` :
+
+| Nom                         | Proxy à conserver | TTL API à conserver |
+| --------------------------- | ----------------- | ------------------: |
+| `yokkai-collec.com`         | Activé            |                   1 |
+| `www.yokkai-collec.com`     | Activé            |                   1 |
+| `api.yokkai-collec.com`     | Activé            |                   1 |
+| `coolify.yokkai-collec.com` | Désactivé         |                   1 |
+| `yokkai-collec.fr`          | Activé            |                   1 |
+| `www.yokkai-collec.fr`      | Activé            |                   1 |
+
+La valeur TTL API `1` signifie automatique. Les 21 enregistrements de la zone
+`.com` et les 5 de `.fr` ont été sauvegardés exhaustivement. **Aucun AAAA n'est
+configuré dans ces zones : aucun changement AAAA ni ajout IPv6 n'est prévu.**
+Les CNAME, MX, TXT et SRV restent inchangés. Le CNAME `ftp.yokkai-collec.com`
+cible le domaine principal et suivra donc indirectement son changement d'origine.
+
+Éléments à conserver et à prendre en compte :
+
+- SSL `strict` (Full strict), HTTPS forcé, réécritures HTTPS, TLS 1.3 et WebSockets
+  activés sur les deux zones. Les certificats de la nouvelle origine ont été
+  validés par les tests TLS directs ; ils seront revérifiés avant le routage public.
+- Redirection 301 de `www.yokkai-collec.com` vers le domaine principal ;
+  redirection 301 de toute la zone `.fr` vers `.com`. Chemin et query string sont
+  conservés. Une réponse de redirection Cloudflare ne prouve pas le passage par
+  la nouvelle origine : la preuve doit porter sur le domaine canonique et l'API.
+- Cache explicitement désactivé pour `api.yokkai-collec.com` ; Rocket Loader
+  désactivé, Browser Integrity Check désactivé et niveau de sécurité
+  `essentially_off` pour cette API. Ces réglages existants ne sont pas modifiés.
+- Cache de zone `aggressive`, TTL navigateur de 14 400 secondes. Les contrôles
+  publics utiliseront des requêtes uniques et les journaux d'origine ; une
+  réponse en cache ne constitue pas une preuve de destination.
+- Aucun ruleset d'origine au niveau des zones, aucune Page Rule, aucune route
+  Worker et aucun Load Balancer de zone configuré. Les rulesets gérés Cloudflare
+  listés restent inchangés.
+
+Aucune modification de règle, de proxy, de TTL ou de TLS n'est nécessaire d'après
+cet audit. Les droits d'écriture DNS ne sont pas testés par une mutation ; un
+accès d'édition autorisé ou une intervention manuelle sera nécessaire à la phase
+de bascule, après GO explicite.
 
 ## 19. Durée de coupure estimée
 
-Prévoir une fenêtre de **10 à 20 minutes**, à confirmer après réévaluation du delta
-et de l'état courant. Le transfert complet de 13,5 Go est déjà effectué ; la
-bascule prévoit une synchronisation incrémentale. La durée réelle dépendra du
-scan des fichiers, des nouvelles écritures, des dumps finaux et des contrôles.
+Estimation maintenue à **10 à 20 minutes** au vu du delta brut estimé à 8,33 Mo ;
+réserver une fenêtre de **30 minutes**. Le transfert complet de 13,5 Go est déjà
+effectué ; la bascule prévoit une synchronisation incrémentale. Le dry-run, les
+checksums, les nouvelles écritures, les dumps/restaurations finaux et les contrôles
+publics détermineront la durée réelle. Réévaluer immédiatement avant exécution.
 Aucune promesse de coupure nulle n'est faite.
 
 ## 20. Procédure de bascule prévue — NON EXÉCUTÉE
@@ -347,24 +417,28 @@ Aucune promesse de coupure nulle n'est faite.
    Recontrôler le commit/image source, les migrations et les fichiers de stack.
    Préparer les éventuels écarts avant la maintenance. Suspendre les déploiements
    concurrents pour la fenêtre avec les développeurs.
-2. Lire/exporter la zone Cloudflare réelle : types, valeurs, identifiants, proxy,
-   TTL, éventuelles règles d'origine et destinations IPv6. Le périmètre à examiner
+2. Relire/exporter la zone Cloudflare réelle et comparer à la sauvegarde finale :
+   types, valeurs, identifiants, proxy, TTL, TLS et règles. Le périmètre à examiner
    est `yokkai-collec.com`, `www.yokkai-collec.com`, `yokkai-collec.fr`,
    `www.yokkai-collec.fr`, `api.yokkai-collec.com` et `coolify.yokkai-collec.com`.
    Un CNAME déjà dirigé vers un nom conservé n'a pas à être remplacé par un A.
 3. Sur l'ancien VPS, ajouter un fichier de maintenance dédié dans
    `/data/coolify/proxy/dynamic/` : route prioritaire pour les domaines joueurs et
-   API, service Traefik sans serveur, réponse 503. Vérifier la réponse avant de
-   poursuivre. Conserver les fichiers et conteneurs existants.
+   API, service Traefik sans serveur, réponse 503 non cachable. Vérifier la réponse
+   avant tout dump final ou synchronisation finale. Conserver les fichiers et
+   conteneurs existants. Préparer aussi la maintenance sur la future origine.
 4. Suspendre les automatismes Coolify de la source et arrêter temporairement les
    conteneurs qui peuvent écrire : application, Auth, REST, Realtime, Storage,
    fonctions Edge, Studio/meta, Supavisor et analytics. Conserver leurs noms et
    configurations pour le redémarrage. Ne supprimer aucun conteneur ou volume.
 5. Sauvegarder les paramètres source puis désactiver le lancement des jobs cron
-   PostgreSQL (`cron.launch_active_jobs=off`, rechargement). Appliquer le verrou
-   de lecture seule de la base `postgres` pour les nouvelles sessions, fermer les
-   connexions applicatives restantes et vérifier l'absence d'écritures en cours.
-   Une interface de maintenance seule ne constitue pas ce verrou.
+   PostgreSQL (`cron.launch_active_jobs=off`, rechargement) et les timers concernés.
+   Bloquer réellement les nouvelles connexions applicatives à PostgreSQL en
+   conservant l'accès local de maintenance. Fermer les sessions applicatives
+   restantes et protéger la base `postgres` en lecture seule. Vérifier l'absence
+   d'écritures, sessions ou transactions applicatives actives avant le snapshot
+   final. Ni une interface de maintenance ni un simple réglage de lecture seule
+   que le client pourrait annuler ne constituent, seuls, ce verrou.
 6. Créer de nouveaux dumps logiques et comptages de référence sur la source gelée :
 
    ```sh
@@ -386,32 +460,44 @@ Aucune promesse de coupure nulle n'est faite.
    `/var/lib/docker/volumes/gawq4yyxiise96wens0dt1ex_supabase-rustfs-data/_data/`
    vers le même volume sur la destination, avec propriétaires, modes et contrôle
    d'intégrité. Utiliser rsync par tunnels SSH avec relais local, sans clé privée
-   copiée ni agent privé installé sur un VPS. Examiner un dry-run avant toute
-   suppression sur la **destination**, puis aligner les objets supprimés sur la
-   source gelée. Aucune suppression n'est effectuée sur la source.
+   copiée ni agent privé installé sur un VPS. Exécuter obligatoirement
+   `rsync --dry-run --itemize-changes --stats` avec les mêmes options de copie et
+   de suppression prévues pour la synchronisation réelle. Examiner ce résultat
+   avant toute synchronisation susceptible de supprimer sur la **destination**.
+   Vérifier explicitement les chemins source/destination, puis aligner les objets
+   sur la source gelée. Aucune suppression n'est effectuée sur la source.
 8. Transférer et vérifier les dumps finaux, puis restaurer sur la destination
    isolée. Les paramètres de gel propres à la maintenance ne doivent pas rester
    actifs sur la future base de production. Conserver les sauvegardes initiales
    et finales, ainsi que la nouvelle clé de gestion Coolify de la destination.
-9. Refaire les comparaisons des tables métier, Auth, clés/tailles Storage et droits.
-   Tester Auth, images, Storage, Realtime et pages avant tout changement de routage.
-   En cas d'écart inexpliqué, ne pas basculer.
+9. Refaire les comparaisons de référence : utilisateurs Auth, profils, cartes
+   catalogue, cartes possédées, métadonnées Storage, objets RustFS/Storage et
+   tables métier importantes, ainsi que les droits et contrôles d'intégrité.
+   Tester les composants avant tout changement de routage. **Écart inexpliqué :
+   STOP, aucune bascule.**
 10. Sur le nouveau VPS seulement, remplacer le dispositif de validation par des
-    réseaux/ports de production, ouvrir le service HTTP/HTTPS normal, retirer le
-    relais temporaire, garder les anciennes écritures bloquées et les tâches de
-    la copie arrêtées jusqu'au passage de trafic. Revalider TLS et les parcours
-    avec résolution forcée vers la nouvelle origine.
-11. Modifier uniquement les destinations d'origine Cloudflare effectivement
-    identifiées : IPv4 `152.228.141.160` → `62.83.37.242` ; traiter aussi une
-    éventuelle origine AAAA `2001:41d0:404:200::9c6a` →
-    `2a03:4000:6:a1d3:78a4:46ff:fefe:6029`, selon la zone exportée. Conserver les
-    paramètres proxy/TLS/TTL et règles existants sauf nécessité validée. Vérifier
-    que les requêtes publiques atteignent la nouvelle origine.
-12. Reprendre les valeurs de production des fonctionnalités de paiement et les
-    sorties réseau nécessaires, puis les tâches métier et la gestion Coolify dans
-    un ordre contrôlé. Ne pas déclencher de paiement ni email de test non prévu.
-    Surveiller HTTP 4xx/5xx, logs, PostgreSQL, CPU/RAM/disque et redémarrages.
-    Refaire immédiatement connexion, profil, collection, images, upload/relecture.
+    réseaux/ports de production, activer la maintenance de la nouvelle origine,
+    ouvrir son service HTTP/HTTPS et retirer le relais temporaire. Garder les
+    écritures applicatives et tâches arrêtées sur les deux VPS. Revalider TLS et
+    les parcours de contrôle avec résolution forcée vers la nouvelle origine.
+11. Modifier uniquement les **six A du tableau Cloudflare**, après relecture de
+    leur valeur actuelle : `152.228.141.160` → `62.83.37.242`. Conserver leurs
+    paramètres proxy/TTL et toutes les règles/TLS. Aucun changement AAAA n'est
+    prévu ; si un AAAA apparaît d'ici là, STOP pour réévaluation, vérification de
+    son existence et de l'IPv6 réellement attribuée au nouveau VPS.
+    **Conserver la maintenance pendant les premiers contrôles publics.** Vérifier
+    explicitement, par requêtes uniques non servies depuis le cache et corrélation
+    dans les journaux des deux origines, que le domaine canonique et l'API arrivent
+    sur `62.83.37.242` et non `152.228.141.160`. Les 301 des alias ne suffisent pas.
+12. Par accès opérateur réservé pendant la maintenance, contrôler au minimum
+    homepage, API, Auth en lecture, profil, collection, cartes, images, Storage,
+    RustFS et Realtime avec le routage public confirmé. Lever la maintenance et
+    réactiver les écritures uniquement après validation de la nouvelle origine.
+    Reprendre alors les valeurs de production des fonctionnalités, tâches métier,
+    scheduler/Horizon et gestion Coolify dans un ordre contrôlé. Ne pas déclencher
+    de paiement ni email de test non prévu. Surveiller HTTP 4xx/5xx, logs,
+    PostgreSQL, CPU/RAM/disque et redémarrages. Refaire immédiatement connexion,
+    profil, collection, images et upload/relecture avec nettoyage des tests.
 13. Laisser l'ancien VPS et ses sauvegardes intacts, en maintenance/lecture seule
     tant que du trafic ancien pourrait encore l'atteindre. Ne pas le supprimer.
 
