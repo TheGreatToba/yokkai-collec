@@ -147,7 +147,7 @@ test("empty feed has a useful friend link; Home shows only the ten latest posts"
   );
 });
 
-test("initial server errors keep a named feed and a usable refresh action", () => {
+test("initial server errors keep a named feed and access to the wall", () => {
   const html = renderToStaticMarkup(
     React.createElement(HomeFriendFeed, {
       initial: { items: [], next: null },
@@ -156,7 +156,8 @@ test("initial server errors keep a named feed and a usable refresh action", () =
   );
   assert.match(html, /Friend feed/);
   assert.match(html, /role="alert"/);
-  assert.match(html, /Refresh/);
+  assert.match(html, /href="\/profile\?tab=wall"/);
+  assert.doesNotMatch(html, /aria-label="(?:Add post|Refresh feed)"/);
   assert.doesNotMatch(html, /Your timeline starts/);
 });
 
@@ -175,17 +176,15 @@ test("Home embeds the existing own-wall composer even if the friend feed fails",
   assert.match(html, /role="alert"/);
 });
 
-test("home composer stays mounted and closed behind Add post beside refresh", () => {
+test("Home omits add and refresh controls while keeping its composer hidden", () => {
   const html = renderToStaticMarkup(
     React.createElement(HomeFriendFeed, {
       initial: { items: [], next: null },
       viewer: post.author
     })
   );
-  assert.match(
-    html,
-    /class="yk-feed-actions"><button[^>]*aria-label="Add post"[^>]*aria-expanded="false"[^>]*aria-controls="home-feed-composer"[^>]*>[\s\S]*?<\/svg><\/button><button[^>]*aria-label="Refresh feed"/
-  );
+  assert.doesNotMatch(html, /aria-label="(?:Add post|Refresh feed)"/);
+  assert.doesNotMatch(html, /class="yk-feed-toolbar"/);
   assert.match(
     html,
     /id="home-feed-composer" class="yk-feed-composer" hidden=""/

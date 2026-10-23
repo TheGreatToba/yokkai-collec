@@ -353,7 +353,10 @@ test("Home card opens the existing booster choices and prepares its link only on
   const s = reminder("/", true, true);
   const tree = s.render();
   const html = renderToStaticMarkup(tree);
-  assert.match(html, /More booster/);
+  assert.match(html, /Don’t stop now\./);
+  assert.match(html, /Get \+5 packs per friend, or 2× faster packs with Pro\./);
+  assert.match(html, /See options/);
+  assert.match(html, /yk-home-pack-options-art/);
   assert.match(html, /aria-haspopup="dialog"/);
   assert.doesNotMatch(
     html,

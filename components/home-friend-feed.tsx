@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Avatar, Button } from "@/components/ui";
+import { Avatar } from "@/components/ui";
 import { StyledPlayerName } from "@/components/styled-player-name";
 import { ProfileWall } from "@/components/profile-wall";
 import { type WallAdapter } from "@/lib/data/profile-wall";
@@ -33,7 +33,6 @@ export function HomeFriendFeed({
   const [page, setPage] = useState(initial);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(initialError);
-  const [composerOpen, setComposerOpen] = useState(false);
   const request = useRef(0);
   const timeline = useRef<HTMLDivElement>(null);
   const cancel = useCallback(() => {
@@ -123,66 +122,8 @@ export function HomeFriendFeed({
           View my wall <span aria-hidden="true">↗</span>
         </Link>
       </header>
-      <div className="yk-feed-toolbar">
-        <div className="yk-feed-actions">
-          {viewer && (
-            <Button
-              variant="secondary"
-              className="yk-home-panel-action yk-feed-icon-action"
-              aria-label="Add post"
-              title="Add post"
-              aria-expanded={composerOpen}
-              aria-controls="home-feed-composer"
-              onClick={() => setComposerOpen(open => !open)}
-            >
-              <svg
-                aria-hidden="true"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              >
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-            </Button>
-          )}
-          <Button
-            variant="secondary"
-            className="yk-home-panel-action yk-feed-icon-action yk-feed-refresh"
-            aria-label={busy ? "Refreshing feed" : "Refresh feed"}
-            title="Refresh feed"
-            disabled={busy}
-            onClick={() => void reload()}
-          >
-            <svg
-              aria-hidden="true"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className={
-                busy ? "animate-spin motion-reduce:animate-none" : undefined
-              }
-            >
-              <path d="M21 3v5h-5" />
-              <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
-            </svg>
-          </Button>
-        </div>
-      </div>
       {viewer && (
-        <div
-          id="home-feed-composer"
-          className="yk-feed-composer"
-          hidden={!composerOpen}
-        >
+        <div id="home-feed-composer" className="yk-feed-composer" hidden>
           <ProfileWall
             ownerId={viewer.id}
             pseudo={viewer.name}
@@ -224,7 +165,9 @@ export function HomeFriendFeed({
         {!busy && !error && !page.items.length && (
           <div className="yk-feed-empty">
             <h3>Your timeline starts with your friends</h3>
-            <p>Share a post above or add friends to start your timeline.</p>
+            <p>
+              Share a post on your wall or add friends to start your timeline.
+            </p>
             <Link href="/friends">
               Find friends <span aria-hidden="true">↗</span>
             </Link>
