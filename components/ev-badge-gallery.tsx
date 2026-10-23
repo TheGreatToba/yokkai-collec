@@ -49,18 +49,18 @@ const characters = [
 
 export function EvBadgeGallery() {
   const [selected, setSelected] = useState<string | null>(null);
-  const [animated, setAnimated] = useState(false);
+  const [animated, setAnimated] = useState(true);
   const selectedIndex = options.findIndex(option => option.id === selected);
 
   return (
-    <main className="ev-badge-gallery">
+    <main className="ev-badge-gallery" data-animated={animated}>
       <header className="ev-studio-header">
         <div>
           <p className="ev-studio-eyebrow">EVOLVED / COLOR STUDY</p>
           <h1>Find your color.</h1>
           <p className="ev-studio-intro">
-            One badge shape. Six color finishes. Compare each on SSR and LR
-            Evolved cards, then choose your favorite.
+            One badge shape. Six color finishes, charged with branching
+            lightning and a luminous edge. Choose your favorite.
           </p>
         </div>
         <label className="ev-motion-toggle">
@@ -69,7 +69,7 @@ export function EvBadgeGallery() {
             checked={animated}
             onChange={event => setAnimated(event.target.checked)}
           />
-          Animate cards
+          Animate cards and badges
         </label>
       </header>
 

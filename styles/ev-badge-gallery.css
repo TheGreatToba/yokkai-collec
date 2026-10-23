@@ -178,12 +178,77 @@
     0 0 7px var(--ev-preview-glow);
 }
 .ev-badge-gallery .ev-option .yk-evolved-badge::after {
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--ev-preview-rim),
-    transparent
-  );
+  inset: 0;
+  height: auto;
+  border-radius: inherit;
+  background: #fff;
+  mask-image: url("/assets/ev-badge-lightning.svg");
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+  filter: drop-shadow(0 0 1px #fff)
+    drop-shadow(0 0 3px var(--ev-preview-electric));
+  opacity: 0;
+}
+.ev-badge-gallery .ev-option .yk-evolved-badge::before {
+  z-index: -1;
+  animation: none;
+}
+.ev-badge-gallery[data-animated="true"] .ev-option .yk-evolved-badge {
+  animation: ev-badge-charge 4.8s linear infinite;
+  animation-delay: var(--ev-charge-delay, 0s);
+}
+.ev-badge-gallery[data-animated="true"] .ev-option .yk-evolved-badge::after {
+  animation: ev-badge-discharge 4.8s linear infinite;
+  animation-delay: var(--ev-charge-delay, 0s);
+}
+.ev-badge-gallery[data-animated="true"] .ev-option .yk-evolved-badge::before {
+  animation: yk-evolved-badge-gloss 4.8s ease-in-out infinite;
+  animation-delay: var(--ev-charge-delay, 0s);
+}
+@keyframes ev-badge-discharge {
+  0%,
+  14%,
+  35%,
+  100% {
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  23% {
+    opacity: 0.12;
+  }
+  27% {
+    opacity: 0.72;
+  }
+}
+@keyframes ev-badge-charge {
+  0%,
+  14%,
+  35%,
+  100% {
+    box-shadow:
+      inset 0 1px 0 #fff,
+      inset 0 -1px 0 var(--ev-preview-rim),
+      0 2px 4px #0005,
+      0 0 5px var(--ev-preview-glow);
+  }
+  18%,
+  27% {
+    box-shadow:
+      inset 0 0 0 1px #fff,
+      inset 0 0 4px var(--ev-preview-electric),
+      0 2px 4px #0005,
+      0 0 5px var(--ev-preview-electric),
+      0 0 13px var(--ev-preview-glow);
+  }
+  23% {
+    box-shadow:
+      inset 0 1px 0 #fff,
+      inset 0 -1px 0 var(--ev-preview-rim),
+      0 2px 4px #0005,
+      0 0 7px var(--ev-preview-glow);
+  }
 }
 .ev-badge-gallery [data-style="pearl"] {
   --ev-preview-fill: linear-gradient(
@@ -195,6 +260,7 @@
   --ev-preview-ink: #243247;
   --ev-preview-rim: #b8c5d4;
   --ev-preview-glow: rgba(235, 242, 252, 0.4);
+  --ev-preview-electric: #d9f0ff;
 }
 .ev-badge-gallery [data-style="silver"] {
   --ev-preview-fill: linear-gradient(
@@ -207,6 +273,8 @@
   --ev-preview-ink: #223149;
   --ev-preview-rim: #91a3ba;
   --ev-preview-glow: rgba(198, 215, 239, 0.45);
+  --ev-preview-electric: #c3d7ff;
+  --ev-charge-delay: -0.6s;
 }
 .ev-badge-gallery [data-style="ice"] {
   --ev-preview-fill: linear-gradient(
@@ -218,6 +286,8 @@
   --ev-preview-ink: #1c4463;
   --ev-preview-rim: #7ebbd5;
   --ev-preview-glow: rgba(147, 221, 255, 0.4);
+  --ev-preview-electric: #56caff;
+  --ev-charge-delay: -1.2s;
 }
 .ev-badge-gallery [data-style="champagne"] {
   --ev-preview-fill: linear-gradient(
@@ -229,6 +299,8 @@
   --ev-preview-ink: #674a24;
   --ev-preview-rim: #c6a56d;
   --ev-preview-glow: rgba(255, 219, 149, 0.4);
+  --ev-preview-electric: #ffc759;
+  --ev-charge-delay: -1.8s;
 }
 .ev-badge-gallery [data-style="jade"] {
   --ev-preview-fill: linear-gradient(
@@ -240,6 +312,8 @@
   --ev-preview-ink: #1b5142;
   --ev-preview-rim: #70bba4;
   --ev-preview-glow: rgba(152, 239, 205, 0.4);
+  --ev-preview-electric: #56eab3;
+  --ev-charge-delay: -2.4s;
 }
 .ev-badge-gallery [data-style="lavender"] {
   --ev-preview-fill: linear-gradient(
@@ -251,6 +325,19 @@
   --ev-preview-ink: #4e356e;
   --ev-preview-rim: #a58ac8;
   --ev-preview-glow: rgba(207, 173, 255, 0.4);
+  --ev-preview-electric: #b78cff;
+  --ev-charge-delay: -3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ev-badge-gallery[data-animated="true"] .ev-option .yk-evolved-badge,
+  .ev-badge-gallery[data-animated="true"] .ev-option .yk-evolved-badge::before,
+  .ev-badge-gallery[data-animated="true"] .ev-option .yk-evolved-badge::after {
+    animation: none;
+  }
+  .ev-badge-gallery .ev-option .yk-evolved-badge::after {
+    opacity: 0;
+  }
 }
 
 @media (min-width: 680px) {
