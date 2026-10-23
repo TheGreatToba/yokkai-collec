@@ -191,6 +191,7 @@ export function LrCardReveal({
   const completed = useRef(false);
   const root = useRef<HTMLElement>(null);
   const sampledImage = useRef<HTMLImageElement | null>(null);
+  const controlsTimer = useRef<number | undefined>(undefined);
   const [replay, setReplay] = useState(0);
   const [ready, setReady] = useState(false);
   useEffect(() => {
@@ -204,17 +205,46 @@ export function LrCardReveal({
       .forEach(animation => animation.pause());
     callback.current?.();
   };
+  const nextStep = () => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      advance();
+      return;
+    }
+    const animations = root.current?.getAnimations({ subtree: true }) ?? [];
+    const time = Math.max(
+      0,
+      ...animations.map(animation => Number(animation.currentTime ?? 0))
+    );
+    const next = [
+      1058, 1586, 2185, 2780, 4190, 5254, 5500, 6300, 6930, 7570, 8180, 9030,
+      10700, 11840, 12400, 14670
+    ].find(step => step > time + 1);
+    if (next === undefined) {
+      advance();
+      return;
+    }
+    animations.forEach(animation => {
+      animation.currentTime = next;
+    });
+    window.clearTimeout(controlsTimer.current);
+    if (next >= 12400) setReady(true);
+    else
+      controlsTimer.current = window.setTimeout(
+        () => setReady(true),
+        12400 - next
+      );
+  };
   useEffect(() => {
     completed.current = false;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const timer = window.setTimeout(
+    controlsTimer.current = window.setTimeout(
       () => setReady(true),
       reduced.matches ? 700 : 12400
     );
     const element = root.current;
     const animations = element?.getAnimations({ subtree: true }) ?? [];
     return () => {
-      window.clearTimeout(timer);
+      window.clearTimeout(controlsTimer.current);
       // StrictMode's simulated cleanup keeps the DOM and its running sequence.
       if (!element?.isConnected)
         animations.forEach(animation => animation.cancel());
@@ -405,8 +435,8 @@ export function LrCardReveal({
         <button
           type="button"
           className="yk-lr-skip"
-          aria-label="Skip cinematic"
-          onClick={advance}
+          aria-label="Next reveal step"
+          onClick={nextStep}
         />
       )}
       <nav

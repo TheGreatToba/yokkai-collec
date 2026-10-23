@@ -16,5 +16,6 @@ test("deployment pins the same Node major as verification and explicit npm phase
   assert.equal(config.packages.node, "22");
   assert.deepEqual(config.steps.install.commands, ["npm ci --include=dev"]);
   assert.deepEqual(config.steps.build.commands, ["npm run build"]);
+  assert.equal(pkg.scripts.build, "next build --webpack");
   assert.equal(config.deploy.startCommand, "npm run start");
 });

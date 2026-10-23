@@ -102,11 +102,14 @@ test("LR exposes final controls at 12.4s (700ms with reduced motion), continues 
         18
       );
     }
+    const animation = {
+      currentTime: 0,
+      pause: () => paused++,
+      cancel: () => cancelled++
+    };
     refs[2].current = {
       isConnected: true,
-      getAnimations: () => [
-        { pause: () => paused++, cancel: () => cancelled++ }
-      ]
+      getAnimations: () => [animation]
     };
     effects[0]();
     effects[1]()(); // StrictMode cleanup must remove the first timer.
@@ -129,6 +132,25 @@ test("LR exposes final controls at 12.4s (700ms with reduced motion), continues 
     const button = React.Children.toArray(tree.props.children).find(
       child => child.type === "button"
     );
+    if (!reduced) {
+      for (const time of [
+        1058, 1586, 2185, 2780, 4190, 5254, 5500, 6300, 6930, 7570, 8180, 9030,
+        10700, 11840, 12400, 14670
+      ]) {
+        button.props.onClick();
+        assert.equal(
+          animation.currentTime,
+          time,
+          "one click advances exactly one phase"
+        );
+        assert.equal(
+          continued,
+          0,
+          "intermediate clicks must keep the LR reveal mounted"
+        );
+        assert.ok(timers.size <= 1, "seeking must replace the controls timer");
+      }
+    }
     button.props.onClick();
     timer.fn();
     assert.equal(continued, 1);
@@ -137,7 +159,7 @@ test("LR exposes final controls at 12.4s (700ms with reduced motion), continues 
     cleanup();
     assert.equal(timers.size, 0);
     assert.equal(cancelled, 1);
-    assert.equal(cleared.length, 2);
+    assert.equal(cleared.length, reduced ? 2 : 18);
   }
 });
 

@@ -422,6 +422,16 @@ try {
         } else {
           await delay(5500); // Unmount during the active glass/particle sequence.
           await evaluate("document.querySelector('.yk-lr-skip').click()");
+          assert.equal(
+            await evaluate("document.querySelectorAll('.yk-lr-reveal').length"),
+            1,
+            "one click must keep the LR reveal mounted"
+          );
+          for (let step = 0; step < 18; step++) {
+            if (!(await evaluate("!!document.querySelector('.yk-lr-skip')")))
+              break;
+            await evaluate("document.querySelector('.yk-lr-skip').click()");
+          }
         }
       } else if (card === 2) await delay(550);
       await until("!!document.querySelector('.yk-deck-button')");
