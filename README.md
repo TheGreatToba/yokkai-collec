@@ -153,9 +153,11 @@ Voir [la procédure et son script](docs/account-deletion-restoration.md).
 
 Le dépôt fixe Node.js 22.x dans `package.json` et Node 22 dans `railpack.json`.
 Coolify utilise Railpack (vérifié en lecture seule). Le plan installe le lockfile
-avec `npm ci --include=dev`, construit avec `npm run build`, puis démarre avec
-`npm run start` (port fourni par l’hébergement). Les couches et caches générés
-par le fournisseur Node sont conservés. Les variables Supabase restent dans la
-configuration privée de l’hébergeur. Vérifier les éventuelles surcharges Coolify
-avant adoption ; le build du front n’applique jamais les migrations.
+avec `npm ci --include=dev`, construit avec `npm run build` en forçant Webpack,
+puis démarre avec `npm run start` (port fourni par l’hébergement). Webpack est
+conservé tant que Turbopack 16.4.2 échoue à résoudre les modules virtuels de
+`next/font/google` utilisés par la coque. Les couches et caches générés par le
+fournisseur Node sont conservés. Les variables Supabase restent dans la
+configuration privée de l’hébergeur. Vérifier les éventuelles surcharges
+Coolify avant adoption ; le build du front n’applique jamais les migrations.
 Source : [configuration officielle Railpack](https://railpack.com/config/file/).
