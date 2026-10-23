@@ -590,12 +590,14 @@
 
 @media (max-width: 480px) {
   .yk-home-panel-heading {
-    align-items: stretch;
+    align-items: flex-start;
     flex-direction: column;
   }
 
   .yk-home-main .yk-button.yk-home-panel-action {
-    width: 100%;
+    width: auto;
+    max-width: 100%;
+    padding-inline: 14px;
     white-space: normal;
   }
 }
