@@ -50,7 +50,7 @@ export function YokaiCard({
   const sparkCount = !animated
     ? 0
     : evolved
-      ? 4
+      ? 6
       : holo
         ? 8
         : rarity === "LR"
