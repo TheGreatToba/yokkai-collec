@@ -130,7 +130,12 @@ test("Home leaves deletion to the wall and never calls the removal adapter", asy
   assert.match(html, /data-feed-post="my-post"/);
   assert.match(html, /View wall/);
   assert.equal(calls, 0, "home previews never request deletion");
-  buttons.find(button => button["aria-label"] === "Refresh feed").onClick();
+  assert.equal(
+    buttons.some(button => button["aria-label"] === "Refresh feed"),
+    false,
+    "Home refreshes on focus without a manual refresh control"
+  );
+  listeners.get("focus")();
   const pending = render();
   assert.match(pending, /data-feed-post="my-post"/);
   assert.doesNotMatch(pending, /Loading your timeline/);
@@ -142,11 +147,12 @@ test("Home leaves deletion to the wall and never calls the removal adapter", asy
   resolveFeed({ items: [post], next: null });
   await new Promise(resolve => setImmediate(resolve));
   render();
-  buttons.find(button => button["aria-label"] === "Refresh feed").onClick();
+  listeners.get("focus")();
   rejectFeed(Error("Access changed"));
   await new Promise(resolve => setImmediate(resolve));
   assert.doesNotMatch(render(), /data-feed-post=/);
   assert.match(render(), /Couldn&#x27;t refresh your feed/);
+  assert.equal(calls, 0, "refreshes never request deletion");
   unsubscribe();
   assert.equal(listeners.size, 0);
 });
