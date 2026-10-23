@@ -42,15 +42,6 @@
     rgba(0, 0, 0, 0.94) 100%
   );
 }
-.yk-card-ring {
-  position: absolute;
-  left: 15%;
-  right: 15%;
-  top: 22%;
-  aspect-ratio: 1;
-  border: 1px solid var(--card-ring);
-  border-radius: 50%;
-}
 .yk-card-line {
   position: absolute;
   inset: 4cqw;
