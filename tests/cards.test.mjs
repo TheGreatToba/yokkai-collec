@@ -120,13 +120,13 @@ function setup({
             categories: ["Anime/Manga"],
             rarities: ["C", "R", "SR", "SSR", "LR"],
             dropRates: [
-              { rarity: "C", percent: 71.9 },
+              { rarity: "C", percent: 69.4 },
               { rarity: "R", percent: 20 },
-              { rarity: "SR", percent: 7 },
-              { rarity: "SSR", percent: 1 },
+              { rarity: "SR", percent: 10 },
+              { rarity: "SSR", percent: 0.5 },
               { rarity: "LR", percent: 0.1 }
             ],
-            shinyRate: 0.1,
+            shinyRate: 10,
             karasBalance,
             ...(decisionDropRates === undefined ? {} : { decisionDropRates })
           },
@@ -411,9 +411,9 @@ test("infos réelles, nouveaux taux et copies défensives", async () => {
   assert.equal(info.user.id, "alice");
   assert.deepEqual(
     Array.from(info.dropRates, r => r.percent),
-    [71.9, 20, 7, 1, 0.1]
+    [69.4, 20, 10, 0.5, 0.1]
   );
-  assert.equal(info.shinyRate, 0.1);
+  assert.equal(info.shinyRate, 10);
   assert.equal(info.karasBalance, 0);
   info.user.name = "mutated";
   info.categories.push("fake");
@@ -566,7 +566,7 @@ test("game info forwards isolated Decision rates and accepts the old database re
   const rates = [
     { rarity: "SR", percent: 90 },
     { rarity: "SSR", percent: 9 },
-    { rarity: "LR", percent: 1 }
+    { rarity: "LR", percent: 0.5 }
   ];
   const { api } = setup({ decisionDropRates: rates });
   const first = await api.getGameInfo();

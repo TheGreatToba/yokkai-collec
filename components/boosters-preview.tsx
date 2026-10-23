@@ -43,10 +43,10 @@ export function BoostersPreview() {
       countdown="42:00"
       // Demo probabilities only; the live page gets these from the server.
       dropRates={[
-        { rarity: "C", percent: 71.9 },
+        { rarity: "C", percent: 69.4 },
         { rarity: "R", percent: 20 },
-        { rarity: "SR", percent: 7 },
-        { rarity: "SSR", percent: 1 },
+        { rarity: "SR", percent: 10 },
+        { rarity: "SSR", percent: 0.5 },
         { rarity: "LR", percent: 0.1 }
       ]}
       decisionDropRates={[
@@ -54,7 +54,7 @@ export function BoostersPreview() {
         { rarity: "SSR", percent: 3 },
         { rarity: "LR", percent: 0.5 }
       ]}
-      shinyRate={0.1}
+      shinyRate={10}
       decisionStatus={{
         available: !decisionUsed,
         pending: [],

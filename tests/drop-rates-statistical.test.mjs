@@ -54,6 +54,19 @@ test("effective SQL drop expressions match advertised rates and real authenticat
     select set_config('request.jwt.claim.sub',md5('sql-rate-1')::uuid::text,false);`);
   const info = (await db.query("select public.get_game_info() as info")).rows[0]
     .info;
+  assert.deepEqual(info.dropRates, [
+    { rarity: "C", percent: 69.4 },
+    { rarity: "R", percent: 20 },
+    { rarity: "SR", percent: 10 },
+    { rarity: "SSR", percent: 0.5 },
+    { rarity: "LR", percent: 0.1 }
+  ]);
+  assert.deepEqual(info.decisionDropRates, [
+    { rarity: "SR", percent: 96.5 },
+    { rarity: "SSR", percent: 3 },
+    { rarity: "LR", percent: 0.5 }
+  ]);
+  assert.equal(info.shinyRate, 10);
   const regular = await definition(db, "open_regular_pack"),
     decision = await definition(db, "open_decision_pack");
   await db.exec("select setseed(0.314159)");

@@ -118,7 +118,7 @@
 }
 .yk-rarity-row {
   display: grid;
-  grid-template-columns: 58px minmax(0, 1fr) auto;
+  grid-template-columns: minmax(108px, max-content) minmax(0, 1fr) auto;
   align-items: center;
   gap: 16px;
   padding: 15px 18px;
