@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { YokaiCard } from "@/components/yokai-card";
 import { HOME_HERO_CARDS } from "@/lib/home-hero-cards";
+import { DISCORD_MARK_PATH } from "@/components/site-footer";
+import { ReferralReminder } from "@/components/referral-reminder";
 import "@/styles/home.css";
 
 export function HomeHero() {
@@ -56,19 +58,19 @@ export function HomeLinks({ discordEnabled }: { discordEnabled: boolean }) {
             >
               Join Discord ↗
             </Link>
+            <svg
+              className="yk-home-discord-logo"
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              width="96"
+              height="96"
+              fill="currentColor"
+            >
+              <path d={DISCORD_MARK_PATH} />
+            </svg>
           </section>
         )}
-        <section aria-labelledby="home-referral" className="yk-home-referral">
-          <div>
-            <h2 id="home-referral">Invite friends. Earn packs.</h2>
-          </div>
-          <Link
-            href="/settings#referrals"
-            className="yk-button yk-button-primary yk-home-panel-action"
-          >
-            Get your referral link <span aria-hidden="true">↗</span>
-          </Link>
-        </section>
+        <ReferralReminder packChoices homeCard />
       </div>
       <section aria-labelledby="home-learn" className="yk-home-panel">
         <h2 id="home-learn">Learn more</h2>

@@ -607,6 +607,30 @@
   }
 }
 
+.yk-home-community-grid .yk-home-discord {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(64px, 12vw, 112px);
+  align-items: center;
+  gap: 20px 16px;
+}
+.yk-home-discord > .yk-button {
+  grid-column: 1;
+  justify-self: start;
+  max-width: 100%;
+}
+.yk-home-discord-logo {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  width: 100%;
+  height: auto;
+  color: var(--color-pack-accent);
+}
+
+.yk-home-booster-modal button[aria-label="Close"] {
+  width: 44px;
+  height: 44px;
+}
+
 .yk-home-main .yk-home-community-grid .yk-home-discord {
   position: relative;
   isolation: isolate;

@@ -9,7 +9,6 @@ import { ProfileWall } from "@/components/profile-wall";
 import { type WallAdapter } from "@/lib/data/profile-wall";
 import type { WallInteractions } from "@/lib/data/wall-interactions";
 import {
-  appendFeedPage,
   getFriendFeed,
   type FriendFeedPage,
   type FriendFeedPost,
@@ -35,17 +34,14 @@ export function HomeFriendFeed({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(initialError);
   const [composerOpen, setComposerOpen] = useState(false);
-  const pending = useRef(false);
   const request = useRef(0);
   const timeline = useRef<HTMLDivElement>(null);
   const cancel = useCallback(() => {
     request.current++;
-    pending.current = false;
   }, []);
 
   useEffect(() => {
     const id = ++request.current;
-    pending.current = false;
     void Promise.resolve().then(() => {
       if (request.current !== id) return;
       setPage(initial);
@@ -58,7 +54,6 @@ export function HomeFriendFeed({
   const reload = useCallback(
     async (clear = false) => {
       const id = ++request.current;
-      pending.current = true;
       setBusy(true);
       setError("");
       // Block changes hide cached posts immediately; ordinary refreshes keep previews.
@@ -73,7 +68,6 @@ export function HomeFriendFeed({
         }
       } finally {
         if (id === request.current) {
-          pending.current = false;
           setBusy(false);
         }
       }
@@ -115,34 +109,6 @@ export function HomeFriendFeed({
     strip.addEventListener("wheel", scroll, { passive: false });
     return () => strip.removeEventListener("wheel", scroll);
   }, []);
-
-  async function more() {
-    if (pending.current || !page.next) return;
-    pending.current = true;
-    const id = ++request.current;
-    setBusy(true);
-    setError("");
-    try {
-      const next = await load(page.next);
-      if (id === request.current)
-        setPage(current => ({
-          items: appendFeedPage(current.items, next.items),
-          next: next.next
-        }));
-    } catch {
-      if (id === request.current) {
-        setPage({ items: [], next: null });
-        setError(
-          "Your feed is unavailable or access has changed. Refresh to try again."
-        );
-      }
-    } finally {
-      if (id === request.current) {
-        pending.current = false;
-        setBusy(false);
-      }
-    }
-  }
 
   return (
     <section className="yk-friend-feed" aria-labelledby="home-friend-feed">
@@ -264,7 +230,7 @@ export function HomeFriendFeed({
             </Link>
           </div>
         )}
-        {page.items.map(post => {
+        {page.items.slice(0, 10).map(post => {
           const wall = `/profile/${encodeURIComponent(post.author.id)}?tab=wall`;
           return (
             <article
@@ -333,17 +299,6 @@ export function HomeFriendFeed({
             </article>
           );
         })}
-        {page.next && (
-          <div className="yk-feed-more">
-            <Button
-              variant="secondary"
-              disabled={busy}
-              onClick={() => void more()}
-            >
-              {busy ? "Loading…" : "Load older posts"}
-            </Button>
-          </div>
-        )}
         {!page.next && page.items.length > 0 && (
           <p className="yk-feed-end">You&apos;re all caught up.</p>
         )}
