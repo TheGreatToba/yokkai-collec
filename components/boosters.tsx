@@ -34,8 +34,7 @@ const CollectionView = dynamic(
 );
 
 const CardCinematic = dynamic(
-  () => import("@/components/card-cinematic").then(module => module.CardCinematic),
-  { loading: () => <p role="status">Loading cinematic…</p> }
+  () => import("@/components/card-cinematic").then(module => module.CardCinematic)
 );
 
 const BoosterOpening = dynamic(
