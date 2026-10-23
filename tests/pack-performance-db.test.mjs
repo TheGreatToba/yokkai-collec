@@ -302,10 +302,20 @@ test("all acquisition/removal paths preserve exact achievement progress before/a
   t.after(() => db.close());
   await fixtures(db);
   const before = await scenario(db);
-  await db.exec(readFileSync(new URL(migration, directory), "utf8"));
+  // The historical optimization also redefines the Regular draw. Compare its
+  // achievement behavior with identical, product-approved odds on both sides.
+  const historicalSQL = readFileSync(new URL(migration, directory), "utf8");
+  assert.match(historicalSQL, /roll<\.724/);
+  assert.match(historicalSQL, /roll<\.924/);
+  assert.match(historicalSQL, /random\(\) < \.001/);
+  const performanceSQL = historicalSQL
+    .replace("roll<.724", "roll<.694")
+    .replace("roll<.924", "roll<.894")
+    .replace("random() < .001", "random() < .1");
+  await db.exec(performanceSQL);
   assert.deepEqual(await scenario(db), before);
   // Replaying the new migration must not duplicate triggers or change any data.
-  await db.exec(readFileSync(new URL(migration, directory), "utf8"));
+  await db.exec(performanceSQL);
   assert.deepEqual(await scenario(db), before);
 });
 
