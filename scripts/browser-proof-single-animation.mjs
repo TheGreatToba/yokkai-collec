@@ -420,18 +420,39 @@ try {
           );
           await until("!document.querySelector('.yk-lr-reveal')");
         } else {
-          await delay(5500); // Unmount during the active glass/particle sequence.
           await evaluate("document.querySelector('.yk-lr-skip').click()");
           assert.equal(
             await evaluate("document.querySelectorAll('.yk-lr-reveal').length"),
             1,
-            "one click must keep the LR reveal mounted"
+            "landing the card must keep the LR reveal mounted"
           );
-          for (let step = 0; step < 18; step++) {
-            if (!(await evaluate("!!document.querySelector('.yk-lr-skip')")))
-              break;
-            await evaluate("document.querySelector('.yk-lr-skip').click()");
-          }
+          assert.ok(
+            await evaluate(
+              "Math.max(...document.querySelector('.yk-lr-reveal').getAnimations({subtree:true}).map(a=>Number(a.currentTime))) < 5500"
+            ),
+            "first click must land the card before its elements reveal"
+          );
+          await evaluate("document.querySelector('.yk-lr-skip').click()");
+          await delay(50);
+          assert.ok(
+            await evaluate(
+              "document.querySelector('.yk-lr-reveal').getAnimations({subtree:true}).every(a=>a.playbackRate===1)"
+            ),
+            "further clicks must preserve normal card playback"
+          );
+          assert.ok(
+            await evaluate(
+              "Math.max(...document.querySelector('.yk-lr-reveal').getAnimations({subtree:true}).map(a=>Number(a.currentTime))) < 6000"
+            ),
+            "the card elements must remain in sequence"
+          );
+          await until(
+            "Math.max(...document.querySelector('.yk-lr-reveal').getAnimations({subtree:true}).map(a=>Number(a.currentTime))) >= 14670"
+          );
+          await until("!!document.querySelector('.yk-lr-ready')");
+          await evaluate(
+            "document.querySelector('.yk-lr-end-controls button:last-child').click()"
+          );
         }
       } else if (card === 2) await delay(550);
       await until("!!document.querySelector('.yk-deck-button')");

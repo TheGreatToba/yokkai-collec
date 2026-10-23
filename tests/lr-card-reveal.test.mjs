@@ -7,7 +7,7 @@ test("LR uses one native effect and the reference final sequence, without the re
   const component = read("components/lr-card-reveal.tsx");
   const css = read("styles/lr-card-reveal.css");
   assert.match(read("components/card-cinematic.tsx"), /rarity === "LR"/);
-  assert.match(component, /12400/);
+  assert.match(component, /14670/);
   assert.match(component, /clearTimeout/);
   assert.match(component, /animated={false}/);
   assert.doesNotMatch(
@@ -22,7 +22,7 @@ test("LR uses one native effect and the reference final sequence, without the re
 });
 
 // Exercise StrictMode's setup/cleanup/setup, both completion paths and unmount.
-test("LR exposes final controls at 12.4s (700ms with reduced motion), continues once and cleans its sequence", async () => {
+test("LR only skips the entrance, preserves normal card playback and exposes final controls at 14.67s", async () => {
   const { createRequire } = await import("node:module");
   const { default: vm } = await import("node:vm");
   const { default: ts } = await import("typescript");
@@ -104,6 +104,10 @@ test("LR exposes final controls at 12.4s (700ms with reduced motion), continues 
     }
     const animation = {
       currentTime: 0,
+      playbackRate: 1,
+      updatePlaybackRate(rate) {
+        this.playbackRate = rate;
+      },
       pause: () => paused++,
       cancel: () => cancelled++
     };
@@ -122,7 +126,7 @@ test("LR exposes final controls at 12.4s (700ms with reduced motion), continues 
     const cleanup = effects[1]();
     assert.equal(timers.size, 1);
     const timer = [...timers.values()][0];
-    assert.equal(timer.delay, reduced ? 700 : 12400);
+    assert.equal(timer.delay, reduced ? 700 : 14670);
     timer.fn();
     assert.equal(
       continued,
@@ -133,15 +137,25 @@ test("LR exposes final controls at 12.4s (700ms with reduced motion), continues 
       child => child.type === "button"
     );
     if (!reduced) {
-      for (const time of [
-        1058, 1586, 2185, 2780, 4190, 5254, 5500, 6300, 6930, 7570, 8180, 9030,
-        10700, 11840, 12400, 14670
-      ]) {
+      button.props.onClick();
+      assert.equal(
+        animation.currentTime,
+        5150,
+        "first click lands the card on screen"
+      );
+      assert.equal(animation.playbackRate, 1);
+      assert.equal(continued, 0);
+      for (let click = 0; click < 3; click++) {
         button.props.onClick();
         assert.equal(
           animation.currentTime,
-          time,
-          "one click advances exactly one phase"
+          5150,
+          "subsequent clicks must never skip card elements"
+        );
+        assert.equal(
+          animation.playbackRate,
+          1,
+          "card elements must always play at normal speed"
         );
         assert.equal(
           continued,
@@ -149,9 +163,20 @@ test("LR exposes final controls at 12.4s (700ms with reduced motion), continues 
           "intermediate clicks must keep the LR reveal mounted"
         );
         assert.ok(timers.size <= 1, "seeking must replace the controls timer");
+        assert.equal([...timers.values()][0].delay, 9520);
       }
+      animation.currentTime = 14670;
     }
     button.props.onClick();
+    assert.equal(continued, 0, "the skip button must never close the reveal");
+    const controls = React.Children.toArray(tree.props.children).find(
+      child => child.type === "nav"
+    );
+    const next = React.Children.toArray(controls.props.children).find(
+      child => child.props.children === "Next"
+    );
+    next.props.onClick();
+    next.props.onClick();
     timer.fn();
     assert.equal(continued, 1);
     assert.equal(paused, 1);
@@ -159,7 +184,7 @@ test("LR exposes final controls at 12.4s (700ms with reduced motion), continues 
     cleanup();
     assert.equal(timers.size, 0);
     assert.equal(cancelled, 1);
-    assert.equal(cleared.length, reduced ? 2 : 18);
+    assert.equal(cleared.length, reduced ? 2 : 3);
   }
 });
 

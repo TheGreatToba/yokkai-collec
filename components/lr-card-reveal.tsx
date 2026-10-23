@@ -194,6 +194,7 @@ export function LrCardReveal({
   const controlsTimer = useRef<number | undefined>(undefined);
   const [replay, setReplay] = useState(0);
   const [ready, setReady] = useState(false);
+  const [entranceSkipped, setEntranceSkipped] = useState(false);
   useEffect(() => {
     callback.current = onContinue;
   }, [onContinue]);
@@ -206,40 +207,30 @@ export function LrCardReveal({
     callback.current?.();
   };
   const nextStep = () => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      advance();
-      return;
-    }
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const animations = root.current?.getAnimations({ subtree: true }) ?? [];
     const time = Math.max(
       0,
       ...animations.map(animation => Number(animation.currentTime ?? 0))
     );
-    const next = [
-      1058, 1586, 2185, 2780, 4190, 5254, 5500, 6300, 6930, 7570, 8180, 9030,
-      10700, 11840, 12400, 14670
-    ].find(step => step > time + 1);
-    if (next === undefined) {
-      advance();
-      return;
-    }
+    setEntranceSkipped(true);
+    if (time >= 5150) return;
+    // Only the entrance can be skipped; every card element still plays normally.
     animations.forEach(animation => {
-      animation.currentTime = next;
+      animation.currentTime = 5150;
     });
     window.clearTimeout(controlsTimer.current);
-    if (next >= 12400) setReady(true);
-    else
-      controlsTimer.current = window.setTimeout(
-        () => setReady(true),
-        12400 - next
-      );
+    controlsTimer.current = window.setTimeout(
+      () => setReady(true),
+      14670 - 5150
+    );
   };
   useEffect(() => {
     completed.current = false;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     controlsTimer.current = window.setTimeout(
       () => setReady(true),
-      reduced.matches ? 700 : 12400
+      reduced.matches ? 700 : 14670
     );
     const element = root.current;
     const animations = element?.getAnimations({ subtree: true }) ?? [];
@@ -417,7 +408,13 @@ export function LrCardReveal({
             aria-hidden="true"
           />
         ))}
-        <div className="yk-lr-float">
+        <div
+          className="yk-lr-float"
+          onAnimationEnd={event => {
+            if (event.animationName === "yk-lr-card-slide-in")
+              setEntranceSkipped(true);
+          }}
+        >
           <div className="yk-lr-edge" aria-hidden="true" />
           <div className="yk-lr-spin">
             <YokaiCard
@@ -435,7 +432,8 @@ export function LrCardReveal({
         <button
           type="button"
           className="yk-lr-skip"
-          aria-label="Next reveal step"
+          aria-label="Skip card entrance"
+          disabled={entranceSkipped || ready}
           onClick={nextStep}
         />
       )}
@@ -448,6 +446,7 @@ export function LrCardReveal({
           type="button"
           onClick={() => {
             setReady(false);
+            setEntranceSkipped(false);
             setReplay(value => value + 1);
           }}
         >

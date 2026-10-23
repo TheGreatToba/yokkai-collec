@@ -217,6 +217,10 @@
   outline: 2px solid #f7dc9c;
   outline-offset: -4px;
 }
+.yk-lr-skip:disabled {
+  pointer-events: none;
+  cursor: default;
+}
 .yk-lr-end-controls {
   position: absolute;
   left: 50%;
