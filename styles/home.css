@@ -630,3 +630,25 @@
   width: 44px;
   height: 44px;
 }
+
+.yk-home-main .yk-home-community-grid .yk-home-discord {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+}
+.yk-home-discord > :not(.yk-home-discord-logo) {
+  position: relative;
+  z-index: 1;
+}
+.yk-home-main .yk-home-discord-logo {
+  position: absolute;
+  right: -36px;
+  top: 50%;
+  width: clamp(180px, 30vw, 260px);
+  height: auto;
+  transform: translateY(-50%) rotate(-20deg);
+  opacity: 0.18;
+  pointer-events: none;
+}
