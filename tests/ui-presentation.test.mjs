@@ -2067,10 +2067,19 @@ test("les boosters annoncent les gains autoritaires avant confirmation", () => {
     decision: {
       async onKeep() {
         return 14;
+      },
+      async onSellAll() {
+        return 15;
       }
     }
   });
   assert.equal((decision.match(/>Keep this one</g) || []).length, 5);
+  assert.equal((decision.match(/>Sell all cards</g) || []).length, 1);
+  assert.match(decision, /yk-button-danger[^>]*>Sell all cards</);
+  assert.match(
+    normalizeWhitespace(decision),
+    normalizeWhitespace(/Receive 15 Karas and keep none\./)
+  );
   assert.doesNotMatch(
     normalizeWhitespace(decision),
     normalizeWhitespace(/Keep this one \(\+/)

@@ -553,10 +553,49 @@
 .yk-home-main .yk-button.yk-home-panel-action {
   min-height: 44px;
   padding: 11px 20px;
+  border-color: var(--color-pack-accent);
+  border-radius: 999px;
+  background: linear-gradient(
+    110deg,
+    var(--color-pack-button-start),
+    var(--color-pack-button-middle) 55%,
+    var(--color-pack-button-end)
+  );
+  box-shadow:
+    0 0 24px color-mix(in srgb, var(--color-pack-accent) 30%, transparent),
+    inset 0 1px 0
+      color-mix(in srgb, var(--color-pack-button-ink) 16%, transparent);
+  color: var(--color-pack-button-ink);
   font-size: 11px;
   font-weight: 700;
   line-height: 1.5;
-  color: var(--color-ink-2);
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+.yk-home-main .yk-button.yk-home-panel-action:focus-visible {
+  border-color: var(--color-pack-accent);
+  background: var(--color-veil-strong);
+  box-shadow: var(--shadow-interactive);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .yk-home-main .yk-button.yk-home-panel-action:hover:not(:disabled) {
+    border-color: var(--color-pack-accent);
+    background: var(--color-veil-strong);
+    box-shadow: var(--shadow-interactive);
+    color: var(--color-pack-button-ink);
+  }
+}
+
+@media (max-width: 480px) {
+  .yk-home-panel-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .yk-home-main .yk-button.yk-home-panel-action {
+    width: 100%;
+    white-space: normal;
+  }
 }
