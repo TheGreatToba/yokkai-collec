@@ -33,9 +33,11 @@ function fallbackCopy(value: string) {
 }
 
 export function ReferralReminder({
-  packChoices = false
+  packChoices = false,
+  homeCard = false
 }: {
   packChoices?: boolean;
+  homeCard?: boolean;
 }) {
   const [choicesOpen, setChoicesOpen] = useState(false);
   const pathname = usePathname();
@@ -47,8 +49,15 @@ export function ReferralReminder({
   const [copyState, setCopyState] = useState<CopyState>("idle");
   const [progress, setProgress] = useState({ friends: 0, packs: 0 });
 
+  const prepareHomeLink = homeCard && choicesOpen;
+
   useEffect(() => {
-    if (isHome || (isBoosters && !packChoices)) return;
+    if (
+      (isHome && !homeCard) ||
+      (homeCard && !prepareHomeLink) ||
+      (isBoosters && !packChoices)
+    )
+      return;
     let active = true;
     const supabase = createClient();
 
@@ -57,7 +66,11 @@ export function ReferralReminder({
         data: { user }
       } = await supabase.auth.getUser();
       if (!active || !user) return;
-      if (!isBoosters && localStorage.getItem(dismissalKey(user.id)) === "1") {
+      if (
+        !isBoosters &&
+        !homeCard &&
+        localStorage.getItem(dismissalKey(user.id)) === "1"
+      ) {
         setVisible(false);
         return;
       }
@@ -98,7 +111,7 @@ export function ReferralReminder({
     return () => {
       active = false;
     };
-  }, [isHome, isBoosters, packChoices]);
+  }, [isHome, isBoosters, packChoices, homeCard, prepareHomeLink]);
 
   function dismiss() {
     if (userId) localStorage.setItem(dismissalKey(userId), "1");
@@ -138,72 +151,94 @@ export function ReferralReminder({
     }
   }
 
-  if (!visible || isHome || (isBoosters && !packChoices)) return null;
+  if (!homeCard && (!visible || isHome || (isBoosters && !packChoices)))
+    return null;
 
   const content = (
     <>
-      <aside
-        style={choicesOpen ? { display: "none" } : undefined}
-        aria-label="Referral reward"
-        className={
-          isBoosters
-            ? "yk-referral-reminder--boosters"
-            : [
-                "fixed bottom-4 left-16 z-[70] grid w-[min(calc(100vw-5rem),32rem)]",
-                "grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 rounded-[18px]",
-                "border border-veil-strong bg-surface/95 px-4 py-2.5 backdrop-blur-md",
-                "shadow-[0_14px_45px_rgba(0,0,0,0.55),0_0_24px_rgba(141,173,255,0.08)]",
-                "max-sm:left-3 max-sm:w-[calc(100vw-1.5rem)]"
-              ].join(" ")
-        }
-      >
-        <div className="min-w-0">
-          <p className="yk-referral-reminder-title truncate font-display text-sm font-bold tracking-wide text-ink">
-            {isBoosters
-              ? "Want more boosters?"
-              : "Invite friends · Earn 5 bonus packs"}
-          </p>
-          <p className="yk-referral-reminder-note mt-0.5 truncate text-[11px] text-ink-3">
-            {isBoosters
-              ? "Invite friends or explore Pro."
-              : "Rewarded after their email is verified."}
-          </p>
-        </div>
-        <Button
-          type="button"
-          disabled={!packChoices && !code}
-          onClick={() => (packChoices ? setChoicesOpen(true) : void copyLink())}
-          className="yk-referral-reminder-copy min-h-9 whitespace-nowrap !rounded-full px-5 py-2 text-xs"
-        >
-          {packChoices
-            ? "Explore"
-            : !code
-              ? "Preparing…"
-              : copyState === "copied"
-                ? "Copied"
-                : "Copy link"}
-        </Button>
-        {!isBoosters && (
-          <button
-            type="button"
-            aria-label="Dismiss referral reminder"
-            onClick={dismiss}
-            className="grid h-7 w-7 place-items-center rounded-full border border-veil text-base leading-none text-ink-3 transition hover:border-focus hover:bg-veil hover:text-ink"
+      {homeCard ? (
+        <section aria-labelledby="home-referral" className="yk-home-referral">
+          <div>
+            <h2 id="home-referral">More booster</h2>
+          </div>
+          <Button
+            className="yk-home-panel-action"
+            aria-haspopup="dialog"
+            onClick={() => setChoicesOpen(true)}
           >
-            ×
-          </button>
-        )}
-        {copyState === "error" && (
-          <p role="alert" className="col-span-3 text-[11px] text-danger">
-            Couldn&apos;t copy the link. Try again from Settings.
-          </p>
-        )}
-      </aside>
+            More booster <span aria-hidden="true">↗</span>
+          </Button>
+        </section>
+      ) : (
+        <aside
+          style={choicesOpen ? { display: "none" } : undefined}
+          aria-label="Referral reward"
+          className={
+            isBoosters
+              ? "yk-referral-reminder--boosters"
+              : [
+                  "fixed bottom-4 left-16 z-[70] grid w-[min(calc(100vw-5rem),32rem)]",
+                  "grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 rounded-[18px]",
+                  "border border-veil-strong bg-surface/95 px-4 py-2.5 backdrop-blur-md",
+                  "shadow-[0_14px_45px_rgba(0,0,0,0.55),0_0_24px_rgba(141,173,255,0.08)]",
+                  "max-sm:left-3 max-sm:w-[calc(100vw-1.5rem)]"
+                ].join(" ")
+          }
+        >
+          <div className="min-w-0">
+            <p className="yk-referral-reminder-title truncate font-display text-sm font-bold tracking-wide text-ink">
+              {isBoosters
+                ? "Want more boosters?"
+                : "Invite friends · Earn 5 bonus packs"}
+            </p>
+            <p className="yk-referral-reminder-note mt-0.5 truncate text-[11px] text-ink-3">
+              {isBoosters
+                ? "Invite friends or explore Pro."
+                : "Rewarded after their email is verified."}
+            </p>
+          </div>
+          <Button
+            type="button"
+            disabled={!packChoices && !code}
+            onClick={() =>
+              packChoices ? setChoicesOpen(true) : void copyLink()
+            }
+            className="yk-referral-reminder-copy min-h-9 whitespace-nowrap !rounded-full px-5 py-2 text-xs"
+          >
+            {packChoices
+              ? "Explore"
+              : !code
+                ? "Preparing…"
+                : copyState === "copied"
+                  ? "Copied"
+                  : "Copy link"}
+          </Button>
+          {!isBoosters && (
+            <button
+              type="button"
+              aria-label="Dismiss referral reminder"
+              onClick={dismiss}
+              className="grid h-7 w-7 place-items-center rounded-full border border-veil text-base leading-none text-ink-3 transition hover:border-focus hover:bg-veil hover:text-ink"
+            >
+              ×
+            </button>
+          )}
+          {copyState === "error" && (
+            <p role="alert" className="col-span-3 text-[11px] text-danger">
+              Couldn&apos;t copy the link. Try again from Settings.
+            </p>
+          )}
+        </aside>
+      )}
       <Modal
         open={choicesOpen}
         onClose={() => setChoicesOpen(false)}
         title="Want more boosters?"
-        className="yk-referral-modal"
+        className={
+          homeCard
+            ? "yk-referral-modal yk-home-booster-modal"
+            : "yk-referral-modal"
+        }
       >
         <p className="yk-referral-modal-lead">Two ways to open more packs.</p>
         <div className="yk-referral-options">
@@ -247,11 +282,12 @@ export function ReferralReminder({
                     ? "Copied"
                     : "Copy link"}
               </Button>
-              {typeof navigator.share === "function" && (
-                <Button disabled={!code} onClick={() => void shareLink()}>
-                  Share
-                </Button>
-              )}
+              {typeof navigator !== "undefined" &&
+                typeof navigator.share === "function" && (
+                  <Button disabled={!code} onClick={() => void shareLink()}>
+                    Share
+                  </Button>
+                )}
             </div>
             {copyState === "error" && (
               <p role="alert" className="text-sm text-danger">
@@ -299,5 +335,7 @@ export function ReferralReminder({
       </Modal>
     </>
   );
-  return packChoices ? createPortal(content, document.body) : content;
+  return packChoices && !homeCard
+    ? createPortal(content, document.body)
+    : content;
 }
