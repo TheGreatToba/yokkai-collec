@@ -646,6 +646,12 @@ export function TradesPanel({
     }
   }
   const [friends, setFriends] = useState<FriendUser[]>([]);
+  const [friendQuery, setFriendQuery] = useState("");
+  const visibleFriends = friends.filter(friend =>
+    friend.pseudo
+      .toLocaleLowerCase("en-US")
+      .includes(friendQuery.trim().toLocaleLowerCase("en-US"))
+  );
   const [offers, setOffers] = useState<TradeOffer[]>([]);
   const [tab, setTab] = useState<TradeTab>("compose");
   const [context, setContext] = useState<TradeContext>();
@@ -1129,8 +1135,23 @@ export function TradesPanel({
               )}
             </div>
             {!fixedFriendId && (
+              <input
+                type="search"
+                aria-label="Rechercher un ami"
+                placeholder="Rechercher un ami…"
+                className="auth-input mt-4"
+                value={friendQuery}
+                onChange={event => setFriendQuery(event.target.value)}
+              />
+            )}
+            {!fixedFriendId && friendQuery.trim() && !visibleFriends.length && (
+              <p role="status" className="mt-4 text-sm text-ink-2">
+                Aucun ami correspondant parmi les amis chargés.
+              </p>
+            )}
+            {!fixedFriendId && (
               <div className="yk-friend-choices">
-                {friends.map(friend => (
+                {visibleFriends.map(friend => (
                   <Chip
                     key={friend.id}
                     active={friendId === friend.id}
