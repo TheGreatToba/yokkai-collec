@@ -7,19 +7,21 @@ import "@/styles/booster-opening.css";
 export function BoosterOpening({
   kind,
   openRequested,
+  onReady,
   onComplete,
   onTear
 }: {
   kind: BoosterKind;
   /** Undefined keeps the legacy automatic playback contract. */
   openRequested?: boolean;
+  onReady?: () => void;
   onComplete: () => void;
   onTear: () => void;
 }) {
   const [html, setHtml] = useState("");
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
-  const callbacks = useRef({ onComplete, onTear });
+  const callbacks = useRef({ onComplete, onTear, onReady });
   const completed = useRef(false);
   const frame = useRef<HTMLIFrameElement>(null);
   const requested = useRef(openRequested ?? true);
@@ -27,8 +29,8 @@ export function BoosterOpening({
   const releasePending = useRef<(() => void) | null>(null);
   const waitForClick = openRequested !== undefined;
   useEffect(() => {
-    callbacks.current = { onComplete, onTear };
-  }, [onComplete, onTear]);
+    callbacks.current = { onComplete, onTear, onReady };
+  }, [onComplete, onTear, onReady]);
   useEffect(() => {
     const controller = new AbortController();
     let active = true;
@@ -59,6 +61,7 @@ export function BoosterOpening({
         case "YOKKAI_BOOSTER_READY":
           if (waitForClick) window.clearTimeout(timeout);
           setReady(true);
+          callbacks.current.onReady?.();
           break;
         case "YOKKAI_BOOSTER_TEAR":
           if (requested.current) callbacks.current.onTear();
@@ -115,6 +118,7 @@ export function BoosterOpening({
       {html && (
         <iframe
           ref={frame}
+          data-ready={ready}
           title={`Opening ${kind === "decision" ? "Decision" : "Regular"} Pack`}
           sandbox="allow-scripts"
           referrerPolicy="no-referrer"
@@ -133,6 +137,7 @@ export function BoosterOpening({
         // The decorative document failed; keep an intact real pack until clicked.
         // eslint-disable-next-line @next/next/no-img-element
         <img
+          draggable={false}
           className="yk-booster-opening-fallback"
           src={`/assets/chrome-${kind}-booster-v1.png`}
           alt=""

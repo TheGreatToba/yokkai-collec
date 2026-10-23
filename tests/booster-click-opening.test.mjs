@@ -404,6 +404,63 @@ test("the real pack stage requires a first pointer/keyboard gesture; repeated ke
     assert.ok(stage);
     const player = () =>
       render().find(node => node.type === "Dynamic" && node.props.onTear);
+    // Exercise the real iframe bridge so this parent test also checks cut speed.
+    const html = boosterOpeningDocument(
+      asset,
+      "https://yokkai-collec.com",
+      "regular",
+      true
+    );
+    const script = [...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].at(
+      -1
+    )[1];
+    const cutAnimation = { currentTime: 0, playbackRate: 1 };
+    const cutTimers = [];
+    let receiveStep,
+      completions = 0;
+    const parent = {
+      postMessage: data => {
+        if (data.type === "YOKKAI_BOOSTER_COMPLETE") {
+          completions++;
+          player().props.onComplete();
+        }
+      }
+    };
+    vm.runInNewContext(script, {
+      parent,
+      performance: { now: () => 0 },
+      setTimeout: fn => {
+        cutTimers.push(fn);
+        return cutTimers.length;
+      },
+      clearTimeout() {},
+      document: {
+        styleSheets: [],
+        getAnimations: () => [cutAnimation],
+        addEventListener() {},
+        documentElement: { classList: { add() {}, remove() {} } }
+      },
+      window: {
+        addEventListener: (type, fn) => {
+          if (type === "message") receiveStep = fn;
+        },
+        matchMedia: () => ({ matches: false }),
+        setYokkaiBooster: async () => true,
+        replayYokkaiBooster() {}
+      }
+    });
+    stage.props.ref.current = {
+      querySelector: () => ({
+        contentWindow: {
+          postMessage: data =>
+            receiveStep({
+              source: parent,
+              origin: "https://yokkai-collec.com",
+              data
+            })
+        }
+      })
+    };
     assert.equal(player().props.openRequested, false);
     respond([
       { id: "real-card", instanceId: "real-instance", image: "/card.png" }
@@ -431,7 +488,14 @@ test("the real pack stage requires a first pointer/keyboard gesture; repeated ke
       .find(node => node.props?.["aria-label"] === "Skip booster opening")
       .props.onClick();
     await tick();
+    assert.equal(state.states[0], "seal");
+    assert.equal(cutAnimation.playbackRate, 3);
+    assert.equal(completions, 0);
+    cutTimers.at(-1)();
+    cutTimers.at(-1)();
+    await tick();
     assert.equal(state.states[0], "idle");
+    assert.equal(completions, 1);
     assert.equal(requests, 1);
   }
   assert.match(

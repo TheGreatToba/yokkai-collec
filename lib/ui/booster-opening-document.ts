@@ -69,6 +69,7 @@ export function boosterOpeningDocument(
     .replace('<html lang="fr">', '<html lang="en" class="yokkai-wait-booster">')
     .replace(/<title>[^<]*<\/title>/, "<title>Yokkai booster opening</title>")
     .replace(/(<img id="packBody" alt="") src="[^"]*"/, "$1")
+    .replace(/<img /g, '<img draggable="false" ')
     .replace("Rejouer l'ouverture du booster", "Replay booster opening")
     .replace("↻ Rejouer", "↻ Replay");
   const policy =
@@ -93,27 +94,55 @@ export function boosterOpeningDocument(
     const waitForClick=${json(waitForClick)};
     let hostState='loading';
     let openRequested=!waitForClick;
-    let started=false;
-    let finished=false;
+    const CUT_START_MS=2680;
+    const OPENING_END_MS=5200;
+    const CUT_SPEED_MULTIPLIER=3;
+    const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    let stage='waiting';
+    let pendingSkips=0;
     let completionTimer;
     let startedAt=0;
-    let advancedBy=0;
+    let timelineOffset=0;
     const notify=type=>parent.postMessage({type},hostOrigin);
     const complete=()=>{
-      if(finished)return;
-      finished=true;clearTimeout(completionTimer);notify('YOKKAI_BOOSTER_COMPLETE');
+      if(stage==='complete'||stage==='disposed')return;
+      stage='complete';clearTimeout(completionTimer);notify('YOKKAI_BOOSTER_COMPLETE');
+    };
+    const advance=()=>{
+      if(reduced||stage==='complete'||stage==='disposed'||stage==='accelerated')return;
+      if(stage==='settling'){complete();return;}
+      if(stage==='waiting'){
+        if(openRequested)pendingSkips=Math.min(2,pendingSkips+1);
+        return;
+      }
+      const elapsed=performance.now()-startedAt+timelineOffset;
+      clearTimeout(completionTimer);
+      if(stage==='intro'&&elapsed<CUT_START_MS){
+        stage='cutting';
+        // Finish the intro on the existing timeline; never mount or replay a layer.
+        for(const animation of document.getAnimations()){
+          if(animation.currentTime!==null)animation.currentTime=CUT_START_MS;
+        }
+        timelineOffset=CUT_START_MS;
+        startedAt=performance.now();
+        completionTimer=setTimeout(complete,OPENING_END_MS-CUT_START_MS);
+      }else{
+        stage='accelerated';
+        for(const animation of document.getAnimations())animation.playbackRate=CUT_SPEED_MULTIPLIER;
+        completionTimer=setTimeout(complete,Math.max(0,OPENING_END_MS-elapsed)/CUT_SPEED_MULTIPLIER);
+      }
     };
     const beginOpening=()=>{
-      if(started||!openRequested||hostState!=='YOKKAI_BOOSTER_READY')return;
-      started=true;
+      if(stage!=='waiting'||!openRequested||hostState!=='YOKKAI_BOOSTER_READY')return;
+      stage='intro';
       startedAt=performance.now();
       if(waitForClick){
         document.documentElement.classList.remove('yokkai-await-click');
         window.replayYokkaiBooster();
       }
       // No completion clock runs while the closed pack waits for a gesture.
-      const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-      completionTimer=setTimeout(complete,reduced?500:5200);
+      completionTimer=setTimeout(complete,reduced?500:OPENING_END_MS);
+      while(pendingSkips>0){pendingSkips--;advance();}
     };
     const receive=event=>{
       if(event.source!==parent||event.origin!==hostOrigin)return;
@@ -121,39 +150,38 @@ export function boosterOpeningDocument(
       if(waitForClick&&event.data?.type==='yokkai-booster-open'){
         openRequested=true;beginOpening();
       }
-      if(event.data?.type==='yokkai-booster-next-step'&&started&&hostState==='YOKKAI_BOOSTER_READY'&&!finished){
-        const elapsed=performance.now()-startedAt+advancedBy;
-        const next=[2680,5200].find(time=>time>elapsed+50);
-        if(next===undefined){complete();return;}
-        const jump=next-elapsed;
-        for(const animation of document.getAnimations()){
-          if(animation.currentTime!==null)animation.currentTime=Number(animation.currentTime)+jump;
-        }
-        advancedBy+=jump;
-        clearTimeout(completionTimer);
-        if(next===5200)complete();
-        else completionTimer=setTimeout(complete,5200-next);
-      }
+      if(event.data?.type==='yokkai-booster-next-step')advance();
     };
     window.addEventListener('message',receive);
     const onAnimationStart=event=>{
-      if(event.animationName==='foil-peel')notify('YOKKAI_BOOSTER_TEAR');
+      if(event.animationName==='foil-peel'&&stage!=='disposed'&&stage!=='complete'){
+        if(stage==='intro')stage='cutting';
+        notify('YOKKAI_BOOSTER_TEAR');
+      }
     };
     document.addEventListener('animationstart',onAnimationStart);
+    const onAnimationEnd=event=>{
+      if(event.animationName==='foil-body-open'&&(stage==='cutting'||stage==='accelerated'))stage='settling';
+    };
+    document.addEventListener('animationend',onAnimationEnd);
     window.addEventListener('pagehide',()=>{
+      stage='disposed';pendingSkips=0;
       clearTimeout(completionTimer);
       window.removeEventListener('message',receive);
       document.removeEventListener('animationstart',onAnimationStart);
+      document.removeEventListener('animationend',onAnimationEnd);
       document.getAnimations().forEach(animation=>animation.cancel());
     },{once:true});
     async function startBooster(){
       try{
-        if(!await window.setYokkaiBooster(booster))throw new Error('Booster unavailable');
+        const loaded=await window.setYokkaiBooster(booster);
+        if(stage==='disposed')return;
+        if(!loaded)throw new Error('Booster unavailable');
         document.documentElement.classList.remove('yokkai-wait-booster');
         hostState='YOKKAI_BOOSTER_READY';notify(hostState);
         // The last finite effect ends at 5s. Keep a short final hold, not the idle loop.
         beginOpening();
-      }catch{hostState='YOKKAI_BOOSTER_ERROR';notify(hostState);}
+      }catch{if(stage!=='disposed'){hostState='YOKKAI_BOOSTER_ERROR';notify(hostState);}}
     }
     if(waitForClick)document.documentElement.classList.add('yokkai-await-click');
     void startBooster();
@@ -168,6 +196,7 @@ export function boosterOpeningDocument(
       `<style>
       body{background:#070b13 url(${json(new URL(`/assets/${kind}-opening-nebula.webp`, origin).href)}) center / cover no-repeat}
       .replay{display:none!important}
+      html,body,.scene{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
       .yokkai-wait-booster .scene{visibility:hidden}
       .yokkai-wait-booster *, .yokkai-wait-booster *::before, .yokkai-wait-booster *::after{animation-play-state:paused!important}
       .scene:not(.running) *, .scene:not(.running) *::before, .scene:not(.running) *::after{animation-name:none!important}

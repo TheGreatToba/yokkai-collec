@@ -645,13 +645,17 @@ test("two clicks advance to tearing then finish the opening", async () => {
     ...documentFor("regular").matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)
   ].at(-1)[1];
   const messages = [];
-  const animation = { currentTime: 0 };
+  const animation = { currentTime: 0, playbackRate: 1 };
+  const timers = [];
   const parent = { postMessage: data => messages.push(data.type) };
   let receive;
   vm.runInNewContext(script, {
     parent,
     performance: { now: () => 0 },
-    setTimeout: () => 1,
+    setTimeout: (fn, ms) => {
+      timers.push({ fn, ms });
+      return timers.length;
+    },
     clearTimeout() {},
     document: {
       styleSheets: [],
@@ -679,9 +683,20 @@ test("two clicks advance to tearing then finish the opening", async () => {
   assert.equal(animation.currentTime, 2680);
   assert.equal(messages.includes("YOKKAI_BOOSTER_COMPLETE"), false);
   receive(event);
-  assert.equal(animation.currentTime, 5200);
+  assert.equal(animation.currentTime, 2680);
+  const speed = Number(script.match(/const CUT_SPEED_MULTIPLIER=(\d+);/)[1]);
+  assert.equal(speed, 3);
+  assert.equal(animation.playbackRate, speed);
+  assert.equal(messages.includes("YOKKAI_BOOSTER_COMPLETE"), false);
+  assert.equal(timers.at(-1).ms, (5200 - 2680) / speed);
+  const timerCount = timers.length;
   receive(event);
-  assert.equal(animation.currentTime, 5200);
+  assert.equal(animation.currentTime, 2680);
+  assert.equal(animation.playbackRate, speed);
+  assert.equal(timers.length, timerCount);
+  timers.at(-1).fn();
+  timers.at(-1).fn();
+  receive(event);
   assert.equal(
     messages.filter(type => type === "YOKKAI_BOOSTER_COMPLETE").length,
     1
