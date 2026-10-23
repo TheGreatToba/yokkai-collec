@@ -630,3 +630,35 @@
   width: 44px;
   height: 44px;
 }
+
+.yk-home-pack-options {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding-right: clamp(112px, 20vw, 180px);
+}
+.yk-home-pack-options > :not(.yk-home-pack-options-art) {
+  position: relative;
+  z-index: 1;
+}
+.yk-home-pack-options-art {
+  position: absolute;
+  right: -12px;
+  top: 50%;
+  width: clamp(112px, 20vw, 180px);
+  height: 180px;
+  transform: translateY(-50%) rotate(12deg);
+  pointer-events: none;
+}
+.yk-home-pack-options-art img {
+  position: absolute;
+  width: 64%;
+  height: auto;
+  bottom: 0;
+  right: 0;
+}
+.yk-home-pack-options-art img:first-child {
+  right: 38%;
+  bottom: 12px;
+  transform: rotate(-22deg);
+}

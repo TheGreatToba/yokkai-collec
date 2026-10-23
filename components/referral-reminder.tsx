@@ -157,17 +157,37 @@ export function ReferralReminder({
   const content = (
     <>
       {homeCard ? (
-        <section aria-labelledby="home-referral" className="yk-home-referral">
+        <section
+          aria-labelledby="home-referral"
+          className="yk-home-referral yk-home-pack-options"
+        >
           <div>
-            <h2 id="home-referral">More booster</h2>
+            <h2 id="home-referral">Don’t stop now.</h2>
+            <p>
+              <em>Get +5 packs per friend, or 2× faster packs with Pro.</em>
+            </p>
           </div>
           <Button
             className="yk-home-panel-action"
             aria-haspopup="dialog"
             onClick={() => setChoicesOpen(true)}
           >
-            More booster <span aria-hidden="true">↗</span>
+            See options <span aria-hidden="true">↗</span>
           </Button>
+          <div className="yk-home-pack-options-art" aria-hidden="true">
+            <Image
+              src="/assets/chrome-regular-booster-v1.png"
+              alt=""
+              width={96}
+              height={168}
+            />
+            <Image
+              src="/assets/chrome-decision-booster-v1.png"
+              alt=""
+              width={96}
+              height={168}
+            />
+          </div>
         </section>
       ) : (
         <aside
