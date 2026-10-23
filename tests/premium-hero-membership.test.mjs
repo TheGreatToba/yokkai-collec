@@ -19,6 +19,10 @@ test("the real subscription card lives once in the left hero column", () => {
   assert.match(card, /€4\.99/);
   assert.match(card, /\/settings#subscription/);
   assert.match(card, /billing\?\.checkoutEnabled/);
+  assert.match(card, />\s*GET PRO\s*</);
+  assert.match(card, /fetch\("\/api\/billing\/checkout"/);
+  assert.match(card, /https:\/\/checkout\.stripe\.com/);
+  assert.match(card, /pending\.current/);
 });
 
 test("hero booster artwork has neither a surrounding window nor individual frames", () => {
