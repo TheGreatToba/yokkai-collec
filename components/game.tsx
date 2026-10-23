@@ -13,6 +13,7 @@ import {
   createFolder,
   deleteFolder,
   discardCollectionCards as discardCollectionCardsRequest,
+  discardDecisionPack,
   discardPackCard,
   evolveSsrCard,
   getActiveAuctionCards,
@@ -291,6 +292,16 @@ export function Game({
     );
     return kept.karasReward;
   }
+  async function discardDecision() {
+    const reward = await discardDecisionPack();
+    const [decision, game] = await Promise.all([
+      getDecisionPackStatus(),
+      getGameInfo()
+    ]);
+    setDecisionStatus(decision);
+    setInfo(game);
+    return reward;
+  }
   async function discard(instanceId: string) {
     const balance = await discardPackCard(instanceId, drawKind);
     if (drawKind === "regular") {
@@ -530,6 +541,7 @@ export function Game({
                 : open
             }
             onKeepDecision={previewData ? async () => 0 : keepDecision}
+            onSellDecisionAll={previewData ? undefined : discardDecision}
             onDiscard={previewData ? async () => {} : discard}
             onDiscardMany={
               previewData ? async () => {} : discardCollectionCards

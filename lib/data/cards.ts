@@ -61,6 +61,7 @@ function failure(error: { message?: string; code?: string }) {
     SSR_CARD_NOT_OWNED: "This SSR copy is no longer in your collection.",
     NOT_ENOUGH_SSR_COPIES: "You need three identical SSR copies for this evolution.",
     DECISION_PACK_NOT_READY: "Your daily Decision Pack isn't available yet.",
+    DECISION_PACK_NOT_PENDING: "This Decision Pack is no longer available.",
     DECISION_CHOICE_UNAVAILABLE: "This Decision Pack card is no longer available.",
     DECISION_LAST_CHOICE: "You must keep the last card.",
     CARD_NOT_OWNED: "This card is no longer in your collection.",
@@ -461,6 +462,19 @@ export async function keepDecisionPackCard(choiceId: string): Promise<DecisionPa
     return (await withLiveCardFranchises([data as DecisionPackChoice]))[0];
   } finally {
     // The automatically discarded Decision cards credit Karas too.
+    invalidatePlayerSnapshots(["collection", "balance"]);
+  }
+}
+
+export async function discardDecisionPack(): Promise<number> {
+  const id = await playerId();
+  try {
+    const { data, error } = await db().rpc("discard_decision_pack");
+    if (error) throw failure(error);
+    await assertPlayer(id);
+    return data as number;
+  } finally {
+    // The whole Decision Pack and its Karas reward commit atomically.
     invalidatePlayerSnapshots(["collection", "balance"]);
   }
 }
