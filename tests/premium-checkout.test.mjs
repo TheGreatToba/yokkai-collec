@@ -82,6 +82,18 @@ test("Premium CTA keeps signed-out and existing-customer flows safe", () => {
   assert.match(customer, /href="\/settings#subscription"/);
   assert.match(customer, />Manage subscription</);
   assert.doesNotMatch(customer, />GET PRO</);
+
+  const inactiveCustomer = renderToStaticMarkup(
+    React.createElement(PremiumCheckout, {
+      signedIn: true,
+      billing: {
+        ...billing,
+        status: { ...status, hasCustomer: true }
+      }
+    })
+  );
+  assert.match(inactiveCustomer, />GET PRO</);
+  assert.doesNotMatch(inactiveCustomer, />Manage subscription</);
 });
 
 test("GET PRO posts once and redirects only to Stripe Checkout", async () => {

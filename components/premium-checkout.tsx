@@ -24,10 +24,10 @@ export function PremiumCheckout({
     !billing.unavailable &&
     billing.status !== null &&
     !billing.status.active &&
-    !billing.status.hasCustomer &&
     ["not_subscribed", "canceled", "incomplete_expired"].includes(
       billing.status.status
     );
+  const manageSubscription = active || (hasCustomer && !canCheckout);
 
   async function openCheckout() {
     if (!canCheckout || pending.current) return;
@@ -90,7 +90,7 @@ export function PremiumCheckout({
           {error}
         </p>
       )}
-      {active || hasCustomer ? (
+      {manageSubscription ? (
         <Link
           className="yk-button yk-button-primary"
           href="/settings#subscription"
