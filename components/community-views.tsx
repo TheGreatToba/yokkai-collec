@@ -82,10 +82,10 @@ export type CommunityScreen =
   | "wishlist";
 const headings = {
   profile: ["Collector", "My profile"],
-  friends: ["Between collectors", "My friends"],
+  friends: ["Between collectors", "Friends"],
   market: ["The auction house", "Market"],
   auction: ["Market · Auction", "Auction details"],
-  trades: ["Between collectors", "Offer a trade"],
+  trades: ["Between collectors", "Trades"],
   search: ["Every card in the game", "Catalog"],
   wishlist: ["Cards you're looking for", "My wishlist"]
 };
@@ -2166,11 +2166,6 @@ export function TradesView() {
   const searchParams = useSearchParams();
   return (
     <>
-      <div className="my-8 rounded-panel border border-accent-neon/25 bg-accent-neon/10 p-5">
-        <p className="text-sm text-accent-neon">
-          Trade cards and Karas with your friends.
-        </p>
-      </div>
       <TradesPanel
         initialOfferId={searchParams.get("offre") ?? undefined}
         initialFriendId={searchParams.get("ami") ?? undefined}
@@ -2913,7 +2908,16 @@ export function CommunityView({
       />
       <main
         id="main-content"
-        className={`mx-auto w-full ${screen === "search" || screen === "market" || screen === "auction" || screen === "wishlist" ? "max-w-[var(--layout-collection-max)]" : "max-w-6xl"} px-6 py-10`}
+        className={`${screen === "friends" || screen === "trades" ? "yk-social-page" : ""} mx-auto w-full ${
+          screen === "search" ||
+          screen === "market" ||
+          screen === "auction" ||
+          screen === "wishlist" ||
+          screen === "friends" ||
+          screen === "trades"
+            ? "max-w-[var(--layout-collection-max)]"
+            : "max-w-6xl"
+        } px-6 py-10`}
       >
         {screen !== "market" && screen !== "search" && (
           <div>
@@ -2938,7 +2942,11 @@ export function CommunityView({
         )}
         <div
           className={
-            screen === "market" || screen === "search" ? undefined : "mt-8"
+            screen === "market" || screen === "search"
+              ? undefined
+              : screen === "friends" || screen === "trades"
+                ? "yk-social-page-content mt-4"
+                : "mt-8"
           }
         >
           {screen === "profile" && (
