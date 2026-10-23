@@ -1,3 +1,15 @@
+// Preserve draw order and exclude cards already placed by individual reveals.
+export function packRareRevealQueue(
+  cards: { rarity: string }[],
+  revealed: number
+) {
+  return cards.flatMap((card, index) =>
+    index >= revealed && (card.rarity === "SSR" || card.rarity === "LR")
+      ? [index]
+      : []
+  );
+}
+
 export async function runPackOpeningOnce<T>(
   lock: { current: boolean },
   task: () => Promise<T>

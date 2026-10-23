@@ -175,10 +175,12 @@ const streaks = [
 
 export function LrCardReveal({
   card,
-  onContinue
+  onContinue,
+  autoAdvance = false
 }: {
   card: Pick<Card, "name" | "category" | "anime" | "image" | "rarity">;
   onContinue?: () => void;
+  autoAdvance?: boolean;
 }) {
   const ssr = card.rarity === "SSR";
   const timing = ssr
@@ -282,6 +284,47 @@ export function LrCardReveal({
     if (image.complete && image.naturalWidth > 0) sample();
     return release;
   }, [card.image, replay]);
+  useEffect(() => {
+    if (!autoAdvance) return;
+    let cancelled = false;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const finish = () => {
+      if (!cancelled && !completed.current) {
+        completed.current = true;
+        callback.current?.();
+      }
+    };
+    const element = root.current;
+    let animations: Animation[] = [];
+    const observe = () => {
+      animations = element?.getAnimations({ subtree: true }) ?? [];
+      // The first dialog is still closed during the child's mount effect.
+      if (!animations.length) return;
+      element?.removeEventListener("animationstart", observe);
+      void Promise.all(
+        animations
+          .filter(
+            animation =>
+              animation.effect?.getComputedTiming().iterations !== Infinity
+          )
+          .map(animation => animation.finished)
+      ).then(finish, () => {});
+    };
+    element?.addEventListener("animationstart", observe);
+    if (reduced.matches) finish();
+    else observe();
+    const motionChanged = () => {
+      if (reduced.matches) finish();
+    };
+    reduced.addEventListener("change", motionChanged);
+    return () => {
+      cancelled = true;
+      element?.removeEventListener("animationstart", observe);
+      if (!element?.isConnected)
+        animations.forEach(animation => animation.cancel());
+      reduced.removeEventListener("change", motionChanged);
+    };
+  }, [autoAdvance]);
   return (
     <section
       key={replay}
@@ -426,27 +469,29 @@ export function LrCardReveal({
           onClick={nextStep}
         />
       )}
-      <nav
-        className={`yk-lr-end-controls${ready ? " yk-lr-ready" : ""}`}
-        aria-label="Reveal actions"
-        inert={!ready}
-      >
-        <button
-          type="button"
-          onClick={() => {
-            setReady(false);
-            setEntranceSkipped(false);
-            setReplay(value => value + 1);
-          }}
+      {!autoAdvance && (
+        <nav
+          className={`yk-lr-end-controls${ready ? " yk-lr-ready" : ""}`}
+          aria-label="Reveal actions"
+          inert={!ready}
         >
-          Replay
-        </button>
-        {onContinue && (
-          <button type="button" onClick={advance}>
-            Next
+          <button
+            type="button"
+            onClick={() => {
+              setReady(false);
+              setEntranceSkipped(false);
+              setReplay(value => value + 1);
+            }}
+          >
+            Replay
           </button>
-        )}
-      </nav>
+          {onContinue && (
+            <button type="button" onClick={advance}>
+              Next
+            </button>
+          )}
+        </nav>
+      )}
     </section>
   );
 }
