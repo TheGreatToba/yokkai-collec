@@ -56,23 +56,32 @@ async function rarityTokens(rarity: Rarity, shiny: boolean) {
     new RegExp(`\\.yk-rarity-${rarity}\\s*\\{([^}]+)\\}`)
   )?.[1];
   if (!block) throw new Error(`Missing rarity ${rarity}`);
+  const evolved = shiny && rarity === "SSR";
   return {
     frame: supportedGradient(
       resolved(
         source,
-        shiny
-          ? variable(source, "--holo-frame")
-          : variable(block, "--card-frame")
+        evolved
+          ? variable(source, "--evolved-frame")
+          : shiny
+            ? variable(source, "--holo-frame")
+            : variable(block, "--card-frame")
       )
     ),
     background: resolved(source, variable(block, "--card-bg")),
     accent: resolved(
       source,
-      shiny ? variable(source, "--holo-badge") : variable(block, "--card-badge")
+      evolved
+        ? variable(source, "--evolved-badge")
+        : shiny
+          ? variable(source, "--holo-badge")
+          : variable(block, "--card-badge")
     ),
-    ink: shiny
-      ? "#04000B"
-      : resolved(source, variable(block, "--card-badge-ink"))
+    ink: evolved
+      ? variable(source, "--evolved-ink")
+      : shiny
+        ? "#04000B"
+        : resolved(source, variable(block, "--card-badge-ink"))
   };
 }
 

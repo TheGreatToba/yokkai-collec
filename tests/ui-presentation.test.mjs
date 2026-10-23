@@ -565,6 +565,13 @@ test("Shiny reste une surcouche SSR/LR et ne s'applique pas aux autres raretés"
     });
     assert.match(html, new RegExp(`yk-rarity-${rarity}`));
     assert.match(html, /yk-shiny-frame/);
+    if (rarity === "SSR") {
+      assert.match(html, /yk-evolved/);
+      assert.doesNotMatch(html, /yk-shiny(?: |")/);
+    } else {
+      assert.match(html, /yk-shiny(?: |")/);
+      assert.doesNotMatch(html, /yk-evolved/);
+    }
     assert.match(
       html,
       new RegExp(

@@ -241,6 +241,221 @@
   box-shadow: inset 0 0 28px
     color-mix(in srgb, var(--holo-glow) 55%, transparent);
 }
+/* SSR Evolved: rose chrome, engraved inner edge and restrained crystal accents. */
+.yk-evolved {
+  --card-frame: var(--evolved-frame);
+  --card-inset: 3px;
+  --card-bg: radial-gradient(
+    110% 75% at 50% 32%,
+    #48152e,
+    #180d17 64%,
+    #08060b
+  );
+  --card-badge: #f5b3d2;
+  --card-badge-ink: var(--evolved-ink);
+  --card-badge-border: #ffe0ef;
+  --card-ring: rgba(248, 185, 216, 0.24);
+  --card-glow:
+    0 0 0 1px rgba(255, 199, 226, 0.55), 0 8px 28px var(--evolved-glow);
+  --card-glow-color: var(--evolved-glow);
+  --card-pulse: none;
+  --card-spin: none;
+  --card-spark: #ffc5df;
+  --card-foil: var(--evolved-foil);
+  --card-sweep: yk-sweep 6s ease-in-out infinite;
+}
+.yk-evolved .yk-shiny-frame {
+  background: var(--evolved-frame);
+  mix-blend-mode: normal;
+  opacity: 1;
+  animation: none;
+}
+.yk-evolved .yk-card-interior {
+  box-shadow: inset 0 0 20px rgba(180, 52, 106, 0.2);
+}
+.yk-evolved .yk-card-interior::before {
+  content: "";
+  position: absolute;
+  inset: 1.8cqw;
+  z-index: 2;
+  border: 1px solid rgba(255, 203, 227, 0.48);
+  border-radius: 8px;
+  pointer-events: none;
+}
+.yk-evolved .yk-holo {
+  background: linear-gradient(
+    145deg,
+    rgba(248, 185, 216, 0.13),
+    transparent 38%,
+    rgba(93, 20, 57, 0.1) 70%,
+    rgba(255, 224, 239, 0.12)
+  );
+  background-size: 100% 100%;
+  mix-blend-mode: soft-light;
+  animation: none;
+}
+.yk-evolved .yk-evolved-badge {
+  background: var(--evolved-badge);
+  color: var(--evolved-ink);
+  border-color: #ffe0ef;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+.yk-evolved .yk-evolved-spark {
+  font-size: 5cqw !important;
+  opacity: 0.65;
+  text-shadow: 0 0 8px rgba(255, 150, 198, 0.5);
+  animation: yk-evolved-drift 4s ease-in-out infinite;
+}
+.yk-evolved-energy {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.yk-evolved-seal {
+  position: absolute;
+  width: 67%;
+  aspect-ratio: 1;
+  left: 16.5%;
+  top: 23%;
+  transform: rotate(45deg);
+  border: 1px solid rgba(255, 171, 211, 0.42);
+  box-shadow:
+    inset 0 0 12px rgba(246, 96, 163, 0.18),
+    0 0 14px rgba(246, 96, 163, 0.2);
+}
+.yk-evolved-seal::before,
+.yk-evolved-seal::after {
+  content: "";
+  position: absolute;
+  inset: 10%;
+  border: 1px solid rgba(255, 215, 234, 0.36);
+}
+.yk-evolved-seal::after {
+  inset: -8%;
+  border-width: 2px;
+  clip-path: polygon(
+    0 0,
+    22% 0,
+    22% 3%,
+    3% 3%,
+    3% 22%,
+    0 22%,
+    0 0,
+    100% 0,
+    100% 22%,
+    97% 22%,
+    97% 3%,
+    78% 3%,
+    78% 0,
+    100% 0,
+    100% 100%,
+    78% 100%,
+    78% 97%,
+    97% 97%,
+    97% 78%,
+    100% 78%,
+    100% 100%,
+    0 100%,
+    0 78%,
+    3% 78%,
+    3% 97%,
+    22% 97%,
+    22% 100%,
+    0 100%
+  );
+}
+.yk-evolved-scan {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: linear-gradient(
+    0deg,
+    transparent 42%,
+    rgba(243, 91, 158, 0.06) 46%,
+    rgba(255, 194, 224, 0.45) 50%,
+    rgba(243, 91, 158, 0.08) 52%,
+    transparent 57%
+  );
+}
+.yk-evolved.yk-animated .yk-evolved-seal {
+  animation: yk-evolved-charge 4.8s ease-in-out infinite;
+}
+.yk-evolved.yk-animated .yk-evolved-scan {
+  animation: yk-evolved-scan 4.8s ease-in-out infinite;
+}
+.yk-evolved.yk-animated .yk-card-interior::before {
+  animation: yk-evolved-edge 4.8s ease-in-out infinite;
+}
+.yk-evolved:not(.yk-animated) .yk-evolved-seal {
+  opacity: 0.4;
+}
+@keyframes yk-evolved-charge {
+  0%,
+  100% {
+    transform: rotate(45deg) scale(0.92);
+    opacity: 0.15;
+  }
+  40% {
+    transform: rotate(45deg) scale(1);
+    opacity: 0.8;
+  }
+  65% {
+    transform: rotate(45deg) scale(1.08);
+    opacity: 0.28;
+  }
+}
+@keyframes yk-evolved-scan {
+  0%,
+  15% {
+    transform: translateY(52%);
+    opacity: 0;
+  }
+  35%,
+  55% {
+    opacity: 0.7;
+  }
+  80%,
+  100% {
+    transform: translateY(-55%);
+    opacity: 0;
+  }
+}
+@keyframes yk-evolved-edge {
+  0%,
+  100% {
+    border-color: rgba(255, 178, 214, 0.3);
+    box-shadow: inset 0 0 8px rgba(220, 54, 126, 0.1);
+  }
+  42% {
+    border-color: rgba(255, 225, 239, 0.9);
+    box-shadow: inset 0 0 18px rgba(238, 88, 151, 0.36);
+  }
+}
+
+@keyframes yk-evolved-drift {
+  0%,
+  100% {
+    transform: translateY(12px) scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: translateY(-14px) scale(1.1);
+    opacity: 0.9;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .yk-evolved,
+  .yk-evolved.yk-animated .yk-card-frame,
+  .yk-evolved.yk-animated .yk-card-foil,
+  .yk-evolved.yk-animated .yk-evolved-seal,
+  .yk-evolved.yk-animated .yk-evolved-scan,
+  .yk-evolved.yk-animated .yk-card-interior::before {
+    animation: none;
+  }
+}
+
 .yk-card-back {
   width: 100%;
   aspect-ratio: 5 / 7;
