@@ -25,11 +25,13 @@ test("public guide pages have English metadata and useful content", () => {
   for (const rarity of ["C", "R", "SR", "SSR", "LR"]) {
     assert.match(rarities, new RegExp(`["']${rarity}["']`));
   }
-  for (const rate of ["72.4%", "20%", "7%", "0.5%", "0.1%"])
+  for (const rate of ["69.4%", "20%", "10%", "0.5%", "0.1%"])
     assert.match(rarities, new RegExp(rate.replace(".", "\\.")));
   assert.match(rarities, /LR SHINY/);
-  assert.match(rarities, /0\.0001%/);
-  assert.match(rarities, /1 in 1,000,000 pull per card/);
+  assert.match(rarities, /0\.01%/);
+  assert.match(rarities, /1 in 10,000 pull per card/);
+  assert.match(rarities, /independent 10% chance/);
+  assert.match(rarities, /0\.05% chance per revealed card \(1 in 2,000\)/);
   assert.match(rules, /Do not automate pack openings/);
   assert.match(rules, /Do not create accounts to farm referrals/);
   assert.match(info, /unofficial fan project/i);

@@ -8,9 +8,9 @@ export const metadata: Metadata = {
 };
 
 const regularRarities = [
-  ["C", "Common", "72.4%"],
+  ["C", "Common", "69.4%"],
   ["R", "Rare", "20%"],
-  ["SR", "Super Rare", "7%"],
+  ["SR", "Super Rare", "10%"],
   ["SSR", "Super Super Rare", "0.5%"],
   ["LR", "Legendary Rare", "0.1%"]
 ] as const;
@@ -35,20 +35,21 @@ export default function RaritiesPage() {
           <div className="yk-rarity-row" data-rarity="LR-SHINY">
             <strong>LR SHINY</strong>
             <span>Legendary Rare · Shiny</span>
-            <b>0.0001%</b>
+            <b>0.01%</b>
           </div>
         </div>
         <p>
           The first five percentages are the current Regular Pack odds for each
-          individual card draw. An LR then has an independent 0.1% chance to be
-          Shiny, making LR SHINY about a 1 in 1,000,000 pull per card.
+          individual card draw. An LR then has an independent 10% chance to be
+          Shiny, making LR SHINY about a 1 in 10,000 pull per card.
         </p>
       </InfoSection>
       <InfoSection number="02" title="Decision Packs">
         <p>
           Decision Packs only contain high-rarity choices: SR at 96.5%, SSR at
           3%, and LR at 0.5%. You reveal five cards and choose the one you want
-          to keep.
+          to keep. Each LR has the same 10% Shiny chance, so LR SHINY has a
+          0.05% chance per revealed card (1 in 2,000).
         </p>
       </InfoSection>
       <InfoSection number="03" title="Shiny and evolved cards">
