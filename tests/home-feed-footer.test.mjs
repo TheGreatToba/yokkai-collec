@@ -39,18 +39,15 @@ test("feed has no explanatory footer or marketing signature", () => {
   );
 });
 
-test("older posts action and end-of-feed status stay at the bottom inside the scroll region", () => {
+test("latest-posts timeline has no pagination and keeps end-of-feed status after posts", () => {
   const more = find(timeline, node => withClass(node, "yk-feed-more"));
   const end = find(timeline, node => withClass(node, "yk-feed-end"));
   const post = find(timeline, node => withClass(node, "yk-feed-post"));
-  assert.ok(more);
+  assert.equal(more, undefined);
   assert.ok(end);
   assert.ok(post);
-  assert.ok(more.pos > post.end);
-  assert.ok(end.pos > more.end);
-  assert.match(more.getText(source), /Load older posts/);
-  assert.match(more.getText(source), /onClick=\{\(\) => void more\(\)\}/);
-  assert.match(more.getText(source), /disabled=\{busy\}/);
+  assert.ok(end.pos > post.end);
+  assert.doesNotMatch(source.getFullText(), /Load older posts/);
   assert.equal(footer, undefined);
 });
 
