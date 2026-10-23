@@ -282,10 +282,12 @@ test("unmount clears the queue so a late cinematic completion cannot advance it"
   assert.equal(commits, 0);
 });
 
-function playerHarness(reduced = false) {
+function playerHarness(reduced = false, hidden = false) {
+  let playing = !hidden;
   const state = hooks();
   const timers = new Set();
   const listeners = new Set();
+  const animationListeners = new Set();
   let completeFinite;
   const finite = {
     finished: new Promise(resolve => {
@@ -307,7 +309,9 @@ function playerHarness(reduced = false) {
   };
   const element = {
     isConnected: true,
-    getAnimations: () => [finite, infinite],
+    addEventListener: (_, fn) => animationListeners.add(fn),
+    removeEventListener: (_, fn) => animationListeners.delete(fn),
+    getAnimations: () => (playing ? [finite, infinite] : []),
     querySelector: () => null
   };
   const media = {
@@ -351,6 +355,11 @@ function playerHarness(reduced = false) {
     completeFinite,
     timers,
     listeners,
+    animationListeners,
+    start() {
+      playing = true;
+      animationListeners.forEach(fn => fn());
+    },
     media,
     finite,
     infinite,
@@ -426,4 +435,19 @@ test("a manually viewed rare awaiting placement is not replayed by Reveal all", 
   const players = render().filter(node => node.type === "Dynamic");
   assert.equal(players.length, 1);
   assert.equal(players[0].props.card.instanceId, props.cards[12].instanceId);
+});
+
+test("a closed dialog waits for animationstart instead of treating zero animations as complete", async () => {
+  const player = playerHarness(false, true);
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(player.continued(), 0);
+  assert.equal(player.animationListeners.size, 1);
+  player.start();
+  assert.equal(player.animationListeners.size, 0);
+  assert.equal(player.continued(), 0);
+  player.completeFinite();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(player.continued(), 1);
+  player.unmount();
+  assert.equal(player.animationListeners.size, 0);
 });

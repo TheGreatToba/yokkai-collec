@@ -468,6 +468,7 @@ export function BoosterReveal({
     });
   }
   return (
+    <>
     <section
       aria-label="Pack cards"
       data-pack-kind={decision ? "decision" : "regular"}
@@ -544,7 +545,7 @@ export function BoosterReveal({
           ))}
         </ol>}
       </header>
-    {!done && !spot && !sequencing && <div className={`yk-reveal-stage ${faceUp && current?.rarity === "SR" ? "yk-reveal-sr" : ""}`}>
+    {!done && !spot && <div className={`yk-reveal-stage ${faceUp && current?.rarity === "SR" ? "yk-reveal-sr" : ""}`}>
       {faceUp && current?.rarity === "SR" && <div className="yk-sr-flash" aria-hidden="true" />}
       <div className="yk-deck">{cards.slice(revealed + 1).map((card, i, remaining) => <div className="yk-stacked-back" key={card.instanceId} style={{ transform: `translate(${(remaining.length-i)*3}px,${-(remaining.length-i)*4}px) rotate(${(remaining.length-i)*1.3}deg)`, filter: `brightness(${1-(remaining.length-i)*.045})` }}><CardBack /></div>)}
         <button type="button" ref={next} onClick={flip} aria-disabled={revealLocked} aria-label={revealLocked ? `Revealing ${current.name} in progress` : faceUp ? `Place ${current.name}` : `Reveal card ${revealed + 1} of ${cards.length}`} className={`yk-deck-button ${faceUp ? "yk-face-up" : ""}`}><span className="yk-flip"><span className="yk-flip-back" aria-hidden="true"><CardBack /></span><span className="yk-flip-front" aria-hidden="true">{faceUp && <YokaiCard {...current} />}</span></span></button>
@@ -825,21 +826,6 @@ export function BoosterReveal({
         </div>}
       </Modal>
       <Modal
-        open={!!spot}
-        onClose={() => { if (sequencing) finishBatch(); else { setSpot(null); if (!done) setFaceUp(true); } }}
-        title={spot?.shiny ? "✦ Shiny Summon ✦" : spot?.rarity === "SSR" ? "SSR summon" : "Legendary summon"}
-        className="yk-invocation yk-lr-file-modal"
-      >
-        {spot && <CardCinematic key={spot.instanceId} card={spot}
-          autoAdvance={sequencing}
-          onSkipAll={sequencing ? finishBatch : undefined}
-          onContinue={() => {
-            if (sequencing) finishRare(spot.instanceId);
-            else { setSpot(null); if (!done) setFaceUp(true); }
-          }}
-        />}
-      </Modal>
-      <Modal
         open={sellAllConfirm}
         onClose={() => {
           if (!sellingAll) setSellAllConfirm(false);
@@ -1049,6 +1035,22 @@ export function BoosterReveal({
         </div>
       </Modal>
     </section>
+      <Modal
+        open={!!spot}
+        onClose={() => { if (sequencing) finishBatch(); else { setSpot(null); if (!done) setFaceUp(true); } }}
+        title={spot?.shiny ? "✦ Shiny Summon ✦" : spot?.rarity === "SSR" ? "SSR summon" : "Legendary summon"}
+        className="yk-invocation yk-lr-file-modal"
+      >
+        {spot && <CardCinematic key={spot.instanceId} card={spot}
+          autoAdvance={sequencing}
+          onSkipAll={sequencing ? finishBatch : undefined}
+          onContinue={() => {
+            if (sequencing) finishRare(spot.instanceId);
+            else { setSpot(null); if (!done) setFaceUp(true); }
+          }}
+        />}
+      </Modal>
+    </>
   );
 }
 

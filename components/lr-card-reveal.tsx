@@ -296,10 +296,13 @@ export function LrCardReveal({
         callback.current?.();
       }
     };
-    // Infinite ambient decoration never delays the finite reveal choreography.
-    const animations = root.current?.getAnimations({ subtree: true }) ?? [];
-    if (reduced.matches) finish();
-    else
+    const element = root.current;
+    let animations: Animation[] = [];
+    const observe = () => {
+      animations = element?.getAnimations({ subtree: true }) ?? [];
+      // The first dialog is still closed during the child's mount effect.
+      if (!animations.length) return;
+      element?.removeEventListener("animationstart", observe);
       void Promise.all(
         animations
           .filter(
@@ -308,12 +311,19 @@ export function LrCardReveal({
           )
           .map(animation => animation.finished)
       ).then(finish, () => {});
+    };
+    element?.addEventListener("animationstart", observe);
+    if (reduced.matches) finish();
+    else observe();
     const motionChanged = () => {
       if (reduced.matches) finish();
     };
     reduced.addEventListener("change", motionChanged);
     return () => {
       cancelled = true;
+      element?.removeEventListener("animationstart", observe);
+      if (!element?.isConnected)
+        animations.forEach(animation => animation.cancel());
       reduced.removeEventListener("change", motionChanged);
     };
   }, [autoAdvance]);
