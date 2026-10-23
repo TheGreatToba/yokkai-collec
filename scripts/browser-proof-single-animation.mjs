@@ -166,6 +166,29 @@ try {
       "new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))"
     );
   };
+  const sharedDesign = async () =>
+    await evaluate(`(() => {
+              const card = document.querySelector('.yk-lr-reveal .yk-card');
+              const reference = document.createElement('div');
+              Object.assign(reference.style, {position:'fixed',top:'0',left:'0',opacity:'0',pointerEvents:'none',width:getComputedStyle(card).width});
+              const copy = card.cloneNode(true);
+              reference.append(copy);
+              document.body.append(reference);
+              try {
+                const differences = [];
+                for (const selector of ['', '.yk-card-frame', '.yk-card-interior', '.yk-card-ring', '.yk-card-line', '.yk-card-foil', '.yk-card-category', '.yk-card-badge', '.yk-card-name', '.yk-card-anime', '.yk-card-art img']) {
+                  const actualElement = selector ? card.querySelector(selector) : card;
+                  const expectedElement = selector ? copy.querySelector(selector) : copy;
+                  if (!actualElement && !expectedElement) continue;
+                  const actual = getComputedStyle(actualElement);
+                  const expected = getComputedStyle(expectedElement);
+                  for (const property of ['aspectRatio','backgroundImage','backgroundColor','borderRadius','borderColor','borderWidth','boxShadow','display','fontFamily','fontVariant','fontWeight','fontSize','color','whiteSpace','overflow','objectFit']) {
+                    if (actual[property] !== expected[property] && !(property === 'fontSize' && Math.abs(parseFloat(actual[property])-parseFloat(expected[property])) < .05)) differences.push({selector,property,actual:actual[property],expected:expected[property]});
+                  }
+                }
+                return differences;
+              } finally { reference.remove(); }
+            })()`);
   const report = [];
   await mkdir(new URL("../artifacts/single-animation/", import.meta.url), {
     recursive: true
@@ -222,36 +245,74 @@ try {
     for (let card = 0; card < 5; card++) {
       await evaluate("document.querySelector('.yk-deck-button').click()");
       if (card === 3) {
-        await until("!!document.querySelector('.yk-card-cinematic iframe')");
+        await until("!!document.querySelector('.yk-card-cinematic-ssr')");
+        await until(
+          "!!document.querySelector('.yk-lr-reveal').style.getPropertyValue('--yk-lr-glass-1')"
+        );
         assert.equal(
-          await evaluate(
-            "document.querySelectorAll('.yk-card-cinematic iframe').length"
-          ),
+          await evaluate("document.querySelectorAll('.yk-lr-reveal').length"),
           1
         );
         assert.equal(
           await evaluate(
-            "document.querySelectorAll('.yk-ssr-cinematic-stage,.yk-lr-cinematic-stage,.yk-reveal-stage').length"
+            "document.querySelectorAll('iframe,.yk-lr-finale,.yk-lr-floor,.yk-lr-edge,.yk-reveal-stage').length"
           ),
           0
         );
-        await until("!document.querySelector('.yk-lr-preview-status')");
+        assert.equal(
+          await evaluate(
+            "document.querySelector('.yk-lr-reveal .yk-card-badge').textContent"
+          ),
+          "SSR"
+        );
+        assert.ok(
+          await evaluate(
+            "getComputedStyle(document.querySelector('.yk-lr-world')).backgroundImage.includes('ssr-pink-world.webp')"
+          )
+        );
+        await evaluate("document.querySelector('.yk-lr-skip').click()");
+        assert.ok(
+          await evaluate(
+            "Math.max(...document.querySelector('.yk-lr-reveal').getAnimations({subtree:true}).map(a=>Number(a.currentTime))) < 4500"
+          )
+        );
+        await evaluate("document.querySelector('.yk-lr-skip').click()");
+        assert.equal(
+          await evaluate("document.querySelectorAll('.yk-lr-reveal').length"),
+          1
+        );
+        await until("!!document.querySelector('.yk-lr-ready')");
         if (pack === 0) {
-          for (const width of [320, 375, 768, 1024, 1440]) {
-            await viewport(width);
+          for (const [width, height] of [
+            [320, 667],
+            [375, 667],
+            [768, 900],
+            [1024, 900],
+            [1440, 900],
+            [900, 420]
+          ]) {
+            await send("Emulation.setDeviceMetricsOverride", {
+              width,
+              height,
+              deviceScaleFactor: 1,
+              mobile: width < 700
+            });
+            await delay(350);
             assert.equal(
               await evaluate("document.documentElement.scrollWidth>innerWidth"),
               false
             );
-            const bounds = await evaluate(
-              "(()=>{const r=document.querySelector('.yk-card-cinematic iframe').getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,w:innerWidth,h:innerHeight};})()"
+            assert.deepEqual(
+              await sharedDesign(),
+              [],
+              `SSR shared card differs at ${width}x${height}`
             );
-            assert.ok(
-              bounds.left >= -1 &&
-                bounds.right <= bounds.w + 1 &&
-                bounds.top >= -1 &&
-                bounds.bottom <= bounds.h + 1,
-              JSON.stringify({ width, bounds })
+            assert.equal(
+              await evaluate(
+                `(() => {const a=document.querySelector('.yk-lr-stage').getBoundingClientRect();const b=document.querySelector('.yk-lr-end-controls').getBoundingClientRect();return b.left>=0&&b.right<=innerWidth&&b.top>=0&&b.bottom<=innerHeight&&(b.left>=a.right||b.right<=a.left||b.top>=a.bottom||b.bottom<=a.top);})()`
+              ),
+              true,
+              `SSR controls overlap at ${width}x${height}`
             );
           }
           await viewport(1440, 2);
@@ -260,22 +321,27 @@ try {
             false
           );
           await viewport(1440);
-          if (process.env.CAPTURE_SCREENSHOTS === "1") {
-            await delay(card === 3 ? 7000 : 12000);
-            const { data } = await send("Page.captureScreenshot", {
-              format: "png"
-            });
-            await writeFile(
-              new URL(
-                `../artifacts/single-animation/${card === 3 ? "SSR" : "LR"}.png`,
-                import.meta.url
-              ),
-              Buffer.from(data, "base64")
-            );
-          }
+          const shot = await send("Page.captureScreenshot", { format: "png" });
+          await writeFile(
+            new URL(
+              "../artifacts/single-animation/SSR-native-pack.png",
+              import.meta.url
+            ),
+            Buffer.from(shot.data, "base64")
+          );
+          await evaluate(
+            "document.querySelector('.yk-lr-end-controls button').click()"
+          );
+          await until("!document.querySelector('.yk-lr-ready')");
+          assert.equal(
+            await evaluate("document.querySelectorAll('.yk-lr-reveal').length"),
+            1
+          );
+          await evaluate("document.querySelector('.yk-lr-skip').click()");
+          await until("!!document.querySelector('.yk-lr-ready')");
         }
         await evaluate(
-          "document.querySelector('.yk-card-cinematic-skip').click()"
+          "document.querySelector('.yk-lr-end-controls button:last-child').click()"
         );
       } else if (card === 4) {
         await until("!!document.querySelector('.yk-lr-reveal')");
@@ -394,25 +460,7 @@ try {
               mobile: width < 700
             });
             await delay(350);
-            const designDifferences = await evaluate(`(() => {
-              const card = document.querySelector('.yk-lr-reveal .yk-card');
-              const reference = document.createElement('div');
-              Object.assign(reference.style, {position:'fixed',top:'0',left:'0',opacity:'0',pointerEvents:'none',width:getComputedStyle(card).width});
-              const copy = card.cloneNode(true);
-              reference.append(copy);
-              document.body.append(reference);
-              try {
-                const differences = [];
-                for (const selector of ['', '.yk-card-frame', '.yk-card-interior', '.yk-card-ring', '.yk-card-line', '.yk-card-foil', '.yk-card-category', '.yk-card-badge', '.yk-card-name', '.yk-card-anime', '.yk-card-art img']) {
-                  const actual = getComputedStyle(selector ? card.querySelector(selector) : card);
-                  const expected = getComputedStyle(selector ? copy.querySelector(selector) : copy);
-                  for (const property of ['aspectRatio','backgroundImage','backgroundColor','borderRadius','borderColor','borderWidth','boxShadow','display','fontFamily','fontVariant','fontWeight','fontSize','color','whiteSpace','overflow','objectFit']) {
-                    if (actual[property] !== expected[property] && !(property === 'fontSize' && Math.abs(parseFloat(actual[property])-parseFloat(expected[property])) < .05)) differences.push({selector,property,actual:actual[property],expected:expected[property]});
-                  }
-                }
-                return differences;
-              } finally { reference.remove(); }
-            })()`);
+            const designDifferences = await sharedDesign();
             assert.deepEqual(
               designDifferences,
               [],

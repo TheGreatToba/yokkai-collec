@@ -11,6 +11,7 @@
   place-items: center;
   background: transparent;
 }
+
 .yk-invocation.yk-lr-file-modal:has(.yk-lr-reveal) {
   background: transparent;
 }
@@ -929,4 +930,102 @@
   .yk-lr-floor {
     display: none;
   }
+}
+
+/* SSR reference: the same card and controller, a static pink world and no impact. */
+.yk-card-cinematic-ssr .yk-lr-world {
+  background: #20071b url("/assets/card-reveals/ssr-pink-world.webp")
+    center/cover no-repeat;
+  animation: none;
+}
+.yk-card-cinematic-ssr .yk-lr-world::before,
+.yk-card-cinematic-ssr .yk-lr-world::after,
+.yk-card-cinematic-ssr .yk-lr-stage::before,
+.yk-card-cinematic-ssr .yk-lr-stage::after {
+  display: none;
+}
+.yk-card-cinematic-ssr .yk-lr-stage {
+  width: min(
+    310px,
+    calc((100vw - 20px) * 0.83871),
+    calc((100dvh - 30px) * 0.7398568 * 0.83871)
+  );
+  animation: none;
+}
+.yk-card-cinematic-ssr .yk-lr-float {
+  animation:
+    yk-lr-card-slide-in 0.72s cubic-bezier(0.16, 0.86, 0.2, 1) 3.494s both,
+    yk-lr-float-no-stall 2.5s linear 10.03s infinite;
+}
+.yk-card-cinematic-ssr .yk-lr-spin {
+  animation-duration: 1.18s;
+  animation-delay: 4.194s;
+}
+.yk-card-cinematic-ssr .yk-card-art,
+.yk-card-cinematic-ssr .yk-card-art img {
+  animation-delay: 8.89s;
+}
+.yk-card-cinematic-ssr .yk-card-badge {
+  animation-delay: 6.12s;
+}
+.yk-card-cinematic-ssr .yk-card-category {
+  animation-delay: 6.75s;
+}
+.yk-card-cinematic-ssr .yk-card-anime {
+  animation-delay: 7.39s;
+}
+.yk-card-cinematic-ssr .yk-card-name {
+  animation-delay: 8s;
+}
+.yk-card-cinematic-ssr .yk-lr-glass {
+  background:
+    linear-gradient(
+      124deg,
+      #ffffff0e,
+      #ffffff35 17%,
+      transparent 29%,
+      rgb(var(--yk-lr-glass-1, 190 199 214) / 0.37) 43%,
+      #ffffff2b 49%,
+      rgb(var(--yk-lr-glass-2, 231 233 239) / 0.36) 66%,
+      transparent 93%
+    ),
+    radial-gradient(ellipse at 70% 21%, #ffffff33, transparent 49%);
+  animation-duration: 3.57s;
+  animation-delay: 5.28s;
+}
+.yk-card-cinematic-ssr .yk-lr-glass::before {
+  animation-delay: 5.28s;
+}
+.yk-card-cinematic-ssr .yk-lr-corner {
+  animation-delay: 8.274s;
+  background: radial-gradient(
+    circle at center,
+    #ffcfebf5 0 16%,
+    #ff4fb69e 17% 34%,
+    transparent 35%
+  );
+}
+.yk-card-cinematic-ssr .yk-lr-corner-1 {
+  animation-delay: 8.394s;
+}
+.yk-card-cinematic-ssr .yk-lr-corner-2 {
+  animation-delay: 8.514s;
+}
+.yk-card-cinematic-ssr .yk-lr-phase-3 .yk-lr-stroke {
+  box-shadow:
+    0 0 10px #ff4fb647,
+    0 0 18px #ff4fb624;
+}
+.yk-card-cinematic-ssr .yk-lr-phase-3 .yk-lr-dot {
+  box-shadow:
+    0 0 8px #ffd9ef73,
+    0 0 14px #ff4fb62e;
+}
+.yk-card-cinematic-ssr .yk-lr-end-controls button {
+  border-color: #ff4fb6;
+  color: #fff0fa;
+  box-shadow:
+    inset 0 0 0 1px #ffd7ef1a,
+    0 0 18px #ff4fb630,
+    0 8px 26px #00000057;
 }

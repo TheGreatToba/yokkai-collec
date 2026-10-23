@@ -180,6 +180,10 @@ export function LrCardReveal({
   card: Pick<Card, "name" | "category" | "anime" | "image" | "rarity">;
   onContinue?: () => void;
 }) {
+  const ssr = card.rarity === "SSR";
+  const timing = ssr
+    ? { arrival: 4214, artEnd: 9920, end: 10030 }
+    : { arrival: 5150, artEnd: 10060, end: 14670 };
   const callback = useRef(onContinue);
   const completed = useRef(false);
   const root = useRef<HTMLElement>(null);
@@ -207,18 +211,19 @@ export function LrCardReveal({
       ...animations.map(animation => Number(animation.currentTime ?? 0))
     );
     setEntranceSkipped(true);
-    if ((time >= 5150 && time < 10060) || time >= 14670) return;
+    if ((time >= timing.arrival && time < timing.artEnd) || time >= timing.end)
+      return;
     // Keep every element reveal; after the art finishes, only the bounce remains.
-    const target = time < 5150 ? 5150 : 14670;
+    const target = time < timing.arrival ? timing.arrival : timing.end;
     animations.forEach(animation => {
       animation.currentTime = target;
     });
     window.clearTimeout(controlsTimer.current);
-    if (target === 14670) setReady(true);
+    if (target === timing.end) setReady(true);
     else
       controlsTimer.current = window.setTimeout(
         () => setReady(true),
-        14670 - 5150
+        timing.end - timing.arrival
       );
   };
   useEffect(() => {
@@ -226,7 +231,7 @@ export function LrCardReveal({
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     controlsTimer.current = window.setTimeout(
       () => setReady(true),
-      reduced.matches ? 700 : 14670
+      reduced.matches ? 700 : timing.end
     );
     const element = root.current;
     const animations = element?.getAnimations({ subtree: true }) ?? [];
@@ -236,7 +241,7 @@ export function LrCardReveal({
       if (!element?.isConnected)
         animations.forEach(animation => animation.cancel());
     };
-  }, [replay]);
+  }, [replay, timing.end]);
   useEffect(() => {
     const element = root.current;
     const image = element?.querySelector("img");
@@ -281,8 +286,8 @@ export function LrCardReveal({
     <section
       key={replay}
       ref={root}
-      className="yk-lr-reveal yk-card-cinematic yk-card-cinematic-clean"
-      aria-label={`LR cinematic: ${card.name}`}
+      className={`yk-lr-reveal yk-card-cinematic yk-card-cinematic-clean${ssr ? " yk-card-cinematic-ssr" : ""}`}
+      aria-label={`${ssr ? "SSR" : "LR"} cinematic: ${card.name}`}
     >
       <div className="yk-lr-world" aria-hidden="true" />
       <div className="yk-lr-intro" aria-hidden="true" />
@@ -325,60 +330,64 @@ export function LrCardReveal({
           )
         )}
       </div>
-      <div className="yk-lr-finale" aria-hidden="true">
-        {streaks.map(([top, angle, duration, delay], index) => (
-          <i
-            className="yk-lr-streak"
-            key={index}
-            style={
-              {
-                top: `${top}%`,
-                "--angle": `${angle}deg`,
-                animationDuration: `${duration}s`,
-                animationDelay: `${delay}s`
-              } as CSSProperties
-            }
-          />
-        ))}
-        {Array.from({ length: 24 }, (_, index) => (
-          <i
-            className="yk-lr-glitter"
-            key={`g${index}`}
-            style={{
-              left: `${(index * 37 + 19) % 100}%`,
-              top: `${(index * 23 + 34) % 100}%`,
-              animationDelay: `${index * 0.091}s`
-            }}
-          />
-        ))}
-        {Array.from({ length: 50 }, (_, index) => (
-          <i
-            className="yk-lr-confetti"
-            key={`c${index}`}
-            style={
-              {
-                left: `${(index * 31 + 7) % 100}%`,
-                "--drift": `${((index % 7) - 3) * 17}px`,
-                animationDelay: `${3.354 + (index % 12) * 0.17}s`,
-                animationDuration: `${3.5 + (index % 5) * 0.4}s`
-              } as CSSProperties
-            }
-          />
-        ))}
-      </div>
-      <div className="yk-lr-floor" aria-hidden="true">
-        {Array.from({ length: 24 }, (_, index) => (
-          <i
-            key={index}
-            style={{
-              left: `${(index * 37 + 11) % 100}%`,
-              bottom: `${index % 4}px`,
-              transform: `rotate(${index * 29}deg)`,
-              animationDelay: `${6.854 + (index % 12) * 0.17}s`
-            }}
-          />
-        ))}
-      </div>
+      {!ssr && (
+        <div className="yk-lr-finale" aria-hidden="true">
+          {streaks.map(([top, angle, duration, delay], index) => (
+            <i
+              className="yk-lr-streak"
+              key={index}
+              style={
+                {
+                  top: `${top}%`,
+                  "--angle": `${angle}deg`,
+                  animationDuration: `${duration}s`,
+                  animationDelay: `${delay}s`
+                } as CSSProperties
+              }
+            />
+          ))}
+          {Array.from({ length: 24 }, (_, index) => (
+            <i
+              className="yk-lr-glitter"
+              key={`g${index}`}
+              style={{
+                left: `${(index * 37 + 19) % 100}%`,
+                top: `${(index * 23 + 34) % 100}%`,
+                animationDelay: `${index * 0.091}s`
+              }}
+            />
+          ))}
+          {Array.from({ length: 50 }, (_, index) => (
+            <i
+              className="yk-lr-confetti"
+              key={`c${index}`}
+              style={
+                {
+                  left: `${(index * 31 + 7) % 100}%`,
+                  "--drift": `${((index % 7) - 3) * 17}px`,
+                  animationDelay: `${3.354 + (index % 12) * 0.17}s`,
+                  animationDuration: `${3.5 + (index % 5) * 0.4}s`
+                } as CSSProperties
+              }
+            />
+          ))}
+        </div>
+      )}
+      {!ssr && (
+        <div className="yk-lr-floor" aria-hidden="true">
+          {Array.from({ length: 24 }, (_, index) => (
+            <i
+              key={index}
+              style={{
+                left: `${(index * 37 + 11) % 100}%`,
+                bottom: `${index % 4}px`,
+                transform: `rotate(${index * 29}deg)`,
+                animationDelay: `${6.854 + (index % 12) * 0.17}s`
+              }}
+            />
+          ))}
+        </div>
+      )}
       <div className="yk-lr-stage">
         {[0, 1, 2].map(index => (
           <i
@@ -396,11 +405,11 @@ export function LrCardReveal({
               setEntranceSkipped(false);
           }}
         >
-          <div className="yk-lr-edge" aria-hidden="true" />
+          {!ssr && <div className="yk-lr-edge" aria-hidden="true" />}
           <div className="yk-lr-spin">
             <YokaiCard
               {...card}
-              rarity="LR"
+              rarity={ssr ? "SSR" : "LR"}
               animated={false}
               crossOrigin="anonymous"
             />

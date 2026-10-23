@@ -1,271 +1,76 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { createRequire } from "node:module";
-import vm from "node:vm";
+import { existsSync, readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import test from "node:test";
-import React from "react";
-import ts from "typescript";
-
-const require = createRequire(import.meta.url);
 const read = file =>
   readFileSync(new URL(`../${file}`, import.meta.url), "utf8");
-function load(file, mocks = {}, globals = {}) {
-  const exports = {};
-  vm.runInNewContext(
-    ts.transpileModule(read(file), {
-      compilerOptions: {
-        module: ts.ModuleKind.CommonJS,
-        target: ts.ScriptTarget.ES2022,
-        jsx: ts.JsxEmit.ReactJSX
-      }
-    }).outputText,
-    {
-      exports,
-      URL,
-      URLSearchParams,
-      ...globals,
-      require: name =>
-        name in mocks ? mocks[name] : name.endsWith(".css") ? {} : require(name)
-    }
-  );
-  return exports;
-}
-const { cardCinematicDocument } = load("lib/ui/card-cinematic-document.ts");
-async function playback(rarity, reduced = false) {
-  const html = cardCinematicDocument(
-    read(`data/card-cinematics/${rarity.toLowerCase()}.html`),
-    new URLSearchParams({
-      name: "Actual card",
-      image: "https://example.com/card.png"
-    }),
-    "http://localhost:3000",
-    rarity
-  );
-  const script = [...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].at(
-    -1
-  )[1];
-  const messages = [];
-  const animations = [{ playbackRate: 1 }, { playbackRate: 1 }];
-  const frames = [];
-  const parent = { postMessage: data => messages.push(data.type) };
-  let listener, cleanup;
-  const removed = [],
-    cancelled = [];
-  animations.forEach(animation => {
-    animation.cancel = () => {
-      animation.cancelled = true;
-    };
-  });
-  vm.runInNewContext(script, {
-    parent,
-    prefetchSiteImage: async () => true,
-    document: {
-      styleSheets: [],
-      getAnimations: () => animations,
-      documentElement: { classList: { toggle() {} } }
-    },
-    window: {
-      addEventListener: (type, fn) => {
-        if (type === "message") listener = fn;
-        if (type === "pagehide") cleanup = fn;
-      },
-      removeEventListener: (type, fn) => removed.push([type, fn]),
-      cancelAnimationFrame: id => cancelled.push(id),
-      setYokkaiCard: async () => true,
-      matchMedia: () => ({ matches: reduced }),
-      requestAnimationFrame: fn => frames.push(fn)
-    }
-  });
-  await new Promise(resolve => setImmediate(resolve));
-  let time = 0;
-  return {
-    animations,
-    cleanup: () => cleanup(),
-    cancelled,
-    removed,
-    messages,
-    frames,
-    tick(ms) {
-      time += ms;
-      assert.ok(frames.length);
-      frames.shift()(time);
-    },
-    pause(paused, origin = "http://localhost:3000") {
-      listener({
-        source: parent,
-        origin,
-        data: { type: "yokkai-card-pause", paused }
-      });
-    }
-  };
-}
-
-test("only the introduction is accelerated; both rarities finish once after the actual reveal", async () => {
-  for (const [rarity, remaining] of [["SSR", 5920]]) {
-    const player = await playback(rarity);
-    assert.deepEqual(player.messages, ["YOKKAI_CARD_READY"]);
-    assert.ok(
-      player.animations.every(animation => animation.playbackRate === 1.4)
-    );
-    player.tick(0);
-    player.tick(3000);
-    assert.ok(
-      player.animations.every(animation => animation.playbackRate === 1.4)
-    );
-    player.tick(72);
-    assert.ok(
-      player.animations.every(animation => animation.playbackRate === 1)
-    );
-    player.tick(remaining);
-    assert.deepEqual(player.messages, [
-      "YOKKAI_CARD_READY",
-      "YOKKAI_CARD_COMPLETE"
-    ]);
-    assert.equal(player.frames.length, 0);
-  }
-});
-
-test("the completion clock respects pause and ignores untrusted pause messages", async () => {
-  const player = await playback("SSR");
-  player.tick(0);
-  player.pause(true);
-  player.tick(20000);
-  assert.deepEqual(player.messages, ["YOKKAI_CARD_READY"]);
-  player.pause(false, "https://evil.example");
-  player.tick(20000);
-  assert.deepEqual(player.messages, ["YOKKAI_CARD_READY"]);
-  player.pause(false);
-  player.tick(3072);
-  player.tick(5920);
-  assert.equal(player.messages.at(-1), "YOKKAI_CARD_COMPLETE");
-});
-
-test("reduced motion keeps native static visuals and advances after a short hold", async () => {
-  const player = await playback("SSR", true);
-  assert.ok(player.animations.every(animation => animation.playbackRate === 1));
-  player.tick(0);
-  player.tick(699);
-  assert.deepEqual(player.messages, ["YOKKAI_CARD_READY"]);
-  player.tick(1);
-  assert.equal(player.messages.at(-1), "YOKKAI_CARD_COMPLETE");
-});
-
-function descendants(element) {
-  if (!element || typeof element !== "object") return [];
-  return [
-    element,
-    ...React.Children.toArray(element.props?.children).flatMap(descendants)
-  ];
-}
-test("buttonless player supports click, keyboard and trusted completion without double progress", () => {
-  for (const action of ["click", "keyboard", "complete"]) {
-    const refs = [];
-    const effects = [];
-    let index = 0;
-    let receive;
-    let continued = 0;
-    const child = {};
-    const states = ["<html></html>", "ready", 0, false, 0];
-    const { LocalCardCinematic } = load(
-      "components/local-card-cinematic.tsx",
-      {
-        react: {
-          ...React,
-          useState: () => [states[index++], () => {}],
-          useRef: value => {
-            const ref = { current: value };
-            refs.push(ref);
-            return ref;
-          },
-          useEffect: fn => effects.push(fn)
-        }
-      },
-      {
-        process: { env: { NODE_ENV: "development" } },
-        window: {
-          setTimeout: () => 1,
-          clearTimeout() {},
-          addEventListener: (type, fn) => {
-            receive = fn;
-          },
-          removeEventListener() {}
-        }
-      }
-    );
-    const tree = descendants(
-      LocalCardCinematic({
-        card: {
-          name: "Actual card",
-          rarity: "SSR",
-          category: "ANIME/MANGA",
-          image: "/card.png"
-        },
-        controls: false,
-        onContinue: () => continued++
-      })
-    );
-    refs.at(-1).current = { contentWindow: child };
-    const cleanup = effects[1]();
-    assert.equal(tree.filter(node => node.type === "button").length, 0);
-    assert.ok(tree[0].props.className.includes("yk-card-cinematic-clean"));
-    const skip = tree.find(node => node.props?.role === "button");
-    assert.equal(skip.props.tabIndex, 0);
-    const message = {
-      source: child,
-      origin: "null",
-      data: { type: "YOKKAI_CARD_COMPLETE" }
-    };
-    receive({ ...message, source: {} });
-    receive({ ...message, origin: "https://evil.example" });
-    assert.equal(continued, 0);
-    if (action === "click") skip.props.onClick();
-    if (action === "keyboard") {
-      let prevented = false;
-      skip.props.onKeyDown({
-        key: "Enter",
-        preventDefault() {
-          prevented = true;
-        }
-      });
-      assert.equal(prevented, true);
-    }
-    if (action === "complete") receive(message);
-    assert.equal(continued, 1);
-    receive(message);
-    skip.props.onClick();
-    assert.equal(continued, 1);
-    cleanup();
-  }
-});
-
-test("all final demo and pack integrations hide controls through the shared player", () => {
-  assert.match(
-    read("components/boosters.tsx"),
-    /<CardCinematic[^>]*card=\{spot\}/
-  );
+test("retired SSR iframe, bridge, documents and endpoints are absent", () => {
   for (const file of [
-    "components/card-cinematic.tsx",
-    "components/card-cinematics-preview.tsx",
-    "app/design-system/lr-cinematic/page.tsx"
-  ]) {
-    assert.match(
-      read(file),
-      file.endsWith("card-cinematic.tsx")
-        ? /controls=\{false\}/
-        : /<CardCinematic/
+    "components/local-card-cinematic.tsx",
+    "lib/ui/card-cinematic-document.ts",
+    "data/card-cinematics/ssr.html",
+    "app/api/card-cinematics/route.ts",
+    "app/design-system/card-cinematics/document/route.ts"
+  ])
+    assert.equal(
+      existsSync(new URL(`../${file}`, import.meta.url)),
+      false,
+      file
     );
-  }
+});
+test("SSR native timings match the final reference and do not redraw the card", async () => {
+  const { default: postcss } = await import("postcss");
+  const css = postcss.parse(read("styles/lr-card-reveal.css"));
+  const rules = css.nodes.filter(
+    node =>
+      node.type === "rule" && node.selector.startsWith(".yk-card-cinematic-ssr")
+  );
+  const value = (selector, property) =>
+    rules
+      .find(rule => rule.selector === selector)
+      ?.nodes.find(node => node.prop === property)?.value;
   assert.match(
-    read("styles/lr-cinematic-preview.css"),
-    /\.yk-lr-file-modal:has\(\.yk-card-cinematic-clean\) > div:first-child\s*\{\s*display: none;/
+    value(".yk-card-cinematic-ssr .yk-lr-float", "animation"),
+    /0?\.72s[\s\S]*3\.494s[\s\S]*2\.5s linear 10\.03s/
+  );
+  assert.equal(
+    value(".yk-card-cinematic-ssr .yk-lr-spin", "animation-duration"),
+    "1.18s"
+  );
+  assert.equal(
+    value(".yk-card-cinematic-ssr .yk-lr-spin", "animation-delay"),
+    "4.194s"
+  );
+  assert.equal(
+    value(".yk-card-cinematic-ssr .yk-card-badge", "animation-delay"),
+    "6.12s"
+  );
+  assert.equal(
+    value(".yk-card-cinematic-ssr .yk-card-name", "animation-delay"),
+    "8s"
+  );
+  assert.match(read("styles/lr-card-reveal.css"), /8\.89s/);
+  assert.match(
+    value(".yk-card-cinematic-ssr .yk-lr-world", "background"),
+    /ssr-pink-world\.webp/
+  );
+  assert.equal(
+    value(".yk-card-cinematic-ssr .yk-lr-world", "animation"),
+    "none"
   );
 });
-
-test("unmount cancels the playback frame, animations and trusted message listener", async () => {
-  const player = await playback("SSR");
-  player.cleanup();
-  assert.equal(player.cancelled.length, 1);
-  assert.ok(player.animations.every(animation => animation.cancelled));
-  assert.equal(player.removed.length, 1);
-  assert.equal(player.removed[0][0], "message");
+test("SSR background is the original embedded WebP, without recompression", () => {
+  assert.equal(
+    createHash("sha256")
+      .update(
+        readFileSync(
+          new URL(
+            "../public/assets/card-reveals/ssr-pink-world.webp",
+            import.meta.url
+          )
+        )
+      )
+      .digest("hex"),
+    "f43dc7dfac7d49c68299abcdd9d0875946880c3d96ea03c4e876bae51980a708"
+  );
 });

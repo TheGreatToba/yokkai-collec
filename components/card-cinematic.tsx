@@ -2,9 +2,8 @@
 
 import type { Card } from "@/lib/data/cards";
 import { LrCardReveal } from "@/components/lr-card-reveal";
-import { LocalCardCinematic } from "@/components/local-card-cinematic";
 
-// Use the same isolated player as the preview, but never its development route.
+// Both rarities use the same native player and the site's shared card face.
 export function CardCinematic({
   card,
   onContinue
@@ -12,20 +11,11 @@ export function CardCinematic({
   card: Pick<Card, "name" | "category" | "anime" | "image" | "rarity">;
   onContinue?: () => void;
 }) {
-  if (card.rarity === "LR")
-    return (
-      <LrCardReveal
-        key={`${card.name}:${card.image}`}
-        card={card}
-        onContinue={onContinue}
-      />
-    );
   return (
-    <LocalCardCinematic
+    <LrCardReveal
+      key={`${card.rarity}:${card.name}:${card.image}`}
       card={card}
       onContinue={onContinue}
-      controls={false}
-      productionEnabled
     />
   );
 }

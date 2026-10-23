@@ -581,7 +581,6 @@ test("live Boosters locks double clicks, permits keyboard skip and cannot reveal
 });
 
 test("production proxy origins use configured public site, not localhost or attacker-controlled forwarded headers", async () => {
-  const { cardCinematicDocument } = load("lib/ui/card-cinematic-document.ts");
   for (const environment of ["production", "development"]) {
     const globals = {
       process: {
@@ -597,16 +596,6 @@ test("production proxy origins use configured public site, not localhost or atta
       {
         "node:fs/promises": { readFile: async () => asset },
         "@/lib/ui/booster-opening-document": { boosterOpeningDocument }
-      },
-      globals
-    );
-    const cinematic = load(
-      "app/api/card-cinematics/route.ts",
-      {
-        "node:fs/promises": {
-          readFile: async () => read("data/card-cinematics/ssr.html")
-        },
-        "@/lib/ui/card-cinematic-document": { cardCinematicDocument }
       },
       globals
     );
@@ -633,18 +622,7 @@ test("production proxy origins use configured public site, not localhost or atta
     assert.ok(
       openingHtml.includes(expected + "/assets/chrome-regular-booster-v1.png")
     );
-    const response = await cinematic.GET(
-      request(
-        "/api/card-cinematics?rarity=SSR&image=https://yokkai-collec.com/card.png"
-      )
-    );
-    assert.equal(response.status, 200);
-    const html = await response.text();
-    assert.match(
-      html,
-      new RegExp(`const hostOrigin=${JSON.stringify(expected)};`)
-    );
-    assert.doesNotMatch(html, /evil\.example/);
+    assert.doesNotMatch(openingHtml, /evil\.example/);
   }
 });
 

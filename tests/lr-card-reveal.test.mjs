@@ -6,7 +6,11 @@ const read = file =>
 test("LR uses one native effect and the reference final sequence, without the retired player", () => {
   const component = read("components/lr-card-reveal.tsx");
   const css = read("styles/lr-card-reveal.css");
-  assert.match(read("components/card-cinematic.tsx"), /rarity === "LR"/);
+  assert.match(read("components/card-cinematic.tsx"), /LrCardReveal/);
+  assert.doesNotMatch(
+    read("components/card-cinematic.tsx"),
+    /LocalCardCinematic/
+  );
   assert.match(component, /14670/);
   assert.match(component, /clearTimeout/);
   assert.match(component, /animated={false}/);
@@ -28,187 +32,212 @@ test("LR skips entrance and post-art bounce while preserving the complete card-e
   const { default: ts } = await import("typescript");
   const { default: React } = await import("react");
   const require = createRequire(import.meta.url);
-  for (const reduced of [false, true]) {
-    const effects = [],
-      refs = [],
-      timers = new Map(),
-      cleared = [];
-    let nextId = 0,
-      continued = 0,
-      paused = 0,
-      cancelled = 0;
-    const exports = {};
-    vm.runInNewContext(
-      ts.transpileModule(read("components/lr-card-reveal.tsx"), {
-        compilerOptions: {
-          module: ts.ModuleKind.CommonJS,
-          target: ts.ScriptTarget.ES2022,
-          jsx: ts.JsxEmit.ReactJSX
-        }
-      }).outputText,
-      {
-        exports,
-        require: name =>
-          name === "react"
-            ? {
-                ...React,
-                useRef: initial => {
-                  const ref = { current: initial };
-                  refs.push(ref);
-                  return ref;
-                },
-                useEffect: fn => effects.push(fn),
-                useState: initial => [initial, () => {}]
-              }
-            : name === "@/components/yokai-card"
-              ? { YokaiCard: "Card" }
-              : name.endsWith(".css")
-                ? {}
-                : require(name),
-        window: {
-          matchMedia: () => ({ matches: reduced }),
-          setTimeout: (fn, delay) => {
-            timers.set(++nextId, { fn, delay });
-            return nextId;
-          },
-          clearTimeout: id => {
-            cleared.push(id);
-            timers.delete(id);
+  for (const rarity of ["LR", "SSR"])
+    for (const reduced of [false, true]) {
+      const arrival = rarity === "SSR" ? 4214 : 5150;
+      const artEnd = rarity === "SSR" ? 9920 : 10060;
+      const end = rarity === "SSR" ? 10030 : 14670;
+      const effects = [],
+        refs = [],
+        timers = new Map(),
+        cleared = [];
+      let nextId = 0,
+        continued = 0,
+        paused = 0,
+        cancelled = 0;
+      const exports = {};
+      vm.runInNewContext(
+        ts.transpileModule(read("components/lr-card-reveal.tsx"), {
+          compilerOptions: {
+            module: ts.ModuleKind.CommonJS,
+            target: ts.ScriptTarget.ES2022,
+            jsx: ts.JsxEmit.ReactJSX
+          }
+        }).outputText,
+        {
+          exports,
+          require: name =>
+            name === "react"
+              ? {
+                  ...React,
+                  useRef: initial => {
+                    const ref = { current: initial };
+                    refs.push(ref);
+                    return ref;
+                  },
+                  useEffect: fn => effects.push(fn),
+                  useState: initial => [initial, () => {}]
+                }
+              : name === "@/components/yokai-card"
+                ? { YokaiCard: "Card" }
+                : name.endsWith(".css")
+                  ? {}
+                  : require(name),
+          window: {
+            matchMedia: () => ({ matches: reduced }),
+            setTimeout: (fn, delay) => {
+              timers.set(++nextId, { fn, delay });
+              return nextId;
+            },
+            clearTimeout: id => {
+              cleared.push(id);
+              timers.delete(id);
+            }
           }
         }
+      );
+      const tree = exports.LrCardReveal({
+        card: {
+          name: "Actual",
+          image: "/card.png",
+          category: "ANIME/MANGA",
+          rarity
+        },
+        onContinue: () => continued++
+      });
+      const walk = node =>
+        !node || typeof node !== "object"
+          ? []
+          : [
+              node,
+              ...React.Children.toArray(node.props?.children).flatMap(walk)
+            ];
+      const nodes = walk(tree);
+      assert.equal(
+        nodes.find(node => node.type === "Card").props.rarity,
+        rarity
+      );
+      if (rarity === "SSR")
+        for (const layer of ["yk-lr-finale", "yk-lr-floor", "yk-lr-edge"])
+          assert.equal(
+            nodes.some(node => node.props?.className === layer),
+            false
+          );
+      const traits = React.Children.toArray(tree.props.children).find(
+        child => child.props.className === "yk-lr-traits"
+      );
+      assert.equal(React.Children.count(traits.props.children), 4);
+      for (const phase of React.Children.toArray(traits.props.children)) {
+        const nodes = React.Children.toArray(phase.props.children);
+        assert.equal(
+          nodes.filter(node => node.props.className === "yk-lr-stroke").length,
+          24
+        );
+        assert.equal(
+          nodes.filter(node => node.props.className === "yk-lr-dot").length,
+          18
+        );
       }
-    );
-    const tree = exports.LrCardReveal({
-      card: {
-        name: "Actual",
-        image: "/card.png",
-        category: "ANIME/MANGA",
-        rarity: "LR"
-      },
-      onContinue: () => continued++
-    });
-    const traits = React.Children.toArray(tree.props.children).find(
-      child => child.props.className === "yk-lr-traits"
-    );
-    assert.equal(React.Children.count(traits.props.children), 4);
-    for (const phase of React.Children.toArray(traits.props.children)) {
-      const nodes = React.Children.toArray(phase.props.children);
+      const animation = {
+        currentTime: 0,
+        playbackRate: 1,
+        updatePlaybackRate(rate) {
+          this.playbackRate = rate;
+        },
+        pause: () => paused++,
+        cancel: () => cancelled++
+      };
+      refs[2].current = {
+        isConnected: true,
+        getAnimations: () => [animation]
+      };
+      effects[0]();
+      effects[1]()(); // StrictMode cleanup must remove the first timer.
+      assert.equal(timers.size, 0);
       assert.equal(
-        nodes.filter(node => node.props.className === "yk-lr-stroke").length,
-        24
+        cancelled,
+        0,
+        "StrictMode must not cancel the visible sequence"
       );
+      const cleanup = effects[1]();
+      assert.equal(timers.size, 1);
+      const timer = [...timers.values()][0];
+      assert.equal(timer.delay, reduced ? 700 : end);
+      timer.fn();
       assert.equal(
-        nodes.filter(node => node.props.className === "yk-lr-dot").length,
-        18
+        continued,
+        0,
+        "the reference waits for Next rather than cutting off its ending"
       );
-    }
-    const animation = {
-      currentTime: 0,
-      playbackRate: 1,
-      updatePlaybackRate(rate) {
-        this.playbackRate = rate;
-      },
-      pause: () => paused++,
-      cancel: () => cancelled++
-    };
-    refs[2].current = {
-      isConnected: true,
-      getAnimations: () => [animation]
-    };
-    effects[0]();
-    effects[1]()(); // StrictMode cleanup must remove the first timer.
-    assert.equal(timers.size, 0);
-    assert.equal(
-      cancelled,
-      0,
-      "StrictMode must not cancel the visible sequence"
-    );
-    const cleanup = effects[1]();
-    assert.equal(timers.size, 1);
-    const timer = [...timers.values()][0];
-    assert.equal(timer.delay, reduced ? 700 : 14670);
-    timer.fn();
-    assert.equal(
-      continued,
-      0,
-      "the reference waits for Next rather than cutting off its ending"
-    );
-    const button = React.Children.toArray(tree.props.children).find(
-      child => child.type === "button"
-    );
-    if (!reduced) {
-      button.props.onClick();
-      assert.equal(
-        animation.currentTime,
-        5150,
-        "first click lands the card on screen"
+      const button = React.Children.toArray(tree.props.children).find(
+        child => child.type === "button"
       );
-      assert.equal(animation.playbackRate, 1);
-      assert.equal(continued, 0);
-      for (let click = 0; click < 3; click++) {
+      if (!reduced) {
         button.props.onClick();
         assert.equal(
           animation.currentTime,
-          5150,
-          "subsequent clicks must never skip card elements"
+          arrival,
+          "first click lands the card on screen"
         );
+        assert.equal(animation.playbackRate, 1);
+        assert.equal(continued, 0);
+        for (let click = 0; click < 3; click++) {
+          button.props.onClick();
+          assert.equal(
+            animation.currentTime,
+            arrival,
+            "subsequent clicks must never skip card elements"
+          );
+          assert.equal(
+            animation.playbackRate,
+            1,
+            "card elements must always play at normal speed"
+          );
+          assert.equal(
+            continued,
+            0,
+            "intermediate clicks must keep the LR reveal mounted"
+          );
+          assert.ok(
+            timers.size <= 1,
+            "seeking must replace the controls timer"
+          );
+          assert.equal([...timers.values()][0].delay, end - arrival);
+        }
+        animation.currentTime = artEnd - 1;
+        button.props.onClick();
         assert.equal(
-          animation.playbackRate,
-          1,
-          "card elements must always play at normal speed"
+          animation.currentTime,
+          artEnd - 1,
+          "the illustration must finish before bounce can be skipped"
+        );
+        animation.currentTime = artEnd;
+        button.props.onClick();
+        assert.equal(
+          animation.currentTime,
+          end,
+          "one post-art click reaches the final frame"
         );
         assert.equal(
           continued,
           0,
-          "intermediate clicks must keep the LR reveal mounted"
+          "skipping bounce leaves the final card visible"
         );
-        assert.ok(timers.size <= 1, "seeking must replace the controls timer");
-        assert.equal([...timers.values()][0].delay, 9520);
+        assert.equal(
+          timers.size,
+          0,
+          "skipping bounce clears the pending controls timer"
+        );
       }
-      animation.currentTime = 10059;
       button.props.onClick();
-      assert.equal(
-        animation.currentTime,
-        10059,
-        "the illustration must finish before bounce can be skipped"
+      assert.equal(continued, 0, "the skip button must never close the reveal");
+      const controls = React.Children.toArray(tree.props.children).find(
+        child => child.type === "nav"
       );
-      animation.currentTime = 10060;
-      button.props.onClick();
-      assert.equal(
-        animation.currentTime,
-        14670,
-        "one post-art click reaches the final frame"
+      const next = React.Children.toArray(controls.props.children).find(
+        child => child.props.children === "Next"
       );
-      assert.equal(
-        continued,
-        0,
-        "skipping bounce leaves the final card visible"
-      );
-      assert.equal(
-        timers.size,
-        0,
-        "skipping bounce clears the pending controls timer"
-      );
+      next.props.onClick();
+      next.props.onClick();
+      timer.fn();
+      assert.equal(continued, 1);
+      assert.equal(paused, 1);
+      refs[2].current.isConnected = false;
+      cleanup();
+      assert.equal(timers.size, 0);
+      assert.equal(cancelled, 1);
+      assert.equal(cleared.length, reduced ? 2 : 4);
     }
-    button.props.onClick();
-    assert.equal(continued, 0, "the skip button must never close the reveal");
-    const controls = React.Children.toArray(tree.props.children).find(
-      child => child.type === "nav"
-    );
-    const next = React.Children.toArray(controls.props.children).find(
-      child => child.props.children === "Next"
-    );
-    next.props.onClick();
-    next.props.onClick();
-    timer.fn();
-    assert.equal(continued, 1);
-    assert.equal(paused, 1);
-    refs[2].current.isConnected = false;
-    cleanup();
-    assert.equal(timers.size, 0);
-    assert.equal(cancelled, 1);
-    assert.equal(cleared.length, reduced ? 2 : 4);
-  }
 });
 
 test("artwork colors are sampled once and the canvas, handlers and timeout are released on success, CORS denial or unmount", async () => {
@@ -363,14 +392,13 @@ test("all native LR keyframes change only transform and opacity, with no global 
   );
   ast.walkRules(rule => {
     if (
-      /\.yk-lr-reveal(?:\[[^\]]+\])?\s+\.yk-card(?:[-\s.]|$)/.test(
+      /(?:\.yk-lr-reveal|\.yk-card-cinematic-ssr)(?:\[[^\]]+\])?\s+\.yk-card(?:[-\s.]|$)/.test(
         rule.selector
       )
     ) {
       rule.walkDecls(decl =>
-        assert.equal(
-          decl.prop,
-          "animation",
+        assert.ok(
+          decl.prop.startsWith("animation"),
           `the shared card design must remain unchanged: ${decl.toString()}`
         )
       );

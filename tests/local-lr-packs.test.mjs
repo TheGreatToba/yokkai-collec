@@ -246,7 +246,6 @@ test("demo BoosterReveal returns to packs and never receives a destruction handl
 
 test("LR packs route actual card fields to the native reveal without a sandbox request", () => {
   const { CardCinematic } = load("components/card-cinematic.tsx", {
-    "@/components/local-card-cinematic": { LocalCardCinematic: "SSR" },
     "@/components/lr-card-reveal": { LrCardReveal: "LR" }
   });
   const card = createLocalLrPack("regular", 0)[4];

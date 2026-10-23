@@ -23,7 +23,7 @@ test("pack and rare reveals have one player and no legacy effects underneath", (
 });
 
 test("both players retain only transform/opacity and release particle layer hints", () => {
-  for (const file of ["card-cinematic-document", "booster-opening-document"]) {
+  for (const file of ["booster-opening-document"]) {
     const source = read(`lib/ui/${file}.ts`);
     const script = source.slice(
       source.indexOf("    const optimizeRules="),
