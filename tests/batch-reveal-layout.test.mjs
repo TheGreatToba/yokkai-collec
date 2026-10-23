@@ -70,6 +70,7 @@ function hooks() {
 }
 function revealHarness(count = 10, environment = "development") {
   const state = hooks();
+  const motion = { matches: true };
   const { BoosterReveal } = load(
     "components/boosters.tsx",
     {
@@ -93,7 +94,10 @@ function revealHarness(count = 10, environment = "development") {
         YokaiCard: "YokaiCard"
       }
     },
-    { process: { env: { NODE_ENV: environment } } }
+    {
+      process: { env: { NODE_ENV: environment } },
+      window: { matchMedia: () => motion }
+    }
   );
   const props = {
     previewOnly: true,
@@ -125,7 +129,7 @@ function revealHarness(count = 10, environment = "development") {
           node.props.className.startsWith("yk-reveal-grid")
       ).props.children
     );
-  return { props, render, slots };
+  return { props, render, slots, motion };
 }
 
 test("five-card windows cover every reward, clamp page requests and never expose an unrevealed future group", () => {
@@ -355,10 +359,14 @@ test("batch fullscreen keeps its controls scrollable on short/mobile screens whi
   assert.ok(section.props.className.includes("yk-reveal-batch"));
 });
 
-test("Reveal all exposes every awarded batch copy immediately, once, with static LR/SSR highlights and no pagination or cinematic", () => {
+test("Reveal all exposes common cards immediately, plays rare cinematics sequentially, and ends with every awarded copy once and no pagination", () => {
   for (const count of [5, 10])
     for (const alreadyRevealed of [0, 3, 5, count * 5 - 1]) {
-      const { props, render, slots } = revealHarness(count);
+      const { props, render, slots, motion } = revealHarness(count);
+      motion.matches = false;
+      props.cards.forEach((card, index) => {
+        if (index % 5 < 3) card.rarity = ["C", "R", "SR"][index % 5];
+      });
       const indices = [],
         sounds = [];
       props.revealed = alreadyRevealed;
@@ -373,6 +381,35 @@ test("Reveal all exposes every awarded batch copy immediately, once, with static
       assert.ok(shortcut);
       shortcut.props.onClick();
       shortcut.props.onClick();
+      let sequenceTree = render();
+      const pending = props.cards.flatMap((card, index) =>
+        index >= alreadyRevealed && ["SSR", "LR"].includes(card.rarity)
+          ? [index]
+          : []
+      );
+      assert.equal(
+        slots(sequenceTree).filter(node =>
+          node.props.className.includes("yk-filled")
+        ).length,
+        props.cards.length - pending.length
+      );
+      assert.equal(
+        sequenceTree.find(node => node.props?.children === "Reveal all").props
+          .disabled,
+        true
+      );
+      for (const index of pending) {
+        const players = sequenceTree.filter(node => node.type === "Dynamic");
+        assert.equal(players.length, 1, "only one cinematic is mounted");
+        assert.equal(
+          players[0].props.card.instanceId,
+          props.cards[index].instanceId,
+          "rare cinematics follow draw order, excluding already revealed cards"
+        );
+        assert.equal(players[0].props.autoAdvance, true);
+        players[0].props.onContinue();
+        sequenceTree = render();
+      }
       const tree = render(),
         cards = slots(tree);
       assert.deepEqual(

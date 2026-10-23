@@ -6,16 +6,22 @@ import { LrCardReveal } from "@/components/lr-card-reveal";
 // Both rarities use the same native player and the site's shared card face.
 export function CardCinematic({
   card,
-  onContinue
+  onContinue,
+  autoAdvance = false,
+  onSkipAll
 }: {
   card: Pick<Card, "name" | "category" | "anime" | "image" | "rarity">;
   onContinue?: () => void;
+  autoAdvance?: boolean;
+  onSkipAll?: () => void;
 }) {
   return (
     <LrCardReveal
       key={`${card.rarity}:${card.name}:${card.image}`}
       card={card}
       onContinue={onContinue}
+      autoAdvance={autoAdvance}
+      onSkipAll={onSkipAll}
     />
   );
 }

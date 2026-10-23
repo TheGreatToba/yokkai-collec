@@ -175,10 +175,14 @@ const streaks = [
 
 export function LrCardReveal({
   card,
-  onContinue
+  onContinue,
+  autoAdvance = false,
+  onSkipAll
 }: {
   card: Pick<Card, "name" | "category" | "anime" | "image" | "rarity">;
   onContinue?: () => void;
+  autoAdvance?: boolean;
+  onSkipAll?: () => void;
 }) {
   const ssr = card.rarity === "SSR";
   const timing = ssr
@@ -282,6 +286,37 @@ export function LrCardReveal({
     if (image.complete && image.naturalWidth > 0) sample();
     return release;
   }, [card.image, replay]);
+  useEffect(() => {
+    if (!autoAdvance) return;
+    let cancelled = false;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const finish = () => {
+      if (!cancelled && !completed.current) {
+        completed.current = true;
+        callback.current?.();
+      }
+    };
+    // Infinite ambient decoration never delays the finite reveal choreography.
+    const animations = root.current?.getAnimations({ subtree: true }) ?? [];
+    if (reduced.matches) finish();
+    else
+      void Promise.all(
+        animations
+          .filter(
+            animation =>
+              animation.effect?.getComputedTiming().iterations !== Infinity
+          )
+          .map(animation => animation.finished)
+      ).then(finish, () => {});
+    const motionChanged = () => {
+      if (reduced.matches) finish();
+    };
+    reduced.addEventListener("change", motionChanged);
+    return () => {
+      cancelled = true;
+      reduced.removeEventListener("change", motionChanged);
+    };
+  }, [autoAdvance]);
   return (
     <section
       key={replay}
@@ -417,7 +452,20 @@ export function LrCardReveal({
           </div>
         </div>
       </div>
-      {onContinue && (
+      {autoAdvance && (
+        <nav
+          className="yk-lr-sequence-controls"
+          aria-label="Batch reveal actions"
+        >
+          <button type="button" onClick={advance}>
+            Skip
+          </button>
+          <button type="button" onClick={onSkipAll}>
+            Skip all
+          </button>
+        </nav>
+      )}
+      {!autoAdvance && onContinue && (
         <button
           type="button"
           className="yk-lr-skip"
@@ -426,27 +474,29 @@ export function LrCardReveal({
           onClick={nextStep}
         />
       )}
-      <nav
-        className={`yk-lr-end-controls${ready ? " yk-lr-ready" : ""}`}
-        aria-label="Reveal actions"
-        inert={!ready}
-      >
-        <button
-          type="button"
-          onClick={() => {
-            setReady(false);
-            setEntranceSkipped(false);
-            setReplay(value => value + 1);
-          }}
+      {!autoAdvance && (
+        <nav
+          className={`yk-lr-end-controls${ready ? " yk-lr-ready" : ""}`}
+          aria-label="Reveal actions"
+          inert={!ready}
         >
-          Replay
-        </button>
-        {onContinue && (
-          <button type="button" onClick={advance}>
-            Next
+          <button
+            type="button"
+            onClick={() => {
+              setReady(false);
+              setEntranceSkipped(false);
+              setReplay(value => value + 1);
+            }}
+          >
+            Replay
           </button>
-        )}
-      </nav>
+          {onContinue && (
+            <button type="button" onClick={advance}>
+              Next
+            </button>
+          )}
+        </nav>
+      )}
     </section>
   );
 }
