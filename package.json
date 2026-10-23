@@ -6,7 +6,7 @@
     "setup": "git config core.hooksPath .githooks",
     "prepare": "git config core.hooksPath .githooks || exit 0",
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "ci": "node scripts/ci.mjs",
