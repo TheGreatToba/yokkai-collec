@@ -153,6 +153,36 @@
 .yk-rarity-row[data-rarity="LR"] strong {
   color: var(--color-rarity-lr);
 }
+.yk-rarity-row[data-rarity="LR-SHINY"] {
+  border-color: color-mix(in srgb, var(--color-rarity-lr) 62%, #8bdcff);
+  background:
+    linear-gradient(
+      112deg,
+      color-mix(in srgb, var(--color-rarity-lr) 13%, transparent),
+      color-mix(in srgb, #8bdcff 9%, transparent) 48%,
+      color-mix(in srgb, #ff9cda 9%, transparent)
+    ),
+    color-mix(in srgb, var(--color-surface) 84%, transparent);
+  box-shadow:
+    inset 0 0 20px color-mix(in srgb, #fff 4%, transparent),
+    0 0 24px color-mix(in srgb, var(--color-rarity-lr) 12%, transparent);
+}
+.yk-rarity-row[data-rarity="LR-SHINY"] strong {
+  color: transparent;
+  background: linear-gradient(
+    100deg,
+    #ffe18a,
+    #8bdcff 48%,
+    #ff9cda 78%,
+    #fff0a8
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  white-space: nowrap;
+}
+.yk-rarity-row[data-rarity="LR-SHINY"] b {
+  color: #ffe18a;
+}
 @media (max-width: 640px) {
   .yk-info-header,
   .yk-info-main {
@@ -163,7 +193,7 @@
     gap: 10px;
   }
   .yk-rarity-row {
-    grid-template-columns: 48px minmax(0, 1fr);
+    grid-template-columns: minmax(76px, auto) minmax(0, 1fr);
   }
   .yk-rarity-row b {
     grid-column: 2;
