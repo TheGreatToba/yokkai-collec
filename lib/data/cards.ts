@@ -58,8 +58,12 @@ function failure(error: { message?: string; code?: string }) {
     INVALID_PACK_COUNT: "Choose 1, 5, or 10 Regular Packs.",
     INSUFFICIENT_PACKS: "You don't have enough packs for this batch. Choose a smaller quantity.",
     CATALOGUE_INCOMPLETE: "The catalog isn't ready yet. Please try again later.",
+    FIVE_DISTINCT_LR_COPIES_REQUIRED: "Choose exactly five different copies of the same normal LR card.",
+    INVALID_LR_COPIES: "Only five identical normal LR copies can evolve. Shiny and evolved cards are excluded.",
+    FIVE_DISTINCT_SSR_COPIES_REQUIRED: "Choose exactly five different copies of the same standard SSR card.",
+    INVALID_SSR_COPIES: "Choose five identical standard SSR copies.",
     SSR_CARD_NOT_OWNED: "This SSR copy is no longer in your collection.",
-    NOT_ENOUGH_SSR_COPIES: "You need three identical SSR copies for this evolution.",
+    NOT_ENOUGH_SSR_COPIES: "You need five identical SSR copies for this evolution.",
     DECISION_PACK_NOT_READY: "Your daily Decision Pack isn't available yet.",
     DECISION_PACK_NOT_PENDING: "This Decision Pack is no longer available.",
     DECISION_CHOICE_UNAVAILABLE: "This Decision Pack card is no longer available.",
@@ -434,6 +438,19 @@ export async function evolveSsrCard(instanceIds: string[]): Promise<CollectedCar
   const id = await playerId();
   try {
     const { data, error } = await db().rpc("evolve_ssr_card", { p_card_instance_ids: instanceIds });
+    if (error) throw failure(error);
+    await assertPlayer(id);
+    return (await withLiveCardFranchises([data as CollectedCard]))[0];
+  } finally {
+    cache.delete(`collection:${id}`);
+    collectionPages.delete(id);
+  }
+}
+
+export async function evolveLrCard(instanceIds: string[]): Promise<CollectedCard> {
+  const id = await playerId();
+  try {
+    const { data, error } = await db().rpc("evolve_lr_card", { p_card_instance_ids: instanceIds });
     if (error) throw failure(error);
     await assertPlayer(id);
     return (await withLiveCardFranchises([data as CollectedCard]))[0];

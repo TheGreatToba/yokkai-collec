@@ -50,19 +50,22 @@ function supportedGradient(value: string) {
     : "#E8C26A";
 }
 
-async function rarityTokens(rarity: Rarity, shiny: boolean) {
+async function rarityTokens(rarity: Rarity, shiny: boolean, isEvolved = false) {
   const source = await tokensSource;
   const block = source.match(
     new RegExp(`\\.yk-rarity-${rarity}\\s*\\{([^}]+)\\}`)
   )?.[1];
   if (!block) throw new Error(`Missing rarity ${rarity}`);
-  const evolved = shiny && rarity === "SSR";
+  const evolved = isEvolved || (shiny && rarity === "SSR");
   return {
     frame: supportedGradient(
       resolved(
         source,
         evolved
-          ? variable(source, "--evolved-frame")
+          ? variable(
+              source,
+              rarity === "LR" ? "--lr-evolved-frame" : "--evolved-frame"
+            )
           : shiny
             ? variable(source, "--holo-frame")
             : variable(block, "--card-frame")
@@ -151,7 +154,7 @@ export async function renderSharedCardImage(
   const [{ width, height }, fonts, colors, image] = await Promise.all([
     Promise.resolve(sizes[format]),
     font,
-    rarityTokens(card.rarity, card.shiny),
+    rarityTokens(card.rarity, card.shiny, card.isEvolved),
     fetchCatalogueImage(card.catalogueImageUrl)
   ]);
   const portrait = format === "story";
@@ -198,7 +201,13 @@ export async function renderSharedCardImage(
           </span>
           <span>YOKKAI COLLEC&apos;</span>
         </div>
-        <span>{cardRarityLabel(card.rarity, card.shiny).toUpperCase()}</span>
+        <span>
+          {cardRarityLabel(
+            card.rarity,
+            card.shiny,
+            card.isEvolved
+          ).toUpperCase()}
+        </span>
       </div>
       <div
         style={{

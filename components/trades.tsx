@@ -190,7 +190,7 @@ function CardPicker({
                   <span
                     className={`mt-2 block text-xs font-bold ${rarityText[card.rarity]}`}
                   >
-                    {cardRarityLabel(card.rarity, card.shiny)}
+                    {cardRarityLabel(card.rarity, card.shiny, card.isEvolved)}
                   </span>
                 </div>
                 <div
@@ -265,8 +265,8 @@ function ReviewCards({ cards }: { cards: CollectedCard[] }) {
             </div>
             <strong>
               {card.name}
-              {card.shiny
-                ? ` · ${cardRarityLabel(card.rarity, card.shiny)}`
+              {card.shiny || card.isEvolved
+                ? ` · ${cardRarityLabel(card.rarity, card.shiny, card.isEvolved)}`
                 : ""}
             </strong>
             {card.customImageUrl && <small>Custom image</small>}
@@ -303,8 +303,8 @@ function TradeSummary({
               {grouped(offered).map(group => (
                 <li key={group.key}>
                   {group.representative.name}
-                  {group.representative.shiny
-                    ? ` · ${cardRarityLabel(group.representative.rarity, group.representative.shiny)}`
+                  {group.representative.shiny || group.representative.isEvolved
+                    ? ` · ${cardRarityLabel(group.representative.rarity, group.representative.shiny, group.representative.isEvolved)}`
                     : ""}
                   {group.cards.length > 1 ? ` ×${group.cards.length}` : ""}
                 </li>
@@ -336,8 +336,8 @@ function TradeSummary({
               {grouped(requested).map(group => (
                 <li key={group.key}>
                   {group.representative.name}
-                  {group.representative.shiny
-                    ? ` · ${cardRarityLabel(group.representative.rarity, group.representative.shiny)}`
+                  {group.representative.shiny || group.representative.isEvolved
+                    ? ` · ${cardRarityLabel(group.representative.rarity, group.representative.shiny, group.representative.isEvolved)}`
                     : ""}
                   {group.cards.length > 1 ? ` ×${group.cards.length}` : ""}
                 </li>

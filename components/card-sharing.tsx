@@ -303,7 +303,8 @@ function ShareList() {
                 rel="noopener noreferrer"
                 className="text-accent-gold"
               >
-                {row.cardName} · {cardRarityLabel(row.rarity, row.shiny)}
+                {row.cardName} ·{" "}
+                {cardRarityLabel(row.rarity, row.shiny, row.isEvolved)}
               </a>
               <p className="my-2 text-xs text-ink-3">
                 {row.showPseudo ? "Username shown" : "Sans pseudo"} ·{" "}

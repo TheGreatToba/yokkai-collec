@@ -9,8 +9,9 @@ export type CollectionGroup = {
 };
 
 export const collectionGroupKey = (
-  card: Pick<CollectedCard, "id" | "rarity" | "shiny">
-) => `${card.id}:${card.rarity}:${card.shiny ? "shiny" : "normal"}`;
+  card: Pick<CollectedCard, "id" | "rarity" | "shiny"> & { isEvolved?: boolean }
+) =>
+  `${card.id}:${card.rarity}:${card.isEvolved ? "evolved" : card.shiny ? "shiny" : "normal"}`;
 
 const newestFirst = (a: CollectedCard, b: CollectedCard) =>
   Date.parse(b.obtainedAt) - Date.parse(a.obtainedAt) ||

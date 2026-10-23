@@ -1709,9 +1709,13 @@ test("la collection annonce l'évolution de cinq SSR standard en SSR Evolved", (
     normalizeWhitespace(source),
     normalizeWhitespace(/\{evolvableCopies\}\/5 copies/)
   );
-  assert.doesNotMatch(
+  assert.match(
     normalizeWhitespace(source),
-    normalizeWhitespace(/LR evolution|Evolve to LR/)
+    normalizeWhitespace(/Confirm LR evolution/)
+  );
+  assert.match(
+    normalizeWhitespace(source),
+    normalizeWhitespace(/!selected.shiny&& !selected.isEvolved/)
   );
   assert.match(
     normalizeWhitespace(source),
@@ -3487,4 +3491,30 @@ test("Decision Packs show server quota and the shared Paris reset without a brow
     );
     assert.doesNotMatch(decision, /Available (?:today|tomorrow) at/);
   }
+});
+
+test("LR Evolved uses EV, remains LR and never inherits the Shiny treatment", () => {
+  const { YokaiCard } = load("components/yokai-card.tsx");
+  const html = render(YokaiCard, {
+    ...card,
+    rarity: "LR",
+    shiny: false,
+    isEvolved: true,
+    animated: false
+  });
+  assert.match(html, /yk-rarity-LR/);
+  assert.match(html, /yk-evolved/);
+  assert.match(html, /LR EVOLVED/);
+  assert.match(html, />EV<\/span>/);
+  assert.doesNotMatch(html, /yk-shiny(?: |")/);
+  assert.doesNotMatch(html, /LR Shiny/);
+  const shiny = render(YokaiCard, {
+    ...card,
+    rarity: "LR",
+    shiny: true,
+    isEvolved: false,
+    animated: false
+  });
+  assert.match(shiny, /LR Shiny/);
+  assert.doesNotMatch(shiny, />EV<\/span>/);
 });

@@ -16,6 +16,7 @@ import {
   discardDecisionPack,
   discardPackCard,
   evolveSsrCard,
+  evolveLrCard,
   getActiveAuctionCards,
   getDecisionPackStatus,
   getFolders,
@@ -273,7 +274,11 @@ export function Game({
   async function evolve(instanceIds: string[]) {
     if (previewData)
       throw new Error("This action is unavailable in the simulation.");
-    const evolved = await evolveSsrCard(instanceIds);
+    const source = collection.find(card => card.instanceId === instanceIds[0]);
+    if (!source) throw new Error("This card is no longer in your collection.");
+    const evolved = await (
+      source.rarity === "LR" ? evolveLrCard : evolveSsrCard
+    )(instanceIds);
     setCollection(await getUserCollection());
     return evolved;
   }

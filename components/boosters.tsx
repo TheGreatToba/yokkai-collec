@@ -820,7 +820,7 @@ export function BoosterReveal({
       <Modal open={!!inspected} onClose={() => setInspected(null)} title={inspected?.name ?? "Card preview"} className="yk-batch-inspection">
         {inspected && <div className="yk-batch-card-preview">
           <YokaiCard {...inspected} animated={false} />
-          <p>{cardRarityLabel(inspected.rarity, inspected.shiny)} · {inspected.anime || inspected.category}</p>
+          <p>{cardRarityLabel(inspected.rarity, inspected.shiny, inspected.isEvolved)} · {inspected.anime || inspected.category}</p>
           {inspected.isNew ? <StatusPill>NEW</StatusPill> : inspected.copies && inspected.copies > 1 ? <p>Duplicate ×{inspected.copies}</p> : null}
           <Button variant="secondary" onClick={() => setInspected(null)}>Back to results</Button>
         </div>}

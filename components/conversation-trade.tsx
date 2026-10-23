@@ -39,8 +39,8 @@ function Lot({
                 </div>
                 <strong>
                   {card.name}
-                  {card.shiny
-                    ? ` · ${cardRarityLabel(card.rarity, card.shiny)}`
+                  {card.shiny || card.isEvolved
+                    ? ` · ${cardRarityLabel(card.rarity, card.shiny, card.isEvolved)}`
                     : ""}
                   {group.cards.length > 1 ? ` ×${group.cards.length}` : ""}
                 </strong>

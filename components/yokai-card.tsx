@@ -8,6 +8,7 @@ import "@/styles/cards.css";
 export type YokaiCardProps = {
   rarity: Rarity;
   shiny?: boolean;
+  isEvolved?: boolean;
   name: string;
   image?: string;
   category: string;
@@ -34,6 +35,7 @@ const spots = [
 export function YokaiCard({
   rarity,
   shiny = false,
+  isEvolved = false,
   name,
   image,
   category,
@@ -45,7 +47,10 @@ export function YokaiCard({
   crossOrigin
 }: YokaiCardProps) {
   const holo = shiny && (rarity === "SSR" || rarity === "LR");
-  const evolved = shiny && rarity === "SSR";
+  const evolved =
+    (isEvolved || (shiny && rarity === "SSR")) &&
+    (rarity === "SSR" || rarity === "LR");
+  const special = holo || evolved;
   const franchise = anime?.trim();
   const sparkCount = !animated
     ? 0
@@ -80,10 +85,10 @@ export function YokaiCard({
       <div
         className="yk-card-clip"
         role="img"
-        aria-label={`${name}, ${cardRarityLabel(rarity, holo)}, ${franchise || category}`}
+        aria-label={`${name}, ${cardRarityLabel(rarity, shiny, isEvolved)}, ${franchise || category}`}
       >
         <div className="yk-card-frame" />
-        {holo && <div className="yk-shiny-frame" />}
+        {special && <div className="yk-shiny-frame" />}
         <div className="yk-card-interior">
           <div className="yk-card-ring" />
           {rarity === "LR" && <div className="yk-card-line" />}
@@ -95,11 +100,33 @@ export function YokaiCard({
             </div>
           )}
           <div className="yk-card-foil" />
-          {holo && <div className="yk-holo" />}
+          {special && <div className="yk-holo" />}
           {evolved && (
             <div className="yk-evolved-energy" aria-hidden="true">
               <span className="yk-evolved-seal" />
               <span className="yk-evolved-scan" />
+              <svg
+                className="yk-evolved-lightning"
+                viewBox="0 0 100 140"
+                preserveAspectRatio="none"
+              >
+                <path
+                  pathLength="100"
+                  d="M4 12 11 25 5 33 14 40 7 52 12 65 5 78 13 88 6 102 10 115 4 130"
+                />
+                <path
+                  pathLength="100"
+                  d="M96 9 89 22 95 34 87 45 94 57 88 69 95 82 87 94 94 106 89 120 96 132"
+                />
+                <path
+                  pathLength="100"
+                  d="M8 6 24 11 30 6 43 13 52 7 66 12 76 6 92 10"
+                />
+                <path
+                  pathLength="100"
+                  d="M8 132 23 127 34 134 47 129 58 135 73 128 83 134 93 129"
+                />
+              </svg>
             </div>
           )}
           {spots.slice(0, sparkCount).map(([left, top], i) => (
@@ -125,12 +152,12 @@ export function YokaiCard({
               </span>
               <span className="yk-card-badges">
                 <span className="yk-card-badge">{rarity}</span>
-                {holo && (
+                {special && (
                   <span
                     className={`yk-shiny-badge${evolved ? " yk-evolved-badge" : ""}`}
-                    title={cardRarityLabel(rarity, holo)}
+                    title={cardRarityLabel(rarity, shiny, isEvolved)}
                   >
-                    {rarity === "SSR" ? "EV" : "✦"}
+                    {evolved ? "EV" : "✦"}
                   </span>
                 )}
               </span>

@@ -56,9 +56,10 @@ export default function RaritiesPage() {
         <p>
           Directly pulled Shiny cards are LR cards with an exclusive animated
           treatment. Fuse five identical standard SSR cards to create one SSR
-          Evolved. Shiny and evolved cards are special versions, not separate
-          rarity tiers, and their collection status appears directly on the
-          card.
+          Evolved, or five identical normal LR cards to create one LR Evolved.
+          LR Shiny and already evolved cards cannot be used for evolution. Shiny
+          and evolved cards are special versions, not separate rarity tiers, and
+          their collection status appears directly on the card.
         </p>
       </InfoSection>
       <InfoSection number="04" title="Live odds">

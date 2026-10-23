@@ -8,6 +8,7 @@ export type SharedCard = {
   franchise: string;
   rarity: Rarity;
   shiny: boolean;
+  isEvolved?: boolean;
   catalogueImageUrl: string;
   pseudo?: string;
 };
@@ -79,6 +80,9 @@ export async function getSharedCard(id: string): Promise<SharedCard | null> {
     franchise: value.franchise,
     rarity: value.rarity as Rarity,
     shiny: value.shiny,
+    ...(typeof value.isEvolved === "boolean"
+      ? { isEvolved: value.isEvolved }
+      : {}),
     catalogueImageUrl: value.catalogueImageUrl,
     ...(typeof value.pseudo === "string" ? { pseudo: value.pseudo } : {})
   };

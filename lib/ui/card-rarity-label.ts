@@ -1,7 +1,14 @@
-// SSR fusion results retain the legacy shiny flag in the API and database.
-// Translate that flag into the player-facing variant name at display time.
-export function cardRarityLabel(rarity: string, shiny = false): string {
-  if (shiny && rarity === "SSR") return "SSR EVOLVED";
+// Legacy SSR fusion results keep the shiny flag; LR evolution has its own flag.
+export function cardRarityLabel(
+  rarity: string,
+  shiny = false,
+  isEvolved = false
+): string {
+  if (
+    (isEvolved || (shiny && rarity === "SSR")) &&
+    (rarity === "SSR" || rarity === "LR")
+  )
+    return rarity + " EVOLVED";
   if (shiny && rarity === "LR") return "LR Shiny";
   return rarity;
 }

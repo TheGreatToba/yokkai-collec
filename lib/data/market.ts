@@ -8,7 +8,7 @@ import {
 
 export type AuctionData = {
   id: string;
-  card: Card & { shiny?: boolean; catalogueImage?: string };
+  card: Card & { shiny?: boolean; isEvolved?: boolean; catalogueImage?: string };
   amount: number;
   endsAt: string;
   status: "active" | "sold" | "expired";
