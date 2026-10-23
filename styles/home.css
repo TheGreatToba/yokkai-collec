@@ -635,7 +635,7 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  padding-right: clamp(112px, 20vw, 180px);
+  padding-right: 112px;
 }
 .yk-home-pack-options > :not(.yk-home-pack-options-art) {
   position: relative;
@@ -645,7 +645,7 @@
   position: absolute;
   right: -12px;
   top: 50%;
-  width: clamp(112px, 20vw, 180px);
+  width: 112px;
   height: 180px;
   transform: translateY(-50%) rotate(12deg);
   pointer-events: none;
