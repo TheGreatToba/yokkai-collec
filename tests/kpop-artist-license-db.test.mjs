@@ -93,10 +93,15 @@ test("future ARTIST cards keep an explicit KPOP license", async t => {
         [id(300), id(301)]
       )
     ).rows,
-    [
-      { card_id: id(300), franchise: "KPOP" },
-      { card_id: id(301), franchise: "ARTIST" }
-    ]
+    [{ card_id: id(300), franchise: "KPOP" }]
+  );
+  assert.deepEqual(
+    (
+      await db.query("select franchise from public.cards where id=$1", [
+        id(301)
+      ])
+    ).rows,
+    [{ franchise: null }]
   );
 });
 
