@@ -27,7 +27,7 @@ function load(file, mocks = {}, globals = {}) {
   );
   return exports;
 }
-function reminder(pathname, dismissed = false) {
+function reminder(pathname, dismissed = false, homeCard = false) {
   const states = [],
     effects = [],
     writes = [],
@@ -111,7 +111,10 @@ function reminder(pathname, dismissed = false) {
     render: () => {
       index = 0;
       effects.length = 0;
-      return ReferralReminder({ packChoices: pathname === "/boosters" });
+      return ReferralReminder({
+        packChoices: homeCard || pathname === "/boosters",
+        homeCard
+      });
     },
     start: () => effects[0](),
     writes,
@@ -344,4 +347,28 @@ test("compact desktop selection reserves space for the reminder without clipping
     /createPortal\(content, document\.body\)/
   );
   assert.match(referral, /padding-bottom:\s*88px/);
+});
+
+test("Home card opens the existing booster choices and prepares its link only on demand", async () => {
+  const s = reminder("/", true, true);
+  const tree = s.render();
+  const html = renderToStaticMarkup(tree);
+  assert.match(html, /More booster/);
+  assert.match(html, /aria-haspopup="dialog"/);
+  assert.doesNotMatch(
+    html,
+    /yk-referral-reminder--boosters|Dismiss referral reminder/
+  );
+  s.start();
+  await flush();
+  assert.equal(s.calls.length, 0);
+  tree.props.children[0].props.children[1].props.onClick();
+  s.render();
+  s.start();
+  await flush();
+  const open = renderToStaticMarkup(s.render());
+  assert.match(open, /Two ways to open more packs/);
+  assert.match(open, /Yokkai Pro/);
+  assert.match(open, /value="https:\/\/example\.test\/signup\?ref=my%20code"/);
+  assert.deepEqual(s.calls, ["auth", "get_referral_status"]);
 });
