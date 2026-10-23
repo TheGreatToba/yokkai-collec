@@ -8,32 +8,32 @@ const options = [
   {
     id: "pearl",
     name: "Pearl",
-    description: "Soft edges. Embossed lettering."
+    description: "Pearl white with a soft satin finish."
   },
   {
-    id: "facet",
-    name: "Facet",
-    description: "Cut corners. A sharp, bold mark."
+    id: "silver",
+    name: "Silver",
+    description: "Light silver with a bright chrome reflection."
   },
   {
-    id: "halo",
-    name: "Halo",
-    description: "A clean capsule with a double rim."
+    id: "ice",
+    name: "Ice",
+    description: "Ice blue with a cool, luminous reflection."
   },
   {
-    id: "crest",
-    name: "Crest",
-    description: "A porcelain shield for an earned upgrade."
+    id: "champagne",
+    name: "Champagne",
+    description: "Warm ivory with a pale gold reflection."
   },
   {
-    id: "wings",
-    name: "Wings",
-    description: "A slanted plate with twin speed lines."
+    id: "jade",
+    name: "Jade",
+    description: "Soft mint with a polished jade reflection."
   },
   {
-    id: "seal",
-    name: "Seal",
-    description: "A round insignia with a fine inner ring."
+    id: "lavender",
+    name: "Lavender",
+    description: "Pale lilac with a soft violet reflection."
   }
 ] as const;
 
@@ -56,11 +56,11 @@ export function EvBadgeGallery() {
     <main className="ev-badge-gallery">
       <header className="ev-studio-header">
         <div>
-          <p className="ev-studio-eyebrow">EVOLVED / BADGE STUDY</p>
-          <h1>Find your signature.</h1>
+          <p className="ev-studio-eyebrow">EVOLVED / COLOR STUDY</p>
+          <h1>Find your color.</h1>
           <p className="ev-studio-intro">
-            Six light badge designs. Two Evolved cards for every option. Choose
-            a number to mark your favorite.
+            One badge shape. Six color finishes. Compare each on SSR and LR
+            Evolved cards, then choose your favorite.
           </p>
         </div>
         <label className="ev-motion-toggle">
