@@ -81,7 +81,6 @@ export function YokaiCard({
         <div className="yk-card-frame" />
         {holo && <div className="yk-shiny-frame" />}
         <div className="yk-card-interior">
-          <div className="yk-card-ring" />
           {rarity === "LR" && <div className="yk-card-line" />}
           {image && (
             <div className="yk-card-art">
