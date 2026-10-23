@@ -85,8 +85,11 @@ Ne pas laisser une branche locale avec beaucoup de commits non poussés. Pousser
 
 ## 6. Migrations Supabase
 
-- **Une seule personne à la fois** applique des migrations sur le VPS (152.228.141.160).
+- **Une seule personne à la fois** applique des migrations sur le VPS de production (`62.83.37.242`).
   Prévenir sur Discord **avant** de le faire.
+- Le manifeste de reprise opérationnel est `/opt/yokkai-ops/runtime/compose-production.json`.
+  Vérifier sa concordance avec les conteneurs actuels avant toute utilisation ciblée.
+  Les fichiers du dossier historique `yokkai-migration-20261023` restent des archives et ne doivent pas servir à redéployer.
 - Avant d'appliquer une migration, **vérifier l'état réel** de la prod au lieu de le supposer :
 
   ```sql
