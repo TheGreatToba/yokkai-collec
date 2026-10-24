@@ -7,5 +7,6 @@ export function CardFranchise({
   card: Pick<Card, "anime" | "category">;
   className?: string;
 }) {
-  return <span className={className}>{card.anime ?? card.category}</span>;
+  const franchise = card.anime?.trim();
+  return franchise ? <span className={className}>{franchise}</span> : null;
 }
