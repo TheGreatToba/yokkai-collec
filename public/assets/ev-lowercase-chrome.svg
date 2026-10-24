@@ -15,7 +15,7 @@
       <stop offset=".45" stop-color="#9fe5e8"/>
       <stop offset="1" stop-color="#1c6471"/>
     </linearGradient>
-    <path id="letters" fill-rule="evenodd" d="M54 22C54 11 45 7 32 7C13 7 4 16 4 34C4 51 13 57 30 57C40 57 47 55 52 51V40C45 44 38 46 30 46C22 46 18 43 18 38H54V22ZM19 27C20 20 24 17 32 17C38 17 41 20 41 27H19ZM61 10H77L86 42L98 10H114L95 57H77L61 10Z"/>
+    <path id="letters" fill-rule="evenodd" d="M54 29C54 15 46 7 32 7C15 7 4 18 4 34C4 49 14 58 29 58C39 58 47 55 52 51V40C46 44 39 47 31 47C24 47 19 43 18 38H53C54 35 54 32 54 29ZM19 28C21 21 25 18 32 18C39 18 42 22 42 28H19ZM61 11H77L85 42L98 11H114L95 57H77L61 11Z"/>
   </defs>
   <g transform="translate(16 5) skewX(-13)" stroke-linejoin="round">
     <use href="#letters" transform="translate(1.2 2)" fill="#081723" stroke="#081723" stroke-width="6"/>

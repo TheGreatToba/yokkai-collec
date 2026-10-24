@@ -159,6 +159,7 @@
 .ev-badge-gallery .ev-option .yk-evolved-badge {
   text-align: center;
   white-space: nowrap;
+  text-transform: lowercase;
   background:
     var(--ev-preview-fill) padding-box,
     linear-gradient(
@@ -201,7 +202,7 @@
   inset: 0;
   z-index: 1;
   opacity: 1;
-  background: url("/assets/ev-chrome-lettering.svg") center / contain no-repeat;
+  background: url("/assets/ev-lowercase-chrome.svg") center / contain no-repeat;
   filter: var(--ev-lettering-tone, none);
   animation: none;
 }
