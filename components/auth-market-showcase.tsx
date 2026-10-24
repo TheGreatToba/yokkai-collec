@@ -50,7 +50,6 @@ const openingMessages = [
 
 // Every interaction stays in React state; this showcase never calls market RPCs.
 export function AuthMarketShowcase() {
-  const [rarity, setRarity] = useState("All");
   const [selected, setSelected] = useState({ card: madara, seller: "Nova" });
   const [bids, setBids] = useState(openingBids);
   const [messages, setMessages] = useState(openingMessages);
@@ -60,9 +59,6 @@ export function AuthMarketShowcase() {
   const detailRef = useRef<HTMLElement>(null);
   const chatRef = useRef<HTMLOListElement>(null);
   const amount = bids[0].amount;
-  const visible = listings.filter(
-    item => rarity === "All" || item.card.rarity === rarity
-  );
 
   function bid() {
     const value = offer.trim() ? Number(offer) : amount + 10;
@@ -96,30 +92,11 @@ export function AuthMarketShowcase() {
           </div>
           <span className="yk-auth-demo-tag">Interactive preview</span>
         </header>
-        <div
-          className="yk-auth-demo-filters"
-          role="group"
-          aria-label="Preview rarity filters"
-        >
-          {["All", "LR", "SSR"].map(value => (
-            <button
-              type="button"
-              key={value}
-              aria-pressed={rarity === value}
-              onClick={() => setRarity(value)}
-            >
-              {value}
-            </button>
-          ))}
-          <span>
-            {visible.length} {visible.length === 1 ? "auction" : "auctions"}
-          </span>
-        </div>
         <ul
           className="yk-auth-demo-listings"
           aria-label="Example cards up for auction"
         >
-          {visible.map(item => (
+          {listings.map(item => (
             <li key={item.card.id}>
               <button
                 type="button"
