@@ -143,7 +143,7 @@
   line-height: 1.8;
 }
 .yk-auth-help a:hover {
-  color: var(--color-accent-gold);
+  color: var(--color-ink);
 }
 .yk-auth-showcase {
   grid-column: 1;
@@ -771,25 +771,7 @@
     var(--shadow-card),
     0 0 24px #a1c0ff12;
 }
-.yk-auth-feature:focus-within {
-  border-bottom-color: var(--color-accent-gold);
-}
-.yk-auth-feature:focus-within h3 {
-  color: var(--color-accent-gold);
-}
 @media (hover: hover) and (pointer: fine) {
-  .yk-auth-feature:hover {
-    border-bottom-color: color-mix(
-      in srgb,
-      var(--color-accent-gold) 60%,
-      transparent
-    );
-  }
-  .yk-auth-feature:hover h3,
-  .yk-auth-help a:hover,
-  .yk-auth-shell .yk-auth-link:hover {
-    color: var(--color-accent-gold);
-  }
   .yk-auth-account:hover {
     border-color: var(--color-veil-strong);
   }
@@ -800,7 +782,7 @@
     border-color: var(--color-focus-ring);
   }
   .yk-auth-binder-tags span:hover {
-    border-color: var(--color-accent-gold);
+    border-color: var(--color-focus-ring);
     color: var(--color-ink);
   }
   .yk-auth-showcase
