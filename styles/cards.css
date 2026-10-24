@@ -260,7 +260,8 @@
   --card-foil: var(--evolved-foil);
   --card-sweep: yk-sweep 6s ease-in-out infinite;
 }
-.yk-evolved.yk-rarity-LR {
+.yk-evolved.yk-rarity-LR,
+.yk-shiny.yk-rarity-LR {
   --evolved-frame: var(--lr-evolved-frame);
   --evolved-glow: rgba(238, 185, 49, 0.62);
   --evolution-rgb: 239, 188, 66;
@@ -272,18 +273,32 @@
   --evolution-mid: #191307;
 }
 
+.yk-shiny.yk-rarity-LR {
+  --card-frame: var(--lr-evolved-frame);
+  --card-inset: clamp(3px, 1.7cqw, 5px);
+  --card-glow:
+    0 0 0 1px rgba(var(--evolution-light-rgb), 0.55),
+    0 8px 28px var(--evolved-glow);
+  --card-glow-color: var(--evolved-glow);
+  --card-spin: none;
+}
+
 .yk-evolved .yk-card-frame,
-.yk-evolved .yk-shiny-frame {
+.yk-evolved .yk-shiny-frame,
+.yk-shiny.yk-rarity-LR .yk-card-frame,
+.yk-shiny.yk-rarity-LR .yk-shiny-frame {
   inset: 0;
   background: var(--evolved-frame);
   mix-blend-mode: normal;
   opacity: 1;
   animation: none;
 }
-.yk-evolved .yk-card-interior {
+.yk-evolved .yk-card-interior,
+.yk-shiny.yk-rarity-LR .yk-card-interior {
   box-shadow: inset 0 0 25px rgba(var(--evolution-rgb), 0.48);
 }
-.yk-evolved .yk-card-interior::before {
+.yk-evolved .yk-card-interior::before,
+.yk-shiny.yk-rarity-LR .yk-card-interior::before {
   content: "";
   position: absolute;
   inset: 1.8cqw;
