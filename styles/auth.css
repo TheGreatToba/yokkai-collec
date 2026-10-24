@@ -304,6 +304,78 @@
   color: var(--color-ink);
   font-size: 10px;
 }
+.yk-auth-evolution-preview {
+  width: 100%;
+  max-width: 340px;
+  min-width: 0;
+  justify-self: center;
+  border: 1px solid var(--color-veil-strong);
+  border-radius: 16px;
+  padding: 16px 12px;
+  background:
+    radial-gradient(ellipse at 85% 50%, #e4ecff16, transparent 70%),
+    var(--color-surface);
+}
+.yk-auth-evolution-flow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 16px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+.yk-auth-evolution-flow figure {
+  min-width: 0;
+  margin: 0;
+}
+.yk-auth-evolution-flow figcaption {
+  margin-bottom: 12px;
+  color: var(--color-ink-2);
+  font-size: 10px;
+  line-height: 1.5;
+  text-align: center;
+}
+.yk-auth-evolution-stack {
+  position: relative;
+  isolation: isolate;
+  padding: 8px 0 0 8px;
+}
+.yk-auth-evolution-stack::before,
+.yk-auth-evolution-stack::after {
+  content: "";
+  position: absolute;
+  inset: 0 8px 8px 0;
+  z-index: -1;
+  border: 1px solid var(--color-accent-gold);
+  border-radius: 12px;
+  background: var(--color-surface);
+}
+.yk-auth-evolution-stack::after {
+  inset: 4px;
+}
+.yk-auth-evolution-count {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  z-index: 4;
+  border: 1px solid var(--color-accent-gold);
+  border-radius: 5px;
+  padding: 2px 5px;
+  background: var(--color-void);
+  color: var(--color-accent-gold);
+  font-size: 11px;
+  font-weight: 700;
+}
+.yk-auth-evolution-arrow {
+  color: var(--color-ink);
+  font-size: 18px;
+  text-align: center;
+}
+.yk-auth-evolution-preview > p {
+  margin-top: 16px;
+  color: var(--color-ink-3);
+  font-size: 10px;
+  line-height: 1.6;
+  text-align: center;
+}
 .yk-auth-pack-preview {
   position: relative;
   display: grid;

@@ -111,8 +111,42 @@ export function AuthShowcase() {
 
         <article className="yk-auth-feature">
           <div className="yk-auth-feature-copy">
+            <span className="yk-auth-feature-number">04 / THE EVOLUTION</span>
+            <h3>Five copies. One evolution.</h3>
+            <p>
+              Got duplicates? Fuse five identical normal SSR cards into one SSR
+              Evolved, or five identical normal LR cards into one LR Evolved.
+              Same character. Same rarity. A new electric look.
+            </p>
+            <p>Shiny and already Evolved cards cannot be used for evolution.</p>
+          </div>
+          <div className="yk-auth-evolution-preview">
+            <div className="yk-auth-evolution-flow">
+              <figure>
+                <figcaption>5 matching copies</figcaption>
+                <div className="yk-auth-evolution-stack">
+                  <YokaiCard {...cards[0]} animated={false} />
+                  <span className="yk-auth-evolution-count" aria-hidden="true">
+                    ×5
+                  </span>
+                </div>
+              </figure>
+              <span className="yk-auth-evolution-arrow" aria-hidden="true">
+                →
+              </span>
+              <figure>
+                <figcaption>1 Evolved card</figcaption>
+                <YokaiCard {...cards[0]} isEvolved animated={false} />
+              </figure>
+            </div>
+            <p>Turn your duplicates into something special.</p>
+          </div>
+        </article>
+
+        <article className="yk-auth-feature">
+          <div className="yk-auth-feature-copy">
             <span className="yk-auth-feature-number">
-              04 / YOUR FAVORITE WORLDS
+              05 / YOUR FAVORITE WORLDS
             </span>
             <h3>A binder for every obsession.</h3>
             <p>
@@ -180,7 +214,7 @@ export function AuthShowcase() {
 
         <article className="yk-auth-feature">
           <div className="yk-auth-feature-copy">
-            <span className="yk-auth-feature-number">05 / THE MARKET</span>
+            <span className="yk-auth-feature-number">06 / THE MARKET</span>
             <h3>Find your next great deal.</h3>
             <p>
               Put your cards up for auction or bid on a new favorite with Karas,
@@ -210,7 +244,7 @@ export function AuthShowcase() {
 
         <article className="yk-auth-feature yk-auth-feature-social">
           <div className="yk-auth-feature-copy">
-            <span className="yk-auth-feature-number">06 / THE COMMUNITY</span>
+            <span className="yk-auth-feature-number">07 / THE COMMUNITY</span>
             <h3>Better finds. Better together.</h3>
             <p>
               Add friends, chat, and trade your duplicates for the cards you
