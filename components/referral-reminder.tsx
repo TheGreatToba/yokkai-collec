@@ -176,10 +176,10 @@ export function ReferralReminder({
           </Button>
           <div className="yk-home-pack-options-art" aria-hidden="true">
             <Image
-              src="/assets/home-booster-gift.webp"
+              src="/assets/home-booster-box.webp"
               alt=""
-              width={359}
-              height={480}
+              width={640}
+              height={483}
             />
           </div>
         </section>
