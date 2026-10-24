@@ -158,10 +158,20 @@
   font-weight: 700;
   letter-spacing: -0.025em;
   line-height: 1.12;
+  text-shadow: 0 0 18px rgb(220 222 255 / 22%);
 }
 .yk-auth-showcase-heading h2 em {
   color: var(--color-accent-gold);
   font-style: normal;
+  text-shadow:
+    0 0 12px rgb(238 190 77 / 45%),
+    0 0 32px rgb(238 190 77 / 25%);
+}
+@media (prefers-contrast: more), (forced-colors: active) {
+  .yk-auth-showcase-heading h2,
+  .yk-auth-showcase-heading h2 em {
+    text-shadow: none;
+  }
 }
 .yk-auth-showcase-heading > p:last-child {
   max-width: 47ch;
@@ -175,7 +185,7 @@
   isolation: isolate;
   overflow: hidden;
   margin-block: 26px 30px;
-  padding-block: 28px;
+  padding-block: 12px;
   border-block: 1px solid var(--color-veil);
   background: radial-gradient(ellipse at center, #6180bd22, transparent 70%);
 }
@@ -195,14 +205,30 @@
 .yk-auth-card-ribbon {
   display: flex;
   width: max-content;
-  animation: yk-auth-card-scroll 112s linear infinite;
-  will-change: transform;
+}
+.yk-auth-card-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-block: 16px;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.yk-auth-card-scroll:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: -2px;
+}
+.yk-auth-card-scroll::-webkit-scrollbar {
+  display: none;
 }
 .yk-auth-card-set {
   display: flex;
+  flex: none;
   align-items: center;
   gap: 20px;
   padding-right: 20px;
+}
+.yk-auth-card-set[hidden] {
+  display: none;
 }
 .yk-auth-display-card {
   width: clamp(132px, 12vw, 164px);
@@ -211,9 +237,6 @@
 }
 .yk-auth-display-card:nth-child(even) {
   transform: translateY(-9px) rotate(5deg);
-}
-.yk-auth-card-window:hover .yk-auth-card-ribbon {
-  animation-play-state: paused;
 }
 .yk-auth-feature-custom {
   background: radial-gradient(ellipse at 85% 50%, #7193d71a, transparent 70%);
@@ -825,11 +848,6 @@
   .yk-auth-binder-tags span:hover,
   .yk-auth-chat-preview p:hover {
     translate: 0 -2px;
-  }
-}
-@keyframes yk-auth-card-scroll {
-  to {
-    transform: translateX(-50%);
   }
 }
 @keyframes yk-auth-pack-float {

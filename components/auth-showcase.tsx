@@ -2,6 +2,7 @@ import { YokaiCard } from "@/components/yokai-card";
 import { AuthCardCustomization } from "@/components/auth-card-customization";
 import { AuthDecisionPreview } from "@/components/auth-decision-preview";
 import { CardShell } from "@/components/card-shell";
+import { AuthCardCarousel } from "@/components/auth-card-carousel";
 import {
   AUTH_SHOWCASE_CARDS as cards,
   AUTH_MARQUEE_CARDS,
@@ -27,28 +28,28 @@ export function AuthShowcase() {
         </p>
       </div>
 
-      <div className="yk-auth-card-window">
-        <div className="yk-auth-card-ribbon" aria-hidden="true">
-          {[0, 1].map(copy => (
-            <div className="yk-auth-card-set" key={copy}>
-              {[...AUTH_MARQUEE_CARDS, ...AUTH_MARQUEE_CARDS].map(
-                (card, index) => (
-                  <div
-                    className="yk-auth-display-card"
-                    key={`${card.name}-${index}`}
-                  >
-                    <YokaiCard {...card} animated={false} />
-                  </div>
-                )
-              )}
+      <AuthCardCarousel>
+        <div className="yk-auth-card-ribbon">
+          {[0, 1, 2].map(copy => (
+            <div
+              className="yk-auth-card-set"
+              key={copy}
+              data-scroll-period={copy === 1 ? "" : undefined}
+              data-scroll-clone={copy !== 1 ? "" : undefined}
+              aria-hidden={copy !== 1 ? true : undefined}
+            >
+              {AUTH_MARQUEE_CARDS.map((card, index) => (
+                <div
+                  className="yk-auth-display-card"
+                  key={`${card.name}-${index}`}
+                >
+                  <YokaiCard {...card} animated={false} />
+                </div>
+              ))}
             </div>
           ))}
         </div>
-        <p className="sr-only">
-          Discover collectible cards:{" "}
-          {AUTH_MARQUEE_CARDS.map(card => card.name).join(", ")}.
-        </p>
-      </div>
+      </AuthCardCarousel>
 
       <div className="yk-auth-feature-list">
         <AuthCardCustomization />
