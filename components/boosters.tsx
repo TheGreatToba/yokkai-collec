@@ -93,6 +93,7 @@ export function BoosterReveal({
   onNext,
   nextDisabled = false,
   nextLabel = "Next pack",
+  nextRemaining,
   decision,
   onDiscard,
   onDiscardMany,
@@ -115,6 +116,7 @@ export function BoosterReveal({
   onNext?: () => void;
   nextDisabled?: boolean;
   nextLabel?: string;
+  nextRemaining?: number;
   decision?: Decision;
   onDiscard?: (instanceId: string) => Promise<void>;
   onDiscardMany?: (instanceIds: string[]) => Promise<void>;
@@ -792,6 +794,11 @@ export function BoosterReveal({
                   className="yk-button yk-button-primary"
                 >
                   {nextLabel}
+                  {!!nextRemaining && (
+                    <span className="font-normal">
+                      {` · ${nextRemaining} left`}
+                    </span>
+                  )}
                 </button>
               </span>
             )}
@@ -1385,6 +1392,7 @@ export function Boosters({
           onReturn={() => setShowDraw(false)}
           onNext={drawKind === "regular" ? () => start("regular") : undefined}
           nextDisabled={!status || status.available < selectedCount || busy}
+          nextRemaining={status?.available}
           nextLabel={
             status?.available === 0 ? `Next in ${countdown}` : selectedCount > 1 ? `Next ${selectedCount} packs` : "Next pack"
           }
