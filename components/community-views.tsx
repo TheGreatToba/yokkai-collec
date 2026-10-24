@@ -2091,6 +2091,8 @@ export function SearchView({
             <Unavailable>No cards match these filters.</Unavailable>
           )}
           <ul
+            id="catalog-cards-list"
+            tabIndex={0}
             className="yk-card-grid yk-catalogue-grid"
             aria-label="Catalog cards"
           >
@@ -2114,11 +2116,10 @@ export function SearchView({
             <Pagination
               page={page}
               pageCount={pageCount}
-              label="Catalog pages"
+              scrollTargetId="catalog-cards-list"
               onPageChange={number => {
                 setPage(number);
                 setSearching(true);
-                window.scrollTo({ top: 0, behavior: "smooth" });
               }}
             />
             <label>

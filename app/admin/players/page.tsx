@@ -1,3 +1,4 @@
+import { UrlPagination } from "@/components/ui/url-pagination";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { AccountMenu } from "@/components/account-menu";
@@ -48,8 +49,6 @@ export default async function AdminPlayersPage({
     detailResult.data as Record<string, unknown> | null
   );
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const href = (target: number) =>
-    `/admin/players?${new URLSearchParams({ ...(query ? { q: query } : {}), page: String(target) })}`;
   return (
     <div className="min-h-screen bg-slate-950 text-white">
       <Topbar
@@ -96,31 +95,14 @@ export default async function AdminPlayersPage({
               {total} account{total === 1 ? "" : "s"} found
             </p>
           </section>
-          <PlayerManager players={players} selected={selected} />
-          {pages > 1 && (
-            <nav
-              aria-label="Player pagination"
-              className="flex items-center justify-center gap-3"
-            >
-              <Link
-                aria-disabled={page === 1}
-                className={`yk-button yk-button-secondary ${page === 1 ? "pointer-events-none opacity-50" : ""}`}
-                href={href(page - 1)}
-              >
-                Previous
-              </Link>
-              <span className="text-sm text-slate-400">
-                Page {page} of {pages}
-              </span>
-              <Link
-                aria-disabled={page === pages}
-                className={`yk-button yk-button-secondary ${page === pages ? "pointer-events-none opacity-50" : ""}`}
-                href={href(page + 1)}
-              >
-                Next
-              </Link>
-            </nav>
-          )}
+          <div id="admin-players-list" tabIndex={0}>
+            <PlayerManager players={players} selected={selected} />
+          </div>
+          <UrlPagination
+            page={page}
+            pageCount={pages}
+            scrollTargetId="admin-players-list"
+          />
         </div>
       </main>
     </div>
