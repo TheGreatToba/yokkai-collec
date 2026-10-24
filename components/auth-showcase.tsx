@@ -3,6 +3,7 @@ import { AuthCardCustomization } from "@/components/auth-card-customization";
 import { AuthDecisionPreview } from "@/components/auth-decision-preview";
 import { CardShell } from "@/components/card-shell";
 import { AuthCardCarousel } from "@/components/auth-card-carousel";
+import { AuthMarketShowcase } from "@/components/auth-market-showcase";
 import {
   AUTH_SHOWCASE_CARDS as cards,
   AUTH_MARQUEE_CARDS,
@@ -234,34 +235,17 @@ export function AuthShowcase() {
           </div>
         </article>
 
-        <article className="yk-auth-feature">
+        <article className="yk-auth-feature yk-auth-feature-market">
           <div className="yk-auth-feature-copy">
             <span className="yk-auth-feature-number">06 / THE MARKET</span>
             <h3>Find your next great deal.</h3>
             <p>
               Put your cards up for auction or bid on a new favorite with Karas,
-              the in-game currency. Keep an eye on the countdown.
+              the in-game currency. Follow the bids, join the auction chat, and
+              keep an eye on the countdown.
             </p>
           </div>
-          <div
-            className="yk-auth-auction-preview"
-            aria-label="Illustrative auction preview"
-          >
-            <YokaiCard {...cards[1]} animated={false} />
-            <div>
-              <span className="yk-auth-preview-label">Auction preview</span>
-              <strong>{cards[1].name}</strong>
-              <span className="yk-auth-auction-bid">
-                <span aria-hidden="true">◆</span> 1,240 <small>Karas</small>
-              </span>
-              <div className="yk-auth-auction-clock">
-                <span aria-hidden="true">◷</span> 02 : 14 : 09
-              </div>
-              <span className="yk-auth-preview-caption">
-                The thrill of the final bid.
-              </span>
-            </div>
-          </div>
+          <AuthMarketShowcase />
         </article>
 
         <article className="yk-auth-feature yk-auth-feature-social">
