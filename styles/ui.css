@@ -192,13 +192,16 @@ a[aria-current="page"] {
   background: var(--background-karas);
   box-shadow: 0 0 10px color-mix(in srgb, var(--color-karas) 32%, transparent);
 }
-/* Opt-in gold for the header balance and auction amounts, not all currency UI. */
+/* Shared currency treatment, including existing gold-specific callers. */
+.yk-karas,
+.text-karas,
 .yk-karas-gold,
 .yk-bid-quick.yk-karas-gold,
 .yk-auction-history .text-karas,
 .yk-market-price {
   color: var(--color-karas-readable-gold);
 }
+.yk-karas-gem,
 .yk-karas-gold .yk-karas-gem,
 .yk-market-price .yk-karas-gem {
   background:
