@@ -581,7 +581,9 @@ test("Shiny reste une surcouche SSR/LR et ne s'applique pas aux autres raretés"
     assert.doesNotMatch(html, /SSR Shiny/);
     assert.match(
       html,
-      new RegExp(`yk-shiny-badge[^>]*>${rarity === "SSR" ? "Ev" : "✦"}</span>`)
+      new RegExp(
+        `yk-shiny-badge[^>]*>${rarity === "SSR" ? '<svg[^>]*class="yk-evolved-symbol"[^>]*>' : "✦</span>"}`
+      )
     );
     assert.doesNotMatch(html, /yk-animated|yk-sparkle/);
     assert.match(html, /test-image\.png/);
@@ -3493,21 +3495,27 @@ test("Decision Packs show server quota and the shared Paris reset without a brow
   }
 });
 
-test("LR Evolved uses Ev, remains LR and never inherits the Shiny treatment", () => {
+test("LR and SSR Evolved use infinity and preserve their rarity and Evolved treatment", () => {
   const { YokaiCard } = load("components/yokai-card.tsx");
-  const html = render(YokaiCard, {
-    ...card,
-    rarity: "LR",
-    shiny: false,
-    isEvolved: true,
-    animated: false
-  });
-  assert.match(html, /yk-rarity-LR/);
-  assert.match(html, /yk-evolved/);
-  assert.match(html, /LR EVOLVED/);
-  assert.match(html, />Ev<\/span>/);
-  assert.doesNotMatch(html, /yk-shiny(?: |")/);
-  assert.doesNotMatch(html, /LR Shiny/);
+  for (const rarity of ["LR", "SSR"]) {
+    const html = render(YokaiCard, {
+      ...card,
+      rarity,
+      shiny: false,
+      isEvolved: true,
+      animated: false
+    });
+    assert.match(html, new RegExp(`yk-rarity-${rarity}`));
+    assert.match(html, /yk-evolved/);
+    assert.match(html, new RegExp(`${rarity} EVOLVED`));
+    assert.match(html, /<svg class="yk-evolved-symbol"[^>]*aria-hidden="true"/);
+    assert.match(
+      html,
+      /<path d="M6 16c5 0 7-8 12-8a4 4 0 0 1 0 8c-5 0-7-8-12-8a4 4 0 1 0 0 8Z"/
+    );
+    assert.doesNotMatch(html, /yk-shiny(?: |")/);
+    assert.doesNotMatch(html, new RegExp(`${rarity} Shiny`));
+  }
   const shiny = render(YokaiCard, {
     ...card,
     rarity: "LR",
@@ -3516,5 +3524,6 @@ test("LR Evolved uses Ev, remains LR and never inherits the Shiny treatment", ()
     animated: false
   });
   assert.match(shiny, /LR Shiny/);
-  assert.doesNotMatch(shiny, />Ev<\/span>/);
+  assert.match(shiny, />✦<\/span>/);
+  assert.doesNotMatch(shiny, /yk-evolved-symbol/);
 });

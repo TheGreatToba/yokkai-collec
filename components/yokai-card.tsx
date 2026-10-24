@@ -152,7 +152,22 @@ export function YokaiCard({
                     className={`yk-shiny-badge${evolved ? " yk-evolved-badge" : ""}`}
                     title={cardRarityLabel(rarity, shiny, isEvolved)}
                   >
-                    {evolved ? "Ev" : "✦"}
+                    {evolved ? (
+                      <svg
+                        className="yk-evolved-symbol"
+                        viewBox="0 4 24 16"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M6 16c5 0 7-8 12-8a4 4 0 0 1 0 8c-5 0-7-8-12-8a4 4 0 1 0 0 8Z" />
+                      </svg>
+                    ) : (
+                      "✦"
+                    )}
                   </span>
                 )}
               </span>
