@@ -14,7 +14,7 @@ test("Karas use the site's light ink and a cool pearl gem, without changing rari
     /karas:\s*"linear-gradient\(135deg,#F2F0FF,#C0C5FF 55%,#8A84AB\)"/
   );
   assert.match(colors, /"rarity-lr":\s*"#E8C26A"/);
-  assert.match(colors, /"accent-gold":\s*"#E8C26A"/);
+  assert.match(colors, /"accent-gold":\s*"#FFD47D"/);
   const ui = readFileSync("styles/ui.css", "utf8");
   const gem = ui.match(/\.yk-karas-gem\s*\{([^}]+)\}/)?.[1];
   assert.match(gem, /background:\s*var\(--background-karas\)/);
