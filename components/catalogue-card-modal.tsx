@@ -47,10 +47,12 @@ function CardOwnerList({
 export function CatalogueCardModal({
   selected,
   onClose,
-  onWishlistChange
+  onWishlistChange,
+  ownedCopies
 }: {
   selected: Card | null;
   onClose: () => void;
+  ownedCopies?: number;
   onWishlistChange?: (cardId: string, wishlisted: boolean) => void;
 }) {
   const [discovery, setDiscovery] = useState<{
@@ -160,6 +162,13 @@ export function CatalogueCardModal({
             </p>
             {selected.anime && (
               <p className="mt-2 text-sm text-ink-3">{selected.anime}</p>
+            )}
+            {ownedCopies !== undefined && (
+              <p className="mt-2 text-sm text-ink-2">
+                {ownedCopies
+                  ? `In your collection ×${ownedCopies}`
+                  : "Not in your collection"}
+              </p>
             )}
             <p className="mt-7 text-xs text-ink-3">Market value</p>
             {detail?.marketValue != null ? (
