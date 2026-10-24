@@ -110,7 +110,7 @@
 /* Evolved extends the SSR rose palette; rainbow foil remains exclusive to Shiny. */
 :root {
   --evolved-frame: linear-gradient(135deg, #fff7fc 0%, #ff79bf 12%, #9e155c 24%, #ffd9ec 33%, #ff38a0 47%, #6e0d43 58%, #fff1f9 70%, #ff6ab6 81%, #b5196b 91%, #ffe8f4 100%);
-  --evolved-badge: linear-gradient(145deg, #ffffff 0%, #f0f3f6 44%, #dce3eb 100%);
+  --evolved-badge: linear-gradient(145deg, #fff, #f0f2f4 50%, #dce1e6);
   --evolved-ink: #243247;
   --lr-evolved-frame: linear-gradient(135deg, #fff9df 0%, #f6d879 13%, #967020 25%, #fff0b8 36%, #edb831 48%, #62480e 59%, #fff7d9 71%, #f2c859 83%, #98701a 92%, #fff0ba 100%);
   --evolved-glow: rgba(255, 42, 147, .62);

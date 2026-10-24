@@ -155,7 +155,7 @@ export function YokaiCard({
                     className={`yk-shiny-badge${evolved ? " yk-evolved-badge" : ""}`}
                     title={cardRarityLabel(rarity, shiny, isEvolved)}
                   >
-                    {evolved ? "EV" : "✦"}
+                    {evolved ? "Ev" : "✦"}
                   </span>
                 )}
               </span>

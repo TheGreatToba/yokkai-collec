@@ -254,7 +254,7 @@
     0 0 0 1px rgba(var(--evolution-light-rgb), 0.55),
     0 8px 28px var(--evolved-glow);
   --card-glow-color: var(--evolved-glow);
-  --card-pulse: yk-evolved-aura 3.6s ease-in-out infinite;
+  --card-pulse: yk-evolved-aura 4.8s ease-in-out infinite;
   --card-spin: none;
   --card-spark: var(--evolution-edge);
   --card-foil: var(--evolved-foil);
@@ -305,6 +305,9 @@
   animation: none;
 }
 .yk-evolved .yk-evolved-badge {
+  --electric-badge-rim: #b7c0ca;
+  --electric-badge-core: #fff;
+  --electric-badge-glow: rgba(226, 240, 255, 0.45);
   position: relative;
   isolation: isolate;
   overflow: hidden;
@@ -316,65 +319,104 @@
     linear-gradient(
         135deg,
         #fff,
-        #cbd5e1 32%,
-        #ffffff 52%,
-        #b8c5d4 76%,
-        #e8edf4
+        var(--electric-badge-rim) 32%,
+        #fff 52%,
+        var(--electric-badge-rim) 76%,
+        #f4f8ff
       )
       border-box;
-  color: var(--evolved-ink);
+  color: transparent;
+  font-family: "Arial Black", var(--font-sora), Arial, sans-serif;
   font-weight: 900;
   font-style: italic;
   line-height: 1.25;
-  letter-spacing: 0.08em;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+  letter-spacing: -0.07em;
+  text-shadow: none;
   box-shadow:
     inset 0 1px 0 #fff,
-    inset 0 -1px 0 rgba(110, 128, 151, 0.25),
-    0 2px 4px rgba(0, 0, 0, 0.3),
-    0 0 7px rgba(235, 242, 252, 0.4);
+    inset 0 -1px 0 var(--electric-badge-rim),
+    0 2px 4px #0005,
+    0 0 10px var(--electric-badge-glow);
 }
 .yk-evolved-badge::before {
   content: "";
   position: absolute;
   inset: 0;
-  background-size: 250% 100%;
-  background-position: 150% 0;
+  z-index: 1;
+  opacity: 1;
   pointer-events: none;
-  opacity: 0;
-  background-image: linear-gradient(
-    110deg,
-    transparent 35%,
-    rgba(255, 255, 255, 0.9) 48%,
-    transparent 61%
-  );
+  background: url("/assets/ev-electric-white.svg") center / 92% auto no-repeat;
 }
 .yk-evolved-badge::after {
   content: "";
   position: absolute;
-  inset: auto 6px 2px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #a9b7c9, transparent);
+  inset: 0;
+  border-radius: inherit;
+  background: #fff;
+  mask: url("/assets/ev-badge-lightning.svg") 0 0 / 100% 100% no-repeat;
+  filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 4px #fff);
+  opacity: 0;
   pointer-events: none;
 }
-.yk-evolved.yk-animated .yk-evolved-badge::before {
-  animation: yk-evolved-badge-gloss 4.8s ease-in-out infinite;
+.yk-evolved.yk-animated .yk-evolved-badge {
+  animation: yk-evolved-badge-charge 4.8s linear infinite;
 }
-@keyframes yk-evolved-badge-gloss {
+.yk-evolved.yk-animated .yk-evolved-badge::after {
+  animation: yk-evolved-badge-discharge 4.8s linear infinite;
+}
+@keyframes yk-evolved-badge-discharge {
   0%,
-  42% {
-    background-position: 150% 0;
-    opacity: 0;
-  }
-  52% {
-    opacity: 0.65;
-  }
-  67%,
+  14%,
   100% {
-    background-position: -50% 0;
-    opacity: 0;
+    opacity: 0.18;
+  }
+  18% {
+    opacity: 1;
+  }
+  23% {
+    opacity: 0.3;
+  }
+  27% {
+    opacity: 1;
+  }
+  45% {
+    opacity: 0.6;
+  }
+  60% {
+    opacity: 0.18;
   }
 }
+@keyframes yk-evolved-badge-charge {
+  0%,
+  14%,
+  35%,
+  100% {
+    box-shadow:
+      inset 0 1px 0 #fff,
+      inset 0 -1px 0 var(--electric-badge-rim),
+      0 2px 4px #0005,
+      0 0 8px var(--electric-badge-core),
+      0 0 13px var(--electric-badge-glow);
+  }
+  18%,
+  27% {
+    box-shadow:
+      inset 0 0 0 1px #fff,
+      inset 0 0 6px var(--electric-badge-core),
+      0 2px 4px #0005,
+      0 0 0 1px var(--electric-badge-core),
+      0 0 10px var(--electric-badge-core),
+      0 0 22px var(--electric-badge-glow);
+  }
+  23% {
+    box-shadow:
+      inset 0 1px 0 #fff,
+      inset 0 -1px 0 var(--electric-badge-rim),
+      0 2px 4px #0005,
+      0 0 7px var(--electric-badge-glow);
+  }
+}
+
 .yk-evolved .yk-evolved-spark {
   font-size: 7cqw !important;
   opacity: 0.9;
@@ -399,12 +441,11 @@
   overflow: visible;
   fill: none;
   stroke: #fff;
-  stroke-width: 0.48;
+  stroke-width: 0.72;
   stroke-linecap: round;
   stroke-linejoin: round;
-  filter: drop-shadow(0 0 0.6px var(--evolution-edge))
-    drop-shadow(0 0 2px var(--evolution-accent))
-    drop-shadow(0 0 5px var(--evolution-accent));
+  filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 3px #fff)
+    drop-shadow(0 0 8px rgba(225, 240, 255, 0.85));
 }
 .yk-evolved-lightning path {
   opacity: 0;
@@ -426,19 +467,20 @@
 }
 @keyframes yk-evolved-lightning {
   0%,
-  14%,
-  35%,
+  10%,
+  50%,
   100% {
     opacity: 0;
   }
-  18% {
+  14%,
+  31% {
     opacity: 1;
   }
-  23% {
-    opacity: 0.16;
+  24% {
+    opacity: 0.35;
   }
-  27% {
-    opacity: 0.72;
+  44% {
+    opacity: 0.55;
   }
 }
 .yk-evolved-scan {
@@ -446,12 +488,16 @@
   inset: 0;
   opacity: 0;
   background: linear-gradient(
-    0deg,
-    transparent 42%,
-    rgba(var(--evolution-rgb), 0.06) 46%,
-    rgba(var(--evolution-light-rgb), 0.85) 50%,
-    rgba(var(--evolution-rgb), 0.08) 52%,
-    transparent 57%
+    115deg,
+    transparent 45%,
+    rgba(var(--evolution-light-rgb), 0.4) 50%,
+    transparent 55%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    #000 0% 12%,
+    transparent 24% 76%,
+    #000 88% 100%
   );
 }
 .yk-evolved.yk-animated .yk-evolved-scan {
@@ -523,21 +569,23 @@
 }
 @keyframes yk-evolved-aura {
   0%,
+  12%,
+  55%,
   100% {
     box-shadow:
       0 0 0 1px var(--evolution-edge),
-      0 0 18px rgba(var(--evolution-rgb), 0.55),
-      0 12px 34px rgba(var(--evolution-dark-rgb), 0.48);
+      0 0 18px rgba(var(--evolution-rgb), 0.5),
+      0 10px 28px rgba(var(--evolution-dark-rgb), 0.4);
   }
-  50% {
+  18%,
+  31% {
     box-shadow:
       0 0 0 1px var(--evolution-edge),
-      0 0 28px rgba(var(--evolution-rgb), 0.85),
-      0 0 48px rgba(var(--evolution-rgb), 0.5),
-      0 12px 36px rgba(var(--evolution-dark-rgb), 0.4);
+      0 0 26px rgba(var(--evolution-rgb), 0.9),
+      0 0 44px rgba(var(--evolution-rgb), 0.4),
+      0 10px 32px rgba(var(--evolution-dark-rgb), 0.6);
   }
 }
-
 @keyframes yk-evolved-drift {
   0%,
   100% {
@@ -556,7 +604,9 @@
   .yk-evolved.yk-animated .yk-evolved-scan,
   .yk-evolved.yk-animated .yk-card-interior::before,
   .yk-evolved.yk-animated .yk-card-clip::after,
-  .yk-evolved.yk-animated .yk-evolved-badge::before {
+  .yk-evolved.yk-animated .yk-evolved-badge,
+  .yk-evolved.yk-animated .yk-evolved-badge::before,
+  .yk-evolved.yk-animated .yk-evolved-badge::after {
     animation: none;
   }
   .yk-evolved.yk-animated .yk-evolved-lightning path {
