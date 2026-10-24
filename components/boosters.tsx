@@ -34,6 +34,12 @@ const CollectionView = dynamic(
   { loading: () => <p role="status">Loading collection…</p> }
 );
 
+const CatalogueCardModal = dynamic(() =>
+  import("@/components/catalogue-card-modal").then(
+    module => module.CatalogueCardModal
+  )
+);
+
 const CardCinematic = dynamic(
   () => import("@/components/card-cinematic").then(module => module.CardCinematic)
 );
@@ -160,6 +166,7 @@ export function BoosterReveal({
       new Set(cards.filter(card => card.locked).map(card => card.instanceId))
   );
   const [detailCard, setDetailCard] = useState<RevealCard | null>(null);
+  const [catalogueCard, setCatalogueCard] = useState<RevealCard | null>(null);
   const [auctioned, setAuctioned] = useState(() => new Set<string>());
   const [batchReview, setBatchReview] = useState<{ at: number; page: number } | null>(null);
   const [showAll, setShowAll] = useState(false);
@@ -583,15 +590,11 @@ export function BoosterReveal({
                       (!overview && !choosing && !selecting && !onAuction && !onSetLocked)
                     }
                     aria-pressed={
-                      choosing
-                        ? pick === card.instanceId
-                        : selecting
-                          ? selection.has(card.instanceId)
-                          : undefined
+                      selecting ? selection.has(card.instanceId) : undefined
                     }
                     aria-label={
                       choosing
-                        ? `Choose ${card.name}`
+                        ? `View details for ${card.name}`
                         : selecting
                           ? `Select ${card.name}, ${card.rarity}`
                           : overview
@@ -602,7 +605,7 @@ export function BoosterReveal({
                     }
                     onClick={() =>
                       choosing
-                        ? setPick(card.instanceId)
+                        ? setCatalogueCard(card)
                         : selecting
                           ? toggleSelection(card.instanceId)
                           : overview && localPreview && !onAuction && !onSetLocked ? setInspected(card) : setDetailCard(card)
@@ -965,6 +968,19 @@ export function BoosterReveal({
           </>
         )}
       </Modal>
+      {catalogueCard && (
+        <CatalogueCardModal
+          selected={catalogueCard}
+          ownedCopies={
+            collection.filter(
+              owned =>
+                owned.id === catalogueCard.id &&
+                !cards.some(card => card.instanceId === owned.instanceId)
+            ).length
+          }
+          onClose={() => setCatalogueCard(null)}
+        />
+      )}
       {detailCard && (
         <CollectionView
           key={detailCard.instanceId}

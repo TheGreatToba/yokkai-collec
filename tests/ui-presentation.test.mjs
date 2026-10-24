@@ -1938,6 +1938,10 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
   assert.match(choosing, /data-pack-kind="decision"/);
   assert.match(choosing, /data-reveal-state="complete"/);
   assert.equal((choosing.match(/>Keep this one</g) || []).length, 5);
+  assert.equal(
+    (choosing.match(/aria-label="View details for /g) || []).length,
+    5
+  );
   assert.doesNotMatch(
     normalizeWhitespace(choosing),
     normalizeWhitespace(/yk-slot-button">Discard/)
