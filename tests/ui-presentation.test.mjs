@@ -1909,6 +1909,18 @@ test("Phase 5 : habillage des boosters sans toucher au reveal", () => {
     withNext,
     /class="yk-reveal-next"><button[^>]*>Next pack<\/button><\/span>/
   );
+  const withRemaining = render(BoosterReveal, {
+    cards,
+    revealed: 5,
+    onReveal() {},
+    onReturn() {},
+    onNext() {},
+    nextRemaining: 3
+  });
+  assert.match(
+    withRemaining,
+    />Next pack<span class="font-normal"> · 3 left<\/span><\/button>/
+  );
   const decisionRevealing = render(BoosterReveal, {
     cards,
     revealed: 2,
