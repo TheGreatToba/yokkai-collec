@@ -286,9 +286,9 @@ export function CatalogueCardModal({
             <p className="text-sm text-ink-2">
               {selected.category} · {selected.rarity}
             </p>
-            <p className="mt-2 text-sm text-ink-3">
-              {selected.anime ?? "No franchise listed"}
-            </p>
+            {selected.anime && (
+              <p className="mt-2 text-sm text-ink-3">{selected.anime}</p>
+            )}
             <p className="mt-7 text-xs text-ink-3">Market value</p>
             {detail?.marketValue != null ? (
               <Karas
@@ -1531,7 +1531,7 @@ export function AuctionView({
     auction.balance != null &&
     offerValue > auction.balance;
   const biddable = !!onBid && !auction.finished && auction.nextBid != null;
-  const franchise = auction.card.anime?.trim() || auction.card.category;
+  const franchise = auction.card.anime?.trim();
   return (
     <div className="yk-auction-page">
       <div className="yk-auction-art">
@@ -1550,7 +1550,7 @@ export function AuctionView({
             </div>
             <h2 className="mt-2 font-display">{auction.card.name}</h2>
             <p className="yk-auction-seller mt-2 text-sm text-ink-2">
-              {franchise} · listed by{" "}
+              {franchise ? `${franchise} · ` : ""}listed by{" "}
               <Avatar
                 name={auction.seller}
                 image={auction.sellerAvatarUrl ?? undefined}
