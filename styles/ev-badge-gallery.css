@@ -170,14 +170,14 @@
         #f4f8ff
       )
       border-box;
-  color: var(--ev-preview-ink);
+  color: transparent;
   font-family: "Arial Black", var(--font-sora), Arial, sans-serif;
   font-style: italic;
   font-weight: 900;
   letter-spacing: -0.07em;
-  -webkit-text-stroke: 0.015em var(--ev-preview-ink);
+  -webkit-text-stroke: 0;
   paint-order: stroke fill;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.65);
+  text-shadow: none;
   box-shadow:
     inset 0 1px 0 #fff,
     inset 0 -1px 0 var(--ev-preview-rim),
@@ -197,7 +197,11 @@
   opacity: 0;
 }
 .ev-badge-gallery .ev-option .yk-evolved-badge::before {
-  content: none;
+  content: "";
+  inset: 0;
+  z-index: 1;
+  opacity: 1;
+  background: url("/assets/ex-chrome-lettering.svg") center / contain no-repeat;
   animation: none;
 }
 .ev-badge-gallery[data-animated="true"] .ev-option .yk-evolved-badge {
