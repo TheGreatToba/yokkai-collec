@@ -2136,7 +2136,7 @@ export function CollectionView({
                           setEvolveConfirm(true);
                         }}
                       >
-                        EVOLVE YOUR CARD
+                        Evolve your card
                       </Button>
                     </div>
                   )}
