@@ -143,7 +143,7 @@
   line-height: 1.8;
 }
 .yk-auth-help a:hover {
-  color: var(--color-accent-gold);
+  color: var(--color-ink);
 }
 .yk-auth-showcase {
   grid-column: 1;
@@ -158,10 +158,20 @@
   font-weight: 700;
   letter-spacing: -0.025em;
   line-height: 1.12;
+  text-shadow: 0 0 18px rgb(220 222 255 / 22%);
 }
 .yk-auth-showcase-heading h2 em {
   color: var(--color-accent-gold);
   font-style: normal;
+  text-shadow:
+    0 0 12px rgb(238 190 77 / 45%),
+    0 0 32px rgb(238 190 77 / 25%);
+}
+@media (prefers-contrast: more), (forced-colors: active) {
+  .yk-auth-showcase-heading h2,
+  .yk-auth-showcase-heading h2 em {
+    text-shadow: none;
+  }
 }
 .yk-auth-showcase-heading > p:last-child {
   max-width: 47ch;
@@ -175,7 +185,7 @@
   isolation: isolate;
   overflow: hidden;
   margin-block: 26px 30px;
-  padding-block: 28px;
+  padding-block: 12px;
   border-block: 1px solid var(--color-veil);
   background: radial-gradient(ellipse at center, #6180bd22, transparent 70%);
 }
@@ -195,14 +205,30 @@
 .yk-auth-card-ribbon {
   display: flex;
   width: max-content;
-  animation: yk-auth-card-scroll 112s linear infinite;
-  will-change: transform;
+}
+.yk-auth-card-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-block: 16px;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.yk-auth-card-scroll:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: -2px;
+}
+.yk-auth-card-scroll::-webkit-scrollbar {
+  display: none;
 }
 .yk-auth-card-set {
   display: flex;
+  flex: none;
   align-items: center;
   gap: 20px;
   padding-right: 20px;
+}
+.yk-auth-card-set[hidden] {
+  display: none;
 }
 .yk-auth-display-card {
   width: clamp(132px, 12vw, 164px);
@@ -211,9 +237,6 @@
 }
 .yk-auth-display-card:nth-child(even) {
   transform: translateY(-9px) rotate(5deg);
-}
-.yk-auth-card-window:hover .yk-auth-card-ribbon {
-  animation-play-state: paused;
 }
 .yk-auth-feature-custom {
   background: radial-gradient(ellipse at 85% 50%, #7193d71a, transparent 70%);
@@ -303,6 +326,122 @@
   margin-top: 16px;
   color: var(--color-ink);
   font-size: 10px;
+}
+.yk-auth-feature.yk-auth-feature-evolution,
+.yk-auth-feature.yk-auth-feature-market {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+}
+.yk-auth-feature-evolution .yk-auth-feature-copy {
+  max-width: 62ch;
+}
+.yk-auth-evolution-examples {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+}
+.yk-auth-evolution-preview {
+  --evolution-stack-color: var(--color-accent-gold);
+  width: 100%;
+  min-width: 0;
+  justify-self: center;
+  padding: 18px;
+}
+.yk-auth-evolution-preview[data-rarity="SSR"] {
+  --evolution-stack-color: #ef5da8;
+}
+.yk-auth-evolution-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+  font-size: 11px;
+}
+.yk-auth-evolution-heading strong {
+  color: var(--color-ink);
+  letter-spacing: 0.06em;
+}
+.yk-auth-evolution-heading > span {
+  color: var(--evolution-stack-color);
+  font-size: 10px;
+}
+.yk-auth-evolution-flow {
+  display: grid;
+  width: min(100%, 420px);
+  margin-inline: auto;
+  grid-template-columns: minmax(0, 0.9fr) 24px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+.yk-auth-evolution-flow figure {
+  min-width: 0;
+  margin: 0;
+}
+.yk-auth-evolution-flow figcaption {
+  margin-bottom: 12px;
+  color: var(--color-ink-2);
+  font-size: clamp(10px, 1vw, 12px);
+  line-height: 1.5;
+  text-align: center;
+}
+.yk-auth-evolution-stack {
+  position: relative;
+  isolation: isolate;
+  padding: 8px 0 0 8px;
+}
+.yk-auth-evolution-stack::before,
+.yk-auth-evolution-stack::after {
+  content: "";
+  position: absolute;
+  inset: 0 8px 8px 0;
+  z-index: -1;
+  border: 1px solid var(--evolution-stack-color);
+  border-radius: 12px;
+  background: var(--color-surface);
+}
+.yk-auth-evolution-stack::after {
+  inset: 4px;
+}
+.yk-auth-evolution-count {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  z-index: 4;
+  border: 1px solid var(--evolution-stack-color);
+  border-radius: 5px;
+  padding: 2px 5px;
+  background: var(--color-void);
+  color: var(--evolution-stack-color);
+  font-size: 11px;
+  font-weight: 700;
+}
+.yk-auth-evolution-arrow {
+  color: var(--color-ink);
+  font-size: 24px;
+  text-align: center;
+}
+.yk-auth-evolution-preview > p {
+  margin-top: 16px;
+  color: var(--color-ink-3);
+  font-size: 10px;
+  line-height: 1.6;
+  text-align: center;
+}
+/* Keep the flat collection hover while the card's effects run continuously. */
+.yk-auth-evolution-preview .yk-card-shell:hover .yk-card-shell-plane {
+  will-change: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  .yk-auth-evolution-card .yk-card,
+  .yk-auth-evolution-card .yk-card::before,
+  .yk-auth-evolution-card .yk-card::after,
+  .yk-auth-evolution-card .yk-card *,
+  .yk-auth-evolution-card .yk-card *::before,
+  .yk-auth-evolution-card .yk-card *::after {
+    animation: none !important;
+  }
 }
 .yk-auth-pack-preview {
   position: relative;
@@ -484,7 +623,6 @@
   font-size: 9px;
 }
 .yk-auth-album-preview,
-.yk-auth-auction-preview,
 .yk-auth-chat-preview {
   min-width: 0;
   border: 1px solid var(--color-veil);
@@ -539,32 +677,10 @@
   color: var(--color-ink-3);
   font-size: 9px;
 }
-.yk-auth-auction-preview {
+.yk-auth-market-showcase {
   display: grid;
-  grid-template-columns: 72px minmax(0, 1fr);
-  align-items: center;
-  gap: 13px;
-}
-.yk-auth-auction-preview strong {
-  display: block;
-  margin-top: 8px;
-  font-family: var(--font-display);
-  font-size: 17px;
-}
-.yk-auth-auction-bid {
-  display: block;
-  margin-top: 9px;
-  color: var(--color-accent-gold);
-  font-size: 15px;
-}
-.yk-auth-auction-bid small {
-  font-size: 9px;
-}
-.yk-auth-auction-clock {
-  margin-top: 9px;
-  color: var(--color-ink-2);
-  font-size: 10px;
-  font-variant-numeric: tabular-nums;
+  min-width: 0;
+  gap: 28px;
 }
 .yk-auth-preview-caption {
   display: block;
@@ -610,9 +726,118 @@
   font-size: 11px;
   text-align: center;
 }
-@keyframes yk-auth-card-scroll {
-  to {
-    transform: translateX(-50%);
+/* Match the home page's gentle lifts and gold focus accents without tilting
+   or scaling card faces, which softens their lettering at standard density. */
+.yk-auth-shell :is(a, button, input) {
+  transition:
+    color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard),
+    translate var(--duration-fast) var(--ease-standard);
+}
+.yk-auth-shell :is(a, button, input):focus-visible {
+  outline: 2px solid var(--color-accent-gold);
+  outline-offset: 3px;
+}
+.yk-auth-feature,
+.yk-auth-feature h3,
+.yk-auth-account,
+.yk-auth-binder-tags span,
+.yk-auth-chat-preview p {
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard),
+    translate var(--duration-fast) var(--ease-standard);
+}
+.yk-auth-showcase :is(.yk-card, .yk-auth-display-card),
+.yk-auth-showcase
+  :is(
+    .yk-auth-album-preview,
+    .yk-auth-binder-demo,
+    .yk-auth-demo-market,
+    .yk-auth-demo-auction,
+    .yk-auth-chat-preview,
+    .yk-auth-binder-tile,
+    .yk-auth-decision-preview,
+    .yk-auth-pack-preview
+  ) {
+  transition:
+    translate var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard);
+}
+.yk-auth-account:focus-within {
+  border-color: var(--color-focus-ring);
+  box-shadow:
+    var(--shadow-card),
+    0 0 24px #a1c0ff12;
+}
+@media (hover: hover) and (pointer: fine) {
+  .yk-auth-account:hover {
+    border-color: var(--color-veil-strong);
+  }
+  .yk-auth-account:focus-within {
+    border-color: var(--color-focus-ring);
+  }
+  .yk-auth-form .auth-input:hover:not(:disabled) {
+    border-color: var(--color-focus-ring);
+  }
+  .yk-auth-binder-tags span:hover {
+    border-color: var(--color-focus-ring);
+    color: var(--color-ink);
+  }
+  .yk-auth-showcase
+    :is(
+      .yk-auth-album-preview,
+      .yk-auth-binder-demo,
+      .yk-auth-demo-market,
+      .yk-auth-demo-auction,
+      .yk-auth-chat-preview,
+      .yk-auth-binder-tile,
+      .yk-auth-decision-preview
+    ):hover {
+    border-color: var(--color-focus-ring);
+    box-shadow:
+      0 8px 24px #0003,
+      0 0 18px #a1c0ff0d;
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .yk-auth-shell :is(.yk-auth-brand, .yk-auth-return, .yk-auth-pro-link):hover,
+  .yk-auth-shell .yk-auth-submit:hover:not(:disabled) {
+    translate: 0 -2px;
+  }
+  .yk-auth-showcase
+    .yk-card:not(
+      .yk-auth-evolution-card .yk-card,
+      .yk-auth-binder-demo .yk-card,
+      .yk-auth-demo-market .yk-card,
+      .yk-auth-demo-auction .yk-card
+    ):hover,
+  .yk-auth-display-card:hover {
+    translate: 0 -4px;
+  }
+  .yk-auth-display-card:hover .yk-card {
+    translate: none;
+  }
+  .yk-auth-showcase
+    :is(
+      .yk-auth-album-preview,
+      .yk-auth-binder-demo,
+      .yk-auth-demo-market,
+      .yk-auth-demo-auction,
+      .yk-auth-chat-preview,
+      .yk-auth-binder-tile,
+      .yk-auth-decision-preview,
+      .yk-auth-pack-preview
+    ):hover {
+    translate: 0 -3px;
+  }
+  .yk-auth-binder-tags span:hover,
+  .yk-auth-chat-preview p:hover {
+    translate: 0 -2px;
   }
 }
 @keyframes yk-auth-pack-float {
@@ -829,10 +1054,6 @@
   }
   .yk-auth-feature {
     grid-template-columns: minmax(0, 1fr) minmax(150px, 0.85fr);
-  }
-  .yk-auth-auction-preview {
-    grid-template-columns: 60px minmax(0, 1fr);
-    padding: 12px;
   }
 }
 @media (max-width: 440px) {

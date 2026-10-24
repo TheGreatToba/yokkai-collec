@@ -1,9 +1,14 @@
 import { YokaiCard } from "@/components/yokai-card";
 import { AuthCardCustomization } from "@/components/auth-card-customization";
 import { AuthDecisionPreview } from "@/components/auth-decision-preview";
+import { CardShell } from "@/components/card-shell";
+import { AuthCardCarousel } from "@/components/auth-card-carousel";
+import { AuthMarketShowcase } from "@/components/auth-market-showcase";
+import { AuthBinderShowcase } from "@/components/auth-binder-showcase";
 import {
   AUTH_SHOWCASE_CARDS as cards,
-  AUTH_MARQUEE_CARDS
+  AUTH_MARQUEE_CARDS,
+  AUTH_EVOLUTION_CARDS
 } from "@/lib/auth/showcase-cards";
 
 export function AuthShowcase() {
@@ -25,34 +30,87 @@ export function AuthShowcase() {
         </p>
       </div>
 
-      <div className="yk-auth-card-window">
-        <div className="yk-auth-card-ribbon" aria-hidden="true">
-          {[0, 1].map(copy => (
-            <div className="yk-auth-card-set" key={copy}>
-              {[...AUTH_MARQUEE_CARDS, ...AUTH_MARQUEE_CARDS].map(
-                (card, index) => (
-                  <div
-                    className="yk-auth-display-card"
-                    key={`${card.name}-${index}`}
-                  >
-                    <YokaiCard {...card} animated={false} />
-                  </div>
-                )
-              )}
+      <AuthCardCarousel>
+        <div className="yk-auth-card-ribbon">
+          {[0, 1, 2].map(copy => (
+            <div
+              className="yk-auth-card-set"
+              key={copy}
+              data-scroll-period={copy === 1 ? "" : undefined}
+              data-scroll-clone={copy !== 1 ? "" : undefined}
+              aria-hidden={copy !== 1 ? true : undefined}
+            >
+              {AUTH_MARQUEE_CARDS.map((card, index) => (
+                <div
+                  className="yk-auth-display-card"
+                  key={`${card.name}-${index}`}
+                >
+                  <YokaiCard {...card} animated={false} />
+                </div>
+              ))}
             </div>
           ))}
         </div>
-        <p className="sr-only">
-          Discover collectible cards:{" "}
-          {AUTH_MARQUEE_CARDS.map(card => card.name).join(", ")}.
-        </p>
-      </div>
+      </AuthCardCarousel>
 
       <div className="yk-auth-feature-list">
         <AuthCardCustomization />
+        <article className="yk-auth-feature yk-auth-feature-evolution">
+          <div className="yk-auth-feature-copy">
+            <span className="yk-auth-feature-number">02 / THE EVOLUTION</span>
+            <h3>Five copies. One evolution.</h3>
+            <p>
+              Got duplicates? Fuse five identical normal SSR cards into one SSR
+              Evolved, or five identical normal LR cards into one LR Evolved.
+              Same character. Same rarity. A new electric look.
+            </p>
+            <p>Shiny and already Evolved cards cannot be used for evolution.</p>
+          </div>
+          <div className="yk-auth-evolution-examples">
+            {AUTH_EVOLUTION_CARDS.map(card => (
+              <div
+                className="yk-auth-evolution-preview"
+                data-rarity={card.rarity}
+                key={card.id}
+              >
+                <div className="yk-auth-evolution-heading">
+                  <strong>{card.name}</strong>
+                  <span>{card.rarity} evolution</span>
+                </div>
+                <div className="yk-auth-evolution-flow">
+                  <figure className="yk-auth-evolution-card">
+                    <figcaption>5 normal {card.rarity} copies</figcaption>
+                    <div className="yk-auth-evolution-stack">
+                      <CardShell interactive={false}>
+                        <YokaiCard {...card} />
+                        <span
+                          className="yk-auth-evolution-count"
+                          aria-hidden="true"
+                        >
+                          ×5
+                        </span>
+                      </CardShell>
+                    </div>
+                  </figure>
+                  <span className="yk-auth-evolution-arrow" aria-hidden="true">
+                    →
+                  </span>
+                  <figure className="yk-auth-evolution-card">
+                    <figcaption>1 {card.rarity} Evolved</figcaption>
+                    <CardShell interactive={false}>
+                      <YokaiCard {...card} isEvolved />
+                    </CardShell>
+                  </figure>
+                </div>
+                <p>Same character. A new electric look.</p>
+              </div>
+            ))}
+          </div>
+        </article>
+
         <article className="yk-auth-feature yk-auth-feature-packs">
           <div className="yk-auth-feature-copy">
-            <span className="yk-auth-feature-number">02 / THE REVEAL</span>
+            <span className="yk-auth-feature-number">03 / THE REVEAL</span>
             <h3>Small pack. Big possibilities.</h3>
             <p>
               Reveal five cards in every Regular Pack. Discover new characters,
@@ -78,7 +136,7 @@ export function AuthShowcase() {
 
         <article className="yk-auth-feature">
           <div className="yk-auth-feature-copy">
-            <span className="yk-auth-feature-number">03 / THE COLLECTION</span>
+            <span className="yk-auth-feature-number">04 / THE COLLECTION</span>
             <h3>One more card. One step closer.</h3>
             <p>
               Build your albums by universe, track your progress, and spot the
@@ -112,7 +170,7 @@ export function AuthShowcase() {
         <article className="yk-auth-feature">
           <div className="yk-auth-feature-copy">
             <span className="yk-auth-feature-number">
-              04 / YOUR FAVORITE WORLDS
+              05 / YOUR FAVORITE WORLDS
             </span>
             <h3>A binder for every obsession.</h3>
             <p>
@@ -176,41 +234,25 @@ export function AuthShowcase() {
               Example binders. Every card brings you closer.
             </p>
           </div>
+          <AuthBinderShowcase />
         </article>
 
-        <article className="yk-auth-feature">
+        <article className="yk-auth-feature yk-auth-feature-market">
           <div className="yk-auth-feature-copy">
-            <span className="yk-auth-feature-number">05 / THE MARKET</span>
+            <span className="yk-auth-feature-number">06 / THE MARKET</span>
             <h3>Find your next great deal.</h3>
             <p>
               Put your cards up for auction or bid on a new favorite with Karas,
-              the in-game currency. Keep an eye on the countdown.
+              the in-game currency. Follow the bids, join the auction chat, and
+              keep an eye on the countdown.
             </p>
           </div>
-          <div
-            className="yk-auth-auction-preview"
-            aria-label="Illustrative auction preview"
-          >
-            <YokaiCard {...cards[1]} animated={false} />
-            <div>
-              <span className="yk-auth-preview-label">Auction preview</span>
-              <strong>{cards[1].name}</strong>
-              <span className="yk-auth-auction-bid">
-                <span aria-hidden="true">◆</span> 1,240 <small>Karas</small>
-              </span>
-              <div className="yk-auth-auction-clock">
-                <span aria-hidden="true">◷</span> 02 : 14 : 09
-              </div>
-              <span className="yk-auth-preview-caption">
-                The thrill of the final bid.
-              </span>
-            </div>
-          </div>
+          <AuthMarketShowcase />
         </article>
 
         <article className="yk-auth-feature yk-auth-feature-social">
           <div className="yk-auth-feature-copy">
-            <span className="yk-auth-feature-number">06 / THE COMMUNITY</span>
+            <span className="yk-auth-feature-number">07 / THE COMMUNITY</span>
             <h3>Better finds. Better together.</h3>
             <p>
               Add friends, chat, and trade your duplicates for the cards you
