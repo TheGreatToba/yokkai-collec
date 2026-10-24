@@ -320,7 +320,10 @@ test("la liste admin limite les formulaires hydrates et se pagine localement", a
   assert.match(manager, /const visibleCards = cards\.slice\(/);
   assert.match(manager, /visibleCards\.map\(card =>/);
   assert.match(manager, /editingCardId === card\.id/);
-  assert.match(manager, /Page \{safePage\} of \{pageCount\}/);
+  assert.match(
+    manager,
+    /<Pagination\s+page=\{safePage\}\s+pageCount=\{pageCount\}/
+  );
   assert.doesNotMatch(manager, /\{cards\.map\(card =>\s*\(\s*<CardRow/);
 });
 

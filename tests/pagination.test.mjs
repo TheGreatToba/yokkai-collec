@@ -113,6 +113,22 @@ test("controls disable both ends, hide a single page and show no page pills", ()
   assert.equal(renderPagination(1, 1).tree, null);
 });
 
+test("the paginator shows the current page and the total in en-US", () => {
+  const { nodes } = renderPagination(1234, 4308);
+  const text = node =>
+    [node?.props?.children]
+      .flat(Infinity)
+      .filter(c => typeof c !== "object")
+      .join("");
+  assert.ok(nodes.some(n => n.type === "span" && text(n) === "Page"));
+  assert.equal(nodes.find(n => n.type === "input").props.value, "1234");
+  assert.ok(nodes.some(n => n.type === "span" && text(n) === "of 4,308"));
+  assert.equal(
+    text(nodes.find(n => n.props?.["aria-live"])),
+    "Page 1,234 of 4,308"
+  );
+});
+
 test("Enter and blur issue one change, same-page validation issues none, reduced motion scrolls instantly", () => {
   const { nodes, calls, scrolls } = renderPagination();
   const input = nodes.find(n => n.type === "input").props;
