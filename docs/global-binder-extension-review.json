@@ -1,0 +1,1355 @@
+{
+  "reviewed_at": "2026-10-24T19:40:19.500Z",
+  "policy": "One franchise = one global binder; preserve every source title.",
+  "production_changes": false,
+  "seed_changes": false,
+  "production_approved": false,
+  "total": 91,
+  "non_identity_relations": 88,
+  "identity_anchors": 3,
+  "ambiguous_within_reviewed_91": [],
+  "rows": [
+    {
+      "source": "After War Gundam X",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 92,
+      "metadata_relation_path": [92, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/92 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SPIN_OFF/SPIN_OFF"
+    },
+    {
+      "source": "Brave of the Sun Fighbird",
+      "category": "ANIME/MANGA",
+      "target": "The Brave Series",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Sous-séries de la marque Brave explicitement réunies par Sunrise ; continuités narratives distinctes conservées comme titres sources.",
+      "public_evidence": [
+        "http://www.yusha.net/fighbird/",
+        "https://biz-sunrise.com/titles/05.php"
+      ],
+      "metadata_media_id": 4532,
+      "metadata_relation_path": [4532, 890],
+      "original_evidence": "https://anilist.co/anime/4532 -> https://anilist.co/anime/890; relations=ALTERNATIVE"
+    },
+    {
+      "source": "Farewell to Space Battleship Yamato: In the Name of Love",
+      "category": "ANIME/MANGA",
+      "target": "Space Battleship Yamato",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Film Yamato de 1978 dans le catalogue du détenteur/distributeur, sans confusion avec une œuvre simplement appelée Yamato.",
+      "public_evidence": ["https://www.tfc.co.jp/news/2025/02/16784/"],
+      "metadata_media_id": 3067,
+      "metadata_relation_path": [3067, 1650],
+      "original_evidence": "https://anilist.co/anime/3067 -> https://anilist.co/anime/1650; relations=SEQUEL"
+    },
+    {
+      "source": "Gakuen Basara: Samurai High School",
+      "category": "ANIME/MANGA",
+      "target": "Sengoku Basara",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Parodie scolaire officielle CAPCOM des personnages de Sengoku Basara, pas une œuvre homonyme indépendante.",
+      "public_evidence": [
+        "http://www.tbs.co.jp/anime/gakuen_basara/",
+        "https://www.tbs.co.jp/anime/gakuen_basara/",
+        "https://www.tbs.co.jp/anime/gakuen_basara/character/"
+      ],
+      "metadata_media_id": 101470,
+      "metadata_relation_path": [101470, 5355],
+      "original_evidence": "https://anilist.co/anime/101470 -> https://anilist.co/anime/5355; relations=ALTERNATIVE"
+    },
+    {
+      "source": "Gundam Build Divers",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "http://gundam-bd.net/",
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 101036,
+      "metadata_relation_path": [101036, 19319, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/101036 -> https://anilist.co/anime/19319 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SPIN_OFF/SPIN_OFF/SPIN_OFF"
+    },
+    {
+      "source": "Gundam Build Divers Re:RISE",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "http://gundam-bd.net/",
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 110786,
+      "metadata_relation_path": [110786, 101036, 19319, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/110786 -> https://anilist.co/anime/101036 -> https://anilist.co/anime/19319 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SEQUEL/SPIN_OFF/SPIN_OFF/SPIN_OFF"
+    },
+    {
+      "source": "Gundam Build Fighters",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "http://gundam-bf.net/2013/",
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 19319,
+      "metadata_relation_path": [19319, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/19319 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SPIN_OFF/SPIN_OFF"
+    },
+    {
+      "source": "Gundam Build Fighters Try",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "http://gundam-bf.net/",
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 20739,
+      "metadata_relation_path": [20739, 19319, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/20739 -> https://anilist.co/anime/19319 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SEQUEL/SPIN_OFF/SPIN_OFF"
+    },
+    {
+      "source": "Gundam Build Fighters: GM's Counterattack",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 99732,
+      "metadata_relation_path": [99732, 19319, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/99732 -> https://anilist.co/anime/19319 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SEQUEL/SPIN_OFF/SPIN_OFF"
+    },
+    {
+      "source": "GUNDAM BUILD METAVERSE",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://gundam-official.com/series/build-metaverse",
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": null,
+      "metadata_relation_path": [],
+      "original_evidence": "https://gundam-bm.net/"
+    },
+    {
+      "source": "Gundam Evolve",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://www.sunrise-inc.co.jp/international/work/detail.php?cid=200",
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 3288,
+      "metadata_relation_path": [3288, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/3288 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SIDE_STORY/SPIN_OFF"
+    },
+    {
+      "source": "Gundam: Reconguista in G",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "http://www.g-reco.net/",
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 20658,
+      "metadata_relation_path": [20658, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/20658 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SPIN_OFF/SPIN_OFF"
+    },
+    {
+      "source": "GUNDAM: Requiem for Vengeance",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://gundam-requiem.net/",
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 166703,
+      "metadata_relation_path": [166703, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/166703 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SIDE_STORY/SPIN_OFF"
+    },
+    {
+      "source": "I Want You To Show Me Your Panties With a Disgusted Face Returns",
+      "category": "ANIME/MANGA",
+      "target": "Show Me Your Panties While You Give Me That Disgusted Look!",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Nouvelle série du projet original, identifiée par son titre japonais et la chaîne de suites ; changement de titre anglais uniquement.",
+      "public_evidence": ["https://iyapan-anime-r.com/"],
+      "metadata_media_id": 196840,
+      "metadata_relation_path": [196840, 166050, 104979],
+      "original_evidence": "https://anilist.co/anime/196840 -> https://anilist.co/anime/166050 -> https://anilist.co/anime/104979; relations=SEQUEL/SEQUEL"
+    },
+    {
+      "source": "IDOLM@STER: XENOGLOSSIA",
+      "category": "ANIME/MANGA",
+      "target": "THE IDOLM@STER",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Sunrise présente explicitement une adaptation libre issue du jeu THE IDOLM@STER ; les différences de cadre ne créent pas une franchise sans lien.",
+      "public_evidence": ["https://www.sunrise-inc.co.jp/idolmaster/outline/"],
+      "metadata_media_id": null,
+      "metadata_relation_path": [],
+      "original_evidence": "https://www.sunrise-inc.co.jp/idolmaster/outline/"
+    },
+    {
+      "source": "InuYasha",
+      "category": "ANIME/MANGA",
+      "target": "InuYasha",
+      "review": "confirmed_identity",
+      "production_approved": false,
+      "rationale": "Série originale et conclusion adaptant le même manga de Rumiko Takahashi ; aucun titre source réécrit.",
+      "public_evidence": [
+        "https://www.sunrise-inc.co.jp/work/detail.php?cid=29"
+      ],
+      "metadata_media_id": 249,
+      "metadata_relation_path": [249, 6811, 118399],
+      "original_evidence": "https://anilist.co/anime/249 -> https://anilist.co/anime/6811 -> https://anilist.co/anime/118399; relations=SEQUEL/SEQUEL"
+    },
+    {
+      "source": "InuYasha: The Final Act",
+      "category": "ANIME/MANGA",
+      "target": "InuYasha",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Série originale et conclusion adaptant le même manga de Rumiko Takahashi ; aucun titre source réécrit.",
+      "public_evidence": [
+        "https://www.sunrise-inc.co.jp/work/detail.php?cid=29"
+      ],
+      "metadata_media_id": 6811,
+      "metadata_relation_path": [6811, 118399],
+      "original_evidence": "https://anilist.co/anime/6811 -> https://anilist.co/anime/118399; relations=SEQUEL"
+    },
+    {
+      "source": "Liz and the Blue Bird",
+      "category": "ANIME/MANGA",
+      "target": "Sound! Euphonium",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Film dérivé du projet Sound! Euphonium, mêmes personnages et roman source ; conserver son identité de film et les personnages du conte interne.",
+      "public_evidence": [
+        "http://liz-bluebird.com/",
+        "https://liz-bluebird.com/"
+      ],
+      "metadata_media_id": 100178,
+      "metadata_relation_path": [100178, 21460],
+      "original_evidence": "https://anilist.co/anime/100178 -> https://anilist.co/anime/21460; relations=SEQUEL"
+    },
+    {
+      "source": "Magical Girl Pretty Sammy",
+      "category": "ANIME/MANGA",
+      "target": "Tenchi Muyo!",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Bandai décrit expressément le récit parallèle dérivé de Tenchi et de Sasami ; pas un rattachement par seul personnage commun.",
+      "public_evidence": ["https://www.b-ch.com/titles/420/"],
+      "metadata_media_id": 1918,
+      "metadata_relation_path": [1918, 696],
+      "original_evidence": "https://anilist.co/anime/1918 -> https://anilist.co/anime/696; relations=SPIN_OFF"
+    },
+    {
+      "source": "Mobile Fighter G Gundam",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 96,
+      "metadata_relation_path": [96, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/96 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SPIN_OFF/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 80,
+      "metadata_relation_path": [80, 108041],
+      "original_evidence": "https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam 00",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 2581,
+      "metadata_relation_path": [2581, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/2581 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SPIN_OFF/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam 0080: War in the Pocket",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 82,
+      "metadata_relation_path": [82, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/82 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SIDE_STORY/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam 0083: Stardust Memory",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 84,
+      "metadata_relation_path": [84, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/84 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SEQUEL/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam 0083: Stardust Memory - Mayfly of Space 2",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 110332,
+      "metadata_relation_path": [110332, 84, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/110332 -> https://anilist.co/anime/84 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SIDE_STORY/SEQUEL/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam 0083: The Afterglow Of Zeon",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 2695,
+      "metadata_relation_path": [2695, 84, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/2695 -> https://anilist.co/anime/84 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SUMMARY/SEQUEL/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam AGE",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 10808,
+      "metadata_relation_path": [10808, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/10808 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SPIN_OFF/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam F91",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 88,
+      "metadata_relation_path": [88, 6336, 14007, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/88 -> https://anilist.co/anime/6336 -> https://anilist.co/anime/14007 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=PREQUEL/PREQUEL/SUMMARY/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam GQuuuuuuX",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://gundam-official.com/gquuuuuux/",
+        "https://en.gundam.info/about-gundam/series-pages/gquuuuuux/",
+        "https://www.gundam.info/feature/gquuuuuux/",
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 185213,
+      "metadata_relation_path": [185213, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/185213 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SPIN_OFF/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam Hathaway",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://gundam-official.com/hathaway/",
+        "https://en.gundam-official.com/hathaway/",
+        "https://fr.gundam-official.com/hathaway/",
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 105595,
+      "metadata_relation_path": [105595, 101554, 6336, 14007, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/105595 -> https://anilist.co/anime/101554 -> https://anilist.co/anime/6336 -> https://anilist.co/anime/14007 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SEQUEL/SEQUEL/PREQUEL/SUMMARY/SPIN_OFF"
+    },
+    {
+      "source": "MOBILE SUIT GUNDAM HATHAWAY The Sorcery of Nymph Circe",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://en.gundam-official.com/hathaway/",
+        "https://gundam-official.com/hathaway/",
+        "https://fr.gundam-official.com/hathaway/",
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 113971,
+      "metadata_relation_path": [113971, 35206, 60593, 87, 14007, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/113971 -> https://anilist.co/manga/35206 -> https://anilist.co/manga/60593 -> https://anilist.co/anime/87 -> https://anilist.co/anime/14007 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=ADAPTATION/PREQUEL/ALTERNATIVE/SUMMARY/SUMMARY/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit GUNDAM Iron Blooded Orphans",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "http://g-tekketsu.com/",
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 21268,
+      "metadata_relation_path": [21268, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/21268 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SPIN_OFF/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit GUNDAM Iron Blooded Orphans 2",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "http://g-tekketsu.com/",
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 21749,
+      "metadata_relation_path": [21749, 21268, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/21749 -> https://anilist.co/anime/21268 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SEQUEL/SPIN_OFF/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam MS IGLOO: Apocalypse 0079",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 1916,
+      "metadata_relation_path": [1916, 1917, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/1916 -> https://anilist.co/anime/1917 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=PREQUEL/SIDE_STORY/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam MS IGLOO: The Hidden One Year War",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "http://www.msigloo.net/",
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 1917,
+      "metadata_relation_path": [1917, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/1917 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SIDE_STORY/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam Narrative",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "http://gundam-nt.net/",
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 101554,
+      "metadata_relation_path": [101554, 6336, 14007, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/101554 -> https://anilist.co/anime/6336 -> https://anilist.co/anime/14007 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SEQUEL/PREQUEL/SUMMARY/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam Seed",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 93,
+      "metadata_relation_path": [93, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/93 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SPIN_OFF/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam Seed C.E.73: Stargazer",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 1215,
+      "metadata_relation_path": [1215, 94, 93, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/1215 -> https://anilist.co/anime/94 -> https://anilist.co/anime/93 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SIDE_STORY/SEQUEL/SPIN_OFF/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam Seed Destiny",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 94,
+      "metadata_relation_path": [94, 93, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/94 -> https://anilist.co/anime/93 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SEQUEL/SPIN_OFF/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam SEED FREEDOM",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://www.gundam-seed.net/freedom/",
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 134761,
+      "metadata_relation_path": [134761, 183692, 94, 93, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/134761 -> https://anilist.co/anime/183692 -> https://anilist.co/anime/94 -> https://anilist.co/anime/93 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=PREQUEL/SEQUEL/SEQUEL/SPIN_OFF/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam Seed MSV Astray",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 864,
+      "metadata_relation_path": [864, 93, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/864 -> https://anilist.co/anime/93 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SIDE_STORY/SPIN_OFF/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam Thunderbolt",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "http://gundam-tb.net/",
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 21458,
+      "metadata_relation_path": [21458, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/21458 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SIDE_STORY/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam Thunderbolt 2",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "http://gundam-tb.net/",
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 97853,
+      "metadata_relation_path": [97853, 21458, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/97853 -> https://anilist.co/anime/21458 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SEQUEL/SIDE_STORY/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam UC",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 6336,
+      "metadata_relation_path": [6336, 14007, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/6336 -> https://anilist.co/anime/14007 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=PREQUEL/SUMMARY/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam Wing",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 90,
+      "metadata_relation_path": [90, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/90 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SPIN_OFF/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam Wing 30th Anniversary Video -Operation 30th-",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://en.gundam-official.com/feature/gundam-w-30th/news/article/ro289jvcye1nq4d4f4fseqbq",
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": null,
+      "metadata_relation_path": [],
+      "original_evidence": "https://en.gundam-official.com/feature/gundam-w-30th/news/article/ro289jvcye1nq4d4f4fseqbq"
+    },
+    {
+      "source": "Mobile Suit Gundam Wing: Endless Waltz",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 91,
+      "metadata_relation_path": [91, 90, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/91 -> https://anilist.co/anime/90 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SEQUEL/SPIN_OFF/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam ZZ",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 86,
+      "metadata_relation_path": [86, 85, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/86 -> https://anilist.co/anime/85 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SEQUEL/SEQUEL/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam-san",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://gundam-official.com/series/gundam-san",
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": null,
+      "metadata_relation_path": [],
+      "original_evidence": "https://www.gundam-san.net/"
+    },
+    {
+      "source": "Mobile Suit Gundam: Char's Counterattack",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 87,
+      "metadata_relation_path": [87, 14007, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/87 -> https://anilist.co/anime/14007 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SUMMARY/SUMMARY/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam: Cucuruz Doan's Island",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://g-doan.net/",
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 139273,
+      "metadata_relation_path": [139273, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/139273 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SIDE_STORY/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam: Iron-Blooded Orphans-Urdr Hunt",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://g-tekketsu.ggame.jp/",
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 114842,
+      "metadata_relation_path": [114842, 21268, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/114842 -> https://anilist.co/anime/21268 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SIDE_STORY/SPIN_OFF/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam: The 08th MS Team",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 81,
+      "metadata_relation_path": [81, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/81 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SIDE_STORY/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam: The 08th MS Team - Miller's Report",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 83,
+      "metadata_relation_path": [83, 81, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/83 -> https://anilist.co/anime/81 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SUMMARY/SIDE_STORY/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam: The Origin",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "http://www.gundam-the-origin.net/",
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 10937,
+      "metadata_relation_path": [10937, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/10937 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=PREQUEL/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam: The Origin - Advent of the Red Comet",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "http://www.gundam-the-origin.net/tv/index.html",
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 108039,
+      "metadata_relation_path": [108039, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/108039 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=PREQUEL/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Gundam: The Witch from Mercury",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://g-witch.net/",
+        "https://en.gundam.info/about-gundam/series-pages/witch/",
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 139274,
+      "metadata_relation_path": [139274, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/139274 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SPIN_OFF/SPIN_OFF"
+    },
+    {
+      "source": "MOBILE SUIT GUNDAM: Twilight AXIS",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "http://g-twilight-axis.net/",
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 98504,
+      "metadata_relation_path": [98504, 6336, 14007, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/98504 -> https://anilist.co/anime/6336 -> https://anilist.co/anime/14007 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SEQUEL/PREQUEL/SUMMARY/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Victory Gundam",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 89,
+      "metadata_relation_path": [89, 88, 6336, 14007, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/89 -> https://anilist.co/anime/88 -> https://anilist.co/anime/6336 -> https://anilist.co/anime/14007 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SEQUEL/PREQUEL/PREQUEL/SUMMARY/SPIN_OFF"
+    },
+    {
+      "source": "Mobile Suit Zeta Gundam",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 85,
+      "metadata_relation_path": [85, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/85 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SEQUEL/SPIN_OFF"
+    },
+    {
+      "source": "Mysteria Friends",
+      "category": "ANIME/MANGA",
+      "target": "Rage of Bahamut",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Adaptation de la branche Manaria Magic Academy du jeu Rage of Bahamut, confirmée par le catalogue éditeur ; ne pas rattacher Granblue via ses bonus promotionnels.",
+      "public_evidence": [
+        "http://manaria.jp/",
+        "https://www.kodansha.co.jp/titles/1000030047",
+        "https://manaria.jp/"
+      ],
+      "metadata_media_id": 21322,
+      "metadata_relation_path": [21322, 20590],
+      "original_evidence": "https://anilist.co/anime/21322 -> https://anilist.co/anime/20590; relations=SPIN_OFF"
+    },
+    {
+      "source": "NG Knight Lamune & 40",
+      "category": "ANIME/MANGA",
+      "target": "Lamune & 40",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Série originale NG Kishi Ramune & 40 ; identité exacte du titre japonais et lien de suite vers les séries Lamune & 40 déjà proposées.",
+      "public_evidence": [
+        "https://www.kingrecords.co.jp/cs/artist/artist.aspx?artist=30919"
+      ],
+      "metadata_media_id": 2084,
+      "metadata_relation_path": [2084, 2087],
+      "original_evidence": "https://anilist.co/anime/2084 -> https://anilist.co/anime/2087; relations=SEQUEL"
+    },
+    {
+      "source": "Orphen",
+      "category": "ANIME/MANGA",
+      "target": "Sorcerous Stabber Orphen",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Anciennes adaptations 1998/1999 et remake du même cycle de romans ; TBS et Studio Deen établissent les deux générations.",
+      "public_evidence": [
+        "https://www.tbscontents.com/en/program/orphen",
+        "https://www.deen.co.jp/works/orphen"
+      ],
+      "metadata_media_id": 1017,
+      "metadata_relation_path": [1017, 101367],
+      "original_evidence": "https://anilist.co/anime/1017 -> https://anilist.co/anime/101367; relations=ALTERNATIVE"
+    },
+    {
+      "source": "Orphen 2: Revenge",
+      "category": "ANIME/MANGA",
+      "target": "Sorcerous Stabber Orphen",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Anciennes adaptations 1998/1999 et remake du même cycle de romans ; TBS et Studio Deen établissent les deux générations.",
+      "public_evidence": [
+        "https://www.tbscontents.com/en/program/orphen",
+        "https://www.deen.co.jp/works/orphen"
+      ],
+      "metadata_media_id": 1018,
+      "metadata_relation_path": [1018, 1017, 101367],
+      "original_evidence": "https://anilist.co/anime/1018 -> https://anilist.co/anime/1017 -> https://anilist.co/anime/101367; relations=SEQUEL/ALTERNATIVE"
+    },
+    {
+      "source": "POKEMON BLUE/RED",
+      "category": "VIDEO GAMES",
+      "target": "Pokémon",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Jeux officiels Pokémon Blue/Red, catégorie VIDEO GAMES conservée ; les adaptations partagent le classeur de franchise mais restent filtrables par catégorie.",
+      "public_evidence": ["https://press.pokemon.com/en/products/Pokemon-Blue"],
+      "metadata_media_id": null,
+      "metadata_relation_path": [],
+      "original_evidence": "https://press.pokemon.com/en/products/Pokemon-Blue"
+    },
+    {
+      "source": "Prince of Tennis II OVA",
+      "category": "ANIME/MANGA",
+      "target": "The Prince of Tennis",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Les OVA Shin Tennis no Ouji-sama sont listés avec le cycle Prince of Tennis sur le portail officiel.",
+      "public_evidence": ["https://tenipuri.jp/onair/"],
+      "metadata_media_id": 13245,
+      "metadata_relation_path": [13245, 11371],
+      "original_evidence": "https://anilist.co/anime/13245 -> https://anilist.co/anime/11371; relations=SIDE_STORY"
+    },
+    {
+      "source": "Quanzhi Gaoshou Specials",
+      "category": "ANIME/MANGA",
+      "target": "The King's Avatar",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Édition spéciale de Quanzhi Gaoshou annoncée par Tencent ; identité avec The King’s Avatar vérifiée, sans confusion avec The Full Time Mage.",
+      "public_evidence": [
+        "https://www.tencent.com/index.php/en-us/articles/2100009.html"
+      ],
+      "metadata_media_id": 101410,
+      "metadata_relation_path": [101410, 98861],
+      "original_evidence": "https://anilist.co/anime/101410 -> https://anilist.co/anime/98861; relations=SEQUEL"
+    },
+    {
+      "source": "Sasami Magical Girls Club",
+      "category": "ANIME/MANGA",
+      "target": "Tenchi Muyo!",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "VAP décrit directement cette nouvelle série comme issue de Tenchi Muyo ; cet appui primaire confirme le lien au-delà du chemin ALTERNATIVE d’AniList.",
+      "public_evidence": [
+        "https://store.vap.co.jp/syousai.asp?item=VPCG-84833"
+      ],
+      "metadata_media_id": 1881,
+      "metadata_relation_path": [1881, 1502, 1918, 696],
+      "original_evidence": "https://anilist.co/anime/1881 -> https://anilist.co/anime/1502 -> https://anilist.co/anime/1918 -> https://anilist.co/anime/696; relations=ALTERNATIVE/ALTERNATIVE/SPIN_OFF"
+    },
+    {
+      "source": "Shadowverse",
+      "category": "ANIME/MANGA",
+      "target": "Shadowverse",
+      "review": "confirmed_identity",
+      "production_approved": false,
+      "rationale": "Ancre originale de la franchise, identifiée par le site officiel et sa suite Flame ; aucune redirection pour cette ligne identité.",
+      "public_evidence": ["https://anime.shadowverse.jp/archive/1st/"],
+      "metadata_media_id": 112325,
+      "metadata_relation_path": [112325, 140085],
+      "original_evidence": "https://anilist.co/anime/112325 -> https://anilist.co/anime/140085; relations=SEQUEL"
+    },
+    {
+      "source": "Sonic Heroes",
+      "category": "VIDEO GAMES",
+      "target": "Sonic the Hedgehog",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Jeu Sonic publié et décrit sur le portail officiel SEGA ; liens multiples des cartes dédupliqués seulement à la lecture.",
+      "public_evidence": [
+        "https://sonic.sega.jp/SonicChannel/gametitle/SonicHeroes.html"
+      ],
+      "metadata_media_id": null,
+      "metadata_relation_path": [],
+      "original_evidence": "https://sonic.sega.jp/SonicChannel/gametitle/SonicHeroes.html"
+    },
+    {
+      "source": "Tales of Crestoria: The Wake of Sin",
+      "category": "ANIME/MANGA",
+      "target": "Tales of",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Adaptation du titre Crestoria dans la marque Tales of ; aucune œuvre au préfixe Tales of seulement similaire n’est rattachée.",
+      "public_evidence": [
+        "https://tales-ch.jp/contents/tales-ch-icon/",
+        "https://tales-ch.jp/titles/"
+      ],
+      "metadata_media_id": null,
+      "metadata_relation_path": [],
+      "original_evidence": "https://tales-ch.jp/contents/tales-ch-icon/"
+    },
+    {
+      "source": "Tales of Eternia",
+      "category": "ANIME/MANGA",
+      "target": "Tales of",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Adaptation d’un jeu précisément identifié dans le catalogue Tales of ; les récits indépendants de chaque jeu restent des titres sources.",
+      "public_evidence": ["https://tales-ch.jp/titles/"],
+      "metadata_media_id": null,
+      "metadata_relation_path": [],
+      "original_evidence": "https://tales-ch.jp/titles/"
+    },
+    {
+      "source": "Tales of Luminaria the Fateful Crossroad",
+      "category": "ANIME/MANGA",
+      "target": "Tales of",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "La communication de l’éditeur nomme explicitement cette adaptation animée de Tales of Luminaria.",
+      "public_evidence": [
+        "https://tales-ch.jp/blog/2022/002.html",
+        "https://en.bandainamcoent.eu/tales-of/tales-of-luminaria"
+      ],
+      "metadata_media_id": null,
+      "metadata_relation_path": [],
+      "original_evidence": "https://tales-ch.jp/contents/tales-ch-icon/"
+    },
+    {
+      "source": "Tales of Phantasia: The Animation",
+      "category": "ANIME/MANGA",
+      "target": "Tales of",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Adaptation d’un jeu précisément identifié dans le catalogue Tales of ; les récits indépendants de chaque jeu restent des titres sources.",
+      "public_evidence": ["https://tales-ch.jp/titles/"],
+      "metadata_media_id": null,
+      "metadata_relation_path": [],
+      "original_evidence": "https://tales-ch.jp/titles/"
+    },
+    {
+      "source": "Tales of the Abyss",
+      "category": "ANIME/MANGA",
+      "target": "Tales of",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Adaptation d’un jeu précisément identifié dans le catalogue Tales of ; les récits indépendants de chaque jeu restent des titres sources.",
+      "public_evidence": ["https://tales-ch.jp/titles/"],
+      "metadata_media_id": null,
+      "metadata_relation_path": [],
+      "original_evidence": "https://tales-ch.jp/titles/"
+    },
+    {
+      "source": "Tales of Zestiria the X",
+      "category": "ANIME/MANGA",
+      "target": "Tales of",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Adaptation d’un jeu précisément identifié dans le catalogue Tales of ; les récits indépendants de chaque jeu restent des titres sources.",
+      "public_evidence": ["https://tales-ch.jp/titles/"],
+      "metadata_media_id": null,
+      "metadata_relation_path": [],
+      "original_evidence": "https://tales-ch.jp/titles/"
+    },
+    {
+      "source": "The Brave of Gold Goldran",
+      "category": "ANIME/MANGA",
+      "target": "The Brave Series",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Sous-séries de la marque Brave explicitement réunies par Sunrise ; continuités narratives distinctes conservées comme titres sources.",
+      "public_evidence": [
+        "http://www.yusha.net/goldran/",
+        "https://biz-sunrise.com/titles/05.php"
+      ],
+      "metadata_media_id": 5440,
+      "metadata_relation_path": [5440, 890],
+      "original_evidence": "https://anilist.co/anime/5440 -> https://anilist.co/anime/890; relations=ALTERNATIVE"
+    },
+    {
+      "source": "The Disappearance of Haruhi Suzumiya",
+      "category": "ANIME/MANGA",
+      "target": "The Melancholy of Haruhi Suzumiya",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Film issu du cycle Haruhi, suite explicite de la série dans les métadonnées relues ; le titre du film est conservé.",
+      "public_evidence": [
+        "http://www.kyotoanimation.co.jp/haruhi/movie/",
+        "https://www.kyotoanimation.co.jp/haruhi/movie/"
+      ],
+      "metadata_media_id": 7311,
+      "metadata_relation_path": [7311, 849],
+      "original_evidence": "https://anilist.co/anime/7311 -> https://anilist.co/anime/849; relations=SEQUEL"
+    },
+    {
+      "source": "The Honor at Magic High School",
+      "category": "ANIME/MANGA",
+      "target": "The Irregular at Magic High School",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Branche officielle Mahouka Koukou no Yuutousei du même projet Irregular ; relation SPIN_OFF, pas un simple voisinage lexical.",
+      "public_evidence": ["https://mahouka-yuutousei.jp/"],
+      "metadata_media_id": 127688,
+      "metadata_relation_path": [127688, 20458],
+      "original_evidence": "https://anilist.co/anime/127688 -> https://anilist.co/anime/20458; relations=SPIN_OFF"
+    },
+    {
+      "source": "The Idol Master",
+      "category": "ANIME/MANGA",
+      "target": "THE IDOLM@STER",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre anglais du THE IDOLM@STER animé original ; correspondance de média exacte, pas une traduction libre inventée.",
+      "public_evidence": ["http://www.idolmaster-anime.jp/tv/index.html"],
+      "metadata_media_id": 10278,
+      "metadata_relation_path": [10278, 98310],
+      "original_evidence": "https://anilist.co/anime/10278 -> https://anilist.co/anime/98310; relations=ALTERNATIVE"
+    },
+    {
+      "source": "The Legend of Luoxiaohei",
+      "category": "ANIME/MANGA",
+      "target": "The Legend of Hei",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Le film officiel identifie la série WEB de MTJJ comme son origine ; même franchise Luo Xiaohei, sans rapprochement avec The Legend of Hei par seul mot commun.",
+      "public_evidence": [
+        "https://luoxiaohei-movie.com/1st/",
+        "https://news.aniplex.co.jp/detail.html?id=68574"
+      ],
+      "metadata_media_id": 102663,
+      "metadata_relation_path": [102663, 166475],
+      "original_evidence": "https://anilist.co/anime/102663 -> https://anilist.co/anime/166475; relations=PREQUEL"
+    },
+    {
+      "source": "The Slime Diaries",
+      "category": "ANIME/MANGA",
+      "target": "That Time I Got Reincarnated as a Slime",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Spin-off officiel Tensura Nikki du même récit, expressément annoncé par le détenteur et l’éditeur du manga.",
+      "public_evidence": [
+        "https://www.ten-sura.com/anime/tensura-nikki",
+        "https://shonen-sirius.com/c/tensuranikki/",
+        "https://10th.ten-sura.com/"
+      ],
+      "metadata_media_id": 116741,
+      "metadata_relation_path": [116741, 101280],
+      "original_evidence": "https://anilist.co/anime/116741 -> https://anilist.co/anime/101280; relations=SPIN_OFF"
+    },
+    {
+      "source": "Time Fighters",
+      "category": "ANIME/MANGA",
+      "target": "Time Bokan",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Le romaji réel des neuf cartes est Time Bokan ; correspondance exacte avec la série Tatsunoko, sans inférence sur les autres titres Time.",
+      "public_evidence": ["https://tatsunoko.co.jp/works/time-bokan/"],
+      "metadata_media_id": 3915,
+      "metadata_relation_path": [3915, 21755],
+      "original_evidence": "https://anilist.co/anime/3915 -> https://anilist.co/anime/21755; relations=ALTERNATIVE"
+    },
+    {
+      "source": "Turn A Gundam",
+      "category": "ANIME/MANGA",
+      "target": "Gundam",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Titre Gundam relu individuellement et identifié dans la franchise éditoriale ; séries alternatives, parodies, Build, courts métrages et suites conservent leur continuité et titre sources.",
+      "public_evidence": [
+        "http://www.turn-a-gundam.net/",
+        "https://www.b-ch.com/gundam/",
+        "https://gundam-official.com/series"
+      ],
+      "metadata_media_id": 95,
+      "metadata_relation_path": [95, 80, 108041],
+      "original_evidence": "https://anilist.co/anime/95 -> https://anilist.co/anime/80 -> https://anilist.co/anime/108041; relations=SPIN_OFF/SPIN_OFF"
+    },
+    {
+      "source": "UMAYON",
+      "category": "ANIME/MANGA",
+      "target": "Umamusume",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Deux séries dérivées présentes dans le catalogue anime officiel Umamusume de Cygames.",
+      "public_evidence": [
+        "https://umamusume.jp/umayon/",
+        "https://umamusume.jp/contents/anime/?id=010"
+      ],
+      "metadata_media_id": 108941,
+      "metadata_relation_path": [108941, 98514],
+      "original_evidence": "https://anilist.co/anime/108941 -> https://anilist.co/anime/98514; relations=SPIN_OFF"
+    },
+    {
+      "source": "Umayuru",
+      "category": "ANIME/MANGA",
+      "target": "Umamusume",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Deux séries dérivées présentes dans le catalogue anime officiel Umamusume de Cygames.",
+      "public_evidence": [
+        "https://umamusume.jp/anime/umayuru/",
+        "https://umamusume.jp/contents/anime/?id=010"
+      ],
+      "metadata_media_id": 148401,
+      "metadata_relation_path": [148401, 98514],
+      "original_evidence": "https://anilist.co/anime/148401 -> https://anilist.co/anime/98514; relations=SPIN_OFF"
+    },
+    {
+      "source": "VANQUISHED QUEENS",
+      "category": "ANIME/MANGA",
+      "target": "Queen's Blade",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Projet et récits alternatifs commercialisés dans Queen’s Blade sur son site officiel ; le titre alternatif reste intact.",
+      "public_evidence": ["https://queensblade.net/goods/vanquished.html"],
+      "metadata_media_id": 16363,
+      "metadata_relation_path": [16363, 11859],
+      "original_evidence": "https://anilist.co/anime/16363 -> https://anilist.co/anime/11859; relations=PREQUEL"
+    },
+    {
+      "source": "Yu-Gi-Oh!",
+      "category": "ANIME/MANGA",
+      "target": "Yu-Gi-Oh!",
+      "review": "confirmed_identity",
+      "production_approved": false,
+      "rationale": "Séries précisément listées sur le portail officiel Yu-Gi-Oh ; ne pas utiliser le chemin via mangas crossovers comme preuve à lui seul.",
+      "public_evidence": [
+        "https://www.yugioh.com/episodes?season=1&show_id=1",
+        "https://www.yugioh.com/shows"
+      ],
+      "metadata_media_id": 481,
+      "metadata_relation_path": [481, 550],
+      "original_evidence": "https://anilist.co/anime/481 -> https://anilist.co/anime/550; relations=ALTERNATIVE"
+    },
+    {
+      "source": "Yu-Gi-Oh! 5D's",
+      "category": "ANIME/MANGA",
+      "target": "Yu-Gi-Oh!",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Séries précisément listées sur le portail officiel Yu-Gi-Oh ; ne pas utiliser le chemin via mangas crossovers comme preuve à lui seul.",
+      "public_evidence": ["https://www.yugioh.com/shows"],
+      "metadata_media_id": 3972,
+      "metadata_relation_path": [3972, 481, 550],
+      "original_evidence": "https://anilist.co/anime/3972 -> https://anilist.co/anime/481 -> https://anilist.co/anime/550; relations=SEQUEL/ALTERNATIVE"
+    },
+    {
+      "source": "Yu-Gi-Oh! ARC-V",
+      "category": "ANIME/MANGA",
+      "target": "Yu-Gi-Oh!",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Séries précisément listées sur le portail officiel Yu-Gi-Oh ; ne pas utiliser le chemin via mangas crossovers comme preuve à lui seul.",
+      "public_evidence": ["https://www.yugioh.com/shows"],
+      "metadata_media_id": 20552,
+      "metadata_relation_path": [20552, 95866, 54915, 10015],
+      "original_evidence": "https://anilist.co/anime/20552 -> https://anilist.co/manga/95866 -> https://anilist.co/manga/54915 -> https://anilist.co/anime/10015; relations=ADAPTATION/SEQUEL/ADAPTATION"
+    },
+    {
+      "source": "Yu-Gi-Oh! GX",
+      "category": "ANIME/MANGA",
+      "target": "Yu-Gi-Oh!",
+      "review": "confirmed_franchise_relation",
+      "production_approved": false,
+      "rationale": "Séries précisément listées sur le portail officiel Yu-Gi-Oh ; ne pas utiliser le chemin via mangas crossovers comme preuve à lui seul.",
+      "public_evidence": ["https://www.yugioh.com/shows"],
+      "metadata_media_id": 482,
+      "metadata_relation_path": [482, 481, 550],
+      "original_evidence": "https://anilist.co/anime/482 -> https://anilist.co/anime/481 -> https://anilist.co/anime/550; relations=SEQUEL/ALTERNATIVE"
+    }
+  ]
+}
