@@ -4,6 +4,7 @@ import { AuthDecisionPreview } from "@/components/auth-decision-preview";
 import { CardShell } from "@/components/card-shell";
 import { AuthCardCarousel } from "@/components/auth-card-carousel";
 import { AuthMarketShowcase } from "@/components/auth-market-showcase";
+import { AuthBinderShowcase } from "@/components/auth-binder-showcase";
 import {
   AUTH_SHOWCASE_CARDS as cards,
   AUTH_MARQUEE_CARDS,
@@ -233,6 +234,7 @@ export function AuthShowcase() {
               Example binders. Every card brings you closer.
             </p>
           </div>
+          <AuthBinderShowcase />
         </article>
 
         <article className="yk-auth-feature yk-auth-feature-market">

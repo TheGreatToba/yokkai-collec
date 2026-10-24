@@ -755,6 +755,7 @@
 .yk-auth-showcase
   :is(
     .yk-auth-album-preview,
+    .yk-auth-binder-demo,
     .yk-auth-demo-market,
     .yk-auth-demo-auction,
     .yk-auth-chat-preview,
@@ -790,6 +791,7 @@
   .yk-auth-showcase
     :is(
       .yk-auth-album-preview,
+      .yk-auth-binder-demo,
       .yk-auth-demo-market,
       .yk-auth-demo-auction,
       .yk-auth-chat-preview,
@@ -810,6 +812,7 @@
   .yk-auth-showcase
     .yk-card:not(
       .yk-auth-evolution-card .yk-card,
+      .yk-auth-binder-demo .yk-card,
       .yk-auth-demo-market .yk-card,
       .yk-auth-demo-auction .yk-card
     ):hover,
@@ -822,6 +825,7 @@
   .yk-auth-showcase
     :is(
       .yk-auth-album-preview,
+      .yk-auth-binder-demo,
       .yk-auth-demo-market,
       .yk-auth-demo-auction,
       .yk-auth-chat-preview,
