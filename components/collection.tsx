@@ -2136,9 +2136,7 @@ export function CollectionView({
                           setEvolveConfirm(true);
                         }}
                       >
-                        {selected.rarity === "LR"
-                          ? "Evolve to LR Evolved"
-                          : "Evolve to SSR Evolved"}
+                        EVOLVE YOUR CARD
                       </Button>
                     </div>
                   )}
