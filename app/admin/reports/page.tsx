@@ -1,3 +1,4 @@
+import { UrlPagination } from "@/components/ui/url-pagination";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { AccountMenu } from "@/components/account-menu";
@@ -118,8 +119,6 @@ export default async function AdminReportsPage({
     ...(status ? { status } : {}),
     page: String(page)
   };
-  const href = (target: number) =>
-    `/admin/reports?${new URLSearchParams({ ...baseParams, page: String(target) })}`;
   const closeHref = `/admin/reports?${new URLSearchParams(baseParams)}`;
   const playerHrefBase = `/admin/reports?${new URLSearchParams(baseParams)}&player=`;
   const selectedPlayer = playerDetailFromRpc(
@@ -198,7 +197,7 @@ export default async function AdminReportsPage({
               playerHrefBase={playerHrefBase}
             />
           </div>
-          <div>
+          <div id="admin-reports-list" tabIndex={0}>
             <h2 className="mb-4 text-xl font-black">
               Reported players{" "}
               <span className="text-sm font-normal text-slate-500">
@@ -207,30 +206,11 @@ export default async function AdminReportsPage({
             </h2>
             <ReportList reports={reports} playerHrefBase={playerHrefBase} />
           </div>
-          {pages > 1 && (
-            <nav
-              aria-label="Report pagination"
-              className="flex items-center justify-center gap-3"
-            >
-              <Link
-                aria-disabled={page === 1}
-                className={`yk-button yk-button-secondary ${page === 1 ? "pointer-events-none opacity-50" : ""}`}
-                href={href(page - 1)}
-              >
-                Previous
-              </Link>
-              <span className="text-sm text-slate-400">
-                Page {page} of {pages}
-              </span>
-              <Link
-                aria-disabled={page === pages}
-                className={`yk-button yk-button-secondary ${page === pages ? "pointer-events-none opacity-50" : ""}`}
-                href={href(page + 1)}
-              >
-                Next
-              </Link>
-            </nav>
-          )}
+          <UrlPagination
+            page={page}
+            pageCount={pages}
+            scrollTargetId="admin-reports-list"
+          />
         </div>
       </main>
       <ReportedPlayerModal player={selectedPlayer} closeHref={closeHref} />

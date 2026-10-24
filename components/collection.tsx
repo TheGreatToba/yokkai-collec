@@ -1426,6 +1426,8 @@ export function CollectionView({
                           </div>
                         )}
                       <ul
+                        id="binder-cards-list"
+                        tabIndex={0}
                         className="yk-panini-slots"
                         aria-label={`Cards from ${selectedLicense}`}
                       >
@@ -1479,7 +1481,7 @@ export function CollectionView({
                             page={activePaniniPage}
                             pageCount={paniniPageCount}
                             onPageChange={setPaniniPage}
-                            label={`Binder pages ${selectedLicense}`}
+                            scrollTargetId="binder-cards-list"
                           />
                           <label>
                             Cards per page
@@ -1579,7 +1581,11 @@ export function CollectionView({
                           <p>Try another name in the search bar.</p>
                         </div>
                       ) : !paniniBusy && !paniniError ? (
-                        <ul className="yk-panini-grid">
+                        <ul
+                          id="binder-albums-list"
+                          tabIndex={0}
+                          className="yk-panini-grid"
+                        >
                           {paniniAlbums.items.map(item => (
                             <li
                               key={item.license}
@@ -1656,7 +1662,7 @@ export function CollectionView({
                             page={activePaniniAlbumPage}
                             pageCount={paniniAlbumPageCount}
                             onPageChange={setPaniniAlbumPage}
-                            label="Binder pages"
+                            scrollTargetId="binder-albums-list"
                           />
                           <span className="yk-panini-page-limit">
                             72 binders per page
@@ -1689,6 +1695,8 @@ export function CollectionView({
               ) : null}
               {viewMode !== "panini" && (
                 <ul
+                  id="collection-cards-list"
+                  tabIndex={0}
                   className={`yk-card-grid yk-collection-grid ${viewMode === "list" ? "yk-collection-grid-list" : ""}`}
                   aria-label="Owned card groups"
                 >
@@ -1788,7 +1796,7 @@ export function CollectionView({
                     page={activePage}
                     pageCount={pageCount}
                     onPageChange={setPage}
-                    label="Collection pages"
+                    scrollTargetId="collection-cards-list"
                   />
                   <label>
                     Cards per page
