@@ -684,3 +684,9 @@
   opacity: 0.18;
   pointer-events: none;
 }
+
+@media (min-width: 960px) {
+  .yk-home-pack-options-art {
+    right: 28px;
+  }
+}
