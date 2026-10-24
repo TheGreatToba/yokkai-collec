@@ -1,4 +1,5 @@
 "use client";
+import { Pagination } from "@/components/ui/pagination";
 
 import { useActionState, useState, useTransition } from "react";
 import { Button, Modal } from "@/components/ui";
@@ -17,7 +18,7 @@ type Card = {
   id: string;
   nom: string;
   categorie: string;
-  franchise: string;
+  franchise: string | null;
   franchises: string[];
   rarete_base: string;
   image_url: string;
@@ -263,7 +264,7 @@ function CardRow({ card, categories }: { card: Card; categories: string[] }) {
           <LicenseFields
             className="xl:col-span-5"
             initial={
-              card.franchises.length ? card.franchises : [card.franchise]
+              card.franchises.length ? card.franchises : [card.franchise ?? ""]
             }
           />
           <div className="grid gap-3 xl:col-span-2">
@@ -592,7 +593,7 @@ export function AdminCardManager({
         </form>
       </section>
 
-      <section className="space-y-3">
+      <section id="admin-cards-list" tabIndex={0} className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold">
             {searchQuery ? `Results for “${searchQuery}”` : "Recent cards"}
@@ -687,32 +688,12 @@ export function AdminCardManager({
             </article>
           )
         )}
-        {pageCount > 1 ? (
-          <nav
-            aria-label="Admin card pagination"
-            className="flex flex-wrap items-center justify-center gap-2 pt-3"
-          >
-            <button
-              className="rounded-lg border border-white/15 px-3 py-2 text-sm disabled:opacity-40"
-              disabled={safePage === 1}
-              onClick={() => goToPage(safePage - 1)}
-              type="button"
-            >
-              Previous
-            </button>
-            <span className="px-2 text-sm text-slate-400">
-              Page {safePage} of {pageCount}
-            </span>
-            <button
-              className="rounded-lg border border-white/15 px-3 py-2 text-sm disabled:opacity-40"
-              disabled={safePage === pageCount}
-              onClick={() => goToPage(safePage + 1)}
-              type="button"
-            >
-              Next
-            </button>
-          </nav>
-        ) : null}
+        <Pagination
+          page={safePage}
+          pageCount={pageCount}
+          onPageChange={goToPage}
+          scrollTargetId="admin-cards-list"
+        />
       </section>
       {selectedIds.length ? (
         <div

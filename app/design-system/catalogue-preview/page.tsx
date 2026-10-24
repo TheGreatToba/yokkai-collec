@@ -1,3 +1,4 @@
+import { UrlPagination } from "@/components/ui/url-pagination";
 import type { Metadata } from "next";
 import { CardShell } from "@/components/card-shell";
 import { Topbar } from "@/components/topbar";
@@ -39,7 +40,16 @@ const icon = (rarity: Rarity) => (
   </svg>
 );
 
-export default function CataloguePreview() {
+export default async function CataloguePreview({
+  searchParams
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const params = await searchParams;
+  const page = Math.max(
+    1,
+    Math.min(4308, Number.parseInt(params.page ?? "1", 10) || 1)
+  );
   return (
     <>
       <Topbar view="search" name="Kitsune" karas={4920} notifications={[]} />
@@ -127,7 +137,11 @@ export default function CataloguePreview() {
                   Filtres
                 </button>
               </div>
-              <ul className="yk-card-grid yk-catalogue-grid">
+              <ul
+                id="catalogue-preview-list"
+                tabIndex={0}
+                className="yk-card-grid yk-catalogue-grid"
+              >
                 {cards.map(card => (
                   <li key={card.id}>
                     <button type="button" className="yk-catalogue-card">
@@ -139,11 +153,13 @@ export default function CataloguePreview() {
                 ))}
               </ul>
               <div className="yk-collection-pagination">
-                <span className="text-sm text-ink-2">
-                  ‹　1　2　3　…　4308　›
-                </span>
+                <UrlPagination
+                  page={page}
+                  pageCount={4308}
+                  scrollTargetId="catalogue-preview-list"
+                />
                 <label>
-                  Cartes par page
+                  Cards per page
                   <select defaultValue={24}>
                     <option>24</option>
                     <option>36</option>

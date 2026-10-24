@@ -158,9 +158,9 @@ export function CatalogueCardModal({
             <p className="text-sm text-ink-2">
               {selected.category} · {selected.rarity}
             </p>
-            <p className="mt-2 text-sm text-ink-3">
-              {selected.anime ?? "No franchise listed"}
-            </p>
+            {selected.anime && (
+              <p className="mt-2 text-sm text-ink-3">{selected.anime}</p>
+            )}
             <p className="mt-7 text-xs text-ink-3">Market value</p>
             {detail?.marketValue != null ? (
               <Karas

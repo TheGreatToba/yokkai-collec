@@ -34,6 +34,18 @@ const initialFailure = (
 });
 const value = (form: FormData, key: string) =>
   String(form.get(key) ?? "").trim();
+function cardFailure(error: unknown, fallback: string): AdminActionState {
+  const failure = error as { code?: string; message?: string } | null;
+  if (
+    (failure?.code === "23502" || failure?.code === "23514") &&
+    /franchise/i.test(failure.message ?? "")
+  ) {
+    return initialFailure(
+      "Cards without a license are not available yet. Ask an administrator to apply the pending database migration."
+    );
+  }
+  return initialFailure(failure?.message || fallback);
+}
 const MAX_FRANCHISES = 10;
 const CATEGORY_ALBUMS = new Set([
   "ARTIST",
@@ -49,6 +61,7 @@ const CATEGORY_ALBUMS = new Set([
 ]);
 
 function franchiseInputs(form: FormData) {
+  if (!value(form, "franchise")) return [];
   const franchises: string[] = [];
   const seen = new Set<string>();
   for (const entry of form.getAll("franchise")) {
@@ -67,9 +80,9 @@ function franchiseInputs(form: FormData) {
 }
 
 function albumFranchises(franchises: string[], category: string) {
+  if (!franchises.length) return [];
   const normalizedCategory = category.trim().toUpperCase();
-  if (normalizedCategory === "ARTIST")
-    return franchises.length ? franchises : [normalizedCategory];
+  if (normalizedCategory === "ARTIST") return franchises;
   if (CATEGORY_ALBUMS.has(normalizedCategory)) return [normalizedCategory];
   return franchises;
 }
@@ -260,9 +273,7 @@ export async function createCardAction(
     revalidatePath("/admin/cards");
     return { ok: true, message: `${data.nom} has been published.` };
   } catch (error) {
-    return initialFailure(
-      error instanceof Error ? error.message : "Unable to create this card."
-    );
+    return cardFailure(error, "Unable to create this card.");
   }
 }
 
@@ -375,13 +386,13 @@ export async function updateCardAction(
     const patch: {
       nom: string;
       categorie: string;
-      franchise: string;
+      franchise: string | null;
       rarete_base: string;
       image_url?: string;
     } = {
       nom: value(form, "nom"),
       categorie: value(form, "categorie"),
-      franchise: franchises[0] ?? "",
+      franchise: franchises[0] ?? null,
       rarete_base: value(form, "rarete_base")
     };
     if (!patch.nom || !patch.categorie)
@@ -445,9 +456,7 @@ export async function updateCardAction(
     revalidatePath("/admin/cards");
     return { ok: true, message: `${data.nom} has been updated.` };
   } catch (error) {
-    return initialFailure(
-      error instanceof Error ? error.message : "Unable to update this card."
-    );
+    return cardFailure(error, "Unable to update this card.");
   }
 }
 

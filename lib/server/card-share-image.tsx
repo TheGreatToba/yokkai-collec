@@ -273,15 +273,17 @@ export async function renderSharedCardImage(
           >
             {card.cardName}
           </div>
-          <div
-            style={{
-              marginTop: 24,
-              fontSize: portrait ? 38 : square ? 30 : 28,
-              color: "#D7D2E8"
-            }}
-          >
-            {card.franchise}
-          </div>
+          {card.franchise && (
+            <div
+              style={{
+                marginTop: 24,
+                fontSize: portrait ? 38 : square ? 30 : 28,
+                color: "#D7D2E8"
+              }}
+            >
+              {card.franchise}
+            </div>
+          )}
           {card.pseudo ? (
             <div
               style={{

@@ -552,3 +552,87 @@ select,
     --card-grid-columns: var(--card-grid-columns-sm);
   }
 }
+
+/* One pagination layout for every numbered list. */
+.yk-pagination {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  max-width: 100%;
+  margin-block: 1.25rem;
+  color: var(--color-ink-3);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  scroll-margin-top: 6rem;
+}
+.yk-pagination-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  max-width: 100%;
+}
+.yk-pagination .yk-page-button {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  min-height: 2.75rem;
+  padding: 0.25rem;
+  border: 1px solid var(--color-veil);
+  border-radius: 0.75rem;
+  background: var(--color-night);
+  color: var(--color-ink-3);
+  font: inherit;
+  cursor: pointer;
+}
+.yk-pagination .yk-page-button:hover:not(:disabled) {
+  border-color: var(--color-accent-gold);
+  color: var(--color-accent-gold);
+}
+.yk-pagination .yk-page-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.yk-pagination :is(button, input):focus-visible,
+.yk-pagination:focus-visible {
+  outline: 2px solid var(--color-accent-gold);
+  outline-offset: 3px;
+}
+.yk-page-entry {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+.yk-page-entry input {
+  box-sizing: border-box;
+  width: 3rem;
+  min-height: 2.75rem;
+  border: 1px solid var(--color-accent-gold);
+  border-radius: 0.75rem;
+  background: var(--color-night);
+  color: var(--color-accent-gold);
+  text-align: center;
+  font: inherit;
+}
+[id$="-list"] {
+  scroll-margin-top: 6rem;
+}
+@media (max-width: 374px) {
+  .yk-page-entry > span:first-of-type {
+    display: none;
+  }
+  .yk-pagination {
+    font-size: 0.6875rem;
+  }
+  .yk-pagination-controls,
+  .yk-page-entry {
+    gap: 0.125rem;
+  }
+  .yk-page-entry input {
+    width: 2rem;
+  }
+}

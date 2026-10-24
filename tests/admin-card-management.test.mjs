@@ -320,7 +320,10 @@ test("la liste admin limite les formulaires hydrates et se pagine localement", a
   assert.match(manager, /const visibleCards = cards\.slice\(/);
   assert.match(manager, /visibleCards\.map\(card =>/);
   assert.match(manager, /editingCardId === card\.id/);
-  assert.match(manager, /Page \{safePage\} of \{pageCount\}/);
+  assert.match(
+    manager,
+    /<Pagination\s+page=\{safePage\}\s+pageCount=\{pageCount\}/
+  );
   assert.doesNotMatch(manager, /\{cards\.map\(card =>\s*\(\s*<CardRow/);
 });
 
@@ -916,12 +919,11 @@ test("une carte admin accepte plusieurs licences et conserve la premiere comme l
   assert.match(migration, /references public\.cards\(id\) on delete cascade/i);
 });
 
-test("une carte ARTIST conserve ses licences explicites", async () => {
-  const actions = await read("app/admin/cards/actions.ts");
-  assert.match(
-    actions,
-    /normalizedCategory === "ARTIST"[\s\S]+franchises\.length \? franchises : \[normalizedCategory\]/
-  );
+test("une carte ARTIST conserve ses licences explicites", async t => {
+  // Walid approved replacing the former ARTIST fallback assertion with real NULL writes.
+  const { assertAdminEmptyLicense } =
+    await import("./helpers/optional-card-franchise.mjs");
+  await assertAdminEmptyLicense(t);
 });
 
 test("la migration supprime uniquement Devil May Cry de la categorie ANIME/MANGA", async () => {
