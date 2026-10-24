@@ -1738,7 +1738,7 @@ export function CollectionView({
                               : setSelectedId(card.instanceId)
                           }
                         >
-                          <CardShell>
+                          <CardShell interactive={false}>
                             <YokaiCard
                               {...card}
                               image={card.image}
