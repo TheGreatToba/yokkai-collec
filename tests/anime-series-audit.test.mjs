@@ -193,7 +193,7 @@ test("audit never re-keys an already unified season group or infers provenance f
     links: [{ franchise: "A", position: 0 }]
   }));
   cards.push({ ...cards[0], id: "manual", source: "manual" });
-  const result = auditAnimeSeries({
+  const options = {
     snapshot: {
       captured_at: "fixture",
       read_only: "on",
@@ -211,12 +211,23 @@ test("audit never re-keys an already unified season group or infers provenance f
     },
     normalizedTitles: { "A Season 2": "A" },
     previousRows: []
-  });
+  };
+  const result = auditAnimeSeries(options);
   assert.equal(result.assignments.length, 0);
   assert.equal(result.summary.licenses_before, 1);
   assert.equal(result.summary.proposed_binders_after, 1);
   assert.equal(result.summary.mixed_origin_binders, 1);
   assert.equal(result.protectedCards[0].origin, "manual");
+  const unavailable = auditAnimeSeries({
+    ...options,
+    mediaCache: { entries: { 1: { media: null }, 2: { media: null } } }
+  });
+  assert.equal(unavailable.assignments.length, 0);
+  assert.equal(unavailable.protectedCards.length, 3);
+  assert.match(
+    unavailable.protectedCards[0].exclusion_reason,
+    /media is unavailable/
+  );
 });
 
 test("scoped AniList requests deduplicate, resume, respect 429 and exclude unrelated/expired cached data", async () => {

@@ -53,6 +53,9 @@ export function auditAnimeSeries({
       media && media.type === "ANIME" && origin.origin === "anilist_confirmed"
     );
     let exclusion = match.reason;
+    if (match.media_id && !media)
+      exclusion =
+        "AniList media is unavailable for the imported identity; protect until verified.";
     if (
       eligible &&
       ![
