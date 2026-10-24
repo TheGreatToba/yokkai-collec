@@ -34,6 +34,36 @@ const options = [
     id: "lavender",
     name: "Lavender",
     description: "Pale lilac with a soft violet reflection."
+  },
+  {
+    id: "rose",
+    name: "Rose",
+    description: "Pink chrome with pearlescent highlights."
+  },
+  {
+    id: "ruby",
+    name: "Ruby",
+    description: "Crimson chrome with bright ruby reflections."
+  },
+  {
+    id: "amber",
+    name: "Amber",
+    description: "Sunlit amber with a rich golden glow."
+  },
+  {
+    id: "sapphire",
+    name: "Sapphire",
+    description: "Electric blue with deep sapphire shadows."
+  },
+  {
+    id: "emerald",
+    name: "Emerald",
+    description: "Vivid green with jewel-like reflections."
+  },
+  {
+    id: "copper",
+    name: "Copper",
+    description: "Warm copper with peach and bronze reflections."
   }
 ] as const;
 
@@ -59,7 +89,7 @@ export function EvBadgeGallery() {
           <p className="ev-studio-eyebrow">EVOLVED / COLOR STUDY</p>
           <h1>Find your color.</h1>
           <p className="ev-studio-intro">
-            One badge shape. Six color finishes, charged with branching
+            One badge shape. Twelve color finishes, charged with branching
             lightning and a luminous edge. Choose your favorite.
           </p>
         </div>

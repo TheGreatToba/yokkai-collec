@@ -418,6 +418,61 @@
   --ev-charge-delay: -3s;
 }
 
+.ev-badge-gallery [data-style="rose"] {
+  --ev-lettering-tone: hue-rotate(135deg) saturate(1.7);
+  --ev-preview-fill: linear-gradient(145deg, #fff6fc, #f1aad0 50%, #ffe1f1);
+  --ev-preview-ink: #69304d;
+  --ev-preview-rim: #c77ea6;
+  --ev-preview-glow: rgba(255, 136, 199, 0.45);
+  --ev-preview-electric: #ff8dcb;
+  --ev-charge-delay: -0.4s;
+}
+.ev-badge-gallery [data-style="ruby"] {
+  --ev-lettering-tone: hue-rotate(165deg) saturate(2.8);
+  --ev-preview-fill: linear-gradient(145deg, #fff3f4, #e58598 50%, #ffd1d8);
+  --ev-preview-ink: #6d2335;
+  --ev-preview-rim: #bc657d;
+  --ev-preview-glow: rgba(255, 96, 135, 0.45);
+  --ev-preview-electric: #ff6387;
+  --ev-charge-delay: -1s;
+}
+.ev-badge-gallery [data-style="amber"] {
+  --ev-lettering-tone: hue-rotate(220deg) saturate(2.4);
+  --ev-preview-fill: linear-gradient(145deg, #fffbe9, #f3c95f 50%, #ffe8a4);
+  --ev-preview-ink: #684813;
+  --ev-preview-rim: #cba03f;
+  --ev-preview-glow: rgba(255, 203, 73, 0.45);
+  --ev-preview-electric: #ffd050;
+  --ev-charge-delay: -1.6s;
+}
+.ev-badge-gallery [data-style="sapphire"] {
+  --ev-lettering-tone: hue-rotate(40deg) saturate(2.4);
+  --ev-preview-fill: linear-gradient(145deg, #eef5ff, #8fb5f4 50%, #cdddff);
+  --ev-preview-ink: #233c70;
+  --ev-preview-rim: #668ac4;
+  --ev-preview-glow: rgba(102, 161, 255, 0.45);
+  --ev-preview-electric: #6aabff;
+  --ev-charge-delay: -2.2s;
+}
+.ev-badge-gallery [data-style="emerald"] {
+  --ev-lettering-tone: hue-rotate(285deg) saturate(2.1);
+  --ev-preview-fill: linear-gradient(145deg, #f1fff0, #8cdb99 50%, #ceefcf);
+  --ev-preview-ink: #255236;
+  --ev-preview-rim: #68a977;
+  --ev-preview-glow: rgba(119, 245, 148, 0.45);
+  --ev-preview-electric: #73ef94;
+  --ev-charge-delay: -2.8s;
+}
+.ev-badge-gallery [data-style="copper"] {
+  --ev-lettering-tone: hue-rotate(180deg) saturate(1.9);
+  --ev-preview-fill: linear-gradient(145deg, #fff4ee, #dfa17f 50%, #f9d9c5);
+  --ev-preview-ink: #69412c;
+  --ev-preview-rim: #b9815d;
+  --ev-preview-glow: rgba(255, 167, 117, 0.45);
+  --ev-preview-electric: #ffad7f;
+  --ev-charge-delay: -3.4s;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ev-badge-gallery[data-animated="true"] .ev-option .yk-evolved-badge,
   .ev-badge-gallery[data-animated="true"] .ev-option .yk-evolved-badge::before,
