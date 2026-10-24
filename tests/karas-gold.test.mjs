@@ -50,7 +50,7 @@ function load(file) {
 const render = (component, props) =>
   renderToStaticMarkup(React.createElement(component, props));
 
-test("gold is opt-in on exactly the circled balance and auction amount surfaces", () => {
+test("existing gold balance and auction surfaces retain their markup and accessible labels", () => {
   const topbar = read("components/topbar.tsx");
   const market = read("components/community-views.tsx");
   assert.match(topbar, /<Karas amount=\{karas\} className="yk-karas-gold"/);
@@ -85,7 +85,7 @@ test("gold is opt-in on exactly the circled balance and auction amount surfaces"
   );
 });
 
-test("the gold modifier only recolors text and the gem, preserving button and badge frames", () => {
+test("all shared currency text and gems use gold while preserving button and badge frames", () => {
   const sheet = postcss.parse(read("styles/ui.css"));
   const rules = [];
   sheet.walkRules(rule => {
@@ -93,6 +93,8 @@ test("the gold modifier only recolors text and the gem, preserving button and ba
   });
   assert.equal(rules.length, 2);
   const text = rules.find(rule => !rule.selector.includes(".yk-karas-gem"));
+  assert.ok(text.selectors.includes(".yk-karas"));
+  assert.ok(text.selectors.includes(".text-karas"));
   assert.ok(text.selector.includes(".yk-bid-quick.yk-karas-gold"));
   assert.ok(text.selector.includes(".yk-auction-history .text-karas"));
   assert.deepEqual(
@@ -101,6 +103,7 @@ test("the gold modifier only recolors text and the gem, preserving button and ba
   );
   assert.equal(text.nodes[0].value, "var(--color-karas-readable-gold)");
   const gem = rules.find(rule => rule.selector.includes(".yk-karas-gem"));
+  assert.ok(gem.selectors.includes(".yk-karas-gem"));
   assert.deepEqual(
     gem.nodes.map(node => node.prop),
     ["background", "box-shadow"]
