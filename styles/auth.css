@@ -558,7 +558,7 @@
   background: var(--color-surface);
 }
 .yk-auth-binder-favorite {
-  border-color: #e8c26a99;
+  border-color: #ffd47d99;
 }
 .yk-auth-binder-tile > div:first-child {
   display: flex;
@@ -581,7 +581,7 @@
   font-size: 14px;
 }
 .yk-auth-binder-favorite > div:first-child > span {
-  border-color: #e8c26a99;
+  border-color: #ffd47d99;
   color: var(--color-accent-gold);
 }
 .yk-auth-binder-tile p {
