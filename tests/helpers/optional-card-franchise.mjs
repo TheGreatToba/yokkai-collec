@@ -52,7 +52,11 @@ export const row = {
   favoris_count: ""
 };
 
-export async function assertAdminEmptyLicense(t) {
+export async function assertAdminEmptyLicense(
+  t,
+  secondaryLicenses = [],
+  category = "ARTIST"
+) {
   const { db } = await replayMigrations();
   t.after(() => db.close());
   const admin = "10000000-0000-4000-8000-000000000001";
@@ -104,7 +108,10 @@ export async function assertAdminEmptyLicense(t) {
               [data.card_id, data.categorie]
             );
           else if (table === "card_franchises")
-            assert.fail("empty primary must not link a secondary or category");
+            await db.query(
+              "insert into public.card_franchises(card_id,franchise,position) values ($1,$2,$3)",
+              [data.card_id, data.franchise, data.position]
+            );
           return { error: null };
         },
         async single() {
@@ -174,20 +181,22 @@ export async function assertAdminEmptyLicense(t) {
   const form = new FormData();
   for (const [key, value] of Object.entries(row)) form.set(key, value);
   form.set("franchise", "   ");
-  form.append("franchise", "Secondary must not become primary");
+  form.set("categorie", category);
+  for (const license of secondaryLicenses) form.append("franchise", license);
   assert.equal((await actions.createCardAction({}, form)).ok, true);
   assert.equal(
     (await db.query("select franchise from public.cards where id=$1", [cardId]))
       .rows[0].franchise,
     null
   );
-  assert.equal(
+  assert.deepEqual(
     (
-      await db.query("select * from public.card_franchises where card_id=$1", [
-        cardId
-      ])
-    ).rows.length,
-    0
+      await db.query(
+        "select franchise from public.card_franchises where card_id=$1 order by position",
+        [cardId]
+      )
+    ).rows,
+    secondaryLicenses.map(franchise => ({ franchise }))
   );
   const catalog = (
     await db.query(
@@ -199,10 +208,11 @@ export async function assertAdminEmptyLicense(t) {
   assert.equal(
     (
       await db.query(
-        "select public.get_catalogue_cards_page('Secondary','','',0,24) as result"
+        "select public.get_catalogue_cards_page($1,'','',0,24) as result",
+        [secondaryLicenses[0] ?? "Unlisted license"]
       )
     ).rows[0].result.total,
-    0
+    secondaryLicenses.length ? 1 : 0
   );
   const owned = (
     await db.query(
@@ -231,7 +241,7 @@ export async function assertAdminEmptyLicense(t) {
     cardId
   ]);
   await db.query(
-    "insert into public.card_franchises(card_id,franchise,position) values ($1,'Series',0)",
+    "insert into public.card_franchises(card_id,franchise,position) values ($1,'Series',9)",
     [cardId]
   );
   form.set("id", cardId);
@@ -242,14 +252,37 @@ export async function assertAdminEmptyLicense(t) {
       .rows[0].franchise,
     null
   );
-  assert.equal(
+  assert.deepEqual(
     (
-      await db.query("select * from public.card_franchises where card_id=$1", [
-        cardId
-      ])
-    ).rows.length,
-    0
+      await db.query(
+        "select franchise from public.card_franchises where card_id=$1 order by position",
+        [cardId]
+      )
+    ).rows,
+    secondaryLicenses.map(franchise => ({ franchise }))
   );
+  await db.query("update public.cards set categorie=categorie where id=$1", [
+    cardId
+  ]);
+  assert.deepEqual(
+    (
+      await db.query(
+        "select franchise from public.card_franchises where card_id=$1 order by position",
+        [cardId]
+      )
+    ).rows,
+    secondaryLicenses.map(franchise => ({ franchise }))
+  );
+  for (const license of secondaryLicenses) {
+    const album = (
+      await db.query("select public.get_panini_album_cards_page($1) as album", [
+        license
+      ])
+    ).rows[0].album;
+    assert.equal(album.total, 1);
+    assert.equal(album.items[0].id, cardId);
+    assert.equal(album.items[0].anime, null);
+  }
   unavailable = true;
   assert.match(
     (await actions.updateCardAction({}, form)).message,

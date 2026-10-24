@@ -176,16 +176,10 @@ export function ReferralReminder({
           </Button>
           <div className="yk-home-pack-options-art" aria-hidden="true">
             <Image
-              src="/assets/chrome-regular-booster-v1.png"
+              src="/assets/home-booster-box.webp"
               alt=""
-              width={96}
-              height={168}
-            />
-            <Image
-              src="/assets/chrome-decision-booster-v1.png"
-              alt=""
-              width={96}
-              height={168}
+              width={640}
+              height={483}
             />
           </div>
         </section>

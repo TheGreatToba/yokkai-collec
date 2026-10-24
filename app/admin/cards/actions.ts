@@ -61,12 +61,15 @@ const CATEGORY_ALBUMS = new Set([
 ]);
 
 function franchiseInputs(form: FormData) {
-  if (!value(form, "franchise")) return [];
   const franchises: string[] = [];
   const seen = new Set<string>();
-  for (const entry of form.getAll("franchise")) {
+  for (const [index, entry] of form.getAll("franchise").entries()) {
     const franchise = String(entry).trim();
-    if (!franchise) continue;
+    if (!franchise) {
+      // Preserve the primary slot so a secondary license is never promoted.
+      if (index === 0) franchises.push("");
+      continue;
+    }
     if (franchise.length > 200)
       throw new Error("A license cannot exceed 200 characters.");
     const key = franchise.toLocaleLowerCase("fr-FR");
@@ -80,7 +83,7 @@ function franchiseInputs(form: FormData) {
 }
 
 function albumFranchises(franchises: string[], category: string) {
-  if (!franchises.length) return [];
+  if (!franchises[0]) return franchises.slice(1);
   const normalizedCategory = category.trim().toUpperCase();
   if (normalizedCategory === "ARTIST") return franchises;
   if (CATEGORY_ALBUMS.has(normalizedCategory)) return [normalizedCategory];
@@ -392,7 +395,7 @@ export async function updateCardAction(
     } = {
       nom: value(form, "nom"),
       categorie: value(form, "categorie"),
-      franchise: franchises[0] ?? null,
+      franchise: franchises[0] || null,
       rarete_base: value(form, "rarete_base")
     };
     if (!patch.nom || !patch.categorie)
