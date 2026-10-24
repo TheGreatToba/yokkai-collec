@@ -41,7 +41,8 @@ const CatalogueCardModal = dynamic(() =>
 );
 
 const CardCinematic = dynamic(
-  () => import("@/components/card-cinematic").then(module => module.CardCinematic)
+  () => import("@/components/card-cinematic").then(module => module.CardCinematic),
+  { loading: () => <p role="status">Loading cinematic…</p> }
 );
 
 const BoosterOpening = dynamic(

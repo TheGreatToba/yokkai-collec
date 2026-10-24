@@ -104,11 +104,18 @@ function revealHarness(
   reduced = false
 ) {
   const state = hooks();
+  let cinematicLoading;
   const { BoosterReveal } = load(
     "components/boosters.tsx",
     {
       react: state.react,
-      "next/dynamic": { default: () => "Dynamic" },
+      "next/dynamic": {
+        default: (loader, options) => {
+          if (loader.toString().includes("/card-cinematic"))
+            cinematicLoading = options?.loading;
+          return "Dynamic";
+        }
+      },
       "next/link": { default: "Link" },
       "@/lib/ui/pack-opening": pack,
       "@/lib/ui/animations": {},
@@ -169,8 +176,20 @@ function revealHarness(
           node.props.className.startsWith("yk-reveal-grid")
       ).props.children
     );
-  return { props, render, slots, unmount: () => state.unmount() };
+  return {
+    props,
+    render,
+    slots,
+    cinematicLoading,
+    unmount: () => state.unmount()
+  };
 }
+
+test("loading the first cinematic stays inside its dialog instead of suspending and clearing the batch queue", () => {
+  const { cinematicLoading } = revealHarness(10);
+  assert.equal(typeof cinematicLoading, "function");
+  assert.equal(cinematicLoading().props.role, "status");
+});
 
 for (const count of [5, 10]) {
   test(`x${count} reveals common cards immediately and queues SSR/LR including Shiny in draw order`, () => {
