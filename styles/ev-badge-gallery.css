@@ -203,8 +203,7 @@
   inset: 0;
   z-index: 1;
   opacity: 1;
-  background: url("/assets/ev-titlecase-graphite.svg") center / 92% auto
-    no-repeat;
+  background: url("/assets/ev-electric-white.svg") center / 92% auto no-repeat;
   animation: none;
 }
 .ev-badge-gallery[data-animated="true"] .ev-option .yk-evolved-badge {
@@ -271,8 +270,9 @@
 /* The preview cards carry the same charged edge as their EV insignia. */
 .ev-badge-gallery .ev-option-cards .yk-evolved-lightning {
   stroke-width: 0.72;
-  filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 3px var(--evolution-accent))
-    drop-shadow(0 0 8px var(--evolution-accent));
+  stroke: #fff;
+  filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 3px #fff)
+    drop-shadow(0 0 8px rgba(225, 240, 255, 0.85));
 }
 .ev-badge-gallery[data-animated="true"]
   .ev-option-cards
@@ -339,8 +339,8 @@
   --ev-preview-fill: linear-gradient(145deg, #fff, #f0f2f4 50%, #dce1e6);
   --ev-preview-ink: #252c35;
   --ev-preview-rim: #b7c0ca;
-  --ev-preview-glow: rgba(231, 236, 243, 0.35);
-  --ev-preview-electric: #e3eaf2;
+  --ev-preview-glow: rgba(226, 240, 255, 0.45);
+  --ev-preview-electric: #fff;
 }
 .ev-badge-gallery [data-style="silver"] {
   --ev-preview-fill: linear-gradient(
@@ -352,24 +352,24 @@
   );
   --ev-preview-ink: #252c35;
   --ev-preview-rim: #97a3b3;
-  --ev-preview-glow: rgba(204, 215, 229, 0.35);
-  --ev-preview-electric: #d1dce9;
+  --ev-preview-glow: rgba(226, 240, 255, 0.45);
+  --ev-preview-electric: #fff;
   --ev-charge-delay: -0.6s;
 }
 .ev-badge-gallery [data-style="slate"] {
   --ev-preview-fill: linear-gradient(145deg, #eef0f3, #b1bac5 50%, #d5dbe2);
   --ev-preview-ink: #252c35;
   --ev-preview-rim: #8b98a9;
-  --ev-preview-glow: rgba(183, 196, 213, 0.35);
-  --ev-preview-electric: #c4cfdd;
+  --ev-preview-glow: rgba(226, 240, 255, 0.45);
+  --ev-preview-electric: #fff;
   --ev-charge-delay: -1.2s;
 }
 .ev-badge-gallery [data-style="champagne"] {
   --ev-preview-fill: linear-gradient(145deg, #faf8f1, #dbd1bb 50%, #efeadf);
   --ev-preview-ink: #39342a;
   --ev-preview-rim: #b8ab90;
-  --ev-preview-glow: rgba(223, 212, 188, 0.35);
-  --ev-preview-electric: #e3dac7;
+  --ev-preview-glow: rgba(226, 240, 255, 0.45);
+  --ev-preview-electric: #fff;
   --ev-charge-delay: -1.8s;
 }
 
