@@ -450,12 +450,7 @@ export function LrCardReveal({
         >
           {!ssr && <div className="yk-lr-edge" aria-hidden="true" />}
           <div className="yk-lr-spin">
-            <YokaiCard
-              {...card}
-              rarity={ssr ? "SSR" : "LR"}
-              animated={false}
-              crossOrigin="anonymous"
-            />
+            <YokaiCard {...card} rarity={ssr ? "SSR" : "LR"} animated={false} />
             <div className="yk-lr-glass" aria-hidden="true" />
           </div>
         </div>
