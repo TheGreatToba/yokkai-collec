@@ -129,7 +129,7 @@ test("migration preserves existing cards and clears stale links only on future e
   const { readdirSync } = await import("node:fs");
   const migration = "20261023233000_optional_card_franchise.sql";
   const migrations = readdirSync("supabase/migrations")
-    .filter(name => name.endsWith(".sql") && name !== migration)
+    .filter(name => name.endsWith(".sql") && name < migration)
     .sort();
   const { db } = await replayMigrations({ migrations });
   t.after(() => db.close());

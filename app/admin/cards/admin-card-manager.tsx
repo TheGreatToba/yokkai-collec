@@ -263,9 +263,12 @@ function CardRow({ card, categories }: { card: Card; categories: string[] }) {
           </div>
           <LicenseFields
             className="xl:col-span-5"
-            initial={
-              card.franchises.length ? card.franchises : [card.franchise ?? ""]
-            }
+            initial={[
+              card.franchise ?? "",
+              ...card.franchises.filter(
+                franchise => franchise !== card.franchise
+              )
+            ]}
           />
           <div className="grid gap-3 xl:col-span-2">
             <label className="grid gap-1 text-xs text-slate-300">
