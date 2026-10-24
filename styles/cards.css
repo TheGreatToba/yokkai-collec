@@ -260,8 +260,7 @@
   --card-foil: var(--evolved-foil);
   --card-sweep: yk-sweep 6s ease-in-out infinite;
 }
-.yk-evolved.yk-rarity-LR,
-.yk-shiny.yk-rarity-LR {
+.yk-evolved.yk-rarity-LR {
   --evolved-frame: var(--lr-evolved-frame);
   --evolved-glow: rgba(238, 185, 49, 0.62);
   --evolution-rgb: 239, 188, 66;
@@ -274,12 +273,11 @@
 }
 
 .yk-shiny.yk-rarity-LR {
-  --card-frame: var(--lr-evolved-frame);
+  --evolution-rgb: 200, 230, 255;
+  --evolution-light-rgb: 255, 255, 255;
+  --card-frame: var(--holo-frame);
   --card-inset: clamp(3px, 1.7cqw, 5px);
-  --card-glow:
-    0 0 0 1px rgba(var(--evolution-light-rgb), 0.55),
-    0 8px 28px var(--evolved-glow);
-  --card-glow-color: var(--evolved-glow);
+  --card-line: rgba(200, 230, 255, 0.45);
   --card-spin: none;
 }
 
@@ -288,7 +286,7 @@
 .yk-shiny.yk-rarity-LR .yk-card-frame,
 .yk-shiny.yk-rarity-LR .yk-shiny-frame {
   inset: 0;
-  background: var(--evolved-frame);
+  background: var(--card-frame);
   mix-blend-mode: normal;
   opacity: 1;
   animation: none;
