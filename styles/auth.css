@@ -725,6 +725,126 @@
   font-size: 11px;
   text-align: center;
 }
+/* Match the home page's gentle lifts and gold focus accents without tilting
+   or scaling card faces, which softens their lettering at standard density. */
+.yk-auth-shell :is(a, button, input) {
+  transition:
+    color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard),
+    translate var(--duration-fast) var(--ease-standard);
+}
+.yk-auth-shell :is(a, button, input):focus-visible {
+  outline: 2px solid var(--color-accent-gold);
+  outline-offset: 3px;
+}
+.yk-auth-feature,
+.yk-auth-feature h3,
+.yk-auth-account,
+.yk-auth-binder-tags span,
+.yk-auth-chat-preview p {
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard),
+    translate var(--duration-fast) var(--ease-standard);
+}
+.yk-auth-showcase :is(.yk-card, .yk-auth-display-card),
+.yk-auth-showcase
+  :is(
+    .yk-auth-album-preview,
+    .yk-auth-auction-preview,
+    .yk-auth-chat-preview,
+    .yk-auth-binder-tile,
+    .yk-auth-decision-preview,
+    .yk-auth-pack-preview
+  ) {
+  transition:
+    translate var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard);
+}
+.yk-auth-account:focus-within {
+  border-color: var(--color-focus-ring);
+  box-shadow:
+    var(--shadow-card),
+    0 0 24px #a1c0ff12;
+}
+.yk-auth-feature:focus-within {
+  border-bottom-color: var(--color-accent-gold);
+}
+.yk-auth-feature:focus-within h3 {
+  color: var(--color-accent-gold);
+}
+@media (hover: hover) and (pointer: fine) {
+  .yk-auth-feature:hover {
+    border-bottom-color: color-mix(
+      in srgb,
+      var(--color-accent-gold) 60%,
+      transparent
+    );
+  }
+  .yk-auth-feature:hover h3,
+  .yk-auth-help a:hover,
+  .yk-auth-shell .yk-auth-link:hover {
+    color: var(--color-accent-gold);
+  }
+  .yk-auth-account:hover {
+    border-color: var(--color-veil-strong);
+  }
+  .yk-auth-account:focus-within {
+    border-color: var(--color-focus-ring);
+  }
+  .yk-auth-form .auth-input:hover:not(:disabled) {
+    border-color: var(--color-focus-ring);
+  }
+  .yk-auth-binder-tags span:hover {
+    border-color: var(--color-accent-gold);
+    color: var(--color-ink);
+  }
+  .yk-auth-showcase
+    :is(
+      .yk-auth-album-preview,
+      .yk-auth-auction-preview,
+      .yk-auth-chat-preview,
+      .yk-auth-binder-tile,
+      .yk-auth-decision-preview
+    ):hover {
+    border-color: var(--color-focus-ring);
+    box-shadow:
+      0 8px 24px #0003,
+      0 0 18px #a1c0ff0d;
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .yk-auth-shell :is(.yk-auth-brand, .yk-auth-return, .yk-auth-pro-link):hover,
+  .yk-auth-shell .yk-auth-submit:hover:not(:disabled) {
+    translate: 0 -2px;
+  }
+  .yk-auth-showcase .yk-card:not(.yk-auth-evolution-card .yk-card):hover,
+  .yk-auth-display-card:hover {
+    translate: 0 -4px;
+  }
+  .yk-auth-display-card:hover .yk-card {
+    translate: none;
+  }
+  .yk-auth-showcase
+    :is(
+      .yk-auth-album-preview,
+      .yk-auth-auction-preview,
+      .yk-auth-chat-preview,
+      .yk-auth-binder-tile,
+      .yk-auth-decision-preview,
+      .yk-auth-pack-preview
+    ):hover {
+    translate: 0 -3px;
+  }
+  .yk-auth-binder-tags span:hover,
+  .yk-auth-chat-preview p:hover {
+    translate: 0 -2px;
+  }
+}
 @keyframes yk-auth-card-scroll {
   to {
     transform: translateX(-50%);
