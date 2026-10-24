@@ -682,87 +682,6 @@
   min-width: 0;
   gap: 28px;
 }
-.yk-auth-market-figure {
-  min-width: 0;
-  margin: 0;
-}
-.yk-auth-market-figure h4 {
-  font-family: var(--font-display);
-  font-size: 17px;
-  font-weight: 600;
-}
-.yk-auth-market-figure figcaption p {
-  margin-top: 8px;
-  color: var(--color-ink-2);
-  font-size: 12px;
-  line-height: 1.7;
-}
-.yk-auth-market-image {
-  position: relative;
-  display: block;
-  width: 100%;
-  margin-top: 16px;
-  padding: 0;
-  overflow: hidden;
-  border: 1px solid var(--color-veil-strong);
-  border-radius: 12px;
-  background: transparent;
-  text-align: left;
-  cursor: zoom-in;
-}
-.yk-auth-market-image img {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-.yk-auth-market-open {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
-  border: 1px solid var(--color-veil-strong);
-  border-radius: var(--radius-pill);
-  padding: 7px 10px;
-  background: var(--color-night);
-  color: var(--color-ink);
-  font-size: 11px;
-}
-.yk-auth-market-example-note {
-  color: var(--color-ink-3);
-  font-size: 10px;
-  line-height: 1.6;
-}
-.yk-modal.yk-auth-market-modal {
-  width: min(1320px, calc(100% - 32px));
-  padding: clamp(16px, 3vw, 28px);
-}
-.yk-auth-market-image-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-.yk-auth-market-image-toolbar p {
-  color: var(--color-ink-2);
-  font-size: 12px;
-}
-.yk-auth-market-zoom {
-  overflow: auto;
-  max-height: 65dvh;
-  border-radius: 8px;
-}
-.yk-auth-market-zoom img {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  height: auto;
-}
-.yk-auth-market-zoom.is-zoomed img {
-  width: 1600px;
-  min-width: 100%;
-  max-width: none;
-}
 .yk-auth-preview-caption {
   display: block;
   margin-top: 10px;
@@ -836,7 +755,8 @@
 .yk-auth-showcase
   :is(
     .yk-auth-album-preview,
-    .yk-auth-market-image,
+    .yk-auth-demo-market,
+    .yk-auth-demo-auction,
     .yk-auth-chat-preview,
     .yk-auth-binder-tile,
     .yk-auth-decision-preview,
@@ -870,7 +790,8 @@
   .yk-auth-showcase
     :is(
       .yk-auth-album-preview,
-      .yk-auth-market-image,
+      .yk-auth-demo-market,
+      .yk-auth-demo-auction,
       .yk-auth-chat-preview,
       .yk-auth-binder-tile,
       .yk-auth-decision-preview
@@ -886,7 +807,12 @@
   .yk-auth-shell .yk-auth-submit:hover:not(:disabled) {
     translate: 0 -2px;
   }
-  .yk-auth-showcase .yk-card:not(.yk-auth-evolution-card .yk-card):hover,
+  .yk-auth-showcase
+    .yk-card:not(
+      .yk-auth-evolution-card .yk-card,
+      .yk-auth-demo-market .yk-card,
+      .yk-auth-demo-auction .yk-card
+    ):hover,
   .yk-auth-display-card:hover {
     translate: 0 -4px;
   }
@@ -896,7 +822,8 @@
   .yk-auth-showcase
     :is(
       .yk-auth-album-preview,
-      .yk-auth-market-image,
+      .yk-auth-demo-market,
+      .yk-auth-demo-auction,
       .yk-auth-chat-preview,
       .yk-auth-binder-tile,
       .yk-auth-decision-preview,
