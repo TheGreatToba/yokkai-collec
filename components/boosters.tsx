@@ -41,7 +41,8 @@ const CatalogueCardModal = dynamic(() =>
 );
 
 const CardCinematic = dynamic(
-  () => import("@/components/card-cinematic").then(module => module.CardCinematic)
+  () => import("@/components/card-cinematic").then(module => module.CardCinematic),
+  { loading: () => <p role="status">Loading cinematic…</p> }
 );
 
 const BoosterOpening = dynamic(
@@ -1065,7 +1066,7 @@ export function BoosterReveal({
         className="yk-invocation yk-lr-file-modal"
       >
         {spot && <CardCinematic key={spot.instanceId} card={spot}
-          autoAdvance={sequencing}
+          autoAdvance={false}
           onContinue={() => {
             if (sequencing) finishRare(spot.instanceId);
             else { setSpot(null); if (!done) setFaceUp(true); }
