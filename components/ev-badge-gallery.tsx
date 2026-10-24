@@ -121,7 +121,7 @@ export function EvBadgeGallery() {
                   <h2 id={`ev-option-${option.id}`}>{option.name}</h2>
                 </div>
                 <div className="ev-badge-detail yk-evolved" aria-hidden="true">
-                  <span className="yk-evolved-badge">ev</span>
+                  <span className="yk-evolved-badge">Ev</span>
                 </div>
               </header>
               <p className="ev-option-description">{option.description}</p>
