@@ -272,18 +272,31 @@
   --evolution-mid: #191307;
 }
 
+.yk-shiny.yk-rarity-LR {
+  --evolution-rgb: 200, 230, 255;
+  --evolution-light-rgb: 255, 255, 255;
+  --card-frame: var(--holo-frame);
+  --card-inset: clamp(3px, 1.7cqw, 5px);
+  --card-line: rgba(200, 230, 255, 0.45);
+  --card-spin: none;
+}
+
 .yk-evolved .yk-card-frame,
-.yk-evolved .yk-shiny-frame {
+.yk-evolved .yk-shiny-frame,
+.yk-shiny.yk-rarity-LR .yk-card-frame,
+.yk-shiny.yk-rarity-LR .yk-shiny-frame {
   inset: 0;
-  background: var(--evolved-frame);
+  background: var(--card-frame);
   mix-blend-mode: normal;
   opacity: 1;
   animation: none;
 }
-.yk-evolved .yk-card-interior {
+.yk-evolved .yk-card-interior,
+.yk-shiny.yk-rarity-LR .yk-card-interior {
   box-shadow: inset 0 0 25px rgba(var(--evolution-rgb), 0.48);
 }
-.yk-evolved .yk-card-interior::before {
+.yk-evolved .yk-card-interior::before,
+.yk-shiny.yk-rarity-LR .yk-card-interior::before {
   content: "";
   position: absolute;
   inset: 1.8cqw;
@@ -304,119 +317,13 @@
   mix-blend-mode: soft-light;
   animation: none;
 }
-.yk-evolved .yk-evolved-badge {
-  --electric-badge-rim: #b7c0ca;
-  --electric-badge-core: #fff;
-  --electric-badge-glow: rgba(226, 240, 255, 0.45);
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  padding: 2px 7px;
-  border: 1px solid transparent;
-  border-radius: 2px 7px 2px 7px;
-  background:
-    var(--evolved-badge) padding-box,
-    linear-gradient(
-        135deg,
-        #fff,
-        var(--electric-badge-rim) 32%,
-        #fff 52%,
-        var(--electric-badge-rim) 76%,
-        #f4f8ff
-      )
-      border-box;
-  color: transparent;
-  font-family: "Arial Black", var(--font-sora), Arial, sans-serif;
-  font-weight: 900;
-  font-style: italic;
-  line-height: 1.25;
-  letter-spacing: -0.07em;
-  text-shadow: none;
-  box-shadow:
-    inset 0 1px 0 #fff,
-    inset 0 -1px 0 var(--electric-badge-rim),
-    0 2px 4px #0005,
-    0 0 10px var(--electric-badge-glow);
+/* Evolved shares the Shiny badge finish; its infinity mark stays vector sharp. */
+.yk-evolved-symbol {
+  display: inline-block;
+  width: 1.2em;
+  height: 1lh;
+  vertical-align: top;
 }
-.yk-evolved-badge::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  opacity: 1;
-  pointer-events: none;
-  background: url("/assets/ev-electric-white.svg") center / 92% auto no-repeat;
-}
-.yk-evolved-badge::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: #fff;
-  mask: url("/assets/ev-badge-lightning.svg") 0 0 / 100% 100% no-repeat;
-  filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 4px #fff);
-  opacity: 0;
-  pointer-events: none;
-}
-.yk-evolved.yk-animated .yk-evolved-badge {
-  animation: yk-evolved-badge-charge 4.8s linear infinite;
-}
-.yk-evolved.yk-animated .yk-evolved-badge::after {
-  animation: yk-evolved-badge-discharge 4.8s linear infinite;
-}
-@keyframes yk-evolved-badge-discharge {
-  0%,
-  14%,
-  100% {
-    opacity: 0.18;
-  }
-  18% {
-    opacity: 1;
-  }
-  23% {
-    opacity: 0.3;
-  }
-  27% {
-    opacity: 1;
-  }
-  45% {
-    opacity: 0.6;
-  }
-  60% {
-    opacity: 0.18;
-  }
-}
-@keyframes yk-evolved-badge-charge {
-  0%,
-  14%,
-  35%,
-  100% {
-    box-shadow:
-      inset 0 1px 0 #fff,
-      inset 0 -1px 0 var(--electric-badge-rim),
-      0 2px 4px #0005,
-      0 0 8px var(--electric-badge-core),
-      0 0 13px var(--electric-badge-glow);
-  }
-  18%,
-  27% {
-    box-shadow:
-      inset 0 0 0 1px #fff,
-      inset 0 0 6px var(--electric-badge-core),
-      0 2px 4px #0005,
-      0 0 0 1px var(--electric-badge-core),
-      0 0 10px var(--electric-badge-core),
-      0 0 22px var(--electric-badge-glow);
-  }
-  23% {
-    box-shadow:
-      inset 0 1px 0 #fff,
-      inset 0 -1px 0 var(--electric-badge-rim),
-      0 2px 4px #0005,
-      0 0 7px var(--electric-badge-glow);
-  }
-}
-
 .yk-evolved .yk-evolved-spark {
   font-size: 7cqw !important;
   opacity: 0.9;
@@ -603,10 +510,7 @@
   .yk-evolved.yk-animated .yk-card-foil,
   .yk-evolved.yk-animated .yk-evolved-scan,
   .yk-evolved.yk-animated .yk-card-interior::before,
-  .yk-evolved.yk-animated .yk-card-clip::after,
-  .yk-evolved.yk-animated .yk-evolved-badge,
-  .yk-evolved.yk-animated .yk-evolved-badge::before,
-  .yk-evolved.yk-animated .yk-evolved-badge::after {
+  .yk-evolved.yk-animated .yk-card-clip::after {
     animation: none;
   }
   .yk-evolved.yk-animated .yk-evolved-lightning path {
