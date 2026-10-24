@@ -41,7 +41,7 @@ function renderPagination(page = 21, pageCount = 78) {
     scrolls = [],
     effects = [];
   const jsx = (type, props) => ({ type, props });
-  const module = { exports: {} };
+  const loaded = { exports: {} };
   vm.runInNewContext(
     ts.transpileModule(readFileSync("components/ui/pagination.tsx", "utf8"), {
       compilerOptions: {
@@ -50,7 +50,7 @@ function renderPagination(page = 21, pageCount = 78) {
       }
     }).outputText,
     {
-      exports: module.exports,
+      exports: loaded.exports,
       require: name => {
         if (name === "react/jsx-runtime") return { jsx, jsxs: jsx };
         if (name === "@/lib/ui/pagination") return exports;
@@ -71,7 +71,7 @@ function renderPagination(page = 21, pageCount = 78) {
       window: { matchMedia: () => ({ matches: true }) }
     }
   );
-  const tree = module.exports.Pagination({
+  const tree = loaded.exports.Pagination({
     page,
     pageCount,
     onPageChange: n => calls.push(n),
