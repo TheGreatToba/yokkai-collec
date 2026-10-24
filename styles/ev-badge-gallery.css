@@ -203,7 +203,7 @@
   inset: 0;
   z-index: 1;
   opacity: 1;
-  background: url("/assets/ev-titlecase-graphite.svg") center / contain
+  background: url("/assets/ev-titlecase-graphite.svg") center / 92% auto
     no-repeat;
   animation: none;
 }
@@ -336,131 +336,41 @@
   }
 }
 .ev-badge-gallery [data-style="pearl"] {
-  --ev-preview-fill: linear-gradient(
-    145deg,
-    #fff 0%,
-    #f0f3f6 44%,
-    #dce3eb 100%
-  );
-  --ev-preview-ink: #243247;
-  --ev-preview-rim: #b8c5d4;
-  --ev-preview-glow: rgba(235, 242, 252, 0.4);
-  --ev-preview-electric: #d9f0ff;
+  --ev-preview-fill: linear-gradient(145deg, #fff, #f0f2f4 50%, #dce1e6);
+  --ev-preview-ink: #252c35;
+  --ev-preview-rim: #b7c0ca;
+  --ev-preview-glow: rgba(231, 236, 243, 0.35);
+  --ev-preview-electric: #e3eaf2;
 }
 .ev-badge-gallery [data-style="silver"] {
   --ev-preview-fill: linear-gradient(
     145deg,
-    #fafcfe 0%,
-    #d4dce7 40%,
-    #eff3f9 52%,
-    #abb9ca 100%
+    #f9fafc,
+    #d5dbe2 45%,
+    #e9edf2 55%,
+    #aeb8c5
   );
-  --ev-preview-ink: #223149;
-  --ev-preview-rim: #91a3ba;
-  --ev-preview-glow: rgba(198, 215, 239, 0.45);
-  --ev-preview-electric: #c3d7ff;
+  --ev-preview-ink: #252c35;
+  --ev-preview-rim: #97a3b3;
+  --ev-preview-glow: rgba(204, 215, 229, 0.35);
+  --ev-preview-electric: #d1dce9;
   --ev-charge-delay: -0.6s;
 }
-.ev-badge-gallery [data-style="ice"] {
-  --ev-preview-fill: linear-gradient(
-    145deg,
-    #f5fdff 0%,
-    #b6e7fa 50%,
-    #e6f8ff 100%
-  );
-  --ev-preview-ink: #1c4463;
-  --ev-preview-rim: #7ebbd5;
-  --ev-preview-glow: rgba(147, 221, 255, 0.4);
-  --ev-preview-electric: #56caff;
+.ev-badge-gallery [data-style="slate"] {
+  --ev-preview-fill: linear-gradient(145deg, #eef0f3, #b1bac5 50%, #d5dbe2);
+  --ev-preview-ink: #252c35;
+  --ev-preview-rim: #8b98a9;
+  --ev-preview-glow: rgba(183, 196, 213, 0.35);
+  --ev-preview-electric: #c4cfdd;
   --ev-charge-delay: -1.2s;
 }
 .ev-badge-gallery [data-style="champagne"] {
-  --ev-preview-fill: linear-gradient(
-    145deg,
-    #fffbed 0%,
-    #edcf92 50%,
-    #fff3cc 100%
-  );
-  --ev-preview-ink: #674a24;
-  --ev-preview-rim: #c6a56d;
-  --ev-preview-glow: rgba(255, 219, 149, 0.4);
-  --ev-preview-electric: #ffc759;
+  --ev-preview-fill: linear-gradient(145deg, #faf8f1, #dbd1bb 50%, #efeadf);
+  --ev-preview-ink: #39342a;
+  --ev-preview-rim: #b8ab90;
+  --ev-preview-glow: rgba(223, 212, 188, 0.35);
+  --ev-preview-electric: #e3dac7;
   --ev-charge-delay: -1.8s;
-}
-.ev-badge-gallery [data-style="jade"] {
-  --ev-preview-fill: linear-gradient(
-    145deg,
-    #f1fff9 0%,
-    #9de0c8 50%,
-    #d9f7eb 100%
-  );
-  --ev-preview-ink: #1b5142;
-  --ev-preview-rim: #70bba4;
-  --ev-preview-glow: rgba(152, 239, 205, 0.4);
-  --ev-preview-electric: #56eab3;
-  --ev-charge-delay: -2.4s;
-}
-.ev-badge-gallery [data-style="lavender"] {
-  --ev-preview-fill: linear-gradient(
-    145deg,
-    #fbf7ff 0%,
-    #cdb9ef 50%,
-    #eee2ff 100%
-  );
-  --ev-preview-ink: #4e356e;
-  --ev-preview-rim: #a58ac8;
-  --ev-preview-glow: rgba(207, 173, 255, 0.4);
-  --ev-preview-electric: #b78cff;
-  --ev-charge-delay: -3s;
-}
-
-.ev-badge-gallery [data-style="rose"] {
-  --ev-preview-fill: linear-gradient(145deg, #fff6fc, #f1aad0 50%, #ffe1f1);
-  --ev-preview-ink: #69304d;
-  --ev-preview-rim: #c77ea6;
-  --ev-preview-glow: rgba(255, 136, 199, 0.45);
-  --ev-preview-electric: #ff8dcb;
-  --ev-charge-delay: -0.4s;
-}
-.ev-badge-gallery [data-style="ruby"] {
-  --ev-preview-fill: linear-gradient(145deg, #fff3f4, #e58598 50%, #ffd1d8);
-  --ev-preview-ink: #6d2335;
-  --ev-preview-rim: #bc657d;
-  --ev-preview-glow: rgba(255, 96, 135, 0.45);
-  --ev-preview-electric: #ff6387;
-  --ev-charge-delay: -1s;
-}
-.ev-badge-gallery [data-style="amber"] {
-  --ev-preview-fill: linear-gradient(145deg, #fffbe9, #f3c95f 50%, #ffe8a4);
-  --ev-preview-ink: #684813;
-  --ev-preview-rim: #cba03f;
-  --ev-preview-glow: rgba(255, 203, 73, 0.45);
-  --ev-preview-electric: #ffd050;
-  --ev-charge-delay: -1.6s;
-}
-.ev-badge-gallery [data-style="sapphire"] {
-  --ev-preview-fill: linear-gradient(145deg, #eef5ff, #8fb5f4 50%, #cdddff);
-  --ev-preview-ink: #233c70;
-  --ev-preview-rim: #668ac4;
-  --ev-preview-glow: rgba(102, 161, 255, 0.45);
-  --ev-preview-electric: #6aabff;
-  --ev-charge-delay: -2.2s;
-}
-.ev-badge-gallery [data-style="emerald"] {
-  --ev-preview-fill: linear-gradient(145deg, #f1fff0, #8cdb99 50%, #ceefcf);
-  --ev-preview-ink: #255236;
-  --ev-preview-rim: #68a977;
-  --ev-preview-glow: rgba(119, 245, 148, 0.45);
-  --ev-preview-electric: #73ef94;
-  --ev-charge-delay: -2.8s;
-}
-.ev-badge-gallery [data-style="copper"] {
-  --ev-preview-fill: linear-gradient(145deg, #fff4ee, #dfa17f 50%, #f9d9c5);
-  --ev-preview-ink: #69412c;
-  --ev-preview-rim: #b9815d;
-  --ev-preview-glow: rgba(255, 167, 117, 0.45);
-  --ev-preview-electric: #ffad7f;
-  --ev-charge-delay: -3.4s;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -494,6 +404,6 @@
 }
 @media (min-width: 1180px) {
   .ev-studio-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

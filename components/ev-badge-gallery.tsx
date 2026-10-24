@@ -8,62 +8,22 @@ const options = [
   {
     id: "pearl",
     name: "Pearl",
-    description: "Pearl white with a soft satin finish."
+    description: "Soft pearl white with a subtle metallic finish."
   },
   {
     id: "silver",
     name: "Silver",
-    description: "Light silver with a bright chrome reflection."
+    description: "Classic silver with a restrained steel reflection."
   },
   {
-    id: "ice",
-    name: "Ice",
-    description: "Ice blue with a cool, luminous reflection."
+    id: "slate",
+    name: "Slate",
+    description: "Neutral slate gray with a brushed metal finish."
   },
   {
     id: "champagne",
     name: "Champagne",
-    description: "Warm ivory with a pale gold reflection."
-  },
-  {
-    id: "jade",
-    name: "Jade",
-    description: "Soft mint with a polished jade reflection."
-  },
-  {
-    id: "lavender",
-    name: "Lavender",
-    description: "Pale lilac with a soft violet reflection."
-  },
-  {
-    id: "rose",
-    name: "Rose",
-    description: "Pink chrome with pearlescent highlights."
-  },
-  {
-    id: "ruby",
-    name: "Ruby",
-    description: "Crimson chrome with bright ruby reflections."
-  },
-  {
-    id: "amber",
-    name: "Amber",
-    description: "Sunlit amber with a rich golden glow."
-  },
-  {
-    id: "sapphire",
-    name: "Sapphire",
-    description: "Electric blue with deep sapphire shadows."
-  },
-  {
-    id: "emerald",
-    name: "Emerald",
-    description: "Vivid green with jewel-like reflections."
-  },
-  {
-    id: "copper",
-    name: "Copper",
-    description: "Warm copper with peach and bronze reflections."
+    description: "Warm ivory with a muted champagne reflection."
   }
 ] as const;
 
@@ -89,7 +49,7 @@ export function EvBadgeGallery() {
           <p className="ev-studio-eyebrow">EVOLVED / COLOR STUDY</p>
           <h1>Find your color.</h1>
           <p className="ev-studio-intro">
-            One badge shape. Twelve color finishes, charged with branching
+            One badge shape. Four understated finishes, charged with branching
             lightning and a luminous edge. Choose your favorite.
           </p>
         </div>
