@@ -663,7 +663,7 @@ function Editor({
                   <div>
                     <img src={bannerCard.image} alt="" decoding="async" />
                     <strong>{bannerCard.name}</strong>
-                    <small>{bannerCard.anime ?? bannerCard.category}</small>
+                    {bannerCard.anime && <small>{bannerCard.anime}</small>}
                   </div>
                 </div>
               )}
@@ -709,7 +709,7 @@ function Editor({
                           />
                           <span>
                             <strong>{card.name}</strong>
-                            <small>{card.anime ?? card.category}</small>
+                            {card.anime && <small>{card.anime}</small>}
                           </span>
                         </button>
                       </li>
@@ -1662,11 +1662,12 @@ export function ProfileExperience({
                         <h3>{event.card.name}</h3>
                       </Link>
                       <p className="yk-profile-muted">
-                        {event.card.anime || event.card.category}{" "}
+                        {event.card.anime}{" "}
                         <span
                           className={`text-rarity-${event.card.rarity.toLowerCase()}`}
                         >
-                          · {event.card.rarity}
+                          {event.card.anime ? "· " : ""}
+                          {event.card.rarity}
                         </span>
                       </p>
                       {event.price !== undefined && (

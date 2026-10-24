@@ -17,7 +17,7 @@ type Card = {
   id: string;
   nom: string;
   categorie: string;
-  franchise: string;
+  franchise: string | null;
   franchises: string[];
   rarete_base: string;
   image_url: string;
@@ -263,7 +263,7 @@ function CardRow({ card, categories }: { card: Card; categories: string[] }) {
           <LicenseFields
             className="xl:col-span-5"
             initial={
-              card.franchises.length ? card.franchises : [card.franchise]
+              card.franchises.length ? card.franchises : [card.franchise ?? ""]
             }
           />
           <div className="grid gap-3 xl:col-span-2">
