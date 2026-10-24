@@ -269,16 +269,24 @@ export async function setPaniniAlbumFavorite(
   const safeLicense = license.trim();
   if (!safeLicense || safeLicense.length > 200)
     throw new Error("This binder can't be added to favorites.");
-  const request = favorite
-    ? db()
-        .from("panini_album_favorites")
-        .insert({ user_id: id, license: safeLicense })
-    : db()
-        .from("panini_album_favorites")
-        .delete()
-        .eq("user_id", id)
-        .eq("license", safeLicense);
-  const { error } = await request;
+  let { error } = await db().rpc("set_global_binder_favorite", {
+    p_license: safeLicense,
+    p_favorite: favorite
+  });
+  // During the staged rollout, an older database has neither this RPC nor
+  // the global projection. Preserve its existing source-binder behavior.
+  if (error?.code === "PGRST202") {
+    const request = favorite
+      ? db()
+          .from("panini_album_favorites")
+          .insert({ user_id: id, license: safeLicense })
+      : db()
+          .from("panini_album_favorites")
+          .delete()
+          .eq("user_id", id)
+          .eq("license", safeLicense);
+    error = (await request).error;
+  }
   if (error) throw failure(error);
   await assertPlayer(id);
 }

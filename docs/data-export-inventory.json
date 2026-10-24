@@ -69,6 +69,23 @@
   "public.decision_packs": { "sections": ["decision_packs"] },
   "public.folders": { "sections": ["folders"] },
   "public.friendships": { "sections": ["friendships"] },
+  "public.global_binder_aliases": {
+    "excluded": "Global editorial catalogue mapping and public evidence; contains no individual account records."
+  },
+  "public.global_binder_card_franchises": {
+    "sections": ["catalogue_cards"],
+    "note": "Derived presentation of card_franchises; export retains the referenced cards' original source licenses without duplicating this view."
+  },
+  "public.global_binder_favorites": {
+    "sections": ["album_favorites"],
+    "note": "Derived presentation of the requesting player's favorites; export retains all underlying source favorites without duplicating this view."
+  },
+  "public.global_binder_rpc_backups": {
+    "excluded": "Operator-only backup of global SQL function definitions for rollback; no individual account records."
+  },
+  "public.global_binder_settings": {
+    "excluded": "Global binder feature switches and editorial manifest checksum; not individual account data."
+  },
   "public.notifications": { "sections": ["notifications"] },
   "public.panini_album_favorites": { "sections": ["album_favorites"] },
   "public.private_message_reads": {

@@ -16,6 +16,7 @@ export const ownerOnly = [
 ]; // Internal helpers: owning SECURITY DEFINER wrappers/triggers only, never service_role or players.
 
 const allowlist = {
+  "public.set_global_binder_favorite(text, boolean)": ["authenticated"], // Desired state for auth.uid() only; source preference fan-out preserves choices after disabling the projection.
   "public.evolve_lr_card(uuid[])": ["authenticated"], // Five owned identical normal LR copies only; stable row locks, Shiny/evolved/locked/auction exclusions and atomic replacement.
   "public.publish_wall_post_reply_media(uuid, uuid, text, text, text)": [
     "authenticated"
