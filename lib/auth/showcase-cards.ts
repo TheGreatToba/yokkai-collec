@@ -1,5 +1,26 @@
 import type { Card } from "@/lib/data/cards";
 
+export const AUTH_EVOLUTION_CARDS = [
+  {
+    id: "a70f37b5-61e2-49b9-a7e5-22320255f589",
+    name: "GOGETA",
+    rarity: "LR",
+    category: "ANIME/MANGA",
+    anime: "Dragon Ball",
+    image:
+      "https://api.yokkai-collec.com/storage/v1/object/public/card-images/44cc99db7683b97405482d5eeab86bb90f72cfcf87e96db4df7453c2f326da05"
+  },
+  {
+    id: "8534f44e-58d6-4b7e-89c7-907a75bed2ff",
+    name: "HAWKS",
+    rarity: "SSR",
+    category: "ANIME/MANGA",
+    anime: "My Hero Academia",
+    image:
+      "https://api.yokkai-collec.com/storage/v1/object/public/card-images/5003474c982a73708d258cc460eb65c08dc5fb3252eab7bdebceec45338f833c-2990e815-aac6-46a8-8b3b-e7409d292428"
+  }
+] satisfies Card[];
+
 // Public catalogue snapshot verified read-only in production on 2026-10-20.
 export const AUTH_SHOWCASE_CARDS = [
   {

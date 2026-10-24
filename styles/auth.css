@@ -304,23 +304,52 @@
   color: var(--color-ink);
   font-size: 10px;
 }
+.yk-auth-feature.yk-auth-feature-evolution {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+}
+.yk-auth-feature-evolution .yk-auth-feature-copy {
+  max-width: 62ch;
+}
+.yk-auth-evolution-examples {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+}
 .yk-auth-evolution-preview {
+  --evolution-stack-color: var(--color-accent-gold);
   width: 100%;
-  max-width: 340px;
   min-width: 0;
   justify-self: center;
-  border: 1px solid var(--color-veil-strong);
-  border-radius: 16px;
-  padding: 16px 12px;
-  background:
-    radial-gradient(ellipse at 85% 50%, #e4ecff16, transparent 70%),
-    var(--color-surface);
+  padding: 18px;
+}
+.yk-auth-evolution-preview[data-rarity="SSR"] {
+  --evolution-stack-color: #ef5da8;
+}
+.yk-auth-evolution-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+  font-size: 11px;
+}
+.yk-auth-evolution-heading strong {
+  color: var(--color-ink);
+  letter-spacing: 0.06em;
+}
+.yk-auth-evolution-heading > span {
+  color: var(--evolution-stack-color);
+  font-size: 10px;
 }
 .yk-auth-evolution-flow {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 16px minmax(0, 1fr);
+  width: min(100%, 420px);
+  margin-inline: auto;
+  grid-template-columns: minmax(0, 0.9fr) 24px minmax(0, 1fr);
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 .yk-auth-evolution-flow figure {
   min-width: 0;
@@ -329,7 +358,7 @@
 .yk-auth-evolution-flow figcaption {
   margin-bottom: 12px;
   color: var(--color-ink-2);
-  font-size: 10px;
+  font-size: clamp(10px, 1vw, 12px);
   line-height: 1.5;
   text-align: center;
 }
@@ -344,7 +373,7 @@
   position: absolute;
   inset: 0 8px 8px 0;
   z-index: -1;
-  border: 1px solid var(--color-accent-gold);
+  border: 1px solid var(--evolution-stack-color);
   border-radius: 12px;
   background: var(--color-surface);
 }
@@ -356,17 +385,17 @@
   right: 5px;
   bottom: 5px;
   z-index: 4;
-  border: 1px solid var(--color-accent-gold);
+  border: 1px solid var(--evolution-stack-color);
   border-radius: 5px;
   padding: 2px 5px;
   background: var(--color-void);
-  color: var(--color-accent-gold);
+  color: var(--evolution-stack-color);
   font-size: 11px;
   font-weight: 700;
 }
 .yk-auth-evolution-arrow {
   color: var(--color-ink);
-  font-size: 18px;
+  font-size: 24px;
   text-align: center;
 }
 .yk-auth-evolution-preview > p {
@@ -375,6 +404,20 @@
   font-size: 10px;
   line-height: 1.6;
   text-align: center;
+}
+/* Keep the flat collection hover while the card's effects run continuously. */
+.yk-auth-evolution-preview .yk-card-shell:hover .yk-card-shell-plane {
+  will-change: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  .yk-auth-evolution-card .yk-card,
+  .yk-auth-evolution-card .yk-card::before,
+  .yk-auth-evolution-card .yk-card::after,
+  .yk-auth-evolution-card .yk-card *,
+  .yk-auth-evolution-card .yk-card *::before,
+  .yk-auth-evolution-card .yk-card *::after {
+    animation: none !important;
+  }
 }
 .yk-auth-pack-preview {
   position: relative;

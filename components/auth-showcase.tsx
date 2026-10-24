@@ -1,9 +1,11 @@
 import { YokaiCard } from "@/components/yokai-card";
 import { AuthCardCustomization } from "@/components/auth-card-customization";
 import { AuthDecisionPreview } from "@/components/auth-decision-preview";
+import { CardShell } from "@/components/card-shell";
 import {
   AUTH_SHOWCASE_CARDS as cards,
-  AUTH_MARQUEE_CARDS
+  AUTH_MARQUEE_CARDS,
+  AUTH_EVOLUTION_CARDS
 } from "@/lib/auth/showcase-cards";
 
 export function AuthShowcase() {
@@ -50,9 +52,62 @@ export function AuthShowcase() {
 
       <div className="yk-auth-feature-list">
         <AuthCardCustomization />
+        <article className="yk-auth-feature yk-auth-feature-evolution">
+          <div className="yk-auth-feature-copy">
+            <span className="yk-auth-feature-number">02 / THE EVOLUTION</span>
+            <h3>Five copies. One evolution.</h3>
+            <p>
+              Got duplicates? Fuse five identical normal SSR cards into one SSR
+              Evolved, or five identical normal LR cards into one LR Evolved.
+              Same character. Same rarity. A new electric look.
+            </p>
+            <p>Shiny and already Evolved cards cannot be used for evolution.</p>
+          </div>
+          <div className="yk-auth-evolution-examples">
+            {AUTH_EVOLUTION_CARDS.map(card => (
+              <div
+                className="yk-auth-evolution-preview"
+                data-rarity={card.rarity}
+                key={card.id}
+              >
+                <div className="yk-auth-evolution-heading">
+                  <strong>{card.name}</strong>
+                  <span>{card.rarity} evolution</span>
+                </div>
+                <div className="yk-auth-evolution-flow">
+                  <figure className="yk-auth-evolution-card">
+                    <figcaption>5 normal {card.rarity} copies</figcaption>
+                    <div className="yk-auth-evolution-stack">
+                      <CardShell interactive={false}>
+                        <YokaiCard {...card} />
+                        <span
+                          className="yk-auth-evolution-count"
+                          aria-hidden="true"
+                        >
+                          ×5
+                        </span>
+                      </CardShell>
+                    </div>
+                  </figure>
+                  <span className="yk-auth-evolution-arrow" aria-hidden="true">
+                    →
+                  </span>
+                  <figure className="yk-auth-evolution-card">
+                    <figcaption>1 {card.rarity} Evolved</figcaption>
+                    <CardShell interactive={false}>
+                      <YokaiCard {...card} isEvolved />
+                    </CardShell>
+                  </figure>
+                </div>
+                <p>Same character. A new electric look.</p>
+              </div>
+            ))}
+          </div>
+        </article>
+
         <article className="yk-auth-feature yk-auth-feature-packs">
           <div className="yk-auth-feature-copy">
-            <span className="yk-auth-feature-number">02 / THE REVEAL</span>
+            <span className="yk-auth-feature-number">03 / THE REVEAL</span>
             <h3>Small pack. Big possibilities.</h3>
             <p>
               Reveal five cards in every Regular Pack. Discover new characters,
@@ -78,7 +133,7 @@ export function AuthShowcase() {
 
         <article className="yk-auth-feature">
           <div className="yk-auth-feature-copy">
-            <span className="yk-auth-feature-number">03 / THE COLLECTION</span>
+            <span className="yk-auth-feature-number">04 / THE COLLECTION</span>
             <h3>One more card. One step closer.</h3>
             <p>
               Build your albums by universe, track your progress, and spot the
@@ -106,40 +161,6 @@ export function AuthShowcase() {
               <span />
             </div>
             <p>The next piece is out there.</p>
-          </div>
-        </article>
-
-        <article className="yk-auth-feature">
-          <div className="yk-auth-feature-copy">
-            <span className="yk-auth-feature-number">04 / THE EVOLUTION</span>
-            <h3>Five copies. One evolution.</h3>
-            <p>
-              Got duplicates? Fuse five identical normal SSR cards into one SSR
-              Evolved, or five identical normal LR cards into one LR Evolved.
-              Same character. Same rarity. A new electric look.
-            </p>
-            <p>Shiny and already Evolved cards cannot be used for evolution.</p>
-          </div>
-          <div className="yk-auth-evolution-preview">
-            <div className="yk-auth-evolution-flow">
-              <figure>
-                <figcaption>5 matching copies</figcaption>
-                <div className="yk-auth-evolution-stack">
-                  <YokaiCard {...cards[0]} animated={false} />
-                  <span className="yk-auth-evolution-count" aria-hidden="true">
-                    ×5
-                  </span>
-                </div>
-              </figure>
-              <span className="yk-auth-evolution-arrow" aria-hidden="true">
-                →
-              </span>
-              <figure>
-                <figcaption>1 Evolved card</figcaption>
-                <YokaiCard {...cards[0]} isEvolved animated={false} />
-              </figure>
-            </div>
-            <p>Turn your duplicates into something special.</p>
           </div>
         </article>
 
