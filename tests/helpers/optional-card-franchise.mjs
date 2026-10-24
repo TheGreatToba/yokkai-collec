@@ -5,6 +5,7 @@ import vm from "node:vm";
 import ts from "typescript";
 import * as importer from "../../scripts/import-cards.mjs";
 import { replayMigrations } from "../../scripts/replay-migrations.mjs";
+import { cardRarityLabels } from "./card-rarity-labels.mjs";
 
 const require = createRequire(import.meta.url);
 export function load(path, imports = {}) {
@@ -29,6 +30,7 @@ export function load(path, imports = {}) {
     Uint8Array,
     require: name => {
       if (name in imports) return imports[name];
+      if (name === "@/lib/ui/card-rarity-label") return cardRarityLabels;
       if (name.startsWith("react") || name.startsWith("node:"))
         return require(name);
       if (name.endsWith(".css") || name === "server-only") return {};

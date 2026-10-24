@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
+import { cardRarityLabel } from "@/lib/ui/card-rarity-label";
 import "server-only";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -49,29 +50,41 @@ function supportedGradient(value: string) {
     : "#E8C26A";
 }
 
-async function rarityTokens(rarity: Rarity, shiny: boolean) {
+async function rarityTokens(rarity: Rarity, shiny: boolean, isEvolved = false) {
   const source = await tokensSource;
   const block = source.match(
     new RegExp(`\\.yk-rarity-${rarity}\\s*\\{([^}]+)\\}`)
   )?.[1];
   if (!block) throw new Error(`Missing rarity ${rarity}`);
+  const evolved = isEvolved || (shiny && rarity === "SSR");
   return {
     frame: supportedGradient(
       resolved(
         source,
-        shiny
-          ? variable(source, "--holo-frame")
-          : variable(block, "--card-frame")
+        evolved
+          ? variable(
+              source,
+              rarity === "LR" ? "--lr-evolved-frame" : "--evolved-frame"
+            )
+          : shiny
+            ? variable(source, "--holo-frame")
+            : variable(block, "--card-frame")
       )
     ),
     background: resolved(source, variable(block, "--card-bg")),
     accent: resolved(
       source,
-      shiny ? variable(source, "--holo-badge") : variable(block, "--card-badge")
+      evolved
+        ? variable(source, "--evolved-badge")
+        : shiny
+          ? variable(source, "--holo-badge")
+          : variable(block, "--card-badge")
     ),
-    ink: shiny
-      ? "#04000B"
-      : resolved(source, variable(block, "--card-badge-ink"))
+    ink: evolved
+      ? variable(source, "--evolved-ink")
+      : shiny
+        ? "#04000B"
+        : resolved(source, variable(block, "--card-badge-ink"))
   };
 }
 
@@ -141,7 +154,7 @@ export async function renderSharedCardImage(
   const [{ width, height }, fonts, colors, image] = await Promise.all([
     Promise.resolve(sizes[format]),
     font,
-    rarityTokens(card.rarity, card.shiny),
+    rarityTokens(card.rarity, card.shiny, card.isEvolved),
     fetchCatalogueImage(card.catalogueImageUrl)
   ]);
   const portrait = format === "story";
@@ -189,8 +202,11 @@ export async function renderSharedCardImage(
           <span>YOKKAI COLLEC&apos;</span>
         </div>
         <span>
-          {card.rarity}
-          {card.shiny ? " · SHINY" : ""}
+          {cardRarityLabel(
+            card.rarity,
+            card.shiny,
+            card.isEvolved
+          ).toUpperCase()}
         </span>
       </div>
       <div

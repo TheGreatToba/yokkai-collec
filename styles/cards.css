@@ -232,6 +232,389 @@
   box-shadow: inset 0 0 28px
     color-mix(in srgb, var(--holo-glow) 55%, transparent);
 }
+/* SSR Evolved: diamond-cut rose chrome and charged crystal energy. */
+.yk-evolved {
+  --evolution-rgb: 255, 67, 155;
+  --evolution-light-rgb: 255, 225, 239;
+  --evolution-dark-rgb: 167, 16, 89;
+  --evolution-edge: #ffd7eb;
+  --evolution-accent: #ff3f9e;
+  --evolution-base: #48152e;
+  --evolution-mid: #180d17;
+  --card-frame: var(--evolved-frame);
+  --card-inset: clamp(3px, 1.7cqw, 5px);
+  --card-bg: radial-gradient(
+    110% 75% at 50% 32%,
+    var(--evolution-base),
+    var(--evolution-mid) 64%,
+    #08060b
+  );
+  --card-ring: rgba(var(--evolution-light-rgb), 0.24);
+  --card-glow:
+    0 0 0 1px rgba(var(--evolution-light-rgb), 0.55),
+    0 8px 28px var(--evolved-glow);
+  --card-glow-color: var(--evolved-glow);
+  --card-pulse: yk-evolved-aura 4.8s ease-in-out infinite;
+  --card-spin: none;
+  --card-spark: var(--evolution-edge);
+  --card-foil: var(--evolved-foil);
+  --card-sweep: yk-sweep 6s ease-in-out infinite;
+}
+.yk-evolved.yk-rarity-LR {
+  --evolved-frame: var(--lr-evolved-frame);
+  --evolved-glow: rgba(238, 185, 49, 0.62);
+  --evolution-rgb: 239, 188, 66;
+  --evolution-light-rgb: 255, 237, 179;
+  --evolution-dark-rgb: 135, 94, 17;
+  --evolution-edge: #fff0b8;
+  --evolution-accent: #edbc42;
+  --evolution-base: #44300c;
+  --evolution-mid: #191307;
+}
+
+.yk-evolved .yk-card-frame,
+.yk-evolved .yk-shiny-frame {
+  inset: 0;
+  background: var(--evolved-frame);
+  mix-blend-mode: normal;
+  opacity: 1;
+  animation: none;
+}
+.yk-evolved .yk-card-interior {
+  box-shadow: inset 0 0 25px rgba(var(--evolution-rgb), 0.48);
+}
+.yk-evolved .yk-card-interior::before {
+  content: "";
+  position: absolute;
+  inset: 1.8cqw;
+  z-index: 2;
+  border: 1px solid rgba(var(--evolution-light-rgb), 0.8);
+  border-radius: 8px;
+  pointer-events: none;
+}
+.yk-evolved .yk-holo {
+  background: linear-gradient(
+    145deg,
+    rgba(var(--evolution-light-rgb), 0.13),
+    transparent 38%,
+    rgba(var(--evolution-dark-rgb), 0.1) 70%,
+    rgba(var(--evolution-light-rgb), 0.12)
+  );
+  background-size: 100% 100%;
+  mix-blend-mode: soft-light;
+  animation: none;
+}
+.yk-evolved .yk-evolved-badge {
+  --electric-badge-rim: #b7c0ca;
+  --electric-badge-core: #fff;
+  --electric-badge-glow: rgba(226, 240, 255, 0.45);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 2px 7px;
+  border: 1px solid transparent;
+  border-radius: 2px 7px 2px 7px;
+  background:
+    var(--evolved-badge) padding-box,
+    linear-gradient(
+        135deg,
+        #fff,
+        var(--electric-badge-rim) 32%,
+        #fff 52%,
+        var(--electric-badge-rim) 76%,
+        #f4f8ff
+      )
+      border-box;
+  color: transparent;
+  font-family: "Arial Black", var(--font-sora), Arial, sans-serif;
+  font-weight: 900;
+  font-style: italic;
+  line-height: 1.25;
+  letter-spacing: -0.07em;
+  text-shadow: none;
+  box-shadow:
+    inset 0 1px 0 #fff,
+    inset 0 -1px 0 var(--electric-badge-rim),
+    0 2px 4px #0005,
+    0 0 10px var(--electric-badge-glow);
+}
+.yk-evolved-badge::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 1;
+  pointer-events: none;
+  background: url("/assets/ev-electric-white.svg") center / 92% auto no-repeat;
+}
+.yk-evolved-badge::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: #fff;
+  mask: url("/assets/ev-badge-lightning.svg") 0 0 / 100% 100% no-repeat;
+  filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 4px #fff);
+  opacity: 0;
+  pointer-events: none;
+}
+.yk-evolved.yk-animated .yk-evolved-badge {
+  animation: yk-evolved-badge-charge 4.8s linear infinite;
+}
+.yk-evolved.yk-animated .yk-evolved-badge::after {
+  animation: yk-evolved-badge-discharge 4.8s linear infinite;
+}
+@keyframes yk-evolved-badge-discharge {
+  0%,
+  14%,
+  100% {
+    opacity: 0.18;
+  }
+  18% {
+    opacity: 1;
+  }
+  23% {
+    opacity: 0.3;
+  }
+  27% {
+    opacity: 1;
+  }
+  45% {
+    opacity: 0.6;
+  }
+  60% {
+    opacity: 0.18;
+  }
+}
+@keyframes yk-evolved-badge-charge {
+  0%,
+  14%,
+  35%,
+  100% {
+    box-shadow:
+      inset 0 1px 0 #fff,
+      inset 0 -1px 0 var(--electric-badge-rim),
+      0 2px 4px #0005,
+      0 0 8px var(--electric-badge-core),
+      0 0 13px var(--electric-badge-glow);
+  }
+  18%,
+  27% {
+    box-shadow:
+      inset 0 0 0 1px #fff,
+      inset 0 0 6px var(--electric-badge-core),
+      0 2px 4px #0005,
+      0 0 0 1px var(--electric-badge-core),
+      0 0 10px var(--electric-badge-core),
+      0 0 22px var(--electric-badge-glow);
+  }
+  23% {
+    box-shadow:
+      inset 0 1px 0 #fff,
+      inset 0 -1px 0 var(--electric-badge-rim),
+      0 2px 4px #0005,
+      0 0 7px var(--electric-badge-glow);
+  }
+}
+
+.yk-evolved .yk-evolved-spark {
+  font-size: 7cqw !important;
+  opacity: 0.9;
+  text-shadow:
+    0 0 4px #fff,
+    0 0 12px var(--evolution-accent),
+    0 0 20px var(--evolution-edge);
+  animation: yk-evolved-drift 4s ease-in-out infinite;
+}
+.yk-evolved-energy {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  pointer-events: none;
+}
+.yk-evolved-lightning {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 0.72;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 3px #fff)
+    drop-shadow(0 0 8px rgba(225, 240, 255, 0.85));
+}
+.yk-evolved-lightning path {
+  opacity: 0;
+}
+.yk-evolved.yk-animated .yk-evolved-lightning path {
+  animation: yk-evolved-lightning 4.8s linear infinite;
+}
+.yk-evolved.yk-animated .yk-evolved-lightning path:nth-child(2) {
+  animation-delay: -2.4s;
+}
+.yk-evolved.yk-animated .yk-evolved-lightning path:nth-child(3) {
+  animation-delay: -1.2s;
+}
+.yk-evolved.yk-animated .yk-evolved-lightning path:nth-child(4) {
+  animation-delay: -3.6s;
+}
+.yk-evolved:not(.yk-animated) .yk-evolved-lightning path {
+  opacity: 0.22;
+}
+@keyframes yk-evolved-lightning {
+  0%,
+  10%,
+  50%,
+  100% {
+    opacity: 0;
+  }
+  14%,
+  31% {
+    opacity: 1;
+  }
+  24% {
+    opacity: 0.35;
+  }
+  44% {
+    opacity: 0.55;
+  }
+}
+.yk-evolved-scan {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 45%,
+    rgba(var(--evolution-light-rgb), 0.4) 50%,
+    transparent 55%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    #000 0% 12%,
+    transparent 24% 76%,
+    #000 88% 100%
+  );
+}
+.yk-evolved.yk-animated .yk-evolved-scan {
+  animation: yk-evolved-scan 4.8s ease-in-out infinite;
+}
+.yk-evolved.yk-animated .yk-card-interior::before {
+  animation: yk-evolved-edge 4.8s ease-in-out infinite;
+}
+@keyframes yk-evolved-scan {
+  0%,
+  15% {
+    transform: translateY(52%);
+    opacity: 0;
+  }
+  35%,
+  55% {
+    opacity: 0.7;
+  }
+  80%,
+  100% {
+    transform: translateY(-55%);
+    opacity: 0;
+  }
+}
+@keyframes yk-evolved-edge {
+  0%,
+  100% {
+    border-color: rgba(var(--evolution-light-rgb), 0.3);
+    box-shadow: inset 0 0 8px rgba(var(--evolution-rgb), 0.1);
+  }
+  42% {
+    border-color: rgba(var(--evolution-light-rgb), 0.9);
+    box-shadow: inset 0 0 18px rgba(var(--evolution-rgb), 0.36);
+  }
+}
+
+.yk-evolved .yk-card-clip::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse at top left,
+      rgba(var(--evolution-light-rgb), 0.95),
+      rgba(var(--evolution-rgb), 0.38) 5%,
+      transparent 18%
+    ),
+    radial-gradient(
+      ellipse at bottom right,
+      rgba(var(--evolution-light-rgb), 0.95),
+      rgba(var(--evolution-rgb), 0.38) 5%,
+      transparent 18%
+    );
+}
+.yk-evolved.yk-animated .yk-card-clip::after {
+  animation: yk-evolved-corners 3.6s ease-in-out infinite;
+}
+@keyframes yk-evolved-corners {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes yk-evolved-aura {
+  0%,
+  12%,
+  55%,
+  100% {
+    box-shadow:
+      0 0 0 1px var(--evolution-edge),
+      0 0 18px rgba(var(--evolution-rgb), 0.5),
+      0 10px 28px rgba(var(--evolution-dark-rgb), 0.4);
+  }
+  18%,
+  31% {
+    box-shadow:
+      0 0 0 1px var(--evolution-edge),
+      0 0 26px rgba(var(--evolution-rgb), 0.9),
+      0 0 44px rgba(var(--evolution-rgb), 0.4),
+      0 10px 32px rgba(var(--evolution-dark-rgb), 0.6);
+  }
+}
+@keyframes yk-evolved-drift {
+  0%,
+  100% {
+    transform: translateY(12px) scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: translateY(-14px) scale(1.1);
+    opacity: 0.9;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .yk-evolved,
+  .yk-evolved.yk-animated .yk-card-frame,
+  .yk-evolved.yk-animated .yk-card-foil,
+  .yk-evolved.yk-animated .yk-evolved-scan,
+  .yk-evolved.yk-animated .yk-card-interior::before,
+  .yk-evolved.yk-animated .yk-card-clip::after,
+  .yk-evolved.yk-animated .yk-evolved-badge,
+  .yk-evolved.yk-animated .yk-evolved-badge::before,
+  .yk-evolved.yk-animated .yk-evolved-badge::after {
+    animation: none;
+  }
+  .yk-evolved.yk-animated .yk-evolved-lightning path {
+    animation: none;
+    opacity: 0.2;
+  }
+}
+
 .yk-card-back {
   width: 100%;
   aspect-ratio: 5 / 7;

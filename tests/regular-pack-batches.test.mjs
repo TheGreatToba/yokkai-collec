@@ -1,3 +1,4 @@
+import { cardRarityLabels } from "./helpers/card-rarity-labels.mjs";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -25,7 +26,12 @@ function load(file, mocks = {}, globals = {}) {
       URL,
       AbortController,
       ...globals,
-      require: name => (name in mocks ? mocks[name] : require(name))
+      require: name =>
+        name === "@/lib/ui/card-rarity-label"
+          ? cardRarityLabels
+          : name in mocks
+            ? mocks[name]
+            : require(name)
     }
   );
   return exports;

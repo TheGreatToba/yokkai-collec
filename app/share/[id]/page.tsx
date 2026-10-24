@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
+import { cardRarityLabel } from "@/lib/ui/card-rarity-label";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -29,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const card = await getSharedCard(id);
   if (!card) notFound();
   const owner = card.pseudo ? ` by ${card.pseudo}` : "";
-  const description = `${card.cardName}, a ${card.rarity}${card.shiny ? " Shiny" : ""} card${card.franchise ? ` from ${card.franchise}` : ""}, shared${owner} on Yokkai Collec'.`;
+  const description = `${card.cardName}, a ${cardRarityLabel(card.rarity, card.shiny, card.isEvolved)} card${card.franchise ? ` from ${card.franchise}` : ""}, shared${owner} on Yokkai Collec'.`;
   const url = `${siteOrigin()}/share/${id}`;
   const image = `${url}/image/og`;
   return {
@@ -79,8 +80,7 @@ export default async function SharedCardPage({ params }: Props) {
           <p className="mt-3 text-sm text-ink-2">{card.franchise}</p>
         )}
         <p className={`mt-4 font-display ${rarityText[card.rarity]}`}>
-          {card.rarity}
-          {card.shiny ? " · Shiny" : ""}
+          {cardRarityLabel(card.rarity, card.shiny, card.isEvolved)}
         </p>
         {card.pseudo ? (
           <p className="mt-4 text-sm text-ink-3">Shared by {card.pseudo}</p>

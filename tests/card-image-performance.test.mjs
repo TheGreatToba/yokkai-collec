@@ -1,3 +1,4 @@
+import { cardRarityLabels } from "./helpers/card-rarity-labels.mjs";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
@@ -31,6 +32,7 @@ function load(input = source) {
         env: { NEXT_PUBLIC_SUPABASE_URL: "https://images.example.test" }
       },
       require: name => {
+        if (name === "@/lib/ui/card-rarity-label") return cardRarityLabels;
         if (name.endsWith(".css")) return {};
         if (name === "@/components/pro-access")
           return { useOwnProfileStyle: () => null };

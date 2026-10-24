@@ -5,6 +5,7 @@ export type CardShare = {
   cardName: string;
   rarity: string;
   shiny: boolean;
+  isEvolved?: boolean;
   showPseudo: boolean;
   createdAt: string;
 };
