@@ -104,6 +104,11 @@ test("LR skips entrance and post-art bounce while preserving the complete card-e
             ];
       const nodes = walk(tree);
       assert.equal(
+        nodes.find(node => node.type === "Card").props.crossOrigin,
+        undefined,
+        `${rarity} artwork must display even when its host does not allow canvas CORS`
+      );
+      assert.equal(
         nodes.find(node => node.type === "Card").props.rarity,
         rarity
       );
