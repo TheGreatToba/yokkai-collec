@@ -9,21 +9,10 @@ import "@/styles/auth-binder.css";
 const ownedCount = cards.filter(card => card.owned).length;
 
 export function AuthBinderShowcase() {
-  const [query, setQuery] = useState("");
-  const [hideMissing, setHideMissing] = useState(false);
   const [pinned, setPinned] = useState(true);
-  const normalized = query.trim().toLocaleLowerCase("en-US");
-  const visible = cards.filter(
-    card =>
-      (!hideMissing || card.owned) &&
-      card.name.toLocaleLowerCase("en-US").includes(normalized)
-  );
 
   return (
-    <section
-      className="yk-auth-binder-demo"
-      aria-label="Interactive Naruto binder preview"
-    >
+    <section className="yk-auth-binder-demo" aria-label="Naruto binder preview">
       <header className="yk-auth-binder-demo-header">
         <div>
           <span className="yk-auth-preview-label">BINDER</span>
@@ -68,64 +57,36 @@ export function AuthBinderShowcase() {
             <path d="m16 16 4.5 4.5" />
           </svg>
           <span className="sr-only">Search the example Naruto binder</span>
-          <input
-            type="search"
-            value={query}
-            onChange={event => setQuery(event.target.value)}
-            placeholder="Search cards…"
-          />
+          <input type="search" disabled placeholder="Search cards…" />
         </label>
-        <button
-          type="button"
-          className="yk-auth-binder-demo-toggle"
-          aria-pressed={hideMissing}
-          onClick={() => setHideMissing(current => !current)}
-        >
-          <span aria-hidden="true">{hideMissing ? "●" : "○"}</span>
-          {hideMissing ? "Show missing cards" : "Hide missing cards"}
+        <button type="button" className="yk-auth-binder-demo-toggle" disabled>
+          <span aria-hidden="true">○</span>
+          Hide missing cards
         </button>
       </div>
-      <p className="sr-only" role="status">
-        {visible.length} {visible.length === 1 ? "card" : "cards"} shown
-      </p>
-      {visible.length ? (
-        <ul
-          className="yk-auth-binder-demo-grid"
-          aria-label="Example Naruto binder cards"
-        >
-          {visible.map(card => (
-            <li
-              key={card.id}
-              data-owned={card.owned}
-              aria-label={`${card.name}, ${card.owned ? "collected" : "missing"}`}
-            >
-              <CardShell interactive={false}>
-                <YokaiCard
-                  {...card}
-                  animated={false}
-                  className={card.owned ? "" : "yk-panini-missing-card"}
-                />
-              </CardShell>
-              <span className="yk-auth-binder-demo-card-status">
-                {card.owned ? "Collected" : "Missing"}
-              </span>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <div className="yk-auth-binder-demo-empty">
-          <p>No cards match your search.</p>
-          <button
-            type="button"
-            onClick={() => {
-              setQuery("");
-              setHideMissing(false);
-            }}
+      <ul
+        className="yk-auth-binder-demo-grid"
+        aria-label="Example Naruto binder cards"
+      >
+        {cards.map(card => (
+          <li
+            key={card.id}
+            data-owned={card.owned}
+            aria-label={`${card.name}, ${card.owned ? "collected" : "missing"}`}
           >
-            Reset preview
-          </button>
-        </div>
-      )}
+            <CardShell interactive={false}>
+              <YokaiCard
+                {...card}
+                animated={false}
+                className={card.owned ? "" : "yk-panini-missing-card"}
+              />
+            </CardShell>
+            <span className="yk-auth-binder-demo-card-status">
+              {card.owned ? "Collected" : "Missing"}
+            </span>
+          </li>
+        ))}
+      </ul>
       <p className="yk-auth-binder-demo-note">
         Illustrative binder. Collected cards stand out; missing cards stay
         visible so you know what to chase next.

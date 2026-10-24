@@ -82,9 +82,6 @@
   color: var(--color-ink);
   font-size: 12px;
 }
-.yk-auth-binder-demo-search:focus-within {
-  border-color: var(--color-focus-ring);
-}
 .yk-auth-binder-demo-toggle {
   display: inline-flex;
   align-items: center;
@@ -96,17 +93,17 @@
   padding: 10px 12px;
   color: var(--color-ink-2);
   font-size: 11px;
-  cursor: pointer;
+  cursor: default;
 }
-.yk-auth-binder-demo-toggle[aria-pressed="true"] {
-  border-color: var(--color-focus-ring);
-  background: #a1c0ff12;
-  color: var(--color-ink);
+.yk-auth-binder-demo-search input:disabled,
+.yk-auth-binder-demo-toggle:disabled {
+  opacity: 1;
+  cursor: default;
 }
 .yk-auth-binder-demo-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px 12px;
+  gap: 14px 10px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -129,22 +126,6 @@
   .yk-auth-binder-demo-card-status {
   color: var(--color-ink-2);
 }
-.yk-auth-binder-demo-empty {
-  border: 1px dashed var(--color-veil-strong);
-  border-radius: 10px;
-  padding: 24px 12px;
-  color: var(--color-ink-2);
-  font-size: 12px;
-  text-align: center;
-}
-.yk-auth-binder-demo-empty button {
-  min-height: 44px;
-  margin-top: 10px;
-  color: var(--color-ink);
-  text-decoration: underline;
-  text-underline-offset: 4px;
-  cursor: pointer;
-}
 .yk-auth-binder-demo-note {
   margin-top: 20px;
   color: var(--color-ink-3);
@@ -153,11 +134,11 @@
 }
 @container (min-width: 430px) {
   .yk-auth-binder-demo-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 @container (min-width: 650px) {
   .yk-auth-binder-demo-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 }
