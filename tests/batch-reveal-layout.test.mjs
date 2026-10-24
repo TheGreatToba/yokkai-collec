@@ -412,7 +412,7 @@ test("Reveal all exposes common cards immediately, plays rare cinematics sequent
           props.cards[index].instanceId,
           "rare cinematics follow draw order, excluding already revealed cards"
         );
-        assert.equal(players[0].props.autoAdvance, true);
+        assert.equal(players[0].props.autoAdvance, false);
         players[0].props.onContinue();
         sequenceTree = render();
       }

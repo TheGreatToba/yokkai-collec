@@ -1065,7 +1065,7 @@ export function BoosterReveal({
         className="yk-invocation yk-lr-file-modal"
       >
         {spot && <CardCinematic key={spot.instanceId} card={spot}
-          autoAdvance={sequencing}
+          autoAdvance={false}
           onContinue={() => {
             if (sequencing) finishRare(spot.instanceId);
             else { setSpot(null); if (!done) setFaceUp(true); }

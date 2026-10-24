@@ -205,7 +205,7 @@ for (const count of [5, 10]) {
       assert.equal(players.length, 1);
       const player = players[0];
       assert.equal(player.props.card.instanceId, props.cards[index].instanceId);
-      assert.equal(player.props.autoAdvance, true);
+      assert.equal(player.props.autoAdvance, false);
       assert.ok(
         tree
           .filter(
