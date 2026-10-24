@@ -170,12 +170,16 @@
         #f4f8ff
       )
       border-box;
-  color: var(--ev-preview-ink);
-  font-family: var(--font-inter), Arial, sans-serif;
-  font-style: normal;
+  color: var(--ev-preview-electric);
+  font-family: "Arial Black", var(--font-sora), Arial, sans-serif;
+  font-style: italic;
   font-weight: 900;
-  letter-spacing: 0.02em;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+  letter-spacing: -0.07em;
+  -webkit-text-stroke: 0.06em var(--ev-preview-ink);
+  paint-order: stroke fill;
+  text-shadow:
+    0.055em 0.065em 0 var(--ev-preview-ink),
+    -0.025em -0.025em 0 #fff;
   box-shadow:
     inset 0 1px 0 #fff,
     inset 0 -1px 0 var(--ev-preview-rim),
