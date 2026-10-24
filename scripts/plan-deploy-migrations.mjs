@@ -150,6 +150,7 @@ export function deploymentPlan(files, registry) {
     "array[" + appliedVersions.sort().map(literal).join(",") + "]::text[]";
   const sql = [
     "begin;",
+    "set local transaction_read_only=off;",
     "set local lock_timeout='5s';",
     "set local statement_timeout='120s';",
     "select pg_advisory_xact_lock(20261008, 1022);",
