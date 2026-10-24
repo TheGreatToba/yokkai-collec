@@ -20,11 +20,12 @@ function load(file, globals = {}) {
     }
   ).outputText;
   const context = { exports: {}, Response, Uint8Array, URL, ...globals };
-  context.require =
-    globals.require ??
-    (name => {
-      throw new Error(`Unexpected import: ${name}`);
-    });
+  context.require = name => {
+    if (name === "@/lib/ui/card-rarity-label")
+      return load("lib/ui/card-rarity-label.ts");
+    if (globals.require) return globals.require(name);
+    throw new Error(`Unexpected import: ${name}`);
+  };
   vm.runInNewContext(source, context);
   return context.exports;
 }

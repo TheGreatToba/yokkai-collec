@@ -1,6 +1,7 @@
 "use client";
 /* eslint-disable react/no-unescaped-entities */
 
+import { cardRarityLabel } from "@/lib/ui/card-rarity-label";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useProAccess, ProFeatureNotice } from "@/components/pro-access";
@@ -356,7 +357,7 @@ export function CollectionView({
             matchesCardSearch(query, [c.name, c.category, c.anime]) &&
             (!category || c.category === category) &&
             (!rarity || c.rarity === rarity) &&
-            (!shinyOnly || c.shiny) &&
+            (!shinyOnly || c.shiny || c.isEvolved) &&
             (!folder ||
               (folder === LOCKED_FOLDER
                 ? !!c.locked
@@ -592,14 +593,24 @@ export function CollectionView({
         DESTRUCTION_KARAS[card.rarity]),
     0
   );
-  const evolvableCards = selected
-    ? consumableCopies(
-        cards.filter(
-          c => c.id === selected.id && c.rarity === "SSR" && !c.shiny
-        ),
-        isFrozen
-      )
-    : [];
+  const canEvolve =
+    !!selected &&
+    (selected.rarity === "SSR" || selected.rarity === "LR") &&
+    !selected.shiny &&
+    !selected.isEvolved;
+  const evolvableCards =
+    selected && canEvolve
+      ? consumableCopies(
+          cards.filter(
+            c =>
+              c.id === selected.id &&
+              c.rarity === selected.rarity &&
+              !c.shiny &&
+              !c.isEvolved
+          ),
+          isFrozen
+        )
+      : [];
   const evolutionCards = evolvableCards.filter(card =>
     evolutionSelection.has(card.instanceId)
   );
@@ -1240,7 +1251,7 @@ export function CollectionView({
           setPage(1);
         }}
       >
-        <span>Shiny only</span>
+        <span>Shiny / Evolved</span>
         <i />
       </button>
       <div className="yk-view-toggle" aria-label="Display mode">
@@ -1735,7 +1746,7 @@ export function CollectionView({
                               : setSelectedId(card.instanceId)
                           }
                         >
-                          <CardShell>
+                          <CardShell interactive={false}>
                             <YokaiCard
                               {...card}
                               image={card.image}
@@ -1944,14 +1955,12 @@ export function CollectionView({
                     <span
                       className={`text-sm font-bold tracking-widest ${rarityText[selected.rarity]}`}
                     >
-                      {selected.rarity}
-                      {selected.shiny ? " ✦ Shiny" : ""}
+                      {cardRarityLabel(
+                        selected.rarity,
+                        selected.shiny,
+                        selected.isEvolved
+                      )}
                     </span>
-                    {selected.isEvolved && (
-                      <span className="text-[10px] font-semibold tracking-wider text-accent-gold">
-                        EVOLVED
-                      </span>
-                    )}
                   </div>
                   <div className="yk-detail-title-row">
                     <h3 className="font-display text-[28px] leading-tight">
@@ -2081,71 +2090,71 @@ export function CollectionView({
                   Offer a trade
                 </Link>
               )}
-              {!readOnly &&
-                (onCreateAuction ||
-                  (selected.rarity === "SSR" && !selected.shiny)) && (
-                  <div className="yk-detail-actions">
-                    {onCreateAuction && (
-                      <Button
-                        className="w-full"
-                        disabled={selected.locked || selectedGroupFrozen}
-                        onClick={() => void openAuction()}
-                      >
-                        {selected.locked
-                          ? "Card locked"
-                          : selectedGroupFrozen
-                            ? "Card frozen while in auction"
-                            : "List for auction"}
-                      </Button>
-                    )}
-                    {selected.rarity === "SSR" && !selected.shiny && (
-                      <div className="yk-detail-evolve">
-                        <div className="yk-detail-progress-copy">
-                          <strong>Shiny progress</strong>
-                          <span>{evolvableCopies}/5 copies</span>
-                        </div>
-                        <div
-                          className="yk-detail-progress"
-                          role="progressbar"
-                          aria-label="Progress toward Shiny evolution"
-                          aria-valuemin={0}
-                          aria-valuemax={5}
-                          aria-valuenow={Math.min(evolvableCopies, 5)}
-                        >
-                          <span
-                            style={{
-                              width: `${Math.min(evolvableCopies, 5) * 20}%`
-                            }}
-                          />
-                        </div>
-                        <Button
-                          variant="secondary"
-                          disabled={
-                            evolvableCopies < 5 || evolving || !onEvolve
-                          }
-                          onClick={() => {
-                            setEvolutionSelection(
-                              new Set(
-                                evolvableCards
-                                  .slice(0, 5)
-                                  .map(card => card.instanceId)
-                              )
-                            );
-                            setEvolutionError("");
-                            setEvolveConfirm(true);
-                          }}
-                        >
-                          Evolve to Shiny
-                        </Button>
+              {!readOnly && (onCreateAuction || canEvolve) && (
+                <div className="yk-detail-actions">
+                  {onCreateAuction && (
+                    <Button
+                      className="w-full"
+                      disabled={selected.locked || selectedGroupFrozen}
+                      onClick={() => void openAuction()}
+                    >
+                      {selected.locked
+                        ? "Card locked"
+                        : selectedGroupFrozen
+                          ? "Card frozen while in auction"
+                          : "List for auction"}
+                    </Button>
+                  )}
+                  {canEvolve && (
+                    <div className="yk-detail-evolve">
+                      <div className="yk-detail-progress-copy">
+                        <strong>Evolution progress</strong>
+                        <span>{evolvableCopies}/5 copies</span>
                       </div>
-                    )}
-                    {evolutionError && (
-                      <p role="alert" className="text-xs text-danger">
-                        {evolutionError}
-                      </p>
-                    )}
-                  </div>
-                )}
+                      <div
+                        className="yk-detail-progress"
+                        role="progressbar"
+                        aria-label={
+                          selected.rarity === "LR"
+                            ? "Progress toward LR evolution"
+                            : "Progress toward SSR evolution"
+                        }
+                        aria-valuemin={0}
+                        aria-valuemax={5}
+                        aria-valuenow={Math.min(evolvableCopies, 5)}
+                      >
+                        <span
+                          style={{
+                            width: `${Math.min(evolvableCopies, 5) * 20}%`
+                          }}
+                        />
+                      </div>
+                      <Button
+                        variant="secondary"
+                        disabled={evolvableCopies < 5 || evolving || !onEvolve}
+                        onClick={() => {
+                          setEvolutionSelection(
+                            new Set(
+                              evolvableCards
+                                .slice(0, 5)
+                                .map(card => card.instanceId)
+                            )
+                          );
+                          setEvolutionError("");
+                          setEvolveConfirm(true);
+                        }}
+                      >
+                        Evolve your card
+                      </Button>
+                    </div>
+                  )}
+                  {evolutionError && (
+                    <p role="alert" className="text-xs text-danger">
+                      {evolutionError}
+                    </p>
+                  )}
+                </div>
+              )}
               {!readOnly && onSetCustomImage && (
                 <details className="yk-detail-image">
                   <summary>
@@ -2241,7 +2250,11 @@ export function CollectionView({
             setEvolutionError("");
           }
         }}
-        title="Confirm Shiny evolution"
+        title={
+          selected?.rarity === "LR"
+            ? "Confirm LR evolution"
+            : "Confirm SSR evolution"
+        }
       >
         {selected && (
           <>
@@ -2281,8 +2294,9 @@ export function CollectionView({
               })}
             </ul>
             <p className="mt-4 text-xs leading-5 text-ink-3">
-              The result is a new Shiny SSR card, with no folder and its
-              original image.
+              {selected.rarity === "LR"
+                ? "The result is a new LR Evolved card, with no folder and its original image. LR Shiny cards cannot evolve."
+                : "The result is a new SSR Evolved card, with no folder and its original image."}
             </p>
             {evolutionError && (
               <p role="alert" className="mt-4 text-sm text-danger">

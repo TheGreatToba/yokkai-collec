@@ -1,3 +1,4 @@
+import { cardRarityLabels } from "./helpers/card-rarity-labels.mjs";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
@@ -24,7 +25,12 @@ function load(file, overrides = {}) {
   vm.runInNewContext(code, {
     exports,
     Error,
-    require: name => (name in overrides ? overrides[name] : require(name))
+    require: name =>
+      name === "@/lib/ui/card-rarity-label"
+        ? cardRarityLabels
+        : name in overrides
+          ? overrides[name]
+          : require(name)
   });
   return exports;
 }

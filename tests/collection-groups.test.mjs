@@ -301,3 +301,18 @@ test("une instance disparue du contexte est retirée avant l'envoi", () => {
     []
   );
 });
+
+test("normal, Shiny and Evolved LR form three distinct groups of the same catalogue card", () => {
+  const normal = copy("normal-lr", { rarity: "LR" });
+  const shiny = copy("shiny-lr", { rarity: "LR", shiny: true });
+  const evolved = { ...copy("evolved-lr", { rarity: "LR" }), isEvolved: true };
+  const groups = groupCollection([
+    normal,
+    shiny,
+    evolved,
+    { ...evolved, instanceId: "evolved-copy" }
+  ]);
+  assert.equal(groups.length, 3);
+  assert.equal(groups.find(g => g.representative.isEvolved).cards.length, 2);
+  assert.equal(new Set(groups.map(g => g.key)).size, 3);
+});

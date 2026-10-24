@@ -16,6 +16,7 @@ export const ownerOnly = [
 ]; // Internal helpers: owning SECURITY DEFINER wrappers/triggers only, never service_role or players.
 
 const allowlist = {
+  "public.evolve_lr_card(uuid[])": ["authenticated"], // Five owned identical normal LR copies only; stable row locks, Shiny/evolved/locked/auction exclusions and atomic replacement.
   "public.publish_wall_post_reply_media(uuid, uuid, text, text, text)": [
     "authenticated"
   ], // Same friend/self wall ACL, bounded own reply and rate limits; one validated own private upload or allowlisted GIF. Walid review required.

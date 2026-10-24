@@ -116,7 +116,7 @@ export function CollectionPreviewClient({
         const evolved = {
           ...source,
           instanceId: `${source.instanceId}-shiny`,
-          shiny: true,
+          shiny: source.rarity === "SSR",
           isEvolved: true
         };
         setCards(current => [

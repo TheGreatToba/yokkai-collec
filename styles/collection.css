@@ -199,8 +199,9 @@
 }
 .yk-collection-toolbar-actions {
   display: flex;
-  flex: 0 0 auto;
-  flex-wrap: nowrap;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  min-width: 0;
   gap: calc(var(--spacing) * 3);
 }
 .yk-collection-toolbar-actions > :not(dialog) {
@@ -614,6 +615,11 @@
   width: 100%;
   border-radius: var(--radius-card);
   text-align: left;
+}
+/* Keep small grid lettering sharp: use the flat hover lift without
+   retaining a GPU texture of the entire card after the transition. */
+.yk-collection-grid .yk-card-shell-static:hover .yk-card-shell-plane {
+  will-change: auto;
 }
 .yk-collection-card-meta {
   margin-top: calc(var(--spacing) * 3);

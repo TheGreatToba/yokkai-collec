@@ -6,6 +6,17 @@ import vm from "node:vm";
 import ts from "typescript";
 
 const require = createRequire(import.meta.url);
+const rarityLabels = { exports: {} };
+vm.runInNewContext(
+  ts.transpileModule(
+    readFileSync(
+      new URL("../lib/ui/card-rarity-label.ts", import.meta.url),
+      "utf8"
+    ),
+    { compilerOptions: { module: ts.ModuleKind.CommonJS } }
+  ).outputText,
+  rarityLabels
+);
 const sharingContext = {
   exports: {},
   URL,
@@ -75,6 +86,7 @@ const context = {
   require(name) {
     if (name === "server-only") return {};
     if (name === "@/lib/server/card-sharing") return sharingContext.exports;
+    if (name === "@/lib/ui/card-rarity-label") return rarityLabels.exports;
     if (name.startsWith("@/")) return {};
     return require(name);
   }
@@ -180,4 +192,27 @@ test("illustration Imgur autorisée : téléchargée et conservée dans le rendu
     ),
     null
   );
+});
+
+test("LR Evolved renders in every share format with its non-Shiny flag", async () => {
+  for (const format of Object.keys(expected)) {
+    const bytes = await renderSharedCardImage(
+      {
+        cardName: "Evolved LR",
+        franchise: "Test",
+        rarity: "LR",
+        shiny: false,
+        isEvolved: true,
+        catalogueImageUrl:
+          "https://catalogue.example/storage/v1/object/public/card-images/test"
+      },
+      format
+    );
+    assert.deepEqual([...bytes.slice(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    assert.deepEqual(
+      [view.getUint32(16), view.getUint32(20)],
+      expected[format]
+    );
+  }
 });
